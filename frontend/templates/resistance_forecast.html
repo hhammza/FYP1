@@ -1,0 +1,468 @@
+{% extends "base.html" %}
+{% block title %}AMR Resistance Forecasting{% endblock %}
+
+{% block page_header %}
+<div class="page-header">
+  <div class="container-xl">
+    <nav aria-label="breadcrumb"><ol class="breadcrumb breadcrumb-custom">
+      <li class="breadcrumb-item"><a href="/">Dashboard</a></li>
+      <li class="breadcrumb-item active">AMR Forecasting</li>
+    </ol></nav>
+    <div class="d-flex align-items-center gap-3">
+      <div class="page-header-icon lgbm-icon"><i class="bi bi-graph-up-arrow"></i></div>
+      <div>
+        <h1 class="page-title">AMR Resistance Forecasting</h1>
+        <p class="page-subtitle">LightGBM gradient boosting — predict resistance from genomic metadata &amp; MIC values</p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="container-xl py-4">
+
+  <!-- ── Scientific Context Strip ─────────────────────────────── -->
+  <div class="d-flex gap-3 flex-wrap mb-4">
+    <div class="flex-fill" style="min-width:160px">
+      <div class="stat-mini">
+        <div class="stat-mini-value" style="color:var(--indigo2)">0.93</div>
+        <div class="stat-mini-label">AUC-ROC (test set)</div>
+      </div>
+    </div>
+    <div class="flex-fill" style="min-width:160px">
+      <div class="stat-mini">
+        <div class="stat-mini-value">90K+</div>
+        <div class="stat-mini-label">Labeled AMR records</div>
+      </div>
+    </div>
+    <div class="flex-fill" style="min-width:160px">
+      <div class="stat-mini">
+        <div class="stat-mini-value" style="color:var(--emerald2)">14</div>
+        <div class="stat-mini-label">Genomic features</div>
+      </div>
+    </div>
+    <div class="flex-fill" style="min-width:160px">
+      <div class="stat-mini">
+        <div class="stat-mini-value" style="color:var(--rose2)">1.27M</div>
+        <div class="stat-mini-label">Annual AMR deaths (WHO)</div>
+      </div>
+    </div>
+    <div class="flex-fill" style="min-width:160px">
+      <div class="stat-mini">
+        <div class="stat-mini-value" style="color:var(--amber2)">48+</div>
+        <div class="stat-mini-label">Antibiotics modeled</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+
+    <!-- ── Input Form ──────────────────────────────────────────── -->
+    <div class="col-lg-4">
+      <div class="form-card">
+        <h5 class="form-card-title"><i class="bi bi-sliders me-2"></i>Prediction Parameters</h5>
+        <form method="POST" action="/forecast" id="forecastForm">
+
+          <div class="mb-3">
+            <label class="form-label-custom">Antibiotic <span class="required">*</span></label>
+            <select name="antibiotic" class="form-select form-select-custom" required>
+              <option value="">-- Select Antibiotic --</option>
+              {% for ab in antibiotics %}
+              <option value="{{ ab }}" {% if form_data.antibiotic == ab %}selected{% endif %}>{{ ab }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label-custom">Taxon ID <span class="text-muted">(optional)</span></label>
+            <input type="number" name="taxon_id" class="form-control form-control-custom"
+                   placeholder="e.g. 562 (E. coli)" value="{{ form_data.get('taxon_id', '') }}">
+            <div class="form-hint">NCBI Taxonomy ID of the organism</div>
+          </div>
+
+          <div class="row g-2 mb-3">
+            <div class="col-5">
+              <label class="form-label-custom">MIC Sign</label>
+              <select name="mic_sign" class="form-select form-select-custom">
+                <option value="">Select</option>
+                <option value="<=" {% if form_data.get('mic_sign') == '<=' %}selected{% endif %}>≤</option>
+                <option value="<"  {% if form_data.get('mic_sign') == '<'  %}selected{% endif %}>&lt;</option>
+                <option value="="  {% if form_data.get('mic_sign') == '='  %}selected{% endif %}>=</option>
+                <option value=">"  {% if form_data.get('mic_sign') == '>'  %}selected{% endif %}>&gt;</option>
+                <option value=">=" {% if form_data.get('mic_sign') == '>=' %}selected{% endif %}>≥</option>
+              </select>
+            </div>
+            <div class="col-7">
+              <label class="form-label-custom">MIC Value (mg/L)</label>
+              <input type="number" step="0.01" name="mic_value" class="form-control form-control-custom"
+                     placeholder="e.g. 4.0" value="{{ form_data.get('mic_value', '') }}">
+            </div>
+          </div>
+
+          <div class="row g-2 mb-3">
+            <div class="col-6">
+              <label class="form-label-custom">Genus</label>
+              <input type="text" name="genus" class="form-control form-control-custom"
+                     placeholder="e.g. Escherichia" value="{{ form_data.get('genus', '') }}">
+            </div>
+            <div class="col-6">
+              <label class="form-label-custom">Species</label>
+              <input type="text" name="species" class="form-control form-control-custom"
+                     placeholder="e.g. coli" value="{{ form_data.get('species', '') }}">
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label-custom">Decision Threshold: <span id="threshVal">{{ form_data.get('threshold', '0.40') }}</span></label>
+            <input type="range" name="threshold" class="form-range" min="0.1" max="0.9" step="0.05"
+                   value="{{ form_data.get('threshold', '0.40') }}" id="threshSlider">
+            <div class="d-flex justify-content-between"><small class="text-muted">0.1 (Liberal)</small><small class="text-muted">0.9 (Conservative)</small></div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label-custom">Quick Select Organism</label>
+            <select class="form-select form-select-custom" id="orgSelect" onchange="fillOrganism(this.value)">
+              <option value="">-- Common organisms --</option>
+              <option value="Escherichia:coli:562">Escherichia coli</option>
+              <option value="Klebsiella:pneumoniae:573">Klebsiella pneumoniae</option>
+              <option value="Pseudomonas:aeruginosa:287">Pseudomonas aeruginosa</option>
+              <option value="Staphylococcus:aureus:1280">Staphylococcus aureus</option>
+              <option value="Salmonella:enterica:28901">Salmonella enterica</option>
+              <option value="Acinetobacter:baumannii:470">Acinetobacter baumannii</option>
+              <option value="Streptococcus:pneumoniae:1313">Streptococcus pneumoniae</option>
+              <option value="Enterococcus:faecium:1352">Enterococcus faecium</option>
+            </select>
+          </div>
+
+          <button type="submit" class="btn btn-primary-custom w-100 btn-lg" id="predictBtn">
+            <i class="bi bi-cpu me-2"></i>Predict Resistance
+          </button>
+        </form>
+      </div>
+
+      <!-- MIC Reference Guide -->
+      <div class="info-card mt-4">
+        <h6 class="card-section-title"><i class="bi bi-rulers text-accent me-2"></i>MIC Reference Guide</h6>
+        <div class="method-steps">
+          <div class="method-step"><span class="step-num" style="background:rgba(16,185,129,0.12);border-color:rgba(16,185,129,0.3);color:var(--emerald2)">S</span><div><strong style="color:var(--emerald2)">Susceptible:</strong> MIC ≤ breakpoint — standard dosing effective</div></div>
+          <div class="method-step"><span class="step-num" style="background:rgba(245,158,11,0.12);border-color:rgba(245,158,11,0.3);color:var(--amber2)">I</span><div><strong style="color:var(--amber2)">Intermediate:</strong> MIC near breakpoint — requires higher dosing</div></div>
+          <div class="method-step"><span class="step-num" style="background:rgba(244,63,94,0.12);border-color:rgba(244,63,94,0.3);color:var(--rose2)">R</span><div><strong style="color:var(--rose2)">Resistant:</strong> MIC > breakpoint — drug likely ineffective</div></div>
+        </div>
+        <div class="mt-3 pt-2" style="border-top:1px solid var(--border)">
+          <div class="text-muted" style="font-size:11px">Common MIC breakpoints (EUCAST 2023)</div>
+          <div class="d-flex flex-wrap gap-2 mt-2">
+            <span class="feature-tag">Ciprofloxacin: ≤0.25 S</span>
+            <span class="feature-tag">Ampicillin: ≤8 S</span>
+            <span class="feature-tag">Meropenem: ≤2 S</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Results ─────────────────────────────────────────────── -->
+    <div class="col-lg-8">
+      {% if error %}
+      <div class="alert alert-danger-custom"><i class="bi bi-exclamation-circle me-2"></i>{{ error }}</div>
+      {% endif %}
+
+      {% if result %}
+      <!-- Main Result Badge -->
+      <div class="result-hero {% if result.prediction == 'Resistant' %}result-resistant{% else %}result-susceptible{% endif %} mb-4">
+        <div class="result-hero-content">
+          <div class="result-icon-large">
+            {% if result.prediction == 'Resistant' %}
+            <i class="bi bi-shield-x"></i>
+            {% else %}
+            <i class="bi bi-shield-check"></i>
+            {% endif %}
+          </div>
+          <div>
+            <div class="result-label">LightGBM Prediction Result</div>
+            <div class="result-main-label">{{ result.prediction }}</div>
+            <div class="result-sub">{{ result.antibiotic }} | Confidence: {{ result.confidence }}%</div>
+          </div>
+          <div class="ms-auto text-end">
+            <div class="result-prob-label">Resistance Probability</div>
+            <div class="result-prob-val">{{ "%.1f"|format(result.probability * 100) }}%</div>
+            <div class="small text-muted">Threshold: {{ result.threshold }}</div>
+          </div>
+        </div>
+
+        <!-- Probability Bar -->
+        <div class="prob-bar-wrap mt-3">
+          <div class="prob-bar-bg">
+            <div class="prob-bar-fill {% if result.prediction == 'Resistant' %}resistant-fill{% else %}susceptible-fill{% endif %}"
+                 style="width: {{ result.probability * 100 }}%"></div>
+          </div>
+          <div class="d-flex justify-content-between mt-1">
+            <small class="text-success fw-500">Susceptible</small>
+            <small class="text-danger fw-500">Resistant</small>
+          </div>
+        </div>
+      </div>
+
+      <div class="row g-4 mb-4">
+        <!-- Drug Info -->
+        <div class="col-md-6">
+          <div class="info-card h-100">
+            <h6 class="card-section-title"><i class="bi bi-info-circle me-2 text-accent"></i>Drug Information</h6>
+            <table class="table table-custom table-sm">
+              <tr><td class="text-muted">Antibiotic</td><td class="fw-500 text-capitalize">{{ result.antibiotic }}</td></tr>
+              <tr><td class="text-muted">Drug Class</td><td class="fw-500 text-capitalize">{{ result.drug_class | replace('_', ' ') }}</td></tr>
+              <tr><td class="text-muted">Model Used</td><td class="fw-500">{{ result.model_used }}</td></tr>
+              {% if result.related_antibiotics %}
+              <tr><td class="text-muted">Related Drugs</td><td class="fw-500">{{ result.related_antibiotics | join(', ') }}</td></tr>
+              {% endif %}
+            </table>
+          </div>
+        </div>
+
+        <!-- Clinical Interpretation -->
+        <div class="col-md-6">
+          <div class="info-card h-100">
+            <h6 class="card-section-title"><i class="bi bi-clipboard2-pulse me-2 text-accent"></i>Clinical Interpretation</h6>
+            {% if result.prediction == 'Resistant' %}
+            <div class="interp-box interp-resistant">
+              <i class="bi bi-exclamation-triangle-fill me-2"></i>
+              <strong>Treatment Concern</strong><br>
+              This organism shows high likelihood of resistance. Consider alternative antibiotics
+              from a different drug class. Cross-resistance within {{ result.drug_class | replace('_', ' ') }} class is possible.
+            </div>
+            {% else %}
+            <div class="interp-box interp-susceptible">
+              <i class="bi bi-check-circle-fill me-2"></i>
+              <strong>Treatment Likely Effective</strong><br>
+              This organism is predicted susceptible. Standard dosing of {{ result.antibiotic }}
+              should be effective. Monitor MIC values during treatment.
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Comparison Chart -->
+      {% if result.comparison_chart %}
+      <div class="info-card mb-4">
+        <h6 class="card-section-title"><i class="bi bi-bar-chart me-2 text-accent"></i>Resistance Probability Comparison (Common Antibiotics)</h6>
+        <div id="comparisonChart" style="height:300px;"></div>
+      </div>
+      {% endif %}
+
+      {% else %}
+      <!-- Empty State -->
+      <div class="empty-state">
+        <div class="empty-state-icon lgbm-icon"><i class="bi bi-graph-up-arrow"></i></div>
+        <h4>Ready to Forecast</h4>
+        <p>Enter the antibiotic name and organism details, then click <strong>Predict Resistance</strong> to get the forecasting result.</p>
+        <div class="row g-3 mt-3">
+          <div class="col-md-6">
+            <div class="example-box">
+              <div class="example-title">Example 1 — High Resistance</div>
+              <div class="example-content">
+                <div>Antibiotic: <strong>ciprofloxacin</strong></div>
+                <div>Organism: <strong>Escherichia coli</strong></div>
+                <div>MIC: <strong>≥ 4 mg/L</strong></div>
+                <div class="mt-1" style="color:var(--rose2)">Expected: Resistant (~82%)</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="example-box">
+              <div class="example-title">Example 2 — Susceptible</div>
+              <div class="example-content">
+                <div>Antibiotic: <strong>meropenem</strong></div>
+                <div>Organism: <strong>Klebsiella pneumoniae</strong></div>
+                <div>MIC: <strong>≤ 0.5 mg/L</strong></div>
+                <div class="mt-1" style="color:var(--emerald2)">Expected: Susceptible (~19%)</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- ── Scientific Background Section ──────────────────────────── -->
+  <div class="mt-5">
+    <div class="mb-4">
+      <div class="sec-eyebrow">Scientific Background</div>
+      <div class="sec-title">Understanding LightGBM-Based AMR Forecasting</div>
+      <div class="sec-sub">Our model uses gradient boosting on 90,826 labeled genomic records to classify antibiotic resistance with clinical-grade accuracy.</div>
+    </div>
+
+    <div class="row g-4 mb-4">
+      <div class="col-md-4">
+        <div class="crisis-card blue h-100">
+          <div class="crisis-icon"><i class="bi bi-cpu text-accent"></i></div>
+          <div class="crisis-val">LightGBM</div>
+          <div class="fw-600 mb-2" style="color:var(--accent2)">Gradient Boosting Algorithm</div>
+          <div class="crisis-desc">LightGBM builds an ensemble of decision trees sequentially, each correcting the errors of the previous. It uses histogram-based splitting and leaf-wise tree growth for superior speed and accuracy on tabular genomic metadata — achieving AUC-ROC of 0.9255 on the AMR test set.</div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="crisis-card indigo h-100">
+          <div class="crisis-icon"><i class="bi bi-bar-chart-steps" style="color:var(--indigo2)"></i></div>
+          <div class="crisis-val">MIC Values</div>
+          <div class="fw-600 mb-2" style="color:var(--indigo2)">Minimum Inhibitory Concentration</div>
+          <div class="crisis-desc">MIC is the lowest antibiotic concentration that prevents visible bacterial growth. It is the gold-standard phenotypic measure of resistance. Our model log-transforms MIC values and encodes the sign (≤, =, ≥) as a separate categorical feature, capturing both measurement and directionality.</div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="crisis-card amber h-100">
+          <div class="crisis-icon"><i class="bi bi-diagram-3" style="color:var(--amber2)"></i></div>
+          <div class="crisis-val">14 Features</div>
+          <div class="fw-600 mb-2" style="color:var(--amber2)">Genomic Feature Engineering</div>
+          <div class="crisis-desc">The model uses 14 engineered features: antibiotic name, drug class, MIC value + sign, genus, species, taxon ID, and target-encoded resistance rates per antibiotic, per taxon-antibiotic pair, and per genus-antibiotic pair — capturing population-level resistance epidemiology.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+      <div class="col-lg-7">
+        <div class="glass-card h-100">
+          <h6 class="card-section-title"><i class="bi bi-bacteria text-accent me-2"></i>WHO Priority Pathogens — Resistance Landscape</h6>
+          <div class="table-responsive">
+            <table class="table table-custom table-sm mb-0">
+              <thead><tr>
+                <th>Pathogen</th><th>Drug</th><th>Resistance Rate</th><th>Priority</th>
+              </tr></thead>
+              <tbody>
+                <tr>
+                  <td class="fw-500"><em>E. coli</em></td>
+                  <td>Fluoroquinolones</td>
+                  <td><span style="color:var(--rose2);font-weight:700">~80%</span></td>
+                  <td><span class="status-badge trained">Critical</span></td>
+                </tr>
+                <tr>
+                  <td class="fw-500"><em>K. pneumoniae</em></td>
+                  <td>3rd-gen Cephalosporins</td>
+                  <td><span style="color:var(--rose2);font-weight:700">~60%</span></td>
+                  <td><span class="status-badge trained">Critical</span></td>
+                </tr>
+                <tr>
+                  <td class="fw-500"><em>Acinetobacter</em></td>
+                  <td>Carbapenems</td>
+                  <td><span style="color:var(--amber2);font-weight:700">~45%</span></td>
+                  <td><span class="status-badge trained">Critical</span></td>
+                </tr>
+                <tr>
+                  <td class="fw-500"><em>S. aureus</em></td>
+                  <td>Methicillin (MRSA)</td>
+                  <td><span style="color:var(--amber2);font-weight:700">~30%</span></td>
+                  <td><span class="status-badge untrained">High</span></td>
+                </tr>
+                <tr>
+                  <td class="fw-500"><em>P. aeruginosa</em></td>
+                  <td>Carbapenems</td>
+                  <td><span style="color:var(--amber2);font-weight:700">~20%</span></td>
+                  <td><span class="status-badge untrained">High</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="mt-2" style="font-size:11px;color:var(--text-3)">Source: WHO Global Antimicrobial Resistance and Use Surveillance System (GLASS) 2022</div>
+        </div>
+      </div>
+      <div class="col-lg-5">
+        <div class="glass-card h-100">
+          <h6 class="card-section-title"><i class="bi bi-gear text-accent me-2"></i>Model Training Pipeline</h6>
+          <div class="method-steps">
+            <div class="method-step"><span class="step-num">1</span>Load 4,252 AMR CSV files from BVBRC/PATRIC database (90K+ records)</div>
+            <div class="method-step"><span class="step-num">2</span>Parse MIC values, extract genus/species, merge Intermediate→Resistant</div>
+            <div class="method-step"><span class="step-num">3</span>Target-encode resistance rates per antibiotic, taxon, genus (5-fold CV)</div>
+            <div class="method-step"><span class="step-num">4</span>Train LightGBM with <code>is_unbalance=True</code> and early stopping (50 rounds)</div>
+            <div class="method-step"><span class="step-num">5</span>Evaluate on holdout set — AUC-ROC: <strong style="color:var(--accent2)">0.9255</strong></div>
+          </div>
+          <div class="mt-3 pt-2" style="border-top:1px solid var(--border)">
+            <div class="d-flex gap-2 flex-wrap">
+              <span class="feature-tag">BVBRC Dataset</span>
+              <span class="feature-tag">PATRIC AMR</span>
+              <span class="feature-tag">EUCAST Breakpoints</span>
+              <span class="feature-tag">LightGBM 4.x</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Drug Class Reference -->
+    <div class="glass-card">
+      <h6 class="card-section-title"><i class="bi bi-capsule text-accent me-2"></i>Antibiotic Drug Classes — Mechanism of Action</h6>
+      <div class="row g-3">
+        <div class="col-md-3">
+          <div class="example-box">
+            <div class="example-title" style="color:var(--indigo2)">Beta-Lactams</div>
+            <div class="example-content">Inhibit cell wall synthesis by binding penicillin-binding proteins (PBPs). Include penicillins, cephalosporins, carbapenems. Resistance via beta-lactamase enzymes (ESBL, KPC).</div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="example-box">
+            <div class="example-title" style="color:var(--rose2)">Fluoroquinolones</div>
+            <div class="example-content">Inhibit DNA gyrase and topoisomerase IV, blocking DNA replication. Include ciprofloxacin, levofloxacin. Resistance via target mutations and efflux pumps (QRDR mutations).</div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="example-box">
+            <div class="example-title" style="color:var(--emerald2)">Aminoglycosides</div>
+            <div class="example-content">Bind 30S ribosomal subunit, inhibiting protein synthesis. Include gentamicin, tobramycin, amikacin. Resistance via aminoglycoside-modifying enzymes (AMEs) and 16S rRNA methylases.</div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="example-box">
+            <div class="example-title" style="color:var(--amber2)">Tetracyclines</div>
+            <div class="example-content">Inhibit 30S ribosomal subunit, blocking aminoacyl-tRNA binding. Include tetracycline, doxycycline, tigecycline. Resistance via efflux pumps (tet genes) and ribosomal protection proteins.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('threshSlider').addEventListener('input', function() {
+  document.getElementById('threshVal').textContent = this.value;
+});
+
+function fillOrganism(val) {
+  if (!val) return;
+  const parts = val.split(':');
+  document.querySelector('[name=genus]').value = parts[0];
+  document.querySelector('[name=species]').value = parts[1];
+  document.querySelector('[name=taxon_id]').value = parts[2];
+}
+
+{% if result and result.comparison_chart %}
+const compData = {{ result.comparison_chart | tojson }};
+const labels = compData.map(d => d.antibiotic);
+const values = compData.map(d => d.resistance_probability);
+const colors = values.map(v => v > 50 ? 'rgba(239,68,68,0.8)' : v > 30 ? 'rgba(234,179,8,0.8)' : 'rgba(34,197,94,0.8)');
+
+Plotly.newPlot('comparisonChart', [{
+  type: 'bar',
+  x: labels,
+  y: values,
+  marker: { color: colors, line: { color: 'rgba(255,255,255,0.1)', width: 1 } },
+  text: values.map(v => v.toFixed(1) + '%'),
+  textposition: 'outside',
+  hovertemplate: '%{x}<br>Resistance: %{y:.1f}%<extra></extra>',
+}], {
+  paper_bgcolor: 'rgba(0,0,0,0)',
+  plot_bgcolor: 'rgba(0,0,0,0)',
+  margin: { t: 20, b: 100, l: 40, r: 20 },
+  xaxis: { tickangle: -35, tickfont: { color: '#94a3b8', size: 11 }, gridcolor: 'rgba(255,255,255,0.05)' },
+  yaxis: { tickfont: { color: '#94a3b8' }, gridcolor: 'rgba(255,255,255,0.05)', range: [0, 110], ticksuffix: '%' },
+  shapes: [{
+    type: 'line', x0: -0.5, x1: labels.length - 0.5, y0: 50, y1: 50,
+    line: { color: 'rgba(239,68,68,0.5)', width: 1.5, dash: 'dash' }
+  }],
+  annotations: [{ x: labels.length - 1, y: 52, text: '50% threshold', font: { color: 'rgba(239,68,68,0.7)', size: 10 }, showarrow: false }],
+  font: { family: 'Inter' },
+}, { responsive: true, displayModeBar: false });
+{% endif %}
+</script>
+{% endblock %}

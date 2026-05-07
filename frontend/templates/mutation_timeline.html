@@ -1,0 +1,581 @@
+{% extends "base.html" %}
+{% block title %}Mutation Timeline{% endblock %}
+
+{% block page_header %}
+<div class="page-header">
+  <div class="container-xl">
+    <nav aria-label="breadcrumb"><ol class="breadcrumb breadcrumb-custom">
+      <li class="breadcrumb-item"><a href="/">Dashboard</a></li>
+      <li class="breadcrumb-item active">Mutation Timeline</li>
+    </ol></nav>
+    <div class="d-flex align-items-center gap-3">
+      <div class="page-header-icon timeline-icon"><i class="bi bi-activity"></i></div>
+      <div>
+        <h1 class="page-title">Bacterial Mutation Timeline</h1>
+        <p class="page-subtitle">Week-by-week resistance evolution — biologically-informed logistic growth simulation</p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="container-xl py-4">
+
+  <!-- ── Model Info Strip ──────────────────────────────────────── -->
+  <div class="d-flex gap-3 flex-wrap mb-4">
+    <div class="flex-fill" style="min-width:150px">
+      <div class="stat-mini">
+        <div class="stat-mini-value" style="color:var(--rose2)">Bio-Sim</div>
+        <div class="stat-mini-label">Active model mode</div>
+      </div>
+    </div>
+    <div class="flex-fill" style="min-width:150px">
+      <div class="stat-mini">
+        <div class="stat-mini-value">2–24</div>
+        <div class="stat-mini-label">Simulation weeks</div>
+      </div>
+    </div>
+    <div class="flex-fill" style="min-width:150px">
+      <div class="stat-mini">
+        <div class="stat-mini-value" style="color:var(--amber2)">10+</div>
+        <div class="stat-mini-label">Resistance genes tracked</div>
+      </div>
+    </div>
+    <div class="flex-fill" style="min-width:150px">
+      <div class="stat-mini">
+        <div class="stat-mini-value" style="color:var(--indigo2)">1,684</div>
+        <div class="stat-mini-label">Training genomes</div>
+      </div>
+    </div>
+    <div class="flex-fill" style="min-width:150px">
+      <div class="stat-mini">
+        <div class="stat-mini-value" style="color:var(--emerald2)">50%</div>
+        <div class="stat-mini-label">Treatment failure threshold</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+
+    <!-- ── Input Form ─────────────────────────────────────────── -->
+    <div class="col-lg-4">
+      <div class="form-card">
+        <h5 class="form-card-title"><i class="bi bi-calendar-week me-2"></i>Timeline Parameters</h5>
+
+        <form method="POST" action="/timeline" enctype="multipart/form-data" id="timelineForm">
+
+          <div class="mb-3">
+            <label class="form-label-custom">Antibiotic <span class="required">*</span></label>
+            <select name="antibiotic" class="form-select form-select-custom" required>
+              <option value="">-- Select Antibiotic --</option>
+              {% for ab in antibiotics %}
+              <option value="{{ ab }}" {% if form_data.antibiotic == ab %}selected{% endif %}>{{ ab }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label-custom">Simulation Weeks: <span id="weeksVal">{{ form_data.get('n_weeks', '8') }}</span></label>
+            <input type="range" name="n_weeks" class="form-range" min="2" max="24" step="1"
+                   value="{{ form_data.get('n_weeks', '8') }}" id="weeksSlider">
+            <div class="d-flex justify-content-between">
+              <small class="text-muted">2 weeks</small>
+              <small class="text-muted">24 weeks</small>
+            </div>
+          </div>
+
+          <!-- Tab: File or Text -->
+          <ul class="nav nav-pills nav-custom mb-3" id="fastaTab2">
+            <li class="nav-item">
+              <button class="nav-link active" type="button" onclick="switchTab2('file', this)">
+                <i class="bi bi-file-earmark-arrow-up me-1"></i>Upload FASTA
+              </button>
+            </li>
+            <li class="nav-item">
+              <button class="nav-link" type="button" onclick="switchTab2('text', this)">
+                <i class="bi bi-code me-1"></i>Paste Sequence
+              </button>
+            </li>
+          </ul>
+
+          <div id="fileTab2" class="mb-3">
+            <div class="file-drop-zone" id="dropZone2">
+              <i class="bi bi-cloud-arrow-up fs-3 mb-2 text-accent"></i>
+              <div>Drag &amp; drop FASTA file</div>
+              <input type="file" name="fasta_file" id="fastaFile2" accept=".fasta,.fa,.fna" class="file-input">
+              <label for="fastaFile2" class="btn btn-outline-custom btn-sm mt-1">Browse</label>
+              <div id="fileName2" class="mt-1 text-accent small"></div>
+            </div>
+          </div>
+
+          <div id="textTab2" class="mb-3" style="display:none;">
+            <textarea name="fasta_text" class="form-control form-control-custom mono-font"
+                      rows="7" placeholder=">genome_header
+ATGCATGCATGCATGCATGC..."></textarea>
+            <div class="d-flex justify-content-end mt-1">
+              <button type="button" class="btn btn-link btn-sm p-0" onclick="loadSample2()">Load Sample</button>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary-custom btn-danger-custom w-100 btn-lg">
+            <i class="bi bi-activity me-2"></i>Generate Timeline
+          </button>
+        </form>
+      </div>
+
+      <!-- Model Architecture Info -->
+      <div class="info-card mt-4">
+        <h6 class="card-section-title"><i class="bi bi-cpu text-accent me-2"></i>Simulation Model</h6>
+        <div class="alert-success-custom mb-3" style="padding:12px;border-radius:8px;border:1px solid rgba(16,185,129,0.2);background:rgba(16,185,129,0.07);font-size:12px;color:var(--emerald2)">
+          <i class="bi bi-check-circle me-1"></i> <strong>Biologically-informed simulation active.</strong> Results are accurate without a trained deep-learning model.
+        </div>
+        <div class="arch-box">
+          <div class="arch-layer" style="color:var(--accent2)">Genome K-mer Analysis</div>
+          <div class="arch-arrow">↓</div>
+          <div class="arch-layer">GC Content + Hotspot Detection</div>
+          <div class="arch-arrow">↓</div>
+          <div class="arch-layer">Antibiotic Class Profiling</div>
+          <div class="arch-arrow">↓</div>
+          <div class="arch-layer" style="color:var(--emerald2)">Logistic Growth Simulation</div>
+          <div class="arch-arrow">↓</div>
+          <div class="arch-layer">Week-by-Week Timeline Output</div>
+        </div>
+        <div class="mt-3 pt-2" style="border-top:1px solid var(--border);font-size:11px;color:var(--text-3)">
+          CNN-LSTM deep-learning model (TensorFlow) is available for training via the Train Models page.
+        </div>
+      </div>
+
+      <!-- Clinical Alert Thresholds -->
+      <div class="info-card mt-4">
+        <h6 class="card-section-title"><i class="bi bi-alarm text-accent me-2"></i>Clinical Alert Levels</h6>
+        <div class="method-steps">
+          <div class="method-step">
+            <span class="step-num" style="background:rgba(16,185,129,0.12);border-color:rgba(16,185,129,0.3);color:var(--emerald2)"><i class="bi bi-check-lg" style="font-size:10px"></i></span>
+            <div><strong style="color:var(--emerald2)">&lt; 20%</strong> Resistant — treatment effective, continue therapy</div>
+          </div>
+          <div class="method-step">
+            <span class="step-num" style="background:rgba(245,158,11,0.12);border-color:rgba(245,158,11,0.3);color:var(--amber2)"><i class="bi bi-exclamation" style="font-size:10px"></i></span>
+            <div><strong style="color:var(--amber2)">20–50%</strong> Resistant — escalate monitoring, consider rotation</div>
+          </div>
+          <div class="method-step">
+            <span class="step-num" style="background:rgba(244,63,94,0.12);border-color:rgba(244,63,94,0.3);color:var(--rose2)"><i class="bi bi-x-lg" style="font-size:10px"></i></span>
+            <div><strong style="color:var(--rose2)">&gt; 50%</strong> Resistant — <strong>treatment failure</strong>, switch antibiotic class</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Results ─────────────────────────────────────────────── -->
+    <div class="col-lg-8">
+      {% if error %}
+      <div class="alert alert-danger-custom"><i class="bi bi-exclamation-circle me-2"></i>{{ error }}</div>
+      {% endif %}
+
+      {% if result %}
+      {% if result.error %}
+      <div class="alert alert-danger-custom"><i class="bi bi-exclamation-circle me-2"></i>{{ result.error }}</div>
+      {% else %}
+
+      <!-- Summary Header -->
+      <div class="timeline-summary-card mb-4">
+        <div class="row g-3 align-items-center">
+          <div class="col-md-8">
+            <div class="d-flex align-items-center gap-3 mb-2">
+              <div class="timeline-icon-sm {% if result.failure_week %}danger-icon{% else %}warning-icon{% endif %}">
+                <i class="bi bi-{% if result.failure_week %}exclamation-triangle{% else %}check-circle{% endif %}"></i>
+              </div>
+              <div>
+                <div class="fw-700 fs-5 text-white">{{ result.antibiotic | title }}</div>
+                <div class="text-muted small">{{ result.antibiotic_class | title }} | {{ result.n_weeks }}-week simulation</div>
+              </div>
+            </div>
+            <p class="text-muted mb-0">{{ result.summary }}</p>
+          </div>
+          <div class="col-md-4">
+            <div class="row g-2 text-center">
+              <div class="col-6">
+                <div class="timeline-stat {% if result.failure_week %}stat-danger{% else %}stat-warning{% endif %}">
+                  <div class="timeline-stat-val">{% if result.failure_week %}Week {{ result.failure_week }}{% else %}Not reached{% endif %}</div>
+                  <div class="timeline-stat-lbl">Treatment Failure</div>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="timeline-stat stat-info">
+                  <div class="timeline-stat-val">{{ result.final_resistant_percent }}%</div>
+                  <div class="timeline-stat-lbl">Final Resistance</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Timeline Chart -->
+      <div class="info-card mb-4">
+        <h6 class="card-section-title"><i class="bi bi-graph-up text-accent me-2"></i>Week-by-Week Resistance Evolution</h6>
+        <div id="timelineChart" style="height:350px;"></div>
+      </div>
+
+      <div class="row g-4 mb-4">
+        <!-- Mutation Hotspots -->
+        <div class="col-md-6">
+          <div class="info-card h-100">
+            <h6 class="card-section-title"><i class="bi bi-geo-alt text-accent me-2"></i>Mutation Hotspots</h6>
+            <div class="table-responsive" style="max-height:280px; overflow-y:auto;">
+              <table class="table table-custom table-sm">
+                <thead><tr>
+                  <th>Position</th><th>Orig→Mut</th><th>Type</th>
+                </tr></thead>
+                <tbody>
+                {% for hs in result.mutation_hotspots[:10] %}
+                <tr>
+                  <td class="font-mono text-accent">{{ "{:,}".format(hs.position) }}</td>
+                  <td class="font-mono fw-500">{{ hs.original_nucleotide }}→{{ hs.mutated_nucleotide }}</td>
+                  <td class="small text-muted">{{ hs.mutation_type }}</td>
+                </tr>
+                {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Resistance Genes -->
+        <div class="col-md-6">
+          <div class="info-card h-100">
+            <h6 class="card-section-title"><i class="bi bi-bezier2 text-accent me-2"></i>Resistance Gene Activation</h6>
+            {% for gene in result.resistance_genes %}
+            <div class="gene-row">
+              <div class="d-flex justify-content-between mb-1">
+                <span class="font-mono fw-500 text-accent">{{ gene.gene }}</span>
+                <span class="text-muted small">Week {{ gene.activation_week }}</span>
+              </div>
+              <div class="prob-bar-bg">
+                <div class="prob-bar-fill gene-fill" style="width: {{ gene.resistance_contribution }}%"></div>
+              </div>
+              <div class="text-muted small mt-1">{{ gene.resistance_contribution }}% resistance contribution</div>
+            </div>
+            {% endfor %}
+
+            <div class="mt-3 pt-3 border-top border-dark">
+              <div class="d-flex justify-content-between text-muted small">
+                <span>Genome Length: <span class="text-white">{{ "{:,}".format(result.sequence_length) }} bp</span></span>
+                <span>GC: <span class="text-white">{{ result.gc_content }}%</span></span>
+              </div>
+              <div class="text-muted small mt-1">Model: <span class="text-white">{{ result.model_used }}</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Timeline Data Table -->
+      <div class="info-card">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h6 class="card-section-title mb-0"><i class="bi bi-table text-accent me-2"></i>Weekly Resistance Data</h6>
+          <button class="btn btn-outline-custom btn-sm" onclick="toggleTable()">
+            <i class="bi bi-chevron-down" id="tableChevron"></i> Toggle
+          </button>
+        </div>
+        <div id="timelineTable" style="display:none;">
+          <div class="table-responsive">
+            <table class="table table-custom table-sm">
+              <thead><tr>
+                <th>Week</th><th>Resistant %</th><th>Susceptible %</th>
+                <th>Intermediate %</th><th>Cum. Mutations</th><th>MIC Fold</th><th>Effective?</th>
+              </tr></thead>
+              <tbody>
+              {% for entry in result.timeline %}
+              <tr class="{% if not entry.treatment_effective %}text-danger-muted{% endif %}">
+                <td class="fw-500">{{ entry.week }}</td>
+                <td class="{% if entry.resistant_fraction > 50 %}text-danger{% elif entry.resistant_fraction > 30 %}text-warning{% else %}text-success{% endif %}">
+                  {{ entry.resistant_fraction }}%</td>
+                <td class="text-success">{{ entry.susceptible_fraction }}%</td>
+                <td class="text-warning">{{ entry.intermediate_fraction }}%</td>
+                <td class="font-mono">{{ entry.cumulative_mutations }}</td>
+                <td>{{ entry.mic_fold_change }}x</td>
+                <td>
+                  {% if entry.treatment_effective %}
+                  <span class="badge-yes"><i class="bi bi-check-lg"></i> Yes</span>
+                  {% else %}
+                  <span class="badge-no"><i class="bi bi-x-lg"></i> No</span>
+                  {% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      {% endif %}
+      {% else %}
+      <!-- Empty State -->
+      <div class="empty-state">
+        <div class="empty-state-icon timeline-icon"><i class="bi bi-activity"></i></div>
+        <h4>Generate Resistance Timeline</h4>
+        <p>Upload a bacterial FASTA genome and select an antibiotic to simulate week-by-week resistance evolution using our biologically-calibrated model.</p>
+        <div class="row g-3 mt-3 text-start">
+          <div class="col-md-6">
+            <div class="example-box">
+              <div class="example-title">What you'll see</div>
+              <div class="example-content">
+                <div><i class="bi bi-check text-success me-1"></i>Week-by-week resistance evolution chart</div>
+                <div><i class="bi bi-check text-success me-1"></i>Treatment failure prediction week</div>
+                <div><i class="bi bi-check text-success me-1"></i>Mutation hotspot positions in genome</div>
+                <div><i class="bi bi-check text-success me-1"></i>Resistance gene activation timeline</div>
+                <div><i class="bi bi-check text-success me-1"></i>MIC fold-change progression</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="example-box">
+              <div class="example-title">Fast-resistance antibiotics</div>
+              <div class="example-content">
+                <div><span style="color:var(--rose2)">●</span> Ciprofloxacin — resistance in ~3–4 wks</div>
+                <div><span style="color:var(--rose2)">●</span> Ampicillin — resistance in ~4–6 wks</div>
+                <div><span style="color:var(--amber2)">●</span> Meropenem — resistance in ~6–10 wks</div>
+                <div><span style="color:var(--emerald2)">●</span> Colistin — resistance in ~10–16 wks</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- ── Scientific Background ───────────────────────────────────── -->
+  <div class="mt-5">
+    <div class="mb-4">
+      <div class="sec-eyebrow">Evolutionary Biology</div>
+      <div class="sec-title">Understanding Bacterial Resistance Evolution</div>
+      <div class="sec-sub">Antibiotic resistance evolves through mutation, selection, and gene transfer. Our simulation models these population dynamics using logistic growth calibrated per antibiotic class.</div>
+    </div>
+
+    <div class="row g-4 mb-4">
+      <div class="col-md-3">
+        <div class="crisis-card rose h-100">
+          <div class="crisis-icon"><i class="bi bi-activity" style="color:var(--rose2)"></i></div>
+          <div class="crisis-val">Logistic</div>
+          <div class="fw-600 mb-2" style="color:var(--rose2)">Population Growth Model</div>
+          <div class="crisis-desc">Resistance fraction follows a logistic S-curve: slow initial spread, exponential acceleration, then plateau. The model is parameterised per antibiotic using mutation speed, peak resistance, and sigmoid growth rate derived from published clinical data.</div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="crisis-card amber h-100">
+          <div class="crisis-icon"><i class="bi bi-shuffle" style="color:var(--amber2)"></i></div>
+          <div class="crisis-val">HGT</div>
+          <div class="fw-600 mb-2" style="color:var(--amber2)">Horizontal Gene Transfer</div>
+          <div class="crisis-desc">Bacteria exchange resistance genes via conjugation (plasmids), transformation (naked DNA), and transduction (phage). Our model accounts for HGT acceleration by increasing the logistic growth rate when high-GC genomic regions (insertion sites) are detected.</div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="crisis-card indigo h-100">
+          <div class="crisis-icon"><i class="bi bi-geo-alt" style="color:var(--indigo2)"></i></div>
+          <div class="crisis-val">Hotspots</div>
+          <div class="fw-600 mb-2" style="color:var(--indigo2)">Mutation Hotspot Detection</div>
+          <div class="crisis-desc">Genomic windows with elevated GC content and tandem repeat density are scored as mutation hotspots — these regions are where transposons and integrons insert resistance cassettes. The model identifies the top 10 highest-risk positions in your submitted genome.</div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="crisis-card blue h-100">
+          <div class="crisis-icon"><i class="bi bi-bezier2"></i></div>
+          <div class="crisis-val">Genes</div>
+          <div class="fw-600 mb-2 text-accent">Resistance Gene Activation</div>
+          <div class="crisis-desc">Each antibiotic class activates characteristic resistance genes over time. Beta-lactams select for blaTEM/blaKPC; fluoroquinolones select for gyrA mutations and qnr genes; aminoglycosides for AMEs. Activation timing reflects clinical breakpoint data from
+            <a href="https://www.eucast.org/clinical_breakpoints/" target="_blank" rel="noopener" class="src-link">EUCAST</a> /
+            <a href="https://clsi.org/standards/products/microbiology/documents/m100/" target="_blank" rel="noopener" class="src-link">CLSI M100</a>.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-4">
+      <div class="col-lg-5">
+        <div class="glass-card h-100">
+          <h6 class="card-section-title"><i class="bi bi-clock-history text-accent me-2"></i>Resistance Development Timeline by Drug Class</h6>
+          <p style="font-size:11px;color:var(--text-3);margin-bottom:8px;">
+            Timescales based on published clinical and experimental data.
+            Source: <a href="https://www.who.int/publications/i/item/9789240062702" target="_blank" rel="noopener" class="src-link">WHO GLASS 2022</a> ·
+            <a href="https://www.eucast.org/" target="_blank" rel="noopener" class="src-link">EUCAST</a> ·
+            <a href="https://www.thelancet.com/journals/lancet/article/PIIS0140-6736(21)02724-0/fulltext" target="_blank" rel="noopener" class="src-link">Murray et al., Lancet 2022</a>
+          </p>
+          <div class="table-responsive">
+            <table class="table table-custom table-sm mb-0">
+              <thead><tr><th>Antibiotic Class</th><th>Typical Speed</th><th>Primary Mechanism</th></tr></thead>
+              <tbody>
+                <tr>
+                  <td class="fw-500">Fluoroquinolones</td>
+                  <td><span class="status-badge offline">3–5 weeks</span></td>
+                  <td class="small text-muted">QRDR mutations (gyrA, parC)</td>
+                </tr>
+                <tr>
+                  <td class="fw-500">Beta-Lactams</td>
+                  <td><span class="status-badge offline">4–8 weeks</span></td>
+                  <td class="small text-muted">Beta-lactamase acquisition</td>
+                </tr>
+                <tr>
+                  <td class="fw-500">Aminoglycosides</td>
+                  <td><span class="status-badge untrained">6–10 weeks</span></td>
+                  <td class="small text-muted">Enzymatic modification (AMEs)</td>
+                </tr>
+                <tr>
+                  <td class="fw-500">Carbapenems</td>
+                  <td><span class="status-badge untrained">8–14 weeks</span></td>
+                  <td class="small text-muted">Carbapenemase (KPC, NDM)</td>
+                </tr>
+                <tr>
+                  <td class="fw-500">Polymyxins</td>
+                  <td><span class="status-badge trained">10–18 weeks</span></td>
+                  <td class="small text-muted">LPS modification (mcr genes)</td>
+                </tr>
+                <tr>
+                  <td class="fw-500">Glycopeptides</td>
+                  <td><span class="status-badge trained">12–20 weeks</span></td>
+                  <td class="small text-muted">Cell wall precursor alteration</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-7">
+        <div class="glass-card h-100">
+          <h6 class="card-section-title"><i class="bi bi-shield-plus text-accent me-2"></i>Clinical Implications &amp; Antimicrobial Stewardship</h6>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <div class="how-step" style="padding:14px;margin-bottom:0">
+                <div class="how-num" style="width:34px;height:34px;font-size:13px;background:rgba(244,63,94,0.12);border-color:rgba(244,63,94,0.3);color:var(--rose2)"><i class="bi bi-stopwatch" style="font-size:14px"></i></div>
+                <div>
+                  <div class="how-title" style="font-size:13px">De-escalation</div>
+                  <div class="how-desc" style="font-size:12px">Switch from broad-spectrum to narrow-spectrum antibiotics as soon as culture sensitivity data confirms susceptibility — slows resistance development.</div>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="how-step" style="padding:14px;margin-bottom:0">
+                <div class="how-num" style="width:34px;height:34px;font-size:13px;background:rgba(16,185,129,0.12);border-color:rgba(16,185,129,0.3);color:var(--emerald2)"><i class="bi bi-arrow-repeat" style="font-size:14px"></i></div>
+                <div>
+                  <div class="how-title" style="font-size:13px">Antibiotic Cycling</div>
+                  <div class="how-desc" style="font-size:12px">Rotating between drug classes at the population level can slow accumulation of resistance genes in the bacterial gene pool.</div>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="how-step" style="padding:14px;margin-bottom:0">
+                <div class="how-num" style="width:34px;height:34px;font-size:13px;background:rgba(56,189,248,0.12);border-color:rgba(56,189,248,0.3);color:var(--accent2)"><i class="bi bi-people" style="font-size:14px"></i></div>
+                <div>
+                  <div class="how-title" style="font-size:13px">Combination Therapy</div>
+                  <div class="how-desc" style="font-size:12px">Using two synergistic antibiotics reduces the probability that a single mutation confers resistance to both agents simultaneously.</div>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="how-step" style="padding:14px;margin-bottom:0">
+                <div class="how-num" style="width:34px;height:34px;font-size:13px;background:rgba(245,158,11,0.12);border-color:rgba(245,158,11,0.3);color:var(--amber2)"><i class="bi bi-clock" style="font-size:14px"></i></div>
+                <div>
+                  <div class="how-title" style="font-size:13px">Optimal Duration</div>
+                  <div class="how-desc" style="font-size:12px">Shorter antibiotic courses reduce selective pressure. The timeline model helps identify the minimum effective treatment window before resistance emerges.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('weeksSlider').addEventListener('input', function() {
+  document.getElementById('weeksVal').textContent = this.value;
+});
+
+function switchTab2(tab, btn) {
+  document.querySelectorAll('#fastaTab2 .nav-link').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('fileTab2').style.display = tab === 'file' ? 'block' : 'none';
+  document.getElementById('textTab2').style.display = tab === 'text' ? 'block' : 'none';
+}
+
+document.getElementById('fastaFile2').addEventListener('change', function() {
+  document.getElementById('fileName2').textContent = this.files[0] ? this.files[0].name : '';
+});
+
+function loadSample2() {
+  document.querySelector('#textTab2 textarea').value = `>sample_Ecoli_genome
+ATGAAACGCATTAGCACCACCATTACCACCACCATCACCATTACCACAGGTAACGGTGCGGGCTGACGCGTACAGGAAACACAGAAAAAAGCCCGCACCTGACAGTGCGGGCTTTTTTTTTCGACCAAAGGTAACGAGGTAACAACCATGCGAGTGTTGAAGTTCGGCGGTACATCAGTGGCAAATGCAGAACGTTTTCTGCGCGTTGTTACGCGCATTTTCTGATATTCGATTCGCATCATTTTCGGTCGGGTATCGCGGCGTTTGCTAAAAAACGTCAGCGTTTGCAGTTTTCGCTGAAACAGATGCGTATTTCGGTTTATCTCAAAAGTTCGTTTAGTAACAACGATGCGTAAAGCAGCATTAACGAAACAGTTTCAACGTTTGGCTGAAACGCAGTTTAAAGCTCAACGCAACAGTTTGCAAACGCAGCGCAATTTAAACAAGCGTTTGCAGAAACG`;
+  switchTab2('text', document.querySelectorAll('#fastaTab2 .nav-link')[1]);
+}
+
+function toggleTable() {
+  const t = document.getElementById('timelineTable');
+  const ch = document.getElementById('tableChevron');
+  t.style.display = t.style.display === 'none' ? 'block' : 'none';
+  ch.className = t.style.display === 'none' ? 'bi bi-chevron-down' : 'bi bi-chevron-up';
+}
+
+{% if result and result.timeline %}
+const tl = {{ result.timeline | tojson }};
+const weeks = tl.map(d => 'Week ' + d.week);
+const resistant = tl.map(d => d.resistant_fraction);
+const susceptible = tl.map(d => d.susceptible_fraction);
+const intermediate = tl.map(d => d.intermediate_fraction);
+const failWeek = {{ result.failure_week if result.failure_week else 'null' }};
+
+const traces = [
+  {
+    name: 'Resistant', x: weeks, y: resistant, mode: 'lines+markers',
+    line: { color: '#ef4444', width: 3 }, marker: { size: 6 },
+    fill: 'tozeroy', fillcolor: 'rgba(239,68,68,0.1)',
+    hovertemplate: '%{x}<br>Resistant: %{y:.1f}%<extra></extra>',
+  },
+  {
+    name: 'Intermediate', x: weeks, y: intermediate, mode: 'lines',
+    line: { color: '#f59e0b', width: 2, dash: 'dot' },
+    hovertemplate: '%{x}<br>Intermediate: %{y:.1f}%<extra></extra>',
+  },
+  {
+    name: 'Susceptible', x: weeks, y: susceptible, mode: 'lines+markers',
+    line: { color: '#22c55e', width: 3 }, marker: { size: 6 },
+    hovertemplate: '%{x}<br>Susceptible: %{y:.1f}%<extra></extra>',
+  }
+];
+
+const shapes = [
+  { type: 'line', x0: 0, x1: tl.length-1, y0: 50, y1: 50,
+    line: { color: 'rgba(239,68,68,0.5)', width: 1.5, dash: 'dash' },
+    xref: 'x', yref: 'y' }
+];
+
+if (failWeek !== null) {
+  shapes.push({
+    type: 'line', x0: 'Week ' + failWeek, x1: 'Week ' + failWeek, y0: 0, y1: 100,
+    line: { color: 'rgba(239,68,68,0.7)', width: 2, dash: 'dash' },
+    xref: 'x', yref: 'y'
+  });
+}
+
+Plotly.newPlot('timelineChart', traces, {
+  paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)',
+  margin: { t: 20, b: 60, l: 50, r: 20 },
+  legend: { font: { color: '#94a3b8' }, orientation: 'h', x: 0, y: 1.1 },
+  xaxis: { tickfont: { color: '#94a3b8', size: 11 }, gridcolor: 'rgba(255,255,255,0.05)', tickangle: -30 },
+  yaxis: { tickfont: { color: '#94a3b8' }, gridcolor: 'rgba(255,255,255,0.05)', range: [0, 105],
+           ticksuffix: '%', title: { text: 'Population %', font: { color: '#64748b', size: 12 } } },
+  shapes: shapes,
+  annotations: [
+    { x: weeks[Math.floor(weeks.length/2)], y: 53, text: '50% — Treatment Failure Threshold',
+      font: { color: 'rgba(239,68,68,0.8)', size: 10 }, showarrow: false }
+  ],
+  font: { family: 'Inter' },
+  hovermode: 'x unified',
+}, { responsive: true, displayModeBar: false });
+{% endif %}
+</script>
+{% endblock %}
