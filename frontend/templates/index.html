@@ -19,7 +19,7 @@
           with Machine Learning
         </h1>
         <p class="hero-desc">
-          Two trained ML models — LightGBM gradient boosting and k-mer RandomForest — predict
+          Two trained ML models: LightGBM gradient boosting and k-mer RandomForest predict
           antimicrobial resistance in bacterial pathogens from 90,000+ genomic records.
           A separate biological simulation tool models resistance evolution over time.
         </p>
@@ -36,9 +36,9 @@
         </div>
         <!-- Model badges row -->
         <div class="d-flex gap-2 flex-wrap mt-4">
-          <span class="status-badge trained"><i class="bi bi-check-circle-fill"></i> LightGBM — AUC 0.93</span>
-          <span class="status-badge trained"><i class="bi bi-check-circle-fill"></i> K-mer RF — AUC 0.93</span>
-          <span class="status-badge simulated"><i class="bi bi-diagram-3"></i> Timeline — Bio-Sim</span>
+          <span class="status-badge trained"><i class="bi bi-check-circle-fill"></i> LightGBM  AUC 0.93</span>
+          <span class="status-badge trained"><i class="bi bi-check-circle-fill"></i> K-mer RF  AUC 0.93</span>
+          <span class="status-badge simulated"><i class="bi bi-diagram-3"></i> Timeline  Bio-Sim</span>
         </div>
       </div>
       <div class="col-lg-5 d-none d-lg-block">
@@ -98,22 +98,22 @@
             <div class="hpanel-bars">
               <div class="hpanel-bar-row">
                 <span class="hpanel-bar-name">Penicillins</span>
-                <div class="hpanel-bar-track"><div class="hpanel-bar-fill danger" style="width:72%"></div></div>
+                <div class="hpanel-bar-track"><div class="hpanel-bar-fill danger" data-pct="72"></div></div>
                 <span class="hpanel-bar-pct">72%</span>
               </div>
               <div class="hpanel-bar-row">
                 <span class="hpanel-bar-name">Fluoroquinolones</span>
-                <div class="hpanel-bar-track"><div class="hpanel-bar-fill warning" style="width:61%"></div></div>
+                <div class="hpanel-bar-track"><div class="hpanel-bar-fill warning" data-pct="61"></div></div>
                 <span class="hpanel-bar-pct">61%</span>
               </div>
               <div class="hpanel-bar-row">
                 <span class="hpanel-bar-name">Aminoglycosides</span>
-                <div class="hpanel-bar-track"><div class="hpanel-bar-fill amber" style="width:45%"></div></div>
+                <div class="hpanel-bar-track"><div class="hpanel-bar-fill amber" data-pct="45"></div></div>
                 <span class="hpanel-bar-pct">45%</span>
               </div>
               <div class="hpanel-bar-row">
                 <span class="hpanel-bar-name">Carbapenems</span>
-                <div class="hpanel-bar-track"><div class="hpanel-bar-fill success" style="width:28%"></div></div>
+                <div class="hpanel-bar-track"><div class="hpanel-bar-fill success" data-pct="28"></div></div>
                 <span class="hpanel-bar-pct">28%</span>
               </div>
             </div>
@@ -163,8 +163,8 @@
         </div>
       </div>
     </div>
-    <div class="mt-3 pt-2" style="border-top:1px solid var(--border);font-size:10.5px;color:var(--text-3);">
-      <strong style="color:var(--text-2);">Sources:</strong>&nbsp;
+    <div class="mt-3 pt-2 border-top-subtle fs-105 text-3">
+      <strong class="text-2">Sources:</strong>&nbsp;
       <a href="https://www.thelancet.com/journals/lancet/article/PIIS0140-6736(21)02724-0/fulltext" target="_blank" rel="noopener" class="src-link">Murray CJ et al. "Global burden of bacterial antimicrobial resistance in 2019." <em>The Lancet</em> 399, 629–655 (2022)</a>
       &nbsp;·&nbsp;
       <a href="https://amr-review.org/sites/default/files/160518_Final%20paper_with%20cover.pdf" target="_blank" rel="noopener" class="src-link">O'Neill J. "Tackling Drug-Resistant Infections Globally." <em>Review on Antimicrobial Resistance</em> (2016)</a>
@@ -180,7 +180,7 @@
   <div class="row mb-5">
     <div class="col-12">
       <div class="sec-eyebrow"><i class="bi bi-exclamation-triangle me-2"></i>The Challenge</div>
-      <h2 class="sec-title">Antimicrobial Resistance — A Global Health Emergency</h2>
+      <h2 class="sec-title">Antimicrobial Resistance: A Global Health Emergency</h2>
       <p class="sec-sub mb-4">
         AMR occurs when bacteria, viruses, fungi, and parasites evolve mechanisms to defeat the drugs
         designed to kill them. Machine learning offers a breakthrough: predicting resistance
@@ -191,7 +191,7 @@
       <div class="crisis-card blue h-100">
         <div class="crisis-icon"><i class="bi bi-biohazard"></i></div>
         <div class="crisis-val">1.27M</div>
-        <div class="crisis-desc">Deaths directly attributable to bacterial AMR in 2019 — surpassing HIV/AIDS and malaria</div>
+        <div class="crisis-desc">Deaths directly attributable to bacterial AMR in 2019  surpassing HIV/AIDS and malaria</div>
         <div class="mt-2"><a href="https://www.thelancet.com/journals/lancet/article/PIIS0140-6736(21)02724-0/fulltext" target="_blank" rel="noopener" class="src-link">Murray et al., The Lancet (2022)</a></div>
       </div>
     </div>
@@ -215,7 +215,7 @@
       <div class="crisis-card indigo h-100">
         <div class="crisis-icon"><i class="bi bi-activity"></i></div>
         <div class="crisis-val">AUC 0.93</div>
-        <div class="crisis-desc">This system's resistance prediction accuracy — validated on held-out BVBRC test data (80/20 stratified split)</div>
+        <div class="crisis-desc">This system's resistance prediction accuracy   validated on held-out BVBRC test data (80/20 stratified split)</div>
         <div class="mt-2"><a href="https://www.bv-brc.org/" target="_blank" rel="noopener" class="src-link">Training data: BVBRC / PATRIC</a></div>
       </div>
     </div>
@@ -224,7 +224,7 @@
   <!-- ══ ML MODEL STATUS CARDS ════════════════════════════════ -->
   <div class="sec-eyebrow"><i class="bi bi-cpu me-2"></i>Machine Learning Models</div>
   <h2 class="sec-title mb-1">Trained ML Prediction Models</h2>
-  <p class="sec-sub mb-4">Two ML models trained on real BVBRC / PATRIC genomic data — each producing a data-driven binary classification: <strong>Resistant</strong> or <strong>Susceptible</strong>.</p>
+  <p class="sec-sub mb-4">Two ML models trained on real BVBRC / PATRIC genomic data   each producing a data-driven binary classification: <strong>Resistant</strong> or <strong>Susceptible</strong>.</p>
 
   <div class="row g-4 mb-5">
     <!-- LightGBM -->
@@ -233,8 +233,8 @@
         <div class="d-flex align-items-start gap-3 mb-3">
           <div class="model-icon lgbm-icon"><i class="bi bi-graph-up-arrow"></i></div>
           <div class="flex-grow-1">
-            <div class="fw-700 text-white" style="font-size:15px;">AMR Resistance Forecasting</div>
-            <div style="font-size:12px;color:var(--text-3);">LightGBM Gradient Boosting · Trained on real data</div>
+            <div class="fw-700 text-white fs-15">AMR Resistance Forecasting</div>
+            <div class="model-subtitle">LightGBM Gradient Boosting · Trained on real data</div>
           </div>
           {% if health and health.models and health.models.lgbm_forecasting %}
             {% if health.models.lgbm_forecasting.trained %}
@@ -246,15 +246,15 @@
             <span class="status-badge offline"><i class="bi bi-x-circle"></i>Offline</span>
           {% endif %}
         </div>
-        <p style="font-size:13px;color:var(--text-2);line-height:1.65;margin-bottom:14px;">
-          Predicts <strong style="color:white;">Resistant vs Susceptible</strong> from genome metadata:
+        <p class="body-text mb-14">
+          Predicts <strong class="text-1">Resistant vs Susceptible</strong> from genome metadata:
           MIC values, organism taxonomy, drug class, and target encoding of per-antibiotic resistance rates.
-          Trained on <strong style="color:white;">90,826 labeled samples</strong> from the BVBRC database.
+          Trained on <strong class="text-1">90,826 labeled samples</strong> from the BVBRC database.
         </p>
         <div class="row g-2 mb-3 text-center">
-          <div class="col-4"><div class="stat-mini"><div class="stat-mini-value" style="font-size:16px;">0.93</div><div class="stat-mini-label">AUC-ROC</div></div></div>
-          <div class="col-4"><div class="stat-mini"><div class="stat-mini-value" style="font-size:16px;">14</div><div class="stat-mini-label">Features</div></div></div>
-          <div class="col-4"><div class="stat-mini"><div class="stat-mini-value" style="font-size:16px;">500</div><div class="stat-mini-label">Estimators</div></div></div>
+          <div class="col-4"><div class="stat-mini"><div class="stat-mini-value fs-16">0.93</div><div class="stat-mini-label">AUC-ROC</div></div></div>
+          <div class="col-4"><div class="stat-mini"><div class="stat-mini-value fs-16">14</div><div class="stat-mini-label">Features</div></div></div>
+          <div class="col-4"><div class="stat-mini"><div class="stat-mini-value fs-16">500</div><div class="stat-mini-label">Estimators</div></div></div>
         </div>
         <div class="model-features mb-3">
           <span class="feature-tag">MIC Values</span>
@@ -272,8 +272,8 @@
         <div class="d-flex align-items-start gap-3 mb-3">
           <div class="model-icon kmer-icon"><i class="bi bi-dna"></i></div>
           <div class="flex-grow-1">
-            <div class="fw-700 text-white" style="font-size:15px;">Genomic Resistance Prediction</div>
-            <div style="font-size:12px;color:var(--text-3);">K-mer Spectrum + RandomForest · Trained on real data</div>
+            <div class="fw-700 text-white fs-15">Genomic Resistance Prediction</div>
+            <div class="model-subtitle">K-mer Spectrum + RandomForest · Trained on real data</div>
           </div>
           {% if health and health.models and health.models.kmer_resistance %}
             {% if health.models.kmer_resistance.trained %}
@@ -285,15 +285,15 @@
             <span class="status-badge offline"><i class="bi bi-x-circle"></i>Offline</span>
           {% endif %}
         </div>
-        <p style="font-size:13px;color:var(--text-2);line-height:1.65;margin-bottom:14px;">
-          Extracts <strong style="color:white;">4-mer frequency spectra</strong> (256 features) from raw FASTA genome sequences.
-          No reference genome needed — works alignment-free on any bacterial genome.
-          Trained on <strong style="color:white;">6,002 genome–antibiotic pairs</strong> across 62 antibiotics.
+        <p class="body-text mb-14">
+          Extracts <strong class="text-1">4-mer frequency spectra</strong> (256 features) from raw FASTA genome sequences.
+          No reference genome needed   works alignment-free on any bacterial genome.
+          Trained on <strong class="text-1">6,002 genome–antibiotic pairs</strong> across 62 antibiotics.
         </p>
         <div class="row g-2 mb-3 text-center">
-          <div class="col-4"><div class="stat-mini"><div class="stat-mini-value" style="font-size:16px;">0.93</div><div class="stat-mini-label">AUC-ROC</div></div></div>
-          <div class="col-4"><div class="stat-mini"><div class="stat-mini-value" style="font-size:16px;">256</div><div class="stat-mini-label">K-mer Feats</div></div></div>
-          <div class="col-4"><div class="stat-mini"><div class="stat-mini-value" style="font-size:16px;">62</div><div class="stat-mini-label">Antibiotics</div></div></div>
+          <div class="col-4"><div class="stat-mini"><div class="stat-mini-value fs-16">0.93</div><div class="stat-mini-label">AUC-ROC</div></div></div>
+          <div class="col-4"><div class="stat-mini"><div class="stat-mini-value fs-16">256</div><div class="stat-mini-label">K-mer Feats</div></div></div>
+          <div class="col-4"><div class="stat-mini"><div class="stat-mini-value fs-16">62</div><div class="stat-mini-label">Antibiotics</div></div></div>
         </div>
         <div class="model-features mb-3">
           <span class="feature-tag">FASTA Input</span>
@@ -309,32 +309,32 @@
   <!-- ══ BIOLOGICAL SIMULATION TOOL ════════════════════════════ -->
   <div class="sec-eyebrow"><i class="bi bi-activity me-2"></i>Analytical Tool</div>
   <h2 class="sec-title mb-1">Biological Simulation</h2>
-  <p class="sec-sub mb-2">Not a machine learning model — a mathematical simulation tool based on published biological kinetics.</p>
+  <p class="sec-sub mb-2">Not a machine learning model a mathematical simulation tool based on published biological kinetics.</p>
 
   <div class="row g-4 mb-5">
     <div class="col-lg-8">
-      <div class="glass-card h-100" style="border-left:3px solid var(--warning);">
+      <div class="glass-card h-100 card-border-warning">
         <div class="d-flex align-items-start gap-3 mb-3">
           <div class="model-icon timeline-icon"><i class="bi bi-activity"></i></div>
           <div class="flex-grow-1">
-            <div class="fw-700 text-white" style="font-size:15px;">Mutation Timeline Simulator</div>
-            <div style="font-size:12px;color:var(--text-3);">Logistic Growth Equation · Biologically Calibrated</div>
+            <div class="fw-700 text-white fs-15">Mutation Timeline Simulator</div>
+            <div class="model-subtitle">Logistic Growth Equation · Biologically Calibrated</div>
           </div>
           <span class="status-badge simulated"><i class="bi bi-diagram-3"></i>Simulation</span>
         </div>
-        <div class="alert" style="background:rgba(217,119,6,0.10);border:1px solid rgba(217,119,6,0.25);border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:12.5px;color:var(--warning);">
+        <div class="alert-warning-tok">
           <i class="bi bi-info-circle-fill me-2"></i>
-          <strong>This is not an ML model.</strong> Predictions are generated by a logistic growth equation parameterised with empirically calibrated antibiotic-specific constants — not learned from data.
+          <strong>This is not an ML model.</strong> Predictions are generated by a logistic growth equation parameterised with empirically calibrated antibiotic-specific constants  not learned from data.
         </div>
-        <p style="font-size:13px;color:var(--text-2);line-height:1.65;margin-bottom:14px;">
-          Simulates <strong style="color:white;">week-by-week resistance evolution</strong> under antibiotic pressure
+        <p class="body-text mb-14">
+          Simulates <strong class="text-1">week-by-week resistance evolution</strong> under antibiotic pressure
           using the logistic growth equation:
-          <code style="font-size:11px;background:rgba(255,255,255,0.07);padding:2px 7px;border-radius:4px;display:inline-block;margin-top:4px;">
+          <code class="code-pill d-inline-block mt-1">
             R(t) = R₀ + (R_peak − R₀) / (1 + e<sup>−k(t−t₀)</sup>)
           </code>
         </p>
-        <p style="font-size:13px;color:var(--text-2);line-height:1.65;margin-bottom:14px;">
-          Each antibiotic has calibrated parameters (growth rate <em>k</em>, peak resistance, midpoint). An optional FASTA file adjusts the curve via genome GC content — higher GC deviation indicates higher baseline mutation pressure.
+        <p class="body-text mb-14">
+          Each antibiotic has calibrated parameters (growth rate <em>k</em>, peak resistance, midpoint). An optional FASTA file adjusts the curve via genome GC content  higher GC deviation indicates higher baseline mutation pressure.
         </p>
         <div class="model-features mb-3">
           <span class="feature-tag">Logistic Growth</span>
@@ -348,27 +348,27 @@
     </div>
     <div class="col-lg-4">
       <div class="glass-card h-100">
-        <div style="font-size:12px;font-weight:600;color:var(--text-2);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:12px;">How it differs from ML models</div>
-        <ul class="list-unstyled mb-0" style="font-size:12.5px;color:var(--text-2);">
+        <div class="sec-label mb-3">How it differs from ML models</div>
+        <ul class="list-unstyled mb-0 fs-12h text-2">
           <li class="mb-3 d-flex gap-2">
-            <i class="bi bi-x-circle-fill mt-1 flex-shrink-0" style="color:var(--danger);font-size:13px;"></i>
-            <span>Does <strong style="color:var(--text-1);">not</strong> learn from labeled data — no training phase</span>
+            <i class="bi bi-x-circle-fill mt-1 flex-shrink-0 text-danger-tok fs-13"></i>
+            <span>Does <strong class="text-1">not</strong> learn from labeled data  no training phase</span>
           </li>
           <li class="mb-3 d-flex gap-2">
-            <i class="bi bi-x-circle-fill mt-1 flex-shrink-0" style="color:var(--danger);font-size:13px;"></i>
-            <span>Has <strong style="color:var(--text-1);">no AUC or accuracy score</strong> — outputs are simulated, not predicted</span>
+            <i class="bi bi-x-circle-fill mt-1 flex-shrink-0 text-danger-tok fs-13"></i>
+            <span>Has <strong class="text-1">no AUC or accuracy score</strong>  outputs are simulated, not predicted</span>
           </li>
           <li class="mb-3 d-flex gap-2">
-            <i class="bi bi-check-circle-fill mt-1 flex-shrink-0" style="color:var(--success);font-size:13px;"></i>
-            <span>Parameters grounded in <strong style="color:var(--text-1);">published microbiology</strong> (resistance gene kinetics)</span>
+            <i class="bi bi-check-circle-fill mt-1 flex-shrink-0 text-success-tok fs-13"></i>
+            <span>Parameters grounded in <strong class="text-1">published microbiology</strong> (resistance gene kinetics)</span>
           </li>
           <li class="mb-3 d-flex gap-2">
-            <i class="bi bi-check-circle-fill mt-1 flex-shrink-0" style="color:var(--success);font-size:13px;"></i>
-            <span>Useful for <strong style="color:var(--text-1);">visualising resistance trajectories</strong> and treatment planning</span>
+            <i class="bi bi-check-circle-fill mt-1 flex-shrink-0 text-success-tok fs-13"></i>
+            <span>Useful for <strong class="text-1">visualising resistance trajectories</strong> and treatment planning</span>
           </li>
           <li class="mb-0 d-flex gap-2">
-            <i class="bi bi-check-circle-fill mt-1 flex-shrink-0" style="color:var(--success);font-size:13px;"></i>
-            <span>Complements ML predictions with <strong style="color:var(--text-1);">temporal evolution context</strong></span>
+            <i class="bi bi-check-circle-fill mt-1 flex-shrink-0 text-success-tok fs-13"></i>
+            <span>Complements ML predictions with <strong class="text-1">temporal evolution context</strong></span>
           </li>
         </ul>
       </div>
@@ -382,24 +382,24 @@
         <div class="d-flex align-items-start gap-3 mb-3">
           <div class="model-icon formulation-icon"><i class="bi bi-capsule"></i></div>
           <div class="flex-grow-1">
-            <div class="fw-700 text-white" style="font-size:15px;">Formulation Forecasting</div>
-            <div style="font-size:12px;color:var(--text-3);">Dataset Not Available</div>
+            <div class="fw-700 text-white fs-15">Formulation Forecasting</div>
+            <div class="model-subtitle">Dataset Not Available</div>
           </div>
           <span class="status-badge unavailable"><i class="bi bi-database-x"></i>No Dataset</span>
         </div>
-        <p style="font-size:13px;color:var(--text-3);line-height:1.65;margin-bottom:12px;">
+        <p class="body-text text-3 mb-12">
           Would predict optimal antibiotic formulations and dosing strategies to counteract
-          resistance patterns. Excluded from scope — pharmaceutical formulation dataset not available.
+          resistance patterns. Excluded from scope  pharmaceutical formulation dataset not available.
         </p>
-        <div class="alert-warning-custom" style="font-size:12px;"><i class="bi bi-info-circle me-2"></i>Excluded from project scope. Dataset required before training can begin.</div>
+        <div class="alert-warning-custom fs-12"><i class="bi bi-info-circle me-2"></i>Excluded from project scope. Dataset required before training can begin.</div>
       </div>
     </div>
 
     <!-- System Architecture Panel -->
     <div class="col-lg-8">
       <div class="glass-card h-100">
-        <h5 class="fw-700 text-white mb-1"><i class="bi bi-diagram-3 me-2" style="color:var(--primary);"></i>System Architecture</h5>
-        <p style="font-size:13px;color:var(--text-3);margin-bottom:20px;">Full-stack ML deployment: Flask frontend → Django REST API → Trained ML models</p>
+        <h5 class="fw-700 text-white mb-1"><i class="bi bi-diagram-3 me-2 text-primary-tok"></i>System Architecture</h5>
+        <p class="fs-13 text-3 mb-20">Full-stack ML deployment: Flask frontend → Django REST API → Trained ML models</p>
 
         <div class="pipeline-diagram">
           <div class="pipeline-step">
@@ -448,7 +448,7 @@
       <div class="how-step h-100">
         <div class="how-num">01</div>
         <div>
-          <div class="how-title">Data Collection — BVBRC/PATRIC</div>
+          <div class="how-title">Data Collection  BVBRC/PATRIC</div>
           <div class="how-desc">AMR phenotype records (Resistant/Susceptible/Intermediate) linked to bacterial genome metadata including MIC values, laboratory methods, and FASTA genome sequences from the BVBRC database.</div>
         </div>
       </div>
@@ -457,8 +457,8 @@
       <div class="how-step h-100">
         <div class="how-num">02</div>
         <div>
-          <div class="how-title">Feature Engineering — K-mer Spectra</div>
-          <div class="how-desc">Bacterial genomes are converted to 4-mer frequency vectors (256 dimensions). Each genome produces a fixed-length fingerprint capturing codon composition, GC content, and repeat patterns — no reference genome needed.</div>
+          <div class="how-title">Feature Engineering  K-mer Spectra</div>
+          <div class="how-desc">Bacterial genomes are converted to 4-mer frequency vectors (256 dimensions). Each genome produces a fixed-length fingerprint capturing codon composition, GC content, and repeat patterns  no reference genome needed.</div>
         </div>
       </div>
     </div>
@@ -466,7 +466,7 @@
       <div class="how-step h-100">
         <div class="how-num">03</div>
         <div>
-          <div class="how-title">LightGBM — Tabular Metadata</div>
+          <div class="how-title">LightGBM  Tabular Metadata</div>
           <div class="how-desc">For records without FASTA files, a LightGBM gradient boosted tree model uses tabular features: MIC value, antibiotic identity, drug class, organism taxonomy, and cross-encoded resistance rates per antibiotic.</div>
         </div>
       </div>
@@ -475,17 +475,17 @@
       <div class="how-step h-100">
         <div class="how-num">04</div>
         <div>
-          <div class="how-title">SMOTE — Class Imbalance Correction</div>
+          <div class="how-title">SMOTE  Class Imbalance Correction</div>
           <div class="how-desc">Training data is typically imbalanced (more Susceptible than Resistant isolates). SMOTE (Synthetic Minority Oversampling) generates synthetic minority-class samples to produce a balanced training set, improving recall for resistant strains.</div>
         </div>
       </div>
     </div>
     <div class="col-md-6 col-lg-4">
-      <div class="how-step h-100" style="border-left:2px solid var(--warning);opacity:0.9;">
-        <div class="how-num" style="background:rgba(217,119,6,0.15);color:var(--warning);">05</div>
+      <div class="how-step h-100 how-step-warning">
+        <div class="how-num step-warning">05</div>
         <div>
-          <div class="how-title">Bio-Simulator — Logistic Growth <span style="font-size:10px;background:rgba(217,119,6,0.15);color:var(--warning);padding:1px 6px;border-radius:4px;font-weight:600;vertical-align:middle;">Not ML</span></div>
-          <div class="how-desc">Resistance spread follows logistic kinetics. The timeline simulator uses a mathematical equation — not trained on data — to visualise week-by-week evolution per antibiotic. It complements the ML predictions with temporal context.</div>
+          <div class="how-title">Bio-Simulator  Logistic Growth <span class="badge-not-ml">Not ML</span></div>
+          <div class="how-desc">Resistance spread follows logistic kinetics. The timeline simulator uses a mathematical equation  not trained on data  to visualise week-by-week evolution per antibiotic. It complements the ML predictions with temporal context.</div>
         </div>
       </div>
     </div>
@@ -493,8 +493,8 @@
       <div class="how-step h-100">
         <div class="how-num">06</div>
         <div>
-          <div class="how-title">Validation — AUC-ROC &amp; F1</div>
-          <div class="how-desc">Both trained models achieve AUC-ROC ≥ 0.93 on held-out test sets. Threshold tuning via precision-recall curves optimises the F1 score for clinical utility — balancing sensitivity (catching true resistance) against specificity.</div>
+          <div class="how-title">Validation  AUC-ROC &amp; F1</div>
+          <div class="how-desc">Both trained models achieve AUC-ROC ≥ 0.93 on held-out test sets. Threshold tuning via precision-recall curves optimises the F1 score for clinical utility  balancing sensitivity (catching true resistance) against specificity.</div>
         </div>
       </div>
     </div>
@@ -510,21 +510,21 @@
           <div class="qs-number">01</div>
           <h6>Train Models (optional)</h6>
           <p>Models are pre-trained. To retrain on your dataset, go to <a href="/train">Train Models</a>
-             or run <code style="color:var(--success-light);background:rgba(34,197,94,0.10);padding:1px 6px;border-radius:4px;font-size:12px;">python train_models.py --model all</code> in the backend folder.</p>
+             or run <code class="code-pill code-pill-success">python train_models.py --model all</code> in the backend folder.</p>
         </div>
       </div>
       <div class="col-md-4">
         <div class="quickstart-step">
           <div class="qs-number">02</div>
           <h6>AMR Forecasting</h6>
-          <p>Go to <a href="/forecast">AMR Forecasting</a> — enter an antibiotic name, MIC value, and organism genus/species. The LightGBM model returns resistance probability instantly.</p>
+          <p>Go to <a href="/forecast">AMR Forecasting</a>  enter an antibiotic name, MIC value, and organism genus/species. The LightGBM model returns resistance probability instantly.</p>
         </div>
       </div>
       <div class="col-md-4">
         <div class="quickstart-step">
           <div class="qs-number">03</div>
           <h6>Genome-level Analysis</h6>
-          <p>Upload a <code style="color:var(--primary-light);background:rgba(99,102,241,0.10);padding:1px 6px;border-radius:4px;font-size:12px;">.fasta</code> file to <a href="/predict">Resistance Prediction</a> for k-mer analysis, or to <a href="/timeline">Mutation Timeline</a> for a week-by-week evolution forecast.</p>
+          <p>Upload a <code class="code-pill code-pill-primary">.fasta</code> file to <a href="/predict">Resistance Prediction</a> for k-mer analysis, or to <a href="/timeline">Mutation Timeline</a> for a week-by-week evolution forecast.</p>
         </div>
       </div>
     </div>

@@ -37,10 +37,18 @@ BACTERIA_LIST = [
 ]
 
 
+def _parse_response(r):
+    try:
+        return r.json(), r.status_code
+    except (ValueError, requests.exceptions.JSONDecodeError):
+        preview = r.text[:200] if r.text else '(empty)'
+        return {'error': f'Backend returned non-JSON response (HTTP {r.status_code}): {preview}'}, r.status_code
+
+
 def backend_get(endpoint, timeout=10):
     try:
         r = requests.get(f'{BACKEND_URL}/{endpoint}', timeout=timeout)
-        return r.json(), r.status_code
+        return _parse_response(r)
     except requests.exceptions.ConnectionError:
         return {'error': 'Django backend not running. Start it with: python manage.py runserver'}, 503
     except Exception as e:
@@ -56,7 +64,7 @@ def backend_post(endpoint, data=None, files=None, json_data=None, timeout=30):
             r = requests.post(url, json=json_data, timeout=timeout)
         else:
             r = requests.post(url, data=data, timeout=timeout)
-        return r.json(), r.status_code
+        return _parse_response(r)
     except requests.exceptions.ConnectionError:
         return {'error': 'Django backend not running. Start it with: python manage.py runserver'}, 503
     except Exception as e:
@@ -66,7 +74,7 @@ def backend_post(endpoint, data=None, files=None, json_data=None, timeout=30):
 @app.route('/')
 def index():
     health_data, _ = backend_get('health/')
-    return render_template('index.html', health=health_data, antibiotics=ANTIBIOTICS)
+    return render_template('index.html', health=health_data)
 
 
 @app.route('/forecast', methods=['GET', 'POST'])
@@ -97,8 +105,6 @@ def resistance_forecast():
         result=result,
         error=error,
         form_data=form_data,
-        antibiotics=ANTIBIOTICS,
-        bacteria_list=BACTERIA_LIST,
     )
 
 
@@ -127,7 +133,7 @@ def resistance_prediction():
         else:
             error = 'Please provide a FASTA file or paste FASTA sequence text.'
             return render_template('resistance_prediction.html', result=result, error=error,
-                                   form_data=form_data, antibiotics=ANTIBIOTICS)
+                                   form_data=form_data)
 
         if status == 200:
             result = data
@@ -139,7 +145,6 @@ def resistance_prediction():
         result=result,
         error=error,
         form_data=form_data,
-        antibiotics=ANTIBIOTICS,
     )
 
 
@@ -168,7 +173,7 @@ def mutation_timeline():
         else:
             error = 'Please provide a FASTA file or paste FASTA sequence text.'
             return render_template('mutation_timeline.html', result=result, error=error,
-                                   form_data=form_data, antibiotics=ANTIBIOTICS)
+                                   form_data=form_data)
 
         if status == 200:
             result = data
@@ -180,7 +185,6 @@ def mutation_timeline():
         result=result,
         error=error,
         form_data=form_data,
-        antibiotics=ANTIBIOTICS,
     )
 
 
@@ -206,6 +210,16 @@ def health_proxy():
     return jsonify(data), status
 
 
+@app.route('/api/antibiotics')
+def antibiotics_api():
+    return jsonify(ANTIBIOTICS)
+
+
+@app.route('/api/organisms')
+def organisms_api():
+    return jsonify(BACTERIA_LIST)
+
+
 @app.route('/reload', methods=['POST'])
 def reload_models():
     data, status = backend_post('reload/')
@@ -214,7 +228,7 @@ def reload_models():
 
 @app.route('/datasets')
 def datasets():
-    return render_template('datasets.html', antibiotics=ANTIBIOTICS, bacteria_list=BACTERIA_LIST)
+    return render_template('datasets.html')
 
 
 @app.route('/about')

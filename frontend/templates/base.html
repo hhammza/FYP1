@@ -4,10 +4,18 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{% block title %}AMR Prediction System{% endblock %} — BioAnalytics FYP</title>
+<!-- Prevent flash of wrong theme -->
+<script>(function(){const t=localStorage.getItem('amr-theme');if(t==='dark')document.documentElement.setAttribute('data-theme','dark');})()</script>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+<link href="{{ url_for('static', filename='css/tokens.css') }}"     rel="stylesheet">
+<link href="{{ url_for('static', filename='css/layout.css') }}"     rel="stylesheet">
+<link href="{{ url_for('static', filename='css/components.css') }}" rel="stylesheet">
+<link href="{{ url_for('static', filename='css/utilities.css') }}"  rel="stylesheet">
+<link href="{{ url_for('static', filename='css/charts.css') }}"     rel="stylesheet">
+<link href="{{ url_for('static', filename='css/animations.css') }}" rel="stylesheet">
+<link href="{{ url_for('static', filename='css/dark.css') }}"       rel="stylesheet">
 <script src="https://cdn.plot.ly/plotly-2.26.0.min.js"></script>
 </head>
 <body>
@@ -37,10 +45,10 @@
              href="#" role="button" data-bs-toggle="dropdown">
             <i class="bi bi-cpu me-1"></i>ML Models
           </a>
-          <ul class="dropdown-menu dropdown-menu-dark" style="background:var(--bg-card2);border:1px solid var(--border);">
-            <li><h6 class="dropdown-header" style="font-size:10px;color:var(--text-3);letter-spacing:0.08em;">TRAINED ML MODELS</h6></li>
-            <li><a class="dropdown-item" href="/forecast"><i class="bi bi-graph-up-arrow me-2 text-accent"></i>AMR Forecasting <span class="badge bg-success ms-1" style="font-size:9px;">LightGBM</span></a></li>
-            <li><a class="dropdown-item" href="/predict"><i class="bi bi-dna me-2" style="color:var(--emerald2)"></i>Resistance Prediction <span class="badge bg-primary ms-1" style="font-size:9px;">K-mer RF</span></a></li>
+          <ul class="dropdown-menu dropdown-menu-dark">
+            <li><h6 class="dropdown-header dropdown-section-label">TRAINED ML MODELS</h6></li>
+            <li><a class="dropdown-item" href="/forecast"><i class="bi bi-graph-up-arrow me-2 text-accent"></i>AMR Forecasting <span class="badge bg-success ms-1 badge-xs">LightGBM</span></a></li>
+            <li><a class="dropdown-item" href="/predict"><i class="bi bi-dna me-2 text-emerald2"></i>Resistance Prediction <span class="badge bg-primary ms-1 badge-xs">K-mer RF</span></a></li>
           </ul>
         </li>
         <li class="nav-item">
@@ -63,6 +71,11 @@
             <i class="bi bi-play-circle me-1"></i>Train
           </a>
         </li>
+        <li class="nav-item ms-lg-1 d-flex align-items-center">
+          <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+            <i class="bi bi-moon"></i>
+          </button>
+        </li>
       </ul>
     </div>
   </div>
@@ -83,79 +96,68 @@
       <!-- Brand -->
       <div class="col-lg-4 col-md-6">
         <div class="d-flex align-items-center gap-2 mb-2">
-          <div class="brand-icon" style="width:28px;height:28px;font-size:13px;"><i class="bi bi-virus2"></i></div>
-          <span class="fw-700 text-white" style="font-size:14px;">AMR<span class="text-accent">Predict</span></span>
+          <div class="brand-icon brand-icon-sm"><i class="bi bi-virus2"></i></div>
+          <span class="fw-700 text-white fs-14">AMR<span class="text-accent">Predict</span></span>
         </div>
-        <p style="font-size:12px;color:var(--text-3);line-height:1.6;margin-bottom:10px;">
+        <p class="meta-text mb-2">
           Forecasting antimicrobial resistance with machine learning — LightGBM gradient boosting and k-mer genomic analysis. Includes a biological simulation tool for mutation timeline visualisation.
         </p>
-        <div style="font-size:11px;color:var(--text-3);">
-          <i class="bi bi-mortarboard me-1" style="color:var(--primary);"></i>
-          BioInformatics &amp; ML Final Year Project · 2024–2025
+        <div class="caption-text">
+          <i class="bi bi-mortarboard me-1 text-primary-tok"></i>
+          BioInformatics &amp; ML Final Year Project · 2026–2027
         </div>
       </div>
       <!-- Links -->
       <div class="col-lg-2 col-md-3 col-6">
-        <div style="font-size:11px;font-weight:600;color:var(--text-2);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px;">Navigate</div>
-        <ul class="list-unstyled mb-0" style="font-size:12.5px;">
+        <div class="sec-label mb-2">Navigate</div>
+        <ul class="list-unstyled mb-0 fs-12h">
           <li class="mb-1"><a href="/" class="footer-link"><i class="bi bi-grid-1x2 me-1"></i>Dashboard</a></li>
-          <li style="font-size:10px;color:var(--text-3);text-transform:uppercase;letter-spacing:0.07em;margin:6px 0 2px;">ML Models</li>
+          <li class="footer-nav-divider">ML Models</li>
           <li class="mb-1"><a href="/forecast" class="footer-link"><i class="bi bi-graph-up-arrow me-1"></i>AMR Forecasting</a></li>
           <li class="mb-1"><a href="/predict" class="footer-link"><i class="bi bi-dna me-1"></i>Resistance Prediction</a></li>
-          <li style="font-size:10px;color:var(--text-3);text-transform:uppercase;letter-spacing:0.07em;margin:6px 0 2px;">Tools</li>
+          <li class="footer-nav-divider">Tools</li>
           <li class="mb-1"><a href="/timeline" class="footer-link"><i class="bi bi-activity me-1"></i>Bio-Simulation</a></li>
           <li class="mb-1"><a href="/datasets" class="footer-link"><i class="bi bi-database me-1"></i>Datasets</a></li>
           <li class="mb-1"><a href="/about" class="footer-link"><i class="bi bi-info-circle me-1"></i>About</a></li>
         </ul>
       </div>
-      <!-- Tech Stack -->
-      <div class="col-lg-3 col-md-3 col-6">
-        <div style="font-size:11px;font-weight:600;color:var(--text-2);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px;">Tech Stack</div>
-        <ul class="list-unstyled mb-0" style="font-size:12px;color:var(--text-3);">
-          <li class="mb-1"><i class="bi bi-layout-text-window me-1" style="color:var(--primary);"></i>Flask 3.x · Frontend</li>
-          <li class="mb-1"><i class="bi bi-server me-1" style="color:var(--success);"></i>Django REST Framework · API</li>
-          <li class="mb-1"><i class="bi bi-cpu me-1" style="color:var(--warning);"></i>LightGBM · scikit-learn</li>
-          <li class="mb-1"><i class="bi bi-bar-chart me-1" style="color:var(--primary-light);"></i>Plotly · Bootstrap 5</li>
-          <li class="mb-1"><i class="bi bi-database me-1" style="color:var(--danger);"></i>BVBRC / PATRIC Database</li>
-        </ul>
-      </div>
       <!-- Stats -->
       <div class="col-lg-3 col-md-12">
-        <div style="font-size:11px;font-weight:600;color:var(--text-2);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px;">System Stats</div>
+        <div class="sec-label mb-2">System Stats</div>
         <div class="row g-2">
           <div class="col-6">
-            <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-sm);padding:8px 10px;text-align:center;">
-              <div style="font-size:15px;font-weight:800;font-family:var(--mono);color:var(--text-1);">0.93</div>
-              <div style="font-size:10px;color:var(--text-3);margin-top:2px;">AUC-ROC</div>
+            <div class="footer-stat-box">
+              <div class="footer-stat-val">0.93</div>
+              <div class="footer-stat-lbl">AUC-ROC</div>
             </div>
           </div>
           <div class="col-6">
-            <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-sm);padding:8px 10px;text-align:center;">
-              <div style="font-size:15px;font-weight:800;font-family:var(--mono);color:var(--text-1);">90K+</div>
-              <div style="font-size:10px;color:var(--text-3);margin-top:2px;">Records</div>
+            <div class="footer-stat-box">
+              <div class="footer-stat-val">90K+</div>
+              <div class="footer-stat-lbl">Records</div>
             </div>
           </div>
           <div class="col-6">
-            <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-sm);padding:8px 10px;text-align:center;">
-              <div style="font-size:15px;font-weight:800;font-family:var(--mono);color:var(--text-1);">62</div>
-              <div style="font-size:10px;color:var(--text-3);margin-top:2px;">Antibiotics</div>
+            <div class="footer-stat-box">
+              <div class="footer-stat-val">62</div>
+              <div class="footer-stat-lbl">Antibiotics</div>
             </div>
           </div>
           <div class="col-6">
-            <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-sm);padding:8px 10px;text-align:center;">
-              <div style="font-size:15px;font-weight:800;font-family:var(--mono);color:var(--text-1);">2</div>
-              <div style="font-size:10px;color:var(--text-3);margin-top:2px;">ML Models</div>
+            <div class="footer-stat-box">
+              <div class="footer-stat-val">2</div>
+              <div class="footer-stat-lbl">ML Models</div>
             </div>
           </div>
         </div>
       </div>
     </div>
     <!-- Bottom bar -->
-    <div class="footer-bottom mt-4 pt-3" style="border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
-      <div style="font-size:11px;color:var(--text-3);">
-        &copy; 2025 AMRPredict · Hamza Afzal · Final Year Project
+    <div class="footer-bottom mt-4 pt-3">
+      <div class="footer-copy">
+        <!-- &copy; 2025 AMRPredict · Hamza Afzal · Final Year Project -->
       </div>
-      <div style="font-size:11px;color:var(--text-3);">
+      <div class="footer-copy">
         Data source: <a href="https://www.bv-brc.org" target="_blank" rel="noopener" class="footer-link">BVBRC / PATRIC</a>
         &nbsp;&middot;&nbsp;
         <a href="/about" class="footer-link">Documentation</a>
@@ -166,8 +168,11 @@
   </div>
 </footer>
 
+<div id="toastContainer" role="status" aria-live="polite"></div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+<script src="{{ url_for('static', filename='js/dropdowns.js') }}"></script>
 {% block scripts %}{% endblock %}
 </body>
 </html>

@@ -1,0 +1,279 @@
+/* ============================================================
+   AMRPredict — Utility Classes
+   Single-purpose helpers for text, sizing, spacing, and the
+   common composite patterns found across all templates.
+   Use these instead of inline styles.
+   ============================================================ */
+
+/* ── TEXT — theme-aware hierarchy ──────────────────────────── */
+.text-1 { color: var(--text-1) !important; }
+.text-2 { color: var(--text-2) !important; }
+.text-3 { color: var(--text-3) !important; }
+
+/* ── TEXT — named color tokens ──────────────────────────────── */
+.text-indigo  { color: var(--indigo)   !important; }
+.text-indigo2 { color: var(--indigo2)  !important; }
+.text-emerald  { color: var(--emerald)  !important; }
+.text-emerald2 { color: var(--emerald2) !important; }
+.text-rose    { color: var(--rose)     !important; }
+.text-rose2   { color: var(--rose2)    !important; }
+.text-amber   { color: var(--amber)    !important; }
+.text-amber2  { color: var(--amber2)   !important; }
+.text-accent2 { color: var(--accent2)  !important; }
+.text-violet  { color: var(--violet)   !important; }
+
+/* ── FONT SIZES ─────────────────────────────────────────────── */
+.fs-9  { font-size:  9px; }
+.fs-10 { font-size: 10px; }
+.fs-11 { font-size: 11px; }
+.fs-12 { font-size: 12px; }
+.fs-12h{ font-size: 12.5px; }
+.fs-13 { font-size: 13px; }
+.fs-14 { font-size: 14px; }
+.fs-15 { font-size: 15px; }
+.fs-16 { font-size: 16px; }
+.fs-22 { font-size: 22px; }
+.fs-24 { font-size: 24px; }
+.fs-26 { font-size: 26px; }
+.fs-28 { font-size: 28px; }
+.fs-32 { font-size: 32px; }
+
+/* ── LINE HEIGHTS ───────────────────────────────────────────── */
+.lh-1   { line-height: 1;    }
+.lh-14  { line-height: 1.4;  }
+.lh-15  { line-height: 1.5;  }
+.lh-16  { line-height: 1.6;  }
+.lh-165 { line-height: 1.65; }
+.lh-17  { line-height: 1.7;  }
+.lh-18  { line-height: 1.8;  }
+.lh-19  { line-height: 1.9;  }
+
+/* ── COMPOSITE TEXT PATTERNS ────────────────────────────────── */
+/* Body paragraph — main readable copy */
+.body-text   { font-size: 13px; color: var(--text-2); line-height: 1.65; }
+/* Small supporting copy */
+.meta-text   { font-size: 12px; color: var(--text-3); line-height: 1.6; }
+/* Tiny caption / footer notes */
+.caption-text{ font-size: 11px; color: var(--text-3); line-height: 1.5; }
+/* Uppercase section mini-header (e.g. inside cards) */
+.sec-label   { font-size: 11px; font-weight: 600; color: var(--text-2);
+               text-transform: uppercase; letter-spacing: 0.08em; }
+/* Primary title inside a model card */
+.model-title { font-size: 15px; font-weight: 700; color: var(--text-1); }
+/* Subtitle / type label under model title */
+.model-subtitle { font-size: 12px; color: var(--text-3); }
+
+/* ── INLINE CODE VARIANTS ───────────────────────────────────── */
+.code-pill {
+  font-family: var(--mono);
+  font-size: 11px;
+  background: rgba(15,23,42,0.06);
+  padding: 2px 7px;
+  border-radius: 4px;
+}
+[data-theme="dark"] .code-pill { background: rgba(255,255,255,0.08); }
+
+.code-pill-success { background: rgba(34,197,94,0.10)  !important; color: var(--success-light); }
+.code-pill-primary { background: rgba(99,102,241,0.10) !important; color: var(--primary-light); }
+.code-pill-danger  { background: rgba(220,38,38,0.10)  !important; color: var(--danger-light);  }
+
+/* ── STEP-NUM COLOR MODIFIERS ────────────────────────────────── */
+/* Usage: <span class="step-num step-emerald"> */
+.step-emerald { background: rgba(16,185,129,0.15)  !important; border-color: rgba(16,185,129,0.40) !important; color: var(--emerald2) !important; }
+.step-rose    { background: rgba(244,63,94,0.15)   !important; border-color: rgba(244,63,94,0.40)  !important; color: var(--rose2)    !important; }
+.step-amber   { background: rgba(245,158,11,0.15)  !important; border-color: rgba(245,158,11,0.40) !important; color: var(--amber2)   !important; }
+.step-indigo  { background: rgba(99,102,241,0.15)  !important; border-color: rgba(99,102,241,0.40) !important; color: var(--indigo2)  !important; }
+.step-sky     { background: rgba(56,189,248,0.12)  !important; border-color: rgba(56,189,248,0.30) !important; color: var(--accent2)  !important; }
+/* Softer variants (used on smaller step-nums) */
+.step-success { background: rgba(16,185,129,0.12)  !important; border-color: rgba(16,185,129,0.30) !important; color: var(--emerald2) !important; }
+.step-warning { background: rgba(245,158,11,0.12)  !important; border-color: rgba(245,158,11,0.30) !important; color: var(--amber2)   !important; }
+.step-danger  { background: rgba(244,63,94,0.12)   !important; border-color: rgba(244,63,94,0.30)  !important; color: var(--rose2)    !important; }
+
+/* ── HOW-NUM COLOR MODIFIERS ─────────────────────────────────── */
+/* Usage: <div class="how-num how-num-rose"> */
+.how-num-rose    { background: rgba(244,63,94,0.12);  border-color: rgba(244,63,94,0.3);  color: var(--rose2);    }
+.how-num-emerald { background: rgba(16,185,129,0.12); border-color: rgba(16,185,129,0.3); color: var(--emerald2); }
+.how-num-amber   { background: rgba(245,158,11,0.12); border-color: rgba(245,158,11,0.3); color: var(--amber2);   }
+.how-num-sky     { background: rgba(56,189,248,0.12); border-color: rgba(56,189,248,0.3); color: var(--accent2);  }
+.how-num-warning { background: rgba(217,119,6,0.15);  border-color: rgba(217,119,6,0.3);  color: var(--warning);  }
+
+/* ── CARD BORDER ACCENT MODIFIERS ───────────────────────────── */
+/* Usage: <div class="glass-card card-border-warning"> */
+.card-border-primary { border-left: 3px solid var(--primary) !important; }
+.card-border-success { border-left: 3px solid var(--success) !important; }
+.card-border-danger  { border-left: 3px solid var(--danger)  !important; }
+.card-border-warning { border-left: 3px solid var(--warning) !important; }
+.card-border-indigo  { border-left: 3px solid var(--indigo2) !important; }
+
+/* ── FOOTER COMPONENT CLASSES ───────────────────────────────── */
+.footer-stat-box {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  padding: 8px 10px;
+  text-align: center;
+}
+.footer-stat-val {
+  font-size: 15px; font-weight: 800;
+  font-family: var(--mono);
+  color: var(--text-1);
+}
+.footer-stat-lbl {
+  font-size: 10px;
+  color: var(--text-3);
+  margin-top: 2px;
+}
+.footer-bottom {
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.footer-copy { font-size: 11px; color: var(--text-3); }
+
+/* ── DROPDOWN NAV HEADER ────────────────────────────────────── */
+.dropdown-section-label {
+  font-size: 10px;
+  color: var(--text-3);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* ── BADGE SIZE VARIANT ──────────────────────────────────────── */
+.badge-xs { font-size: 9px; }
+
+/* ── FOOTER BRAND / NAV HELPERS ─────────────────────────────── */
+.brand-icon-sm { width: 28px; height: 28px; font-size: 13px; }
+.footer-nav-divider {
+  font-size: 10px; color: var(--text-3);
+  text-transform: uppercase; letter-spacing: 0.07em;
+  margin: 6px 0 2px;
+}
+
+/* ── PRIMARY TOKEN COLOR ─────────────────────────────────────── */
+.text-primary-tok { color: var(--primary) !important; }
+
+/* ── SEMANTIC COLOR TOKENS ───────────────────────────────────── */
+.text-danger-tok  { color: var(--danger)  !important; }
+.text-success-tok { color: var(--success) !important; }
+.text-warning-tok { color: var(--warning) !important; }
+
+/* ── FONT SIZE ADDITIONS ─────────────────────────────────────── */
+.fs-105 { font-size: 10.5px; }
+
+/* ── MARGIN PIXEL HELPERS ────────────────────────────────────── */
+.mb-12 { margin-bottom: 12px !important; }
+.mb-14 { margin-bottom: 14px !important; }
+.mb-20 { margin-bottom: 20px !important; }
+
+/* ── BORDER TOKEN ────────────────────────────────────────────── */
+.border-top-subtle { border-top: 1px solid var(--border); }
+
+/* ── PERCENTAGE BAR WIDTHS (hero panel static bars) ─────────── */
+.hpanel-bar-fill[data-pct="72"] { width: 72%; }
+.hpanel-bar-fill[data-pct="61"] { width: 61%; }
+.hpanel-bar-fill[data-pct="45"] { width: 45%; }
+.hpanel-bar-fill[data-pct="28"] { width: 28%; }
+
+/* ── WARNING ALERT PILL ──────────────────────────────────────── */
+.alert-warning-tok {
+  background: rgba(217,119,6,0.10);
+  border: 1px solid rgba(217,119,6,0.25);
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-bottom: 14px;
+  font-size: 12.5px;
+  color: var(--warning);
+}
+
+/* ── HOW-STEP WARNING VARIANT ────────────────────────────────── */
+.how-step-warning { border-left: 2px solid var(--warning); opacity: 0.9; }
+
+/* ── INLINE "NOT ML" TAG ─────────────────────────────────────── */
+.badge-not-ml {
+  font-size: 10px;
+  background: rgba(217,119,6,0.15);
+  color: var(--warning);
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-weight: 600;
+  vertical-align: middle;
+}
+
+/* ── MISC LAYOUT HELPERS ─────────────────────────────────────── */
+.min-w-0   { min-width: 0; }
+.min-w-130 { min-width: 130px; }
+.min-w-150 { min-width: 150px; }
+.min-w-160 { min-width: 160px; }
+.gap-12    { gap: 12px; }
+
+/* ── STEP-NUM SIZE VARIANTS ─────────────────────────────────── */
+.step-num-lg    { width: 44px; height: 44px; }
+.step-num-xs    { width: 28px; height: 28px; font-size: 10px; }
+.step-num-xs2   { width: 22px; height: 22px; font-size: 10px; }
+.step-num-arrow { width: 20px; height: 20px; font-size: 9px;  }
+
+/* ── HOW-NUM EXTRA SIZE ─────────────────────────────────────── */
+.how-num-xs { width: 30px; height: 30px; font-size: 12px; }
+
+/* ── FEATURE TAG COLOR MODIFIERS ────────────────────────────── */
+.feature-tag-indigo  { background: rgba(99,102,241,0.15) !important; color: var(--indigo2)  !important; border-color: rgba(99,102,241,0.3) !important; }
+.feature-tag-emerald { background: rgba(16,185,129,0.15) !important; color: var(--emerald2) !important; border-color: rgba(16,185,129,0.3) !important; }
+.feature-tag-amber   { background: rgba(245,158,11,0.15) !important; color: var(--amber2)   !important; border-color: rgba(245,158,11,0.3) !important; }
+.feature-tag-rose    { background: rgba(244,63,94,0.15)  !important; color: var(--rose2)    !important; border-color: rgba(244,63,94,0.3)  !important; }
+
+/* ── STATUS BADGE EMERALD MODIFIER ─────────────────────────── */
+.status-badge-emerald { background: rgba(16,185,129,0.15) !important; color: var(--emerald2) !important; border-color: rgba(16,185,129,0.3) !important; }
+
+/* ── MODEL ICON SIZE MODIFIER ───────────────────────────────── */
+.model-icon-lg { width: 44px; height: 44px; }
+
+/* ── CODE BLOCK PANEL ───────────────────────────────────────── */
+.code-block-panel {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 16px;
+  font-size: 12px;
+}
+
+/* ── INFO ALERT TOKEN ───────────────────────────────────────── */
+.alert-info-tok {
+  font-size: 12px;
+  padding: 10px;
+  border-radius: 8px;
+  background: rgba(56,189,248,0.07);
+  border: 1px solid rgba(56,189,248,0.2);
+  color: var(--accent2);
+}
+.chart-250 { height: 250px; }
+.chart-300 { height: 300px; }
+.chart-350 { height: 350px; }
+.chart-400 { height: 400px; }
+
+/* ── HOW-STEP COMPACT VARIANT (inline side-panel) ────────────── */
+.how-step-compact { padding: 14px; margin-bottom: 10px; }
+.how-step-compact:last-child { margin-bottom: 0; }
+.how-num-sm { width: 32px; height: 32px; font-size: 13px; }
+.how-num-md { width: 34px; height: 34px; font-size: 13px; }
+
+/* ── OVERFLOW / MAX HEIGHT HELPERS ─────────────────────────────── */
+.max-h-280 { max-height: 280px; overflow-y: auto; }
+
+/* ── SUCCESS ALERT TOKEN ─────────────────────────────────────── */
+.alert-success-tok {
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(16,185,129,0.2);
+  background: rgba(16,185,129,0.07);
+  font-size: 12px;
+  color: var(--emerald2);
+}
+.ltr-sm  { letter-spacing: 0.04em; }
+.ltr-md  { letter-spacing: 0.07em; }
+.ltr-lg  { letter-spacing: 0.1em;  }
+
+/* ── STEP-NUM 24PX VARIANT ───────────────────────────────────── */
+.step-num-sm { width: 24px; height: 24px; font-size: 10px; }

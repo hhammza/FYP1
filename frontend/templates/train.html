@@ -14,7 +14,7 @@
       </div>
       <div>
         <h1 class="page-title">Model Training</h1>
-        <p class="page-subtitle">Train ML models on your local dataset — LightGBM &amp; K-mer RandomForest</p>
+        <p class="page-subtitle">Train ML models on your local dataset  LightGBM &amp; K-mer RandomForest</p>
       </div>
     </div>
   </div>
@@ -27,7 +27,7 @@
   {% if result %}
   <div class="alert alert-success-custom mb-4">
     <i class="bi bi-check-circle me-2"></i>
-    <strong>{{ result.status }}</strong> — {{ result.message }}
+    <strong>{{ result.status }}</strong>  {{ result.message }}
   </div>
   {% endif %}
   {% if error %}
@@ -51,7 +51,7 @@
 
         <div class="alert alert-info-custom mb-3">
           <i class="bi bi-database me-2"></i>
-          <strong>Dataset:</strong> <code>amr_output/</code> — 4,252 CSV files with AMR phenotype data
+          <strong>Dataset:</strong> <code>amr_output/</code>  4,252 CSV files with AMR phenotype data
         </div>
 
         <div class="mb-3">
@@ -93,7 +93,7 @@
 
         <div class="alert alert-info-custom mb-3">
           <i class="bi bi-database me-2"></i>
-          <strong>Dataset:</strong> <code>mapped_output/</code> + <code>fasta_output/</code> — 1,684 mapped genomes
+          <strong>Dataset:</strong> <code>mapped_output/</code> + <code>fasta_output/</code>  1,684 mapped genomes
         </div>
 
         <div class="mb-3">
@@ -129,7 +129,7 @@
           <div class="model-icon timeline-icon"><i class="bi bi-activity"></i></div>
           <div>
             <h5 class="mb-0">Mutation Timeline</h5>
-            <small class="text-muted">CNN-LSTM — Bio-simulation fallback active</small>
+            <small class="text-muted">CNN-LSTM  Bio-simulation fallback active</small>
           </div>
         </div>
         <div class="alert alert-warning-custom mb-3">
@@ -185,7 +185,7 @@
   <div class="info-card mt-4">
     <h5 class="card-section-title"><i class="bi bi-arrow-clockwise text-accent me-2"></i>Reload Trained Models</h5>
     <p class="text-muted">After training from the command line, click below to reload models without restarting the server.</p>
-    <button class="btn btn-outline-custom" onclick="reloadModels()">
+    <button class="btn btn-outline-custom" onclick="reloadModels(this)">
       <i class="bi bi-arrow-clockwise me-2"></i>Reload All Models
     </button>
     <div id="reloadResult" class="mt-3"></div>
@@ -203,7 +203,7 @@
         </button>
       </div>
       <pre class="code-content"><code># Navigate to backend directory
-cd "C:\Users\HP\OneDrive - Higher Education Commission\Desktop\FYP1\backend"
+cd path/to/FYP/backend
 
 # Train all models (LightGBM + K-mer)
 python train_models.py --model all
@@ -219,33 +219,5 @@ python train_models.py --model kmer   # K-mer model only
 {% endblock %}
 
 {% block scripts %}
-<script>
-function reloadModels() {
-  const btn = event.target;
-  btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Reloading...';
-  btn.disabled = true;
-  fetch('/reload', { method: 'POST' })
-    .then(r => r.json())
-    .then(data => {
-      const div = document.getElementById('reloadResult');
-      const trained = Object.entries(data.models || {}).map(([k,v]) => `${k}: ${v.trained ? '✅ Trained' : '⚠️ Heuristic'}`).join(' | ');
-      div.innerHTML = `<div class="alert alert-success-custom"><i class="bi bi-check-circle me-2"></i>${trained}</div>`;
-    })
-    .catch(e => {
-      document.getElementById('reloadResult').innerHTML = `<div class="alert alert-danger-custom">${e.message}</div>`;
-    })
-    .finally(() => {
-      btn.innerHTML = '<i class="bi bi-arrow-clockwise me-2"></i>Reload All Models';
-      btn.disabled = false;
-    });
-}
-
-function copyCode(btn) {
-  const code = btn.closest('.code-block').querySelector('code').textContent;
-  navigator.clipboard.writeText(code).then(() => {
-    btn.innerHTML = '<i class="bi bi-check-lg"></i> Copied!';
-    setTimeout(() => btn.innerHTML = '<i class="bi bi-clipboard"></i> Copy', 2000);
-  });
-}
-</script>
+<script src="{{ url_for('static', filename='js/train.js') }}"></script>
 {% endblock %}

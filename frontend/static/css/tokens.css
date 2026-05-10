@@ -1,0 +1,78 @@
+/* ============================================================
+   AMRPredict — Design Tokens
+   All CSS custom properties live here. Nothing else.
+   ============================================================ */
+
+:root {
+  /* ── Backgrounds ── */
+  --bg-base:     #f0f4f8;
+  --bg-surface:  #f8fafc;
+  --bg-card:     #ffffff;
+  --bg-card2:    #f8fafc;
+  --bg-elevated: #eef2f7;
+  --bg-input:    #ffffff;
+
+  /* ── Borders ── */
+  --border:    rgba(15,23,42,0.08);
+  --border-md: rgba(15,23,42,0.14);
+  --border-hi: rgba(15,23,42,0.24);
+
+  /* ── Primary — indigo ── */
+  --primary:        #4f46e5;
+  --primary-light:  #6366f1;
+  --primary-dim:    rgba(79,70,229,0.08);
+  --primary-hover:  rgba(79,70,229,0.05);
+
+  /* ── Semantic ── */
+  --success:       #16a34a;
+  --success-light: #22c55e;
+  --success-dim:   rgba(22,163,74,0.08);
+  --danger:        #dc2626;
+  --danger-light:  #ef4444;
+  --danger-dim:    rgba(220,38,38,0.08);
+  --warning:       #d97706;
+  --warning-light: #f59e0b;
+  --warning-dim:   rgba(217,119,6,0.08);
+
+  /* ── Legacy aliases (keep templates compiling) ── */
+  --bg-0:    var(--bg-base);
+  --bg-1:    var(--bg-surface);
+  --bg-2:    var(--bg-card);
+  --accent:  var(--primary);
+  --accent2: var(--primary-light);
+  --accent3: #4338ca;
+  --indigo:  #4f46e5;
+  --indigo2: #6366f1;
+  --emerald: #16a34a;
+  --emerald2:#22c55e;
+  --rose:    #dc2626;
+  --rose2:   #ef4444;
+  --amber:   #d97706;
+  --amber2:  #f59e0b;
+  --violet:  #7c3aed;
+  --glow-a:  rgba(79,70,229,0.06);
+  --glow-i:  rgba(79,70,229,0.06);
+  --glow-e:  rgba(22,163,74,0.06);
+  --glow-r:  rgba(220,38,38,0.06);
+
+  /* ── Text ── */
+  --text-1: #0f172a;
+  --text-2: #475569;
+  --text-3: #94a3b8;
+
+  /* ── Typography ── */
+  --mono: 'JetBrains Mono','Fira Code',monospace;
+  --sans: 'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+
+  /* ── Geometry ── */
+  --r:    10px;
+  --r-sm: 7px;
+  --r-lg: 14px;
+
+  /* ── Shadows ── */
+  --shadow:    0 1px 3px rgba(15,23,42,0.08), 0 1px 2px rgba(15,23,42,0.06);
+  --shadow-lg: 0 8px 30px rgba(15,23,42,0.10), 0 2px 6px rgba(15,23,42,0.07);
+
+  /* ── Color scheme hint for native elements ── */
+  color-scheme: light;
+}

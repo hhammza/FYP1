@@ -234,6 +234,14 @@ def train_lgbm(data_dir, model_dir):
     print(f"\n[LightGBM] Test AUC-ROC: {auc:.4f}")
     print(classification_report(y_test, y_pred, target_names=['Susceptible', 'Resistant']))
 
+    report_dir = os.path.join(ROOT_DIR, 'report_figures')
+    os.makedirs(report_dir, exist_ok=True)
+    pd.DataFrame({
+        'y_true': y_test.to_numpy(),
+        'y_score': y_pred_proba,
+    }).to_csv(os.path.join(report_dir, 'lgbm_test_predictions.csv'), index=False)
+    print(f"[LightGBM] Test predictions saved to {os.path.join(report_dir, 'lgbm_test_predictions.csv')}")
+
     model_path = os.path.join(model_dir, 'amr_lgbm_final_model.txt')
     model.save_model(model_path)
     joblib.dump(ab_rate, os.path.join(model_dir, 'ab_rate_full.joblib'))
@@ -380,6 +388,14 @@ def train_kmer(data_dir, model_dir):
     print(classification_report(y_test, y_pred, target_names=['Susceptible', 'Resistant']))
     if len(np.unique(y_test)) > 1:
         print(f"[K-mer] ROC-AUC: {roc_auc_score(y_test, y_prob):.4f}")
+
+    report_dir = os.path.join(ROOT_DIR, 'report_figures')
+    os.makedirs(report_dir, exist_ok=True)
+    pd.DataFrame({
+        'y_true': y_test,
+        'y_score': y_prob,
+    }).to_csv(os.path.join(report_dir, 'kmer_test_predictions.csv'), index=False)
+    print(f"[K-mer] Test predictions saved to {os.path.join(report_dir, 'kmer_test_predictions.csv')}")
 
     model_path = os.path.join(model_dir, 'kmer_resistance_model.pkl')
     with open(model_path, 'wb') as f:
