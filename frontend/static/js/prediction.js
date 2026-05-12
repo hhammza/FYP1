@@ -14,6 +14,7 @@
   if (slider && sliderVal) {
     slider.addEventListener('input', function () {
       sliderVal.textContent = this.value;
+      this.setAttribute('aria-valuenow', this.value);
     });
   }
 

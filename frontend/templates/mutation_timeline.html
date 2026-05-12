@@ -12,7 +12,7 @@
       <div class="page-header-icon timeline-icon"><i class="bi bi-activity"></i></div>
       <div>
         <h1 class="page-title">Bacterial Mutation Timeline</h1>
-        <p class="page-subtitle">Week-by-week resistance evolution  biologically-informed logistic growth simulation</p>
+        <p class="page-subtitle">Week-by-week resistance evolution using a biologically-informed logistic growth simulation</p>
       </div>
     </div>
   </div>
@@ -66,7 +66,10 @@
         <form method="POST" action="/timeline" enctype="multipart/form-data" id="timelineForm">
 
           <div class="mb-3">
-            <label class="form-label-custom">Antibiotic <span class="required">*</span></label>
+            <label class="form-label-custom">Antibiotic <span class="required">*</span>
+              <i class="bi bi-info-circle text-muted ms-1" data-bs-toggle="tooltip" data-bs-placement="right"
+                 data-bs-title="Select the antibiotic to simulate. Each has calibrated growth rate and peak resistance parameters derived from published clinical data."></i>
+            </label>
             <select name="antibiotic" class="form-select form-select-custom" required
                     data-populate="antibiotics" data-selected="{{ form_data.antibiotic }}">
               <option value="">-- Select Antibiotic --</option>
@@ -74,9 +77,15 @@
           </div>
 
           <div class="mb-3">
-            <label class="form-label-custom">Simulation Weeks: <span id="weeksVal">{{ form_data.get('n_weeks', '8') }}</span></label>
+            <label class="form-label-custom">Simulation Weeks: <span id="weeksVal">{{ form_data.get('n_weeks', '8') }}</span>
+              <i class="bi bi-info-circle text-muted ms-1" data-bs-toggle="tooltip" data-bs-placement="right"
+                 data-bs-title="How many weeks to simulate. 8 weeks covers a typical treatment course; 24 weeks shows long-term population dynamics. The 50% line marks the treatment failure threshold."></i>
+            </label>
             <input type="range" name="n_weeks" class="form-range" min="2" max="24" step="1"
-                   value="{{ form_data.get('n_weeks', '8') }}" id="weeksSlider">
+                   value="{{ form_data.get('n_weeks', '8') }}" id="weeksSlider"
+                   aria-label="Simulation Weeks"
+                   aria-valuemin="2" aria-valuemax="24"
+                   aria-valuenow="{{ form_data.get('n_weeks', '8') }}">
             <div class="d-flex justify-content-between">
               <small class="text-muted">2 weeks</small>
               <small class="text-muted">24 weeks</small>
@@ -98,6 +107,10 @@
           </ul>
 
           <div id="fileTab2" class="mb-3">
+            <label class="form-label-custom">FASTA File <span class="text-muted">(optional)</span>
+              <i class="bi bi-info-circle text-muted ms-1" data-bs-toggle="tooltip" data-bs-placement="right"
+                 data-bs-title="Optional: upload a genome assembly to adjust the starting resistant fraction based on GC content. Leave blank to use default parameters."></i>
+            </label>
             <div class="file-drop-zone" id="dropZone2">
               <i class="bi bi-cloud-arrow-up fs-3 mb-2 text-accent"></i>
               <div>Drag &amp; drop FASTA file</div>
@@ -108,6 +121,10 @@
           </div>
 
           <div id="textTab2" class="mb-3 d-none">
+            <label class="form-label-custom">FASTA Sequence <span class="text-muted">(optional)</span>
+              <i class="bi bi-info-circle text-muted ms-1" data-bs-toggle="tooltip" data-bs-placement="right"
+                 data-bs-title="Optional: paste a FASTA sequence to customise the simulation baseline. GC content is extracted and used to set initial mutation pressure."></i>
+            </label>
             <textarea name="fasta_text" class="form-control form-control-custom mono-font"
                       rows="7" placeholder=">genome_header
 ATGCATGCATGCATGCATGC..."></textarea>
@@ -150,11 +167,11 @@ ATGCATGCATGCATGCATGC..."></textarea>
         <div class="method-steps">
           <div class="method-step">
             <span class="step-num step-success"><i class="bi bi-check-lg fs-10"></i></span>
-            <div><strong class="text-emerald2">&lt; 20%</strong> Resistant  treatment effective, continue therapy</div>
+            <div><strong class="text-emerald2">&lt; 20%</strong> Resistant: treatment is effective, continue therapy</div>
           </div>
           <div class="method-step">
             <span class="step-num step-warning"><i class="bi bi-exclamation fs-10"></i></span>
-            <div><strong class="text-amber2">20–50%</strong> Resistant  escalate monitoring, consider rotation</div>
+            <div><strong class="text-amber2">20–50%</strong> Resistant: escalate monitoring and consider rotation</div>
           </div>
           <div class="method-step">
             <span class="step-num step-danger"><i class="bi bi-x-lg fs-10"></i></span>
@@ -331,10 +348,10 @@ ATGCATGCATGCATGCATGC..."></textarea>
             <div class="example-box">
               <div class="example-title">Fast-resistance antibiotics</div>
               <div class="example-content">
-                <div><span class="text-rose2">●</span> Ciprofloxacin  resistance in ~3–4 wks</div>
-                <div><span class="text-rose2">●</span> Ampicillin  resistance in ~4–6 wks</div>
-                <div><span class="text-amber2">●</span> Meropenem  resistance in ~6–10 wks</div>
-                <div><span class="text-emerald2">●</span> Colistin  resistance in ~10–16 wks</div>
+                <div><span class="text-rose2">●</span> Ciprofloxacin: resistance in ~3–4 wks</div>
+                <div><span class="text-rose2">●</span> Ampicillin: resistance in ~4–6 wks</div>
+                <div><span class="text-amber2">●</span> Meropenem: resistance in ~6–10 wks</div>
+                <div><span class="text-emerald2">●</span> Colistin: resistance in ~10–16 wks</div>
               </div>
             </div>
           </div>
@@ -374,7 +391,7 @@ ATGCATGCATGCATGCATGC..."></textarea>
           <div class="crisis-icon"><i class="bi bi-geo-alt text-indigo2"></i></div>
           <div class="crisis-val">Hotspots</div>
           <div class="fw-600 mb-2 text-indigo2">Mutation Hotspot Detection</div>
-          <div class="crisis-desc">Genomic windows with elevated GC content and tandem repeat density are scored as mutation hotspots  these regions are where transposons and integrons insert resistance cassettes. The model identifies the top 10 highest-risk positions in your submitted genome.</div>
+          <div class="crisis-desc">Genomic windows with elevated GC content and tandem repeat density are scored as mutation hotspots. These are regions where transposons and integrons insert resistance cassettes. The model identifies the top 10 highest-risk positions in your submitted genome.</div>
         </div>
       </div>
       <div class="col-md-3">
@@ -448,7 +465,7 @@ ATGCATGCATGCATGCATGC..."></textarea>
                 <div class="how-num how-num-md step-danger"><i class="bi bi-stopwatch fs-14"></i></div>
                 <div>
                   <div class="how-title fs-13">De-escalation</div>
-                  <div class="how-desc fs-12">Switch from broad-spectrum to narrow-spectrum antibiotics as soon as culture sensitivity data confirms susceptibility  slows resistance development.</div>
+                  <div class="how-desc fs-12">Switch from broad-spectrum to narrow-spectrum antibiotics as soon as culture sensitivity data confirms susceptibility. This helps slow down resistance development.</div>
                 </div>
               </div>
             </div>

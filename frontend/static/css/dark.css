@@ -104,4 +104,6 @@
   color: var(--text-1);
   border-color: var(--border-hi);
 }
-[data-theme="dark"] .theme-toggle:hover { background: rgba(255,255,255,0.07); }
+[data-theme="dark"] .theme-toggle:hover  { background: rgba(255,255,255,0.07); }
+[data-theme="dark"] .datasrc-card        { background: rgba(255,255,255,0.03); }
+[data-theme="dark"] .datasrc-card:hover  { background: rgba(255,255,255,0.06); }

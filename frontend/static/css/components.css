@@ -291,3 +291,74 @@
 .text-white { color: var(--text-1) !important; }
 .text-emphasis { color: var(--text-1) !important; }
 .lh-relaxed { line-height: 1.75; }
+
+/* ── ABOUT PAGE ─────────────────────────────────────────────── */
+.about-body-text   { font-size: 14px; color: var(--text-2); line-height: 1.8; }
+.about-method-text { font-size: 13px; color: var(--text-2); line-height: 1.7; }
+.about-method-h6   { font-size: 13px; color: var(--text-1); }
+.about-stat-wrap   { flex: 1 1 0; min-width: 130px; }
+.about-obj-step    { padding: 16px; height: 100%; }
+.about-obj-num     { width: 36px; height: 36px; font-size: 14px; flex-shrink: 0; }
+.about-model-icon  { width: 32px; height: 32px; font-size: 14px; }
+.about-ref-num     { width: 22px; height: 22px; font-size: 9px; }
+.about-td-label    { width: 140px; }
+.about-limit-box   { border-color: rgba(245,158,11,0.2) !important; }
+.about-limit-title { color: var(--amber2); }
+.about-perf-val    { color: var(--emerald2); font-weight: 700; }
+.about-api-get     { background: rgba(16,185,129,0.15);  color: var(--emerald2); border-color: rgba(16,185,129,0.3); }
+.about-api-post    { background: rgba(99,102,241,0.15);  color: var(--indigo2);  border-color: rgba(99,102,241,0.3); }
+.about-kmer-badge  { background: rgba(16,185,129,0.15);  color: var(--emerald2); border-color: rgba(16,185,129,0.3); }
+.about-sup-label  { font-size: 10px; letter-spacing: .08em; text-transform: uppercase; }
+.about-sup-dept   { font-size: 12px; }
+.about-sup-areas  { font-size: 11px; }
+/* ── DATA SOURCE CARDS (about page) ─────────────────────────── */
+.datasrc-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  background: var(--bg-card-2, rgba(255,255,255,0.03));
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  text-decoration: none;
+  transition: border-color 0.18s, background 0.18s, transform 0.15s;
+}
+.datasrc-card:hover {
+  border-color: var(--border-md);
+  background: var(--bg-hover, rgba(255,255,255,0.06));
+  transform: translateX(2px);
+  text-decoration: none;
+}
+.datasrc-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--r-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+.datasrc-primary { background: rgba(99,102,241,0.15); color: var(--indigo2); }
+.datasrc-emerald  { background: rgba(16,185,129,0.15); color: var(--emerald2); }
+.datasrc-amber    { background: rgba(245,158,11,0.15);  color: var(--amber2); }
+.datasrc-rose     { background: rgba(239,68,68,0.15);   color: var(--rose2); }
+.datasrc-body     { flex: 1; min-width: 0; }
+.datasrc-name     { font-size: 13px; font-weight: 600; color: var(--text-1); line-height: 1.3; }
+.datasrc-desc     { font-size: 11px; color: var(--text-3); line-height: 1.4; margin-top: 2px; }
+.datasrc-arrow    { font-size: 14px; color: var(--text-3); flex-shrink: 0; transition: color 0.18s; }
+.datasrc-card:hover .datasrc-arrow { color: var(--accent2); }
+
+.about-flask-title { color: var(--accent2); }
+.about-django-title{ color: var(--emerald2); }
+.about-arch-intro  { font-size: 13px; color: var(--text-2); margin-bottom: 16px; }
+.about-api-base    { font-size: 13px; color: var(--text-3); margin-bottom: 14px; }
+.about-api-url     { color: var(--accent2); }
+.about-member-name { font-size: 14px; }
+.about-member-btn  { font-size: 11px; padding: 2px 8px; }
+.about-pipeline    { flex-wrap: wrap; gap: 10px; }
+.text-rose         { color: var(--rose2) !important; }
+.text-emerald      { color: var(--emerald2) !important; }
+.text-amber        { color: var(--amber2) !important; }
+.text-indigo       { color: var(--indigo2) !important; }
+.feature-tag[href] { text-decoration: none; }

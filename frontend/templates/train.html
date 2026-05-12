@@ -14,7 +14,7 @@
       </div>
       <div>
         <h1 class="page-title">Model Training</h1>
-        <p class="page-subtitle">Train ML models on your local dataset  LightGBM &amp; K-mer RandomForest</p>
+        <p class="page-subtitle">Train ML models on your local dataset using LightGBM &amp; K-mer RandomForest</p>
       </div>
     </div>
   </div>
@@ -27,7 +27,7 @@
   {% if result %}
   <div class="alert alert-success-custom mb-4">
     <i class="bi bi-check-circle me-2"></i>
-    <strong>{{ result.status }}</strong>  {{ result.message }}
+    <strong>{{ result.status }}</strong> — {{ result.message }}
   </div>
   {% endif %}
   {% if error %}
@@ -51,7 +51,7 @@
 
         <div class="alert alert-info-custom mb-3">
           <i class="bi bi-database me-2"></i>
-          <strong>Dataset:</strong> <code>amr_output/</code>  4,252 CSV files with AMR phenotype data
+          <strong>Dataset:</strong> <code>amr_output/</code> — 4,252 CSV files with AMR phenotype data
         </div>
 
         <div class="mb-3">
@@ -93,7 +93,7 @@
 
         <div class="alert alert-info-custom mb-3">
           <i class="bi bi-database me-2"></i>
-          <strong>Dataset:</strong> <code>mapped_output/</code> + <code>fasta_output/</code>  1,684 mapped genomes
+          <strong>Dataset:</strong> <code>mapped_output/</code> + <code>fasta_output/</code> — 1,684 mapped genomes
         </div>
 
         <div class="mb-3">
@@ -129,7 +129,7 @@
           <div class="model-icon timeline-icon"><i class="bi bi-activity"></i></div>
           <div>
             <h5 class="mb-0">Mutation Timeline</h5>
-            <small class="text-muted">CNN-LSTM  Bio-simulation fallback active</small>
+            <small class="text-muted">Bio-simulation active (CNN-LSTM fallback)</small>
           </div>
         </div>
         <div class="alert alert-warning-custom mb-3">

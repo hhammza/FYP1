@@ -12,7 +12,7 @@
       <div class="page-header-icon kmer-icon"><i class="bi bi-dna"></i></div>
       <div>
         <h1 class="page-title">Genomic Resistance Prediction</h1>
-        <p class="page-subtitle">K-mer frequency analysis on FASTA genome sequences  RandomForest classifier (AUC 0.93)</p>
+        <p class="page-subtitle">K-mer frequency analysis on FASTA genome sequences using a RandomForest classifier (AUC 0.93)</p>
       </div>
     </div>
   </div>
@@ -66,7 +66,10 @@
         <form method="POST" action="/predict" enctype="multipart/form-data" id="predictForm">
 
           <div class="mb-3">
-            <label class="form-label-custom">Antibiotic <span class="required">*</span></label>
+            <label class="form-label-custom">Antibiotic <span class="required">*</span>
+              <i class="bi bi-info-circle text-muted ms-1" data-bs-toggle="tooltip" data-bs-placement="right"
+                 data-bs-title="Select the antibiotic to predict resistance against. Must be one of the 62 antibiotics the K-mer model was trained on."></i>
+            </label>
             <select name="antibiotic" class="form-select form-select-custom" required
                     data-populate="antibiotics" data-selected="{{ form_data.antibiotic }}">
               <option value="">-- Select Antibiotic --</option>
@@ -88,7 +91,10 @@
           </ul>
 
           <div id="fileTab" class="tab-content-custom mb-3">
-            <label class="form-label-custom">FASTA File <span class="required">*</span></label>
+            <label class="form-label-custom">FASTA File <span class="required">*</span>
+              <i class="bi bi-info-circle text-muted ms-1" data-bs-toggle="tooltip" data-bs-placement="right"
+                 data-bs-title="Upload a whole-genome assembly (.fasta, .fa, .fna). The model extracts 4-mer frequencies from up to 500,000 base pairs for classification."></i>
+            </label>
             <div class="file-drop-zone" id="dropZone">
               <i class="bi bi-cloud-arrow-up fs-3 mb-2 text-accent"></i>
               <div>Drag &amp; drop FASTA file here</div>
@@ -97,11 +103,14 @@
               <label for="fastaFile" class="btn btn-outline-custom btn-sm mt-1">Browse Files</label>
               <div id="fileName" class="mt-2 text-accent small"></div>
             </div>
-            <div class="form-hint">Accepts .fasta, .fa, .fna formats  max 500K bp analyzed</div>
+            <div class="form-hint">Accepts .fasta, .fa, .fna formats; max 500K bp analyzed</div>
           </div>
 
           <div id="textTab" class="tab-content-custom mb-3 d-none">
-            <label class="form-label-custom">FASTA Sequence <span class="required">*</span></label>
+            <label class="form-label-custom">FASTA Sequence <span class="required">*</span>
+              <i class="bi bi-info-circle text-muted ms-1" data-bs-toggle="tooltip" data-bs-placement="right"
+                 data-bs-title="Paste a FASTA sequence starting with a '&gt;' header line. Non-ATCG bases are removed automatically before k-mer extraction."></i>
+            </label>
             <textarea name="fasta_text" class="form-control form-control-custom mono-font"
                       rows="8" placeholder=">genome_id description
 ATGCATGCATGCATGCATGCATGCATGCATGC
@@ -114,9 +123,15 @@ GCATGCATGCATGCATGCATGCATGCATGCAT
           </div>
 
           <div class="mb-4">
-            <label class="form-label-custom">Decision Threshold: <span id="threshVal2">{{ form_data.get('threshold', '0.5') }}</span></label>
+            <label class="form-label-custom">Decision Threshold: <span id="threshVal2">{{ form_data.get('threshold', '0.5') }}</span>
+              <i class="bi bi-info-circle text-muted ms-1" data-bs-toggle="tooltip" data-bs-placement="right"
+                 data-bs-title="Probability cutoff for Resistant classification. Default 0.50 gives balanced precision and recall across the 62-antibiotic K-mer model."></i>
+            </label>
             <input type="range" name="threshold" class="form-range" min="0.1" max="0.9" step="0.05"
-                   value="{{ form_data.get('threshold', '0.5') }}" id="threshSlider2">
+                   value="{{ form_data.get('threshold', '0.5') }}" id="threshSlider2"
+                   aria-label="Decision Threshold"
+                   aria-valuemin="0.1" aria-valuemax="0.9"
+                   aria-valuenow="{{ form_data.get('threshold', '0.5') }}">
             <div class="d-flex justify-content-between"><small class="text-muted">0.1 (Sensitive)</small><small class="text-muted">0.9 (Specific)</small></div>
           </div>
 
@@ -130,7 +145,7 @@ GCATGCATGCATGCATGCATGCATGCATGCAT
       <div class="info-card mt-4">
         <h6 class="card-section-title"><i class="bi bi-gear text-accent me-2"></i>K-mer Analysis Pipeline</h6>
         <div class="method-steps">
-          <div class="method-step"><span class="step-num">1</span>FASTA genome is read and cleaned  only A, T, C, G nucleotides retained</div>
+          <div class="method-step"><span class="step-num">1</span>FASTA genome is read and cleaned; only A, T, C, G nucleotides retained</div>
           <div class="method-step"><span class="step-num">2</span>Sliding 4-mer window generates 256-dimensional frequency vector</div>
           <div class="method-step"><span class="step-num">3</span>Antibiotic one-hot encoding (N classes) + GC content features appended</div>
           <div class="method-step"><span class="step-num">4</span>RandomForest (100 trees, balanced class weights) classifies Resistant vs Susceptible</div>
@@ -144,15 +159,15 @@ GCATGCATGCATGCATGCATGCATGCATGCAT
         <div class="method-steps">
           <div class="method-step">
             <span class="step-num step-sky">~35%</span>
-            <div><strong class="text-1">Low GC</strong>  typical of <em>Staphylococcus</em>, <em>Streptococcus</em></div>
+            <div><strong class="text-1">Low GC</strong>: typical of <em>Staphylococcus</em>, <em>Streptococcus</em></div>
           </div>
           <div class="method-step">
             <span class="step-num step-indigo">~50%</span>
-            <div><strong class="text-1">Mid GC</strong>  typical of <em>E. coli</em>, <em>Salmonella</em></div>
+            <div><strong class="text-1">Mid GC</strong>: typical of <em>E. coli</em>, <em>Salmonella</em></div>
           </div>
           <div class="method-step">
             <span class="step-num step-success">~65%</span>
-            <div><strong class="text-1">High GC</strong>  typical of <em>Pseudomonas</em>, <em>Mycobacterium</em></div>
+            <div><strong class="text-1">High GC</strong>: typical of <em>Pseudomonas</em>, <em>Mycobacterium</em></div>
           </div>
         </div>
       </div>
@@ -305,7 +320,7 @@ GCATGCATGCATGCATGCATGCATGCATGCAT
     <div class="mb-4">
       <div class="sec-eyebrow">Genomic Science</div>
       <div class="sec-title">K-mer Analysis for Resistance Prediction</div>
-      <div class="sec-sub">K-mer frequencies encode the compositional "fingerprint" of a genome  resistance determinants leave distinctive patterns detectable by machine learning.</div>
+      <div class="sec-sub">K-mer frequencies encode the compositional "fingerprint" of a genome; resistance determinants leave distinctive patterns detectable by machine learning.</div>
     </div>
 
     <div class="row g-4 mb-4">
@@ -359,11 +374,11 @@ GCATGCATGCATGCATGCATGCATGCATGCAT
           <h6 class="card-section-title"><i class="bi bi-cpu text-accent me-2"></i>Why K-mers Beat Sequence Alignment</h6>
           <div class="how-step how-step-compact">
             <div class="how-num how-num-sm">01</div>
-            <div><div class="how-title fs-13">Reference-free</div><div class="how-desc fs-12">No reference genome needed  works on any novel pathogen assembly</div></div>
+            <div><div class="how-title fs-13">Reference-free</div><div class="how-desc fs-12">No reference genome needed; it works on any novel pathogen assembly</div></div>
           </div>
           <div class="how-step how-step-compact">
             <div class="how-num how-num-sm">02</div>
-            <div><div class="how-title fs-13">Speed</div><div class="how-desc fs-12">O(n) scan of genome sequence  milliseconds even for 5Mb genomes</div></div>
+            <div><div class="how-title fs-13">Speed</div><div class="how-desc fs-12">O(n) scan of genome sequence, taking milliseconds even for 5Mb genomes</div></div>
           </div>
           <div class="how-step how-step-compact">
             <div class="how-num how-num-sm">03</div>

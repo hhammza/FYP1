@@ -99,7 +99,10 @@
       fetchCached(key, url)
         .then(data => populateSelect(select, data, selected))
         .catch(() => {
-          /* fail silently — leave whatever HTML options were there */
+          select.innerHTML = '<option value="" disabled selected>Failed to load — check backend</option>';
+          if (window.AMR && typeof AMR.toast === 'function') {
+            AMR.toast('Could not load antibiotic list. Make sure the backend is running.', 'error', 'Connection Error');
+          }
         });
     });
   }
