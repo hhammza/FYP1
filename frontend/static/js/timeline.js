@@ -15,6 +15,7 @@
   if (slider && weeksVal) {
     slider.addEventListener('input', function () {
       weeksVal.textContent = this.value;
+      this.setAttribute('aria-valuenow', this.value);
     });
   }
 

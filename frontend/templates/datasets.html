@@ -14,7 +14,7 @@
       </div>
       <div>
         <h1 class="page-title">Datasets &amp; Data Sources</h1>
-        <p class="page-subtitle">Five datasets from BVBRC/PATRIC and NCBI GenBank  powering three deployed ML models</p>
+        <p class="page-subtitle">Five datasets from BVBRC/PATRIC and NCBI GenBank, powering three deployed ML models</p>
       </div>
     </div>
   </div>
@@ -58,7 +58,7 @@
 
   <!-- ── Dataset Overview Table ────────────────────────────────── -->
   <div class="glass-card mb-5">
-    <h5 class="fw-700 text-white mb-1"><i class="bi bi-table me-2 text-indigo2"></i>All Five Datasets at a Glance</h5>
+    <h5 class="fw-700 mb-1"><i class="bi bi-table me-2 text-indigo2"></i>All Five Datasets at a Glance</h5>
     <p class="fs-13 text-muted mb-3">Each dataset serves a distinct role in the AMR prediction pipeline. Datasets 1–4 originate from BVBRC/PATRIC; Dataset 2 is sourced from NCBI GenBank.</p>
     <div class="table-responsive">
       <table class="table table-custom mb-0">
@@ -127,10 +127,10 @@
         <div class="info-card h-100">
           <h6 class="card-section-title"><i class="bi bi-info-circle text-accent me-2"></i>What This Dataset Contains</h6>
           <p class="body-text lh-17">
-            This is the core tabular dataset sourced from the <strong class="text-white">BVBRC (BV-BRC / PATRIC) database</strong>  a United States Department of Energy national database of bacterial genomic and antimicrobial resistance data. It provides the labeled ground-truth used to train the LightGBM gradient boosting model.
+            This is the core tabular dataset sourced from the <strong>BVBRC (BV-BRC / PATRIC) database</strong>, a United States Department of Energy national database of bacterial genomic and antimicrobial resistance data. It provides the labeled ground-truth used to train the LightGBM gradient boosting model.
           </p>
           <p class="body-text lh-17">
-            Each row represents a single <em>genome–antibiotic test result</em>: a specific bacterial isolate tested against a specific antibiotic. The key label is the <strong class="text-rose2">Resistant Phenotype</strong> column  whether the isolate was found <strong class="text-rose2">Resistant</strong>, <strong class="text-emerald2">Susceptible</strong>, or <strong class="text-amber2">Intermediate</strong>.
+            Each row represents a single <em>genome–antibiotic test result</em>: a specific bacterial isolate tested against a specific antibiotic. The key label is the <strong class="text-rose2">Resistant Phenotype</strong> column, which shows whether the isolate was found <strong class="text-rose2">Resistant</strong>, <strong class="text-emerald2">Susceptible</strong>, or <strong class="text-amber2">Intermediate</strong>.
           </p>
           <p class="body-text lh-17">
             Files are organized as one CSV per bacterial taxon (e.g., <code class="font-mono text-accent2">amr_taxon_562_Escherichia_coli.csv</code>). The dataset covers 15+ bacterial species across 62 antibiotics.
@@ -145,7 +145,7 @@
                 <tr><td class="font-mono text-accent2">Genome Name</td><td class="small">String</td><td class="small text-muted">Full species name (e.g., "Escherichia coli K-12")</td><td><span class="feature-tag">genus/species</span></td></tr>
                 <tr><td class="font-mono text-accent2">Taxon ID</td><td class="small">Integer</td><td class="small text-muted">NCBI Taxonomy ID of the organism</td><td><span class="feature-tag">Feature</span></td></tr>
                 <tr><td class="font-mono text-accent2">Antibiotic</td><td class="small">String</td><td class="small text-muted">Antibiotic tested (lowercase, standardized)</td><td><span class="feature-tag">Feature + Encode</span></td></tr>
-                <tr><td class="font-mono text-rose2">Resistant Phenotype</td><td class="small">Categorical</td><td class="small text-muted"><strong>TARGET LABEL</strong>  Resistant / Susceptible / Intermediate</td><td><span class="feature-tag feature-tag-rose">Target</span></td></tr>
+                <tr><td class="font-mono text-rose2">Resistant Phenotype</td><td class="small">Categorical</td><td class="small text-muted"><strong>TARGET LABEL</strong>: Resistant, Susceptible, or Intermediate</td><td><span class="feature-tag feature-tag-rose">Target</span></td></tr>
                 <tr><td class="font-mono text-accent2">Measurement</td><td class="small">String</td><td class="small text-muted">Raw MIC string (e.g., "&lt;=4", "2", "&gt;=32")</td><td><span class="feature-tag">mic_sign + mic_value</span></td></tr>
                 <tr><td class="font-mono text-accent2">Measurement Value</td><td class="small">Float</td><td class="small text-muted">Numeric MIC value in mg/L</td><td><span class="feature-tag">mic_value</span></td></tr>
                 <tr><td class="font-mono text-accent2">Measurement Units</td><td class="small">String</td><td class="small text-muted">Unit of measurement (typically mg/L)</td><td><span class="feature-tag">Validation</span></td></tr>
@@ -174,7 +174,7 @@
         <div class="info-card mb-4">
           <h6 class="card-section-title"><i class="bi bi-bacteria text-accent me-2"></i>Top Bacterial Species</h6>
           <div class="method-steps">
-            <div class="method-step"><span class="step-num step-num-xs">1</span><div><em>Escherichia coli</em>  largest subset (~50K)</div></div>
+            <div class="method-step"><span class="step-num step-num-xs">1</span><div><em>Escherichia coli</em>: largest subset (~50K)</div></div>
             <div class="method-step"><span class="step-num step-num-xs">2</span><div><em>Salmonella enterica</em> (~15K records)</div></div>
             <div class="method-step"><span class="step-num step-num-xs">3</span><div><em>Streptococcus pneumoniae</em> (~8K)</div></div>
             <div class="method-step"><span class="step-num step-num-xs">4</span><div><em>Klebsiella pneumoniae</em>, <em>Staphylococcus aureus</em></div></div>
@@ -255,10 +255,10 @@
         <div class="info-card h-100">
           <h6 class="card-section-title"><i class="bi bi-info-circle text-accent me-2"></i>What This Dataset Contains</h6>
           <p style="font-size:13px;color:var(--text-2);line-height:1.7;">
-            Raw bacterial whole-genome DNA sequences in <strong style="color:white">FASTA format</strong>  the standard bioinformatics format for nucleotide sequences. Each file represents the complete assembled genome of a single bacterial isolate, containing between ~100,000 bp (small genomes) and ~5,000,000 bp (large genomes) of ATCG sequence data.
+            Raw bacterial whole-genome DNA sequences in <strong>FASTA format</strong>, the standard bioinformatics format for nucleotide sequences. Each file represents the complete assembled genome of a single bacterial isolate, containing between ~100,000 bp (small genomes) and ~5,000,000 bp (large genomes) of ATCG sequence data.
           </p>
           <p style="font-size:13px;color:var(--text-2);line-height:1.7;">
-            Files are organized by BVBRC genome ID. A FASTA file begins with a header line (starting with <code class="font-mono">&gt;</code>) followed by the raw nucleotide sequence. These sequences are the input to the K-mer resistance predictor  the model reads the sequence, computes 4-mer frequencies, and classifies resistance without needing a reference genome alignment.
+            Files are organized by BVBRC genome ID. A FASTA file begins with a header line (starting with <code class="font-mono">&gt;</code>) followed by the raw nucleotide sequence. These sequences are the input to the K-mer resistance predictor. The model reads the sequence, computes 4-mer frequencies, and classifies resistance without needing a reference genome alignment.
           </p>
 
           <h6 class="card-section-title mt-4"><i class="bi bi-file-code text-accent me-2"></i>FASTA Format Example</h6>
@@ -319,19 +319,19 @@ GCGAGTGTTGAAGTTCGGCGGTACATCAGTGGCAAATGCAGAACGTTTT
           <div class="method-steps">
             <div class="method-step">
               <span class="step-num" style="width:28px;height:28px;font-size:10px;background:rgba(244,63,94,0.12);border-color:rgba(244,63,94,0.3);color:var(--rose2)">33%</span>
-              <div><em>S. aureus</em>  AT-rich genome</div>
+              <div><em>S. aureus</em>: AT-rich genome</div>
             </div>
             <div class="method-step">
               <span class="step-num" style="width:28px;height:28px;font-size:10px;background:rgba(99,102,241,0.12);border-color:rgba(99,102,241,0.3);color:var(--indigo2)">51%</span>
-              <div><em>E. coli</em>  balanced GC</div>
+              <div><em>E. coli</em>: balanced GC</div>
             </div>
             <div class="method-step">
               <span class="step-num" style="width:28px;height:28px;font-size:10px;background:rgba(245,158,11,0.12);border-color:rgba(245,158,11,0.3);color:var(--amber2)">57%</span>
-              <div><em>K. pneumoniae</em>  GC-rich</div>
+              <div><em>K. pneumoniae</em>: GC-rich</div>
             </div>
             <div class="method-step">
               <span class="step-num" style="width:28px;height:28px;font-size:10px;background:rgba(16,185,129,0.12);border-color:rgba(16,185,129,0.3);color:var(--emerald2)">67%</span>
-              <div><em>P. aeruginosa</em>  high GC</div>
+              <div><em>P. aeruginosa</em>: high GC</div>
             </div>
           </div>
         </div>
@@ -339,7 +339,7 @@ GCGAGTGTTGAAGTTCGGCGGTACATCAGTGGCAAATGCAGAACGTTTT
         <div class="info-card">
           <h6 class="card-section-title"><i class="bi bi-shield-check text-accent me-2"></i>Why K-mers?</h6>
           <p style="font-size:12px;color:var(--text-2);line-height:1.6;">
-            K-mer frequencies capture the compositional "fingerprint" of a genome without requiring alignment to a reference. Resistance genes alter the k-mer composition around insertion sites, making these patterns detectable by machine learning. The approach is <strong style="color:white">alignment-free</strong>, works on any assembly quality, and runs in milliseconds.
+            K-mer frequencies capture the compositional "fingerprint" of a genome without requiring alignment to a reference. Resistance genes alter the k-mer composition around insertion sites, making these patterns detectable by machine learning. The approach is <strong>alignment-free</strong>, works on any assembly quality, and runs in milliseconds.
           </p>
           <div class="d-flex flex-wrap gap-2 mt-2">
             <span class="feature-tag">Reference-free</span>
@@ -369,13 +369,13 @@ GCGAGTGTTGAAGTTCGGCGGTACATCAGTGGCAAATGCAGAACGTTTT
         <div class="info-card h-100">
           <h6 class="card-section-title"><i class="bi bi-info-circle text-accent me-2"></i>What This Dataset Contains</h6>
           <p style="font-size:13px;color:var(--text-2);line-height:1.7;">
-            This is an <strong style="color:white">intermediate linkage dataset</strong>  it bridges Dataset 1 (AMR phenotype labels) and Dataset 2 (FASTA sequences). Each row from the AMR CSV files is enriched with a <code class="font-mono" style="color:var(--accent2)">fasta_path</code> column pointing to the actual genome FASTA file for that isolate.
+            This is an <strong>intermediate linkage dataset</strong> that bridges Dataset 1 (AMR phenotype labels) and Dataset 2 (FASTA sequences). Each row from the AMR CSV files is enriched with a <code class="font-mono" style="color:var(--accent2)">fasta_path</code> column pointing to the actual genome FASTA file for that isolate.
           </p>
           <p style="font-size:13px;color:var(--text-2);line-height:1.7;">
             This linkage is essential for training the K-mer RandomForest model: the model needs both the <strong style="color:var(--rose2)">resistance label</strong> (from Dataset 1) AND the <strong style="color:var(--emerald2)">genome sequence</strong> (from Dataset 2). The mapped records provide both in one place.
           </p>
           <p style="font-size:13px;color:var(--text-2);line-height:1.7;">
-            Not all AMR records have a matching FASTA file  only 1,684 out of 4,252 taxons have genomes available in the database. This linkage step filters to the intersection.
+            Not all AMR records have a matching FASTA file; only 1,684 out of 4,252 taxons have genomes available in the database. This linkage step filters to the intersection.
           </p>
 
           <h6 class="card-section-title mt-4"><i class="bi bi-diagram-3 text-accent me-2"></i>How the Linkage Works</h6>
@@ -658,7 +658,7 @@ GCGAGTGTTGAAGTTCGGCGGTACATCAGTGGCAAATGCAGAACGTTTT
         <div class="glass-card h-100">
           <div class="model-icon lgbm-icon mb-3" style="width:44px;height:44px;"><i class="bi bi-cpu"></i></div>
           <h6 class="fw-700 text-white mb-2">Mode 4: Training</h6>
-          <p style="font-size:12px;color:var(--text-2);">Retrain models on your local data (optional  models are pre-trained).</p>
+          <p style="font-size:12px;color:var(--text-2);">Retrain models on your local data (optional, as models are already pre-trained).</p>
           <div class="method-steps mt-3">
             <div class="method-step"><span class="step-num" style="width:22px;height:22px;font-size:10px">A</span>Via UI: <a href="/train">Train Models</a> page</div>
             <div class="method-step"><span class="step-num" style="width:22px;height:22px;font-size:10px">B</span>Via CLI in <code class="font-mono">backend/</code> folder</div>
@@ -676,7 +676,7 @@ GCGAGTGTTGAAGTTCGGCGGTACATCAGTGGCAAATGCAGAACGTTTT
 
   <!-- ── Input Format Reference ─────────────────────────────────── -->
   <div class="glass-card mb-5">
-    <h5 class="fw-700 text-white mb-1"><i class="bi bi-code text-accent me-2"></i>Input Format Reference</h5>
+    <h5 class="fw-700 mb-1"><i class="bi bi-code text-accent me-2"></i>Input Format Reference</h5>
     <p style="font-size:13px;color:var(--text-3);margin-bottom:20px;">Quick reference for all accepted input formats across the three analysis modes.</p>
     <div class="row g-4">
       <div class="col-md-4">
@@ -707,7 +707,7 @@ GCGAGTGTTGAAGTTCGGCGGTACATCAGTGGCAAATGCAGAACGTTTT
             <div class="font-mono mt-2" style="color:var(--accent2)">Max analyzed:</div>
             <div class="text-muted ms-2">500,000 bp (K-mer), 200,000 bp (Timeline)</div>
             <div class="font-mono mt-2" style="color:var(--accent2)">Nucleotides:</div>
-            <div class="text-muted ms-2">A, T, C, G only  ambiguous bases stripped</div>
+            <div class="text-muted ms-2">A, T, C, G only; ambiguous bases are removed</div>
             <div class="font-mono mt-2" style="color:var(--accent2)">Multi-contig:</div>
             <div class="text-muted ms-2">Supported (all contigs concatenated)</div>
           </div>
@@ -733,8 +733,8 @@ GCGAGTGTTGAAGTTCGGCGGTACATCAGTGGCAAATGCAGAACGTTTT
 
   <!-- ── Source & Citation ──────────────────────────────────────── -->
   <div class="glass-card">
-    <h5 class="fw-700 text-white mb-1"><i class="bi bi-journal-text text-accent me-2"></i>Data Source &amp; Citation</h5>
-    <p style="font-size:13px;color:var(--text-2);margin-bottom:16px;">All genomic and AMR phenotype data was retrieved from the <strong style="color:white">BVBRC (Bacterial and Viral Bioinformatics Resource Center)</strong>, formerly known as PATRIC.</p>
+    <h5 class="fw-700 mb-1"><i class="bi bi-journal-text text-accent me-2"></i>Data Source &amp; Citation</h5>
+    <p style="font-size:13px;color:var(--text-2);margin-bottom:16px;">All genomic and AMR phenotype data was retrieved from the <strong>BVBRC (Bacterial and Viral Bioinformatics Resource Center)</strong>, formerly known as PATRIC.</p>
     <div class="row g-3">
       <div class="col-md-6">
         <div class="example-box">

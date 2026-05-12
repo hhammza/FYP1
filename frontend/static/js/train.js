@@ -27,7 +27,7 @@ window.reloadModels = function (btn) {
       if (div) {
         div.innerHTML = `<div class="alert alert-danger-custom"><i class="bi bi-exclamation-circle me-2"></i>${e.message}</div>`;
       }
-      AMR.toast(e.message, 'danger', 'Reload Failed');
+      AMR.toast(e.message, 'error', 'Reload Failed');
     })
     .finally(() => {
       btn.innerHTML = orig;

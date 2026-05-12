@@ -140,7 +140,7 @@ function initFormSubmitLoading() {
 /* ── BOOTSTRAP TOOLTIPS ──────────────────────────────────────── */
 function initTooltips() {
   document.querySelectorAll('[data-bs-toggle="tooltip"]')
-    .forEach(el => new bootstrap.Tooltip(el));
+    .forEach(el => new bootstrap.Tooltip(el, { trigger: 'hover focus' }));
 }
 
 /* ── NUMBER COUNTER ANIMATION (IntersectionObserver) ─────────── */

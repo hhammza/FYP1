@@ -8,7 +8,7 @@ import requests
 from flask import Flask, render_template, request, jsonify, redirect, url_for
 
 app = Flask(__name__)
-app.secret_key = 'fyp-flask-frontend-2024'
+app.secret_key = os.environ.get('SECRET_KEY', 'fyp-flask-frontend-2024')
 
 BACKEND_URL = os.environ.get('BACKEND_URL', 'http://127.0.0.1:8000/api')
 
@@ -171,9 +171,9 @@ def mutation_timeline():
                 'fasta_text': fasta_text, 'antibiotic': antibiotic, 'n_weeks': int(n_weeks)
             })
         else:
-            error = 'Please provide a FASTA file or paste FASTA sequence text.'
-            return render_template('mutation_timeline.html', result=result, error=error,
-                                   form_data=form_data)
+            data, status = backend_post('timeline/', json_data={
+                'antibiotic': antibiotic, 'n_weeks': int(n_weeks)
+            })
 
         if status == 200:
             result = data
@@ -238,4 +238,6 @@ def about():
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5001))
-    app.run(debug=True, port=port, host='0.0.0.0')
+    # debug=True locally (no PORT set); False in production (Railway sets PORT)
+    debug = not bool(os.environ.get('PORT'))
+    app.run(debug=debug, port=port, host='0.0.0.0')

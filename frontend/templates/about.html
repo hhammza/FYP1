@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}About — AMR Prediction System{% endblock %}
+{% block title %}About the AMR Prediction System{% endblock %}
 
 {% block page_header %}
 <div class="page-header">
@@ -14,7 +14,7 @@
       </div>
       <div>
         <h1 class="page-title">About This Project</h1>
-        <p class="page-subtitle">Forecasting Antibiotic Resistance with Machine Learning — Final Year Project</p>
+        <p class="page-subtitle">Forecasting Antibiotic Resistance with Machine Learning | Final Year Project</p>
       </div>
     </div>
   </div>
@@ -26,24 +26,24 @@
 
   <!-- ── Quick Stats ────────────────────────────────────────────── -->
   <div class="d-flex gap-3 flex-wrap mb-4">
-    <div class="flex-fill" style="min-width:130px"><div class="stat-mini">
-      <div class="stat-mini-value" style="color:var(--indigo2)">2</div>
+    <div class="about-stat-wrap"><div class="stat-mini">
+      <div class="stat-mini-value text-indigo">2</div>
       <div class="stat-mini-label">ML models + 1 bio-sim</div>
     </div></div>
-    <div class="flex-fill" style="min-width:130px"><div class="stat-mini">
-      <div class="stat-mini-value" style="color:var(--emerald2)">0.93</div>
+    <div class="about-stat-wrap"><div class="stat-mini">
+      <div class="stat-mini-value text-emerald">0.93</div>
       <div class="stat-mini-label">AUC-ROC (both models)</div>
     </div></div>
-    <div class="flex-fill" style="min-width:130px"><div class="stat-mini">
+    <div class="about-stat-wrap"><div class="stat-mini">
       <div class="stat-mini-value">90K+</div>
       <div class="stat-mini-label">Training records</div>
     </div></div>
-    <div class="flex-fill" style="min-width:130px"><div class="stat-mini">
-      <div class="stat-mini-value" style="color:var(--amber2)">62</div>
+    <div class="about-stat-wrap"><div class="stat-mini">
+      <div class="stat-mini-value text-amber">62</div>
       <div class="stat-mini-label">Antibiotics modeled</div>
     </div></div>
-    <div class="flex-fill" style="min-width:130px"><div class="stat-mini">
-      <div class="stat-mini-value" style="color:var(--rose2)">2</div>
+    <div class="about-stat-wrap"><div class="stat-mini">
+      <div class="stat-mini-value text-rose">2</div>
       <div class="stat-mini-label">Backend services</div>
     </div></div>
   </div>
@@ -56,14 +56,14 @@
       <!-- Project Overview -->
       <div class="info-card mb-4">
         <h5 class="card-section-title"><i class="bi bi-mortarboard text-accent me-2"></i>Project Overview</h5>
-        <p style="font-size:14px;color:var(--text-2);line-height:1.8;">
-          <strong style="color:white">AMRPredict</strong> is a full-stack machine learning system developed as a Final Year Project (FYP) in BioInformatics &amp; Machine Learning. The project addresses the global health crisis of <strong style="color:var(--rose2)">Antimicrobial Resistance (AMR)</strong> — ranked by the <a href="https://www.who.int/news-room/spotlight/ten-threats-to-global-health-in-2019" target="_blank" rel="noopener" class="src-link">WHO as one of the top ten global public health threats facing humanity</a>.
+        <p class="about-body-text">
+          <strong>AMRPredict</strong> is a full-stack machine learning system developed as a Final Year Project (FYP) in BioInformatics &amp; Machine Learning. The project addresses the global health crisis of <strong class="text-rose">Antimicrobial Resistance (AMR)</strong>, which the <a href="https://www.who.int/news-room/spotlight/ten-threats-to-global-health-in-2019" target="_blank" rel="noopener" class="src-link">WHO lists as one of the top ten global public health threats facing humanity</a>.
         </p>
-        <p style="font-size:14px;color:var(--text-2);line-height:1.8;">
-          The system predicts whether a bacterial isolate will be <strong style="color:var(--rose2)">Resistant</strong> or <strong style="color:var(--emerald2)">Susceptible</strong> to a given antibiotic, using two complementary machine learning approaches trained on real genomic data from the BVBRC/PATRIC database. A third model simulates the week-by-week evolution of resistance over time using a biologically-calibrated logistic growth model.
+        <p class="about-body-text">
+          The system predicts whether a bacterial sample is <strong class="text-rose">Resistant</strong> or <strong class="text-emerald">Susceptible</strong> to a specific antibiotic. It uses two machine learning models trained on real genomic data from the BVBRC/PATRIC database. A third component simulates how resistance can spread through a bacterial population week by week, using a biologically grounded logistic growth model.
         </p>
-        <p style="font-size:14px;color:var(--text-2);line-height:1.8;">
-          The goal is to demonstrate that machine learning applied to genomic data can <strong style="color:white">predict antibiotic resistance faster and cheaper</strong> than traditional laboratory culture testing — potentially giving clinicians actionable information within minutes rather than days.
+        <p class="about-body-text">
+          The idea behind this project is to show that machine learning applied to genomic data can <strong>predict antibiotic resistance faster and more affordably</strong> than traditional lab culture tests, giving clinicians useful information within minutes rather than waiting days for results.
         </p>
         <div class="d-flex flex-wrap gap-2 mt-3">
           <span class="feature-tag">Antimicrobial Resistance</span>
@@ -80,8 +80,8 @@
         <h5 class="card-section-title"><i class="bi bi-bullseye text-accent me-2"></i>Project Objectives</h5>
         <div class="row g-3">
           <div class="col-md-6">
-            <div class="how-step h-100" style="padding:16px;">
-              <div class="how-num" style="width:36px;height:36px;font-size:14px;flex-shrink:0;">01</div>
+            <div class="how-step about-obj-step">
+              <div class="how-num about-obj-num">01</div>
               <div>
                 <div class="how-title">Binary Resistance Classification</div>
                 <div class="how-desc">Train a LightGBM model on 90,826 labeled AMR records to classify antibiotic resistance from genomic metadata with AUC-ROC ≥ 0.90.</div>
@@ -89,17 +89,17 @@
             </div>
           </div>
           <div class="col-md-6">
-            <div class="how-step h-100" style="padding:16px;">
-              <div class="how-num" style="width:36px;height:36px;font-size:14px;flex-shrink:0;">02</div>
+            <div class="how-step about-obj-step">
+              <div class="how-num about-obj-num">02</div>
               <div>
                 <div class="how-title">Alignment-Free Genomic Prediction</div>
-                <div class="how-desc">Build a k-mer frequency RandomForest model that predicts resistance directly from raw FASTA sequences — no reference genome alignment required.</div>
+                <div class="how-desc">Build a k-mer frequency RandomForest model that predicts resistance directly from raw FASTA sequences without needing any reference genome alignment.</div>
               </div>
             </div>
           </div>
           <div class="col-md-6">
-            <div class="how-step h-100" style="padding:16px;">
-              <div class="how-num" style="width:36px;height:36px;font-size:14px;flex-shrink:0;">03</div>
+            <div class="how-step about-obj-step">
+              <div class="how-num about-obj-num">03</div>
               <div>
                 <div class="how-title">Temporal Resistance Forecasting</div>
                 <div class="how-desc">Simulate week-by-week resistance evolution using a biologically-calibrated logistic growth model parameterised per antibiotic class.</div>
@@ -107,8 +107,8 @@
             </div>
           </div>
           <div class="col-md-6">
-            <div class="how-step h-100" style="padding:16px;">
-              <div class="how-num" style="width:36px;height:36px;font-size:14px;flex-shrink:0;">04</div>
+            <div class="how-step about-obj-step">
+              <div class="how-num about-obj-num">04</div>
               <div>
                 <div class="how-title">Production-Ready Web System</div>
                 <div class="how-desc">Deploy all models as a full-stack REST API system (Django + Flask) with an interactive web interface for clinical and research use.</div>
@@ -122,41 +122,41 @@
       <div class="info-card mb-4">
         <h5 class="card-section-title"><i class="bi bi-diagram-3 text-accent me-2"></i>Methodology</h5>
 
-        <h6 class="text-white mt-3 mb-2" style="font-size:13px;">Phase 1 — Data Collection &amp; Preprocessing</h6>
-        <p style="font-size:13px;color:var(--text-2);line-height:1.7;">
-          AMR phenotype data (Resistant / Susceptible / Intermediate labels, MIC values, organism metadata) was downloaded from the BVBRC database across 15+ bacterial species. FASTA genome sequences were retrieved for 1,685 isolates. Data was cleaned to remove duplicates, parse MIC strings, extract genus/species from genome names, and merge Intermediate into Resistant for binary classification.
+        <h6 class="about-method-h6 mt-3 mb-2">Phase 1: Data Collection and Preprocessing</h6>
+        <p class="about-method-text">
+          AMR phenotype data including Resistant, Susceptible, and Intermediate labels, MIC values, and organism metadata was downloaded from the BVBRC database across more than 15 bacterial species. FASTA genome sequences were collected for 1,685 isolates. The data was then cleaned to remove duplicates, parse MIC strings, extract genus and species from genome names, and merge Intermediate labels into Resistant for binary classification.
         </p>
 
-        <h6 class="text-white mt-3 mb-2" style="font-size:13px;">Phase 2 — Feature Engineering</h6>
-        <p style="font-size:13px;color:var(--text-2);line-height:1.7;">
-          Two distinct feature sets were engineered: (1) <strong style="color:white">14 tabular features</strong> for LightGBM — including MIC value + log + sign, drug class, genus/species, and target-encoded resistance rates per antibiotic, taxon-antibiotic pair, and genus-antibiotic pair; and (2) <strong style="color:white">256+ k-mer features</strong> for RandomForest — 4-mer frequency spectrum from raw FASTA, plus GC content and antibiotic one-hot encoding.
+        <h6 class="about-method-h6 mt-3 mb-2">Phase 2: Feature Engineering</h6>
+        <p class="about-method-text">
+          Two separate feature sets were built: (1) <strong>14 tabular features</strong> for LightGBM, including MIC value, log, and sign, drug class, genus and species, as well as target-encoded resistance rates per antibiotic, taxon-antibiotic pair, and genus-antibiotic pair; and (2) <strong>256+ k-mer features</strong> for RandomForest, extracted from the 4-mer frequency spectrum of raw FASTA sequences along with GC content and antibiotic one-hot encoding.
         </p>
 
-        <h6 class="text-white mt-3 mb-2" style="font-size:13px;">Phase 3 — Model Training &amp; Evaluation</h6>
-        <p style="font-size:13px;color:var(--text-2);line-height:1.7;">
+        <h6 class="about-method-h6 mt-3 mb-2">Phase 3: Model Training and Evaluation</h6>
+        <p class="about-method-text">
           LightGBM was trained with <code class="font-mono">is_unbalance=True</code> and early stopping (30 rounds) on an 80/20 stratified train-test split. The K-mer RandomForest used <code class="font-mono">class_weight='balanced'</code> to handle class imbalance (no SMOTE required for RF). Both models were evaluated on held-out test sets using AUC-ROC as the primary metric.
         </p>
 
-        <h6 class="text-white mt-3 mb-2" style="font-size:13px;">Phase 4 — Deployment</h6>
-        <p style="font-size:13px;color:var(--text-2);line-height:1.7;">
-          Models are serialized to disk (LightGBM .txt, RandomForest .pkl) and loaded at Django backend startup via a model registry. The Flask frontend proxies all prediction requests to the Django REST API. All three models include heuristic fallbacks so the system remains functional even if a trained model file is unavailable.
+        <h6 class="about-method-h6 mt-3 mb-2">Phase 4: Deployment</h6>
+        <p class="about-method-text">
+          The trained models are saved to disk as LightGBM .txt and RandomForest .pkl files and loaded when the Django backend starts up through a model registry. The Flask frontend forwards all prediction requests to the Django REST API. All three models include fallback logic so the system keeps working even if a model file is missing.
         </p>
       </div>
 
       <!-- Models Detail -->
       <div class="info-card mb-4">
-        <h5 class="card-section-title"><i class="bi bi-cpu text-accent me-2"></i>ML Models — Technical Detail</h5>
+        <h5 class="card-section-title"><i class="bi bi-cpu text-accent me-2"></i>ML Models: Technical Detail</h5>
 
         <!-- LightGBM -->
         <div class="example-box mb-3">
           <div class="d-flex align-items-center gap-2 mb-2">
-            <div class="model-icon lgbm-icon" style="width:32px;height:32px;font-size:14px;"><i class="bi bi-graph-up-arrow"></i></div>
-            <div class="example-title mb-0">Model 1 — LightGBM Resistance Forecasting</div>
+            <div class="model-icon lgbm-icon about-model-icon"><i class="bi bi-graph-up-arrow"></i></div>
+            <div class="example-title mb-0">Model 1: LightGBM Resistance Forecasting</div>
             <span class="status-badge trained ms-auto">AUC 0.9255</span>
           </div>
           <div class="table-responsive">
             <table class="table table-custom table-sm mb-0">
-              <tr><td class="text-muted" style="width:140px">Algorithm</td><td>Gradient Boosted Decision Trees (LightGBM 4.x)</td></tr>
+              <tr><td class="text-muted about-td-label">Algorithm</td><td>Gradient Boosted Decision Trees (LightGBM 4.x)</td></tr>
               <tr><td class="text-muted">Training data</td><td>90,826 labeled AMR records from 4,252 CSV files (BVBRC)</td></tr>
               <tr><td class="text-muted">Features</td><td>14 engineered features (MIC, taxonomy, drug class, target-encoded rates)</td></tr>
               <tr><td class="text-muted">Hyperparameters</td><td>500 estimators, lr=0.05, num_leaves=63, is_unbalance=True, early_stop=30</td></tr>
@@ -169,13 +169,13 @@
         <!-- K-mer RF -->
         <div class="example-box mb-3">
           <div class="d-flex align-items-center gap-2 mb-2">
-            <div class="model-icon kmer-icon" style="width:32px;height:32px;font-size:14px;"><i class="bi bi-dna"></i></div>
-            <div class="example-title mb-0">Model 2 — K-mer RandomForest Predictor</div>
-            <span class="status-badge trained ms-auto" style="background:rgba(16,185,129,0.15);color:var(--emerald2);border-color:rgba(16,185,129,0.3)">AUC 0.93</span>
+            <div class="model-icon kmer-icon about-model-icon"><i class="bi bi-dna"></i></div>
+            <div class="example-title mb-0">Model 2: K-mer RandomForest Predictor</div>
+            <span class="status-badge trained about-kmer-badge ms-auto">AUC 0.93</span>
           </div>
           <div class="table-responsive">
             <table class="table table-custom table-sm mb-0">
-              <tr><td class="text-muted" style="width:140px">Algorithm</td><td>RandomForest Classifier (scikit-learn), 100 trees</td></tr>
+              <tr><td class="text-muted about-td-label">Algorithm</td><td>RandomForest Classifier (scikit-learn), 100 trees</td></tr>
               <tr><td class="text-muted">Training data</td><td>6,002 genome–antibiotic pairs from 1,684 unique bacterial genomes</td></tr>
               <tr><td class="text-muted">Features</td><td>256 4-mer frequencies + N antibiotic one-hot + 3 GC features = 321+ total</td></tr>
               <tr><td class="text-muted">Class balance</td><td>class_weight='balanced' (handles imbalance without SMOTE)</td></tr>
@@ -188,13 +188,13 @@
         <!-- Timeline -->
         <div class="example-box">
           <div class="d-flex align-items-center gap-2 mb-2">
-            <div class="model-icon timeline-icon" style="width:32px;height:32px;font-size:14px;"><i class="bi bi-activity"></i></div>
-            <div class="example-title mb-0">Model 3 — Mutation Timeline (Biological Simulation)</div>
+            <div class="model-icon timeline-icon about-model-icon"><i class="bi bi-activity"></i></div>
+            <div class="example-title mb-0">Model 3: Mutation Timeline (Biological Simulation)</div>
             <span class="status-badge simulated ms-auto">Bio-Sim</span>
           </div>
           <div class="table-responsive">
             <table class="table table-custom table-sm mb-0">
-              <tr><td class="text-muted" style="width:140px">Algorithm</td><td>Biologically-calibrated logistic growth model (no neural network training needed)</td></tr>
+              <tr><td class="text-muted about-td-label">Algorithm</td><td>Biologically-calibrated logistic growth model (no neural network training needed)</td></tr>
               <tr><td class="text-muted">Input</td><td>Raw FASTA sequence + antibiotic name + number of weeks (2–24)</td></tr>
               <tr><td class="text-muted">Growth model</td><td>Sigmoid logistic curve with speed and peak parameterised per antibiotic class</td></tr>
               <tr><td class="text-muted">Hotspot detection</td><td>Sliding GC-content + repeat-density windows → top 12 putative mutation sites</td></tr>
@@ -208,12 +208,12 @@
       <!-- System Architecture -->
       <div class="info-card mb-4">
         <h5 class="card-section-title"><i class="bi bi-layers text-accent me-2"></i>System Architecture</h5>
-        <p style="font-size:13px;color:var(--text-2);margin-bottom:16px;">Two-tier web application with a Flask presentation layer and a Django REST API backend.</p>
+        <p class="about-arch-intro">This is a two-tier web application. The Flask layer handles the user interface, while the Django REST API takes care of model inference and data processing.</p>
 
-        <div class="pipeline-diagram mb-4" style="flex-wrap:wrap;gap:10px;">
+        <div class="pipeline-diagram about-pipeline mb-4">
           <div class="pipeline-step">
             <div class="pipeline-icon"><i class="bi bi-person-fill"></i></div>
-            <div class="pipeline-label">User / Browser<br><small>localhost:5000</small></div>
+            <div class="pipeline-label">User / Browser<br><small>localhost:5001</small></div>
           </div>
           <div class="pipeline-arrow"><i class="bi bi-arrow-right"></i></div>
           <div class="pipeline-step">
@@ -240,7 +240,7 @@
         <div class="row g-3">
           <div class="col-md-6">
             <div class="example-box">
-              <div class="example-title" style="color:var(--accent2)">Flask Frontend (Port 5000)</div>
+              <div class="example-title about-flask-title">Flask Frontend (Port 5001)</div>
               <div class="example-content small text-muted">
                 <div>• Jinja2 templates + Bootstrap 5 dark theme</div>
                 <div>• Proxies all API calls to Django via <code>requests</code></div>
@@ -252,7 +252,7 @@
           </div>
           <div class="col-md-6">
             <div class="example-box">
-              <div class="example-title" style="color:var(--emerald2)">Django REST API (Port 8000)</div>
+              <div class="example-title about-django-title">Django REST API (Port 8000)</div>
               <div class="example-content small text-muted">
                 <div>• Django REST Framework with CORS enabled (all origins)</div>
                 <div>• Models loaded once at startup via AppConfig.ready()</div>
@@ -268,52 +268,52 @@
       <!-- API Reference -->
       <div class="info-card mb-4">
         <h5 class="card-section-title"><i class="bi bi-braces text-accent me-2"></i>REST API Reference</h5>
-        <p style="font-size:13px;color:var(--text-3);margin-bottom:14px;">Base URL: <code class="font-mono" style="color:var(--accent2)">http://localhost:8000/api/</code></p>
+        <p class="about-api-base">Base URL: <code class="font-mono about-api-url">http://localhost:8000/api/</code></p>
         <div class="table-responsive">
           <table class="table table-custom table-sm mb-0">
             <thead><tr><th>Method</th><th>Endpoint</th><th>Description</th><th>Key Parameters</th></tr></thead>
             <tbody>
               <tr>
-                <td><span class="feature-tag" style="background:rgba(16,185,129,0.15);color:var(--emerald2);border-color:rgba(16,185,129,0.3)">GET</span></td>
+                <td><span class="feature-tag about-api-get">GET</span></td>
                 <td class="font-mono small">health/</td>
                 <td class="small text-muted">Model status check</td>
-                <td class="small text-muted">—</td>
+                <td class="small text-muted">N/A</td>
               </tr>
               <tr>
-                <td><span class="feature-tag" style="background:rgba(99,102,241,0.15);color:var(--indigo2);border-color:rgba(99,102,241,0.3)">POST</span></td>
+                <td><span class="feature-tag about-api-post">POST</span></td>
                 <td class="font-mono small">forecast/</td>
                 <td class="small text-muted">LightGBM AMR prediction</td>
                 <td class="small font-mono">antibiotic, taxon_id, mic_value, mic_sign, genus, species, threshold</td>
               </tr>
               <tr>
-                <td><span class="feature-tag" style="background:rgba(99,102,241,0.15);color:var(--indigo2);border-color:rgba(99,102,241,0.3)">POST</span></td>
+                <td><span class="feature-tag about-api-post">POST</span></td>
                 <td class="font-mono small">predict/</td>
                 <td class="small text-muted">K-mer FASTA prediction</td>
                 <td class="small font-mono">fasta_file (upload) OR fasta_text, antibiotic, threshold</td>
               </tr>
               <tr>
-                <td><span class="feature-tag" style="background:rgba(99,102,241,0.15);color:var(--indigo2);border-color:rgba(99,102,241,0.3)">POST</span></td>
+                <td><span class="feature-tag about-api-post">POST</span></td>
                 <td class="font-mono small">timeline/</td>
                 <td class="small text-muted">Mutation timeline simulation</td>
                 <td class="small font-mono">fasta_file OR fasta_text, antibiotic, n_weeks</td>
               </tr>
               <tr>
-                <td><span class="feature-tag" style="background:rgba(16,185,129,0.15);color:var(--emerald2);border-color:rgba(16,185,129,0.3)">GET</span></td>
+                <td><span class="feature-tag about-api-get">GET</span></td>
                 <td class="font-mono small">antibiotics/</td>
                 <td class="small text-muted">List of 48 supported antibiotics</td>
-                <td class="small text-muted">—</td>
+                <td class="small text-muted">N/A</td>
               </tr>
               <tr>
-                <td><span class="feature-tag" style="background:rgba(99,102,241,0.15);color:var(--indigo2);border-color:rgba(99,102,241,0.3)">POST</span></td>
+                <td><span class="feature-tag about-api-post">POST</span></td>
                 <td class="font-mono small">train/</td>
                 <td class="small text-muted">Trigger background model training</td>
                 <td class="small font-mono">model: "lgbm" | "kmer" | "all"</td>
               </tr>
               <tr>
-                <td><span class="feature-tag" style="background:rgba(99,102,241,0.15);color:var(--indigo2);border-color:rgba(99,102,241,0.3)">POST</span></td>
+                <td><span class="feature-tag about-api-post">POST</span></td>
                 <td class="font-mono small">reload/</td>
                 <td class="small text-muted">Reload models from disk</td>
-                <td class="small text-muted">—</td>
+                <td class="small text-muted">N/A</td>
               </tr>
             </tbody>
           </table>
@@ -325,26 +325,26 @@
         <h5 class="card-section-title"><i class="bi bi-exclamation-triangle text-accent me-2"></i>Known Limitations</h5>
         <div class="row g-3">
           <div class="col-md-6">
-            <div class="example-box" style="border-color:rgba(245,158,11,0.2);">
-              <div class="example-title" style="color:var(--amber2)">Formulation Model Missing</div>
-              <div class="example-content small text-muted">A fourth model (Formulation Forecasting) was planned to recommend optimal dosing strategies but was excluded from scope — no publicly available pharmaceutical formulation dataset was found that matches the project's genomic data.</div>
+            <div class="example-box about-limit-box">
+              <div class="example-title about-limit-title">Formulation Model Missing</div>
+              <div class="example-content small text-muted">A fourth model (Formulation Forecasting) was planned to recommend optimal dosing strategies but was left out of scope. No publicly available pharmaceutical formulation dataset was found that matched the project's genomic data.</div>
             </div>
           </div>
           <div class="col-md-6">
-            <div class="example-box" style="border-color:rgba(245,158,11,0.2);">
-              <div class="example-title" style="color:var(--amber2)">No Real-Time Training Progress</div>
-              <div class="example-content small text-muted">Model training runs in a background thread. There is no WebSocket-based live progress indicator — the UI shows "Training started" but does not stream training logs. A production system would use Celery + Redis for async task queuing.</div>
+            <div class="example-box about-limit-box">
+              <div class="example-title about-limit-title">No Real-Time Training Progress</div>
+              <div class="example-content small text-muted">Model training runs in a background thread. There is no WebSocket-based live progress indicator. The interface shows a "Training started" message but does not stream training logs in real time. A production system would use Celery and Redis for async task queuing.</div>
             </div>
           </div>
           <div class="col-md-6">
-            <div class="example-box" style="border-color:rgba(245,158,11,0.2);">
-              <div class="example-title" style="color:var(--amber2)">Timeline is Simulation, Not Trained</div>
+            <div class="example-box about-limit-box">
+              <div class="example-title about-limit-title">Timeline is Simulation, Not Trained</div>
               <div class="example-content small text-muted">The Mutation Timeline uses a biologically-informed logistic growth model, not a trained CNN-LSTM. While results are scientifically plausible, they are simulated rather than learned from empirical time-series data.</div>
             </div>
           </div>
           <div class="col-md-6">
-            <div class="example-box" style="border-color:rgba(245,158,11,0.2);">
-              <div class="example-title" style="color:var(--amber2)">No User Authentication</div>
+            <div class="example-box about-limit-box">
+              <div class="example-title about-limit-title">No User Authentication</div>
               <div class="example-content small text-muted">The system has no login/authentication layer. In a clinical deployment, HIPAA/GDPR compliance would require user accounts, audit logging, and encrypted data at rest. This is a research prototype.</div>
             </div>
           </div>
@@ -361,11 +361,137 @@
         <h6 class="card-section-title"><i class="bi bi-mortarboard text-accent me-2"></i>Project Details</h6>
         <table class="table table-custom table-sm">
           <tr><td class="text-muted">Project title</td><td class="fw-500 text-white">Forecasting Antibiotic Resistance with Machine Learning</td></tr>
-          <tr><td class="text-muted">Author</td><td class="fw-500 text-white">Hamza Afzal/Muhammad Ali/Muhammad Suleman</td></tr>
+          <tr><td class="text-muted">Institution</td><td class="fw-500">COMSATS University Islamabad, Lahore Campus</td></tr>
           <tr><td class="text-muted">Type</td><td class="fw-500">Final Year Project (FYP)</td></tr>
           <tr><td class="text-muted">Domain</td><td class="fw-500">BioInformatics &amp; ML</td></tr>
           <tr><td class="text-muted">Year</td><td class="fw-500">2026 – 2027</td></tr>
         </table>
+      </div>
+
+      <!-- Project Members -->
+      <div class="info-card mb-4">
+        <h6 class="card-section-title"><i class="bi bi-people text-accent me-2"></i>Project Members</h6>
+        <div class="d-flex flex-column gap-3">
+
+          <!-- Hamza Afzal -->
+          <div class="d-flex align-items-center gap-3">
+            <img src="https://avatars.githubusercontent.com/hhammza"
+                 alt="Hamza Afzal"
+                 width="52" height="52"
+                 class="rounded-circle border border-secondary"
+                 onerror="this.src='https://ui-avatars.com/api/?name=Hamza+Afzal&background=6366f1&color=fff&size=52'">
+            <div class="flex-fill">
+              <div class="fw-600 text-white about-member-name">Hamza Afzal</div>
+              <div class="d-flex gap-2 mt-1">
+                <a href="https://www.linkedin.com/in/muhammad-hamza-afzal/" target="_blank" rel="noopener"
+                   class="btn btn-outline-custom btn-sm about-member-btn d-flex align-items-center gap-1">
+                  <i class="bi bi-linkedin"></i> LinkedIn
+                </a>
+                <a href="https://github.com/hhammza" target="_blank" rel="noopener"
+                   class="btn btn-outline-custom btn-sm about-member-btn d-flex align-items-center gap-1">
+                  <i class="bi bi-github"></i> GitHub
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Muhammad Ali -->
+          <div class="d-flex align-items-center gap-3">
+            <img src="https://avatars.githubusercontent.com/aligmirza"
+                 alt="Muhammad Ali"
+                 width="52" height="52"
+                 class="rounded-circle border border-secondary"
+                 onerror="this.src='https://ui-avatars.com/api/?name=Muhammad+Ali&background=10b981&color=fff&size=52'">
+            <div class="flex-fill">
+              <div class="fw-600 text-white about-member-name">Muhammad Ali</div>
+              <div class="d-flex gap-2 mt-1">
+                <a href="https://www.linkedin.com/in/maliprogmeleon/" target="_blank" rel="noopener"
+                   class="btn btn-outline-custom btn-sm about-member-btn d-flex align-items-center gap-1">
+                  <i class="bi bi-linkedin"></i> LinkedIn
+                </a>
+                <a href="https://github.com/aligmirza" target="_blank" rel="noopener"
+                   class="btn btn-outline-custom btn-sm about-member-btn d-flex align-items-center gap-1">
+                  <i class="bi bi-github"></i> GitHub
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Malik Muhammad Suleman Saleh -->
+          <div class="d-flex align-items-center gap-3">
+            <img src="https://avatars.githubusercontent.com/Suleman-Saleh"
+                 alt="Malik Muhammad Suleman Saleh"
+                 width="52" height="52"
+                 class="rounded-circle border border-secondary"
+                 onerror="this.src='https://ui-avatars.com/api/?name=Suleman+Saleh&background=f59e0b&color=fff&size=52'">
+            <div class="flex-fill">
+              <div class="fw-600 text-white about-member-name">Malik Muhammad Suleman Saleh</div>
+              <div class="d-flex gap-2 mt-1">
+                <a href="https://www.linkedin.com/in/muhammad-suleman-69149a226/" target="_blank" rel="noopener"
+                   class="btn btn-outline-custom btn-sm about-member-btn d-flex align-items-center gap-1">
+                  <i class="bi bi-linkedin"></i> LinkedIn
+                </a>
+                <a href="https://github.com/Suleman-Saleh" target="_blank" rel="noopener"
+                   class="btn btn-outline-custom btn-sm about-member-btn d-flex align-items-center gap-1">
+                  <i class="bi bi-github"></i> GitHub
+                </a>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Supervision -->
+      <div class="info-card mb-4">
+        <h6 class="card-section-title"><i class="bi bi-person-badge text-accent me-2"></i>Supervision</h6>
+        <div class="d-flex flex-column gap-3">
+
+          <!-- Supervisor -->
+          <div>
+            <div class="text-muted about-sup-label mb-2">Supervisor</div>
+            <div class="d-flex align-items-center gap-3">
+              <img src="https://lahore.comsats.edu.pk/Images/employees/77-43-8588891734814339558.jpg"
+                   alt="Mr. Imran Latif"
+                   width="52" height="52"
+                   class="rounded-circle border border-secondary object-fit-cover"
+                   onerror="this.src='https://ui-avatars.com/api/?name=Imran+Latif&background=6366f1&color=fff&size=52'">
+              <div class="flex-fill">
+                <div class="fw-600 text-white about-member-name">Mr. Imran Latif</div>
+                <div class="text-muted about-sup-dept">Lecturer, Computer Science</div>
+                <div class="text-muted about-sup-areas">Data Mining &middot; Machine Learning &middot; Databases</div>
+                <a href="https://lahore.comsats.edu.pk/employees/77" target="_blank" rel="noopener"
+                   class="btn btn-outline-custom btn-sm about-member-btn d-inline-flex align-items-center gap-1 mt-1">
+                  <i class="bi bi-person-circle"></i> Profile
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <hr class="border-secondary my-1">
+
+          <!-- Co-Supervisor -->
+          <div>
+            <div class="text-muted about-sup-label mb-2">Co-Supervisor</div>
+            <div class="d-flex align-items-center gap-3">
+              <img src="https://lahore.comsats.edu.pk/Images/employees/277-119-8585741571943583130.JPG"
+                   alt="Dr. Muhammad Shahid Bhatti"
+                   width="52" height="52"
+                   class="rounded-circle border border-secondary object-fit-cover"
+                   onerror="this.src='https://ui-avatars.com/api/?name=Shahid+Bhatti&background=10b981&color=fff&size=52'">
+              <div class="flex-fill">
+                <div class="fw-600 text-white about-member-name">Muhammad Shahid Bhatti</div>
+                <div class="text-muted about-sup-dept">Assistant Professor, Computer Science</div>
+                <div class="text-muted about-sup-areas">NLP &middot; Computer Vision &middot; Medical Imaging</div>
+                <a href="https://lahore.comsats.edu.pk/employees/277" target="_blank" rel="noopener"
+                   class="btn btn-outline-custom btn-sm about-member-btn d-inline-flex align-items-center gap-1 mt-1">
+                  <i class="bi bi-person-circle"></i> Profile
+                </a>
+              </div>
+            </div>
+          </div>
+
+        </div>
       </div>
 
       <!-- Performance Summary -->
@@ -374,11 +500,11 @@
         <table class="table table-custom table-sm">
           <tr>
             <td class="text-muted">LightGBM AUC-ROC</td>
-            <td><span style="color:var(--emerald2);font-weight:700;">0.9255</span></td>
+            <td><span class="about-perf-val">0.9255</span></td>
           </tr>
           <tr>
             <td class="text-muted">K-mer RF AUC-ROC</td>
-            <td><span style="color:var(--emerald2);font-weight:700;">0.93</span></td>
+            <td><span class="about-perf-val">0.93</span></td>
           </tr>
           <tr>
             <td class="text-muted">LightGBM threshold</td>
@@ -399,44 +525,47 @@
         </table>
       </div>
 
-      <!-- Technology Stack
+      <!-- Data Sources -->
       <div class="info-card mb-4">
-        <h6 class="card-section-title"><i class="bi bi-stack text-accent me-2"></i>Technology Stack</h6>
-        <div class="mb-2">
-          <div class="text-muted small mb-1">Backend</div>
-          <div class="d-flex flex-wrap gap-1">
-            <span class="feature-tag">Django 4.2</span>
-            <span class="feature-tag">Django REST Framework</span>
-            <span class="feature-tag">CORS Headers</span>
-          </div>
-        </div>
-        <div class="mb-2">
-          <div class="text-muted small mb-1">Frontend</div>
-          <div class="d-flex flex-wrap gap-1">
-            <span class="feature-tag">Flask 3.0</span>
-            <span class="feature-tag">Jinja2</span>
-            <span class="feature-tag">Bootstrap 5</span>
-            <span class="feature-tag">Plotly.js</span>
-          </div>
-        </div>
-        <div class="mb-2">
-          <div class="text-muted small mb-1">ML / Data Science</div>
-          <div class="d-flex flex-wrap gap-1">
-            <span class="feature-tag">LightGBM 4.x</span>
-            <span class="feature-tag">scikit-learn</span>
-            <span class="feature-tag">pandas</span>
-            <span class="feature-tag">numpy</span>
-            <span class="feature-tag">joblib</span>
-          </div>
-        </div> -->
-        <div class="mb-2">
-          <div class="text-muted small mb-1">Data Sources</div>
-          <div class="d-flex flex-wrap gap-1">
-            <a href="https://www.bv-brc.org/" target="_blank" rel="noopener" class="feature-tag" style="text-decoration:none;">BVBRC / PATRIC</a>
-            <a href="https://www.ncbi.nlm.nih.gov/genbank/" target="_blank" rel="noopener" class="feature-tag" style="text-decoration:none;">NCBI GenBank</a>
-            <a href="https://www.eucast.org/" target="_blank" rel="noopener" class="feature-tag" style="text-decoration:none;">EUCAST 2023</a>
-            <a href="https://www.who.int/initiatives/glass" target="_blank" rel="noopener" class="feature-tag" style="text-decoration:none;">WHO GLASS</a>
-          </div>
+        <h6 class="card-section-title"><i class="bi bi-database text-accent me-2"></i>Data Sources</h6>
+        <div class="d-flex flex-column gap-2">
+
+          <a href="https://www.bv-brc.org/" target="_blank" rel="noopener" class="datasrc-card">
+            <div class="datasrc-icon datasrc-primary"><i class="bi bi-virus2"></i></div>
+            <div class="datasrc-body">
+              <div class="datasrc-name">BVBRC / PATRIC</div>
+              <div class="datasrc-desc">90,826 AMR phenotype records &amp; 1,685 FASTA genomes — primary training data</div>
+            </div>
+            <i class="bi bi-arrow-up-right-circle-fill datasrc-arrow"></i>
+          </a>
+
+          <a href="https://www.ncbi.nlm.nih.gov/genbank/" target="_blank" rel="noopener" class="datasrc-card">
+            <div class="datasrc-icon datasrc-emerald"><i class="bi bi-dna"></i></div>
+            <div class="datasrc-body">
+              <div class="datasrc-name">NCBI GenBank</div>
+              <div class="datasrc-desc">Reference genome sequences and resistance gene annotations</div>
+            </div>
+            <i class="bi bi-arrow-up-right-circle-fill datasrc-arrow"></i>
+          </a>
+
+          <a href="https://www.eucast.org/" target="_blank" rel="noopener" class="datasrc-card">
+            <div class="datasrc-icon datasrc-amber"><i class="bi bi-clipboard2-pulse"></i></div>
+            <div class="datasrc-body">
+              <div class="datasrc-name">EUCAST 2023</div>
+              <div class="datasrc-desc">European clinical MIC breakpoints for resistance threshold calibration</div>
+            </div>
+            <i class="bi bi-arrow-up-right-circle-fill datasrc-arrow"></i>
+          </a>
+
+          <a href="https://www.who.int/initiatives/glass" target="_blank" rel="noopener" class="datasrc-card">
+            <div class="datasrc-icon datasrc-rose"><i class="bi bi-globe2"></i></div>
+            <div class="datasrc-body">
+              <div class="datasrc-name">WHO GLASS</div>
+              <div class="datasrc-desc">Global AMR surveillance providing population-level resistance statistics</div>
+            </div>
+            <i class="bi bi-arrow-up-right-circle-fill datasrc-arrow"></i>
+          </a>
+
         </div>
       </div>
 
@@ -457,7 +586,7 @@
         <h6 class="card-section-title"><i class="bi bi-journal-text text-accent me-2"></i>Key References</h6>
         <div class="method-steps">
           <div class="method-step">
-            <span class="step-num" style="width:22px;height:22px;font-size:9px">1</span>
+            <span class="step-num about-ref-num">1</span>
             <div class="small text-muted">
               Olson RD et al. (2023). Introducing the Bacterial and Viral Bioinformatics Resource Center (BV-BRC).
               <em>Nucleic Acids Research</em>, 51(D1), D678–D689.
@@ -465,7 +594,7 @@
             </div>
           </div>
           <div class="method-step">
-            <span class="step-num" style="width:22px;height:22px;font-size:9px">2</span>
+            <span class="step-num about-ref-num">2</span>
             <div class="small text-muted">
               Ke G et al. (2017). LightGBM: A Highly Efficient Gradient Boosting Decision Tree.
               <em>Advances in Neural Information Processing Systems (NeurIPS)</em>, 30.
@@ -473,7 +602,7 @@
             </div>
           </div>
           <div class="method-step">
-            <span class="step-num" style="width:22px;height:22px;font-size:9px">3</span>
+            <span class="step-num about-ref-num">3</span>
             <div class="small text-muted">
               Drouin A et al. (2016). Predictive computational phenotyping and biomarker discovery using reference-free genome comparisons.
               <em>BMC Genomics</em>, 17, 754.
@@ -481,7 +610,7 @@
             </div>
           </div>
           <div class="method-step">
-            <span class="step-num" style="width:22px;height:22px;font-size:9px">4</span>
+            <span class="step-num about-ref-num">4</span>
             <div class="small text-muted">
               Murray CJ et al. (2022). Global burden of bacterial antimicrobial resistance in 2019: a systematic analysis.
               <em>The Lancet</em>, 399(10325), 629–655.
@@ -489,7 +618,7 @@
             </div>
           </div>
           <div class="method-step">
-            <span class="step-num" style="width:22px;height:22px;font-size:9px">5</span>
+            <span class="step-num about-ref-num">5</span>
             <div class="small text-muted">
               WHO (2022). Global Antimicrobial Resistance and Use Surveillance System (GLASS) Report 2022.
               World Health Organization, Geneva.
@@ -497,7 +626,7 @@
             </div>
           </div>
           <div class="method-step">
-            <span class="step-num" style="width:22px;height:22px;font-size:9px">6</span>
+            <span class="step-num about-ref-num">6</span>
             <div class="small text-muted">
               O'Neill J (2016). Tackling Drug-Resistant Infections Globally: Final Report and Recommendations.
               <em>Review on Antimicrobial Resistance</em>.
@@ -505,7 +634,7 @@
             </div>
           </div>
           <div class="method-step">
-            <span class="step-num" style="width:22px;height:22px;font-size:9px">7</span>
+            <span class="step-num about-ref-num">7</span>
             <div class="small text-muted">
               CDC (2019). Antibiotic Resistance Threats in the United States, 2019.
               Centers for Disease Control and Prevention, Atlanta, GA.
