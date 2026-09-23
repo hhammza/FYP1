@@ -1,0 +1,61 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "amrpredict"
+version = "0.1.0"
+description = "Antimicrobial resistance prediction from bacterial genomes and MIC metadata"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { file = "LICENSE" }
+authors = [{ name = "Hamza" }]
+keywords = [
+    "bioinformatics",
+    "antimicrobial-resistance",
+    "amr",
+    "machine-learning",
+    "genomics",
+    "lightgbm",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+]
+
+dependencies = [
+    # Upper bound is deliberate: the k-mer model is a pickled scikit-learn
+    # estimator, and unpickling across a major version is not supported.
+    "scikit-learn>=1.3,<2.0",
+    "lightgbm>=4.0",
+    "pandas>=2.0",
+    "numpy>=1.24",
+    "joblib>=1.3",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=7.0", "build>=1.0", "twine>=4.0"]
+
+[project.scripts]
+amrpredict = "amrpredict.cli:main"
+
+[project.urls]
+Homepage = "https://amrpredict.live"
+Source = "https://github.com/hhammza/FYP1"
+Issues = "https://github.com/hhammza/FYP1/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/amrpredict"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src/amrpredict", "tests", "docs", "README.md", "LICENSE"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
