@@ -197,6 +197,22 @@ class AntibioticListView(View):
 
 
 @method_decorator(csrf_exempt, name='dispatch')
+class VocabularyView(View):
+    """What each model can actually distinguish.
+
+    The forms populate themselves from this, so a user cannot enter a value
+    the model has no category for and then wonder why it changed nothing.
+    """
+    def get(self, request):
+        lgbm = model_registry.get_lgbm()
+        kmer = model_registry.get_kmer()
+        return JsonResponse({
+            'lgbm': lgbm.vocabulary if lgbm and lgbm.is_trained else None,
+            'kmer': {'antibiotics': sorted(kmer.ab_list)} if kmer and kmer.ab_list else None,
+        })
+
+
+@method_decorator(csrf_exempt, name='dispatch')
 class ReloadModelsView(View):
     """Force reload all models from disk without restarting server."""
     def post(self, request):

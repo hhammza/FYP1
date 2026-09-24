@@ -44,9 +44,42 @@
       if (file && fastaFile) {
         fastaFile.files = e.dataTransfer.files;
         if (fileName) fileName.textContent = file.name;
+        const errBox = document.getElementById('fastaError');
+        if (errBox) errBox.classList.add('d-none');
       }
     });
   }
+
+  /* ── Require a FASTA file or pasted sequence ──────────────── */
+  const predictForm = document.getElementById('predictForm');
+  const fastaText   = document.querySelector('textarea[name=fasta_text]');
+  const fastaError  = document.getElementById('fastaError');
+
+  function hasGenomeInput() {
+    const fileChosen = fastaFile && fastaFile.files && fastaFile.files.length > 0;
+    const textTyped  = fastaText && fastaText.value.trim().length > 0;
+    return fileChosen || textTyped;
+  }
+
+  function clearGenomeError() {
+    if (fastaError) fastaError.classList.add('d-none');
+  }
+
+  if (predictForm) {
+    predictForm.addEventListener('submit', function (e) {
+      if (hasGenomeInput()) return;
+      e.preventDefault();
+      if (fastaError) {
+        fastaError.classList.remove('d-none');
+        fastaError.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+      const textTabVisible = !document.getElementById('textTab').classList.contains('d-none');
+      if (textTabVisible && fastaText) fastaText.focus();
+      else if (fastaFile) fastaFile.focus();
+    });
+  }
+  if (fastaFile) fastaFile.addEventListener('change', clearGenomeError);
+  if (fastaText) fastaText.addEventListener('input', clearGenomeError);
 
   /* ── Dynamic bar widths (set from data-prob / data-kw attrs) ─ */
   document.querySelectorAll('.prob-bar-fill[data-prob]').forEach(function (el) {
@@ -111,6 +144,8 @@ GCATGCATGCATGCATGCATGCATGCATGCATGCATGCATGCATGCATGCATGCATGCATGCATGCATGCATGCATGCAT
 ATGAAACGCATTAGCACCACCATTACCACCACCATCACCATTACCACAGGTAACGGTGCGGGCTGACGCGTACAGGAAACACAGAAAAAAGCCCGCACCTGACAGTGCGGGCTTTTTTTTTCGACCAAAGGTAACGAGGT`;
   const textarea = document.querySelector('textarea[name=fasta_text]');
   if (textarea) textarea.value = sample;
+  const errBox = document.getElementById('fastaError');
+  if (errBox) errBox.classList.add('d-none');
   const textBtn = document.querySelectorAll('#fastaTab .nav-link')[1];
   if (textBtn) switchTab('text', textBtn);
 };

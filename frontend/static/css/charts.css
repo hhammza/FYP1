@@ -87,6 +87,8 @@
 .code-block { background: #1e293b; border: 1px solid rgba(255,255,255,0.08); border-radius: var(--r-sm); overflow: hidden; }
 .code-header { padding: 9px 16px; border-bottom: 1px solid rgba(255,255,255,0.08); display: flex; justify-content: space-between; align-items: center; background: #1e293b; color: #94a3b8; font-size: 12px; }
 .code-content { padding: 16px; margin: 0; overflow-x: auto; }
+/* Inherit the dark header colour — Bootstrap .text-muted is unreadable here. */
+.code-header-label { color: inherit; }
 .code-content code { color: #86efac; font-family: var(--mono); font-size: 12.5px; }
 
 /* ── CRISIS / STAT CARDS ────────────────────────────────────── */

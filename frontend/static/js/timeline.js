@@ -45,9 +45,42 @@
       if (file && fastaFile2) {
         fastaFile2.files = e.dataTransfer.files;
         if (fileName2) fileName2.textContent = file.name;
+        const errBox = document.getElementById('fastaError2');
+        if (errBox) errBox.classList.add('d-none');
       }
     });
   }
+
+  /* ── Require a FASTA file or pasted sequence ──────────────── */
+  const timelineForm = document.getElementById('timelineForm');
+  const fastaText2   = document.querySelector('#textTab2 textarea');
+  const fastaError2  = document.getElementById('fastaError2');
+
+  function hasGenomeInput() {
+    const fileChosen = fastaFile2 && fastaFile2.files && fastaFile2.files.length > 0;
+    const textTyped  = fastaText2 && fastaText2.value.trim().length > 0;
+    return fileChosen || textTyped;
+  }
+
+  function clearGenomeError() {
+    if (fastaError2) fastaError2.classList.add('d-none');
+  }
+
+  if (timelineForm) {
+    timelineForm.addEventListener('submit', function (e) {
+      if (hasGenomeInput()) return;
+      e.preventDefault();
+      if (fastaError2) {
+        fastaError2.classList.remove('d-none');
+        fastaError2.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+      const textTabVisible = !document.getElementById('textTab2').classList.contains('d-none');
+      if (textTabVisible && fastaText2) fastaText2.focus();
+      else if (fastaFile2) fastaFile2.focus();
+    });
+  }
+  if (fastaFile2) fastaFile2.addEventListener('change', clearGenomeError);
+  if (fastaText2) fastaText2.addEventListener('input', clearGenomeError);
 
   /* ── Timeline chart ───────────────────────────────────────── */
   function renderTimelineChart(tlData, failWeek) {
@@ -167,6 +200,8 @@ window.loadSample2 = function () {
     textarea.value = `>sample_Ecoli_genome
 ATGAAACGCATTAGCACCACCATTACCACCACCATCACCATTACCACAGGTAACGGTGCGGGCTGACGCGTACAGGAAACACAGAAAAAAGCCCGCACCTGACAGTGCGGGCTTTTTTTTTCGACCAAAGGTAACGAGGTAACAACCATGCGAGTGTTGAAGTTCGGCGGTACATCAGTGGCAAATGCAGAACGTTTTCTGCGCGTTGTTACGCGCATTTTCTGATATTCGATTCGCATCATTTTCGGTCGGGTATCGCGGCGTTTGCTAAAAAACGTCAGCGTTTGCAGTTTTCGCTGAAACAGATGCGTATTTCGGTTTATCTCAAAAGTTCGTTTAGTAACAACGATGCGTAAAGCAGCATTAACGAAACAGTTTCAACGTTTGGCTGAAACGCAGTTTAAAGCTCAACGCAACAGTTTGCAAACGCAGCGCAATTTAAACAAGCGTTTGCAGAAACG`;
   }
+  const errBox = document.getElementById('fastaError2');
+  if (errBox) errBox.classList.add('d-none');
   const textBtn = document.querySelectorAll('#fastaTab2 .nav-link')[1];
   if (textBtn) switchTab2('text', textBtn);
 };

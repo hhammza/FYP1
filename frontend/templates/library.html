@@ -1,0 +1,346 @@
+{% extends "base.html" %}
+{% block title %}Python Library{% endblock %}
+
+{% block page_header %}
+<div class="page-header">
+  <div class="container-xl">
+    <nav aria-label="breadcrumb"><ol class="breadcrumb breadcrumb-custom">
+      <li class="breadcrumb-item"><a href="/">Dashboard</a></li>
+      <li class="breadcrumb-item active">Python Library</li>
+    </ol></nav>
+    <div class="d-flex align-items-center gap-3">
+      <div class="page-header-icon">
+        <i class="bi bi-box-seam"></i>
+      </div>
+      <div>
+        <h1 class="page-title">amrpredict <span class="code-pill ms-1">v{{ lib_version }}</span></h1>
+        <p class="page-subtitle">The same models behind this site, as an installable Python package</p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="container-xl py-4">
+
+  <!-- ── Quick stats ────────────────────────────────────────────── -->
+  <div class="d-flex gap-3 flex-wrap mb-4">
+    <div class="flex-fill min-w-160"><div class="stat-mini">
+      <div class="stat-mini-value text-indigo2">3</div>
+      <div class="stat-mini-label">Models in one API</div>
+    </div></div>
+    <div class="flex-fill min-w-160"><div class="stat-mini">
+      <div class="stat-mini-value text-emerald2">7 MB</div>
+      <div class="stat-mini-label">Models bundled, no download</div>
+    </div></div>
+    <div class="flex-fill min-w-160"><div class="stat-mini">
+      <div class="stat-mini-value">62</div>
+      <div class="stat-mini-label">Antibiotics covered</div>
+    </div></div>
+    <div class="flex-fill min-w-160"><div class="stat-mini">
+      <div class="stat-mini-value text-amber2">3.9+</div>
+      <div class="stat-mini-label">Python required</div>
+    </div></div>
+    <div class="flex-fill min-w-160"><div class="stat-mini">
+      <div class="stat-mini-value">MIT</div>
+      <div class="stat-mini-label">Licence</div>
+    </div></div>
+  </div>
+
+  <div class="row g-4">
+
+    <!-- ── Left column ──────────────────────────────────────────── -->
+    <div class="col-lg-7">
+
+      <!-- Install -->
+      <div class="info-card mb-4">
+        <h5 class="card-section-title"><i class="bi bi-download text-accent me-2"></i>Install</h5>
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-header-label">Terminal</span>
+            <button class="btn btn-link btn-sm text-accent p-0" onclick="copyCode(this)">
+              <i class="bi bi-clipboard"></i> Copy
+            </button>
+          </div>
+          <pre class="code-content"><code>pip install amrpredict</code></pre>
+        </div>
+        <p class="form-hint mt-2 mb-0">
+          The trained artifacts ship inside the package, so there is nothing else to
+          download and it works offline.
+        </p>
+      </div>
+
+      <!-- Forecast -->
+      <div class="info-card mb-4">
+        <h5 class="card-section-title">
+          <i class="bi bi-graph-up-arrow text-accent me-2"></i>Forecast from metadata
+          <span class="badge bg-success ms-1 badge-xs">LightGBM</span>
+        </h5>
+        <p class="text-muted">
+          Use when you have organism metadata and, ideally, an MIC measurement.
+          This is the strongest of the three models.
+        </p>
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-header-label">Python</span>
+            <button class="btn btn-link btn-sm text-accent p-0" onclick="copyCode(this)">
+              <i class="bi bi-clipboard"></i> Copy
+            </button>
+          </div>
+          <pre class="code-content"><code>import amrpredict
+
+r = amrpredict.forecast(
+    'ciprofloxacin',
+    taxon_id=562,        # NCBI taxonomy ID (562 is E. coli)
+    mic_value=4,         # mg/L
+    genus='Escherichia',
+    species='coli',
+)
+
+print(r['prediction'])   # 'Susceptible'
+print(r['confidence'])   # 89.9</code></pre>
+        </div>
+      </div>
+
+      <!-- Predict -->
+      <div class="info-card mb-4">
+        <h5 class="card-section-title">
+          <i class="bi bi-dna text-emerald2 me-2"></i>Predict from a genome
+          <span class="badge bg-primary ms-1 badge-xs">K-mer RF</span>
+        </h5>
+        <p class="text-muted">
+          Use when sequence is all you have. FASTA is cleaned to plain ACGT and
+          capped at 500,000 bp.
+        </p>
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-header-label">Python</span>
+            <button class="btn btn-link btn-sm text-accent p-0" onclick="copyCode(this)">
+              <i class="bi bi-clipboard"></i> Copy
+            </button>
+          </div>
+          <pre class="code-content"><code>with open('genome.fasta') as fh:
+    r = amrpredict.predict_fasta(fh.read(), 'ciprofloxacin')
+
+if 'error' in r:
+    print('bad input:', r['error'])
+else:
+    print(r['prediction'], r['gc_content'])</code></pre>
+        </div>
+        <p class="form-hint mt-2 mb-0">
+          Short or empty input returns an <code class="code-pill">error</code> key
+          instead of a prediction. It never raises, so check for it first.
+        </p>
+      </div>
+
+      <!-- Timeline -->
+      <div class="info-card mb-4">
+        <h5 class="card-section-title">
+          <i class="bi bi-activity text-rose2 me-2"></i>Simulate resistance evolution
+          <span class="badge bg-warning text-dark ms-1 badge-xs">Simulation</span>
+        </h5>
+        <div class="alert alert-warning-custom mb-3">
+          <i class="bi bi-exclamation-triangle me-1"></i>
+          This is a deterministic biological simulation, <strong>not a trained
+          model</strong>. It carries no AUC or accuracy score, so treat its output as
+          illustrative.
+        </div>
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-header-label">Python</span>
+            <button class="btn btn-link btn-sm text-accent p-0" onclick="copyCode(this)">
+              <i class="bi bi-clipboard"></i> Copy
+            </button>
+          </div>
+          <pre class="code-content"><code>r = amrpredict.simulate_timeline(fasta, 'ciprofloxacin', n_weeks=8)
+
+for w in r['timeline']:
+    print(w['week'], w['resistant_fraction'], w['mic_fold_change'])
+
+print(r['failure_week'])      # when treatment stops working
+print(r['resistance_genes'])  # gyrA, gyrB, parC ...</code></pre>
+        </div>
+        <p class="form-hint mt-2 mb-0">
+          <code class="code-pill">n_weeks=8</code> returns <strong>9</strong> entries. Week 0 is the untreated baseline.
+        </p>
+      </div>
+
+      <!-- CLI -->
+      <div class="info-card">
+        <h5 class="card-section-title"><i class="bi bi-terminal text-accent me-2"></i>Command line</h5>
+        <p class="text-muted">
+          Every command prints JSON to stdout; diagnostics go to stderr, so output
+          pipes cleanly.
+        </p>
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-header-label">Terminal</span>
+            <button class="btn btn-link btn-sm text-accent p-0" onclick="copyCode(this)">
+              <i class="bi bi-clipboard"></i> Copy
+            </button>
+          </div>
+          <pre class="code-content"><code>amrpredict forecast ciprofloxacin --taxon-id 562 --mic-value 4
+amrpredict predict genome.fasta ciprofloxacin --threshold 0.6
+amrpredict timeline genome.fasta ciprofloxacin --weeks 12
+amrpredict antibiotics
+amrpredict status
+
+# composes with jq
+amrpredict --compact forecast meropenem --taxon-id 287 | jq -r .prediction
+cat genome.fasta | amrpredict predict - ciprofloxacin</code></pre>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ── Right column ─────────────────────────────────────────── -->
+    <div class="col-lg-5">
+
+      <!-- API summary -->
+      <div class="info-card mb-4">
+        <h5 class="card-section-title"><i class="bi bi-code-slash text-accent me-2"></i>The API</h5>
+        <div class="table-responsive">
+          <table class="table table-custom table-sm align-middle mb-0">
+            <thead>
+              <tr>
+                <th>Function</th><th>Input</th><th class="text-end">Trained</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code class="code-pill">forecast()</code></td>
+                <td class="text-muted">Metadata + MIC</td>
+                <td class="text-end"><span class="badge bg-success badge-xs">Yes</span></td>
+              </tr>
+              <tr>
+                <td><code class="code-pill">predict_fasta()</code></td>
+                <td class="text-muted">Genome FASTA</td>
+                <td class="text-end"><span class="badge bg-success badge-xs">Yes</span></td>
+              </tr>
+              <tr>
+                <td><code class="code-pill">simulate_timeline()</code></td>
+                <td class="text-muted">Genome FASTA</td>
+                <td class="text-end"><span class="badge bg-warning text-dark badge-xs">Sim</span></td>
+              </tr>
+              <tr>
+                <td><code class="code-pill">antibiotics()</code></td>
+                <td class="text-muted">n/a</td>
+                <td class="text-end text-muted">n/a</td>
+              </tr>
+              <tr>
+                <td><code class="code-pill">status()</code></td>
+                <td class="text-muted">n/a</td>
+                <td class="text-end text-muted">n/a</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Choosing a threshold -->
+      <div class="info-card mb-4">
+        <h5 class="card-section-title"><i class="bi bi-sliders text-accent me-2"></i>Choosing a threshold</h5>
+        <p class="text-muted mb-3">
+          <code class="code-pill">threshold</code> is the probability at or above
+          which a sample is called Resistant. It changes the label, never the
+          underlying probability.
+        </p>
+        <div class="how-step">
+          <span class="how-num">0.3</span>
+          <div><div class="how-title">Higher sensitivity</div>
+            <div class="how-desc">More resistance calls. Use when missing resistance is costly.</div></div>
+        </div>
+        <div class="how-step">
+          <span class="how-num">0.4</span>
+          <div><div class="how-title">Forecast default</div>
+            <div class="how-desc">Balanced for the LightGBM model.</div></div>
+        </div>
+        <div class="how-step">
+          <span class="how-num">0.5</span>
+          <div><div class="how-title">K-mer default</div>
+            <div class="how-desc">Balanced for genome-based prediction.</div></div>
+        </div>
+        <div class="how-step">
+          <span class="how-num">0.7</span>
+          <div><div class="how-title">Higher specificity</div>
+            <div class="how-desc">Fewer, more confident calls. Use when false alarms are costly.</div></div>
+        </div>
+      </div>
+
+      <!-- Custom models -->
+      <div class="info-card mb-4">
+        <h5 class="card-section-title"><i class="bi bi-folder2-open text-accent me-2"></i>Your own models</h5>
+        <p class="text-muted">Every entry point accepts <code class="code-pill">model_dir</code>:</p>
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-header-label">Python</span>
+            <button class="btn btn-link btn-sm text-accent p-0" onclick="copyCode(this)">
+              <i class="bi bi-clipboard"></i> Copy
+            </button>
+          </div>
+          <pre class="code-content"><code>amrpredict.forecast(
+    'ciprofloxacin', taxon_id=562,
+    model_dir='/path/to/models',
+)</code></pre>
+        </div>
+        <p class="form-hint mt-2 mb-0">
+          Retrain artifacts with <code class="code-pill">train_models.py</code>.
+        </p>
+      </div>
+
+      <!-- Compatibility note -->
+      <div class="info-card">
+        <h5 class="card-section-title"><i class="bi bi-shield-check text-accent me-2"></i>Compatibility</h5>
+        <p class="text-muted mb-2" style="font-size:12.5px;">
+          The k-mer model is a pickled scikit-learn estimator, so the dependency is
+          pinned to <code class="code-pill">&gt;=1.3,&lt;2.0</code>. Unpickling across
+          a major version is unsupported and would produce wrong numbers rather than
+          failing loudly.
+        </p>
+        <p class="text-muted mb-0" style="font-size:12.5px;">
+          Artifacts were built with scikit-learn <strong>1.6.1</strong>. The LightGBM
+          model is unaffected, because it uses LightGBM's own version-stable text
+          format.
+        </p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── Footer note ──────────────────────────────────────────── -->
+  <div class="info-card mt-4">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+      <div>
+        <div class="how-title mb-1">Source and documentation</div>
+        <div class="how-desc">
+          The package ships the same trained artifacts this site runs on.
+          Full reference and known issues are on GitHub.
+        </div>
+      </div>
+      <div class="d-flex gap-2 flex-wrap">
+        <a class="btn btn-outline-secondary btn-sm"
+           href="https://github.com/hhammza/FYP1/tree/main/amrpredict-lib"
+           target="_blank" rel="noopener">
+          <i class="bi bi-github me-1"></i>Source
+        </a>
+        <a class="btn btn-outline-secondary btn-sm"
+           href="https://github.com/hhammza/FYP1/blob/main/amrpredict-lib/docs/api-reference.md"
+           target="_blank" rel="noopener">
+          <i class="bi bi-book me-1"></i>API reference
+        </a>
+        <a class="btn btn-outline-secondary btn-sm"
+           href="https://github.com/hhammza/FYP1/blob/main/amrpredict-lib/docs/known-issues.md"
+           target="_blank" rel="noopener">
+          <i class="bi bi-exclamation-circle me-1"></i>Known issues
+        </a>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/library.js') }}"></script>
+{% endblock %}

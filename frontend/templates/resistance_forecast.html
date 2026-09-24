@@ -70,7 +70,7 @@
                  data-bs-title="Select the antibiotic to test resistance against. The model supports 62 antibiotics across 11 drug classes."></i>
             </label>
             <select name="antibiotic" class="form-select form-select-custom" required
-                    data-populate="antibiotics" data-selected="{{ form_data.antibiotic }}">
+                    data-populate="antibiotics-lgbm" data-selected="{{ form_data.antibiotic }}">
               <option value="">-- Select Antibiotic --</option>
             </select>
           </div>
@@ -80,9 +80,11 @@
               <i class="bi bi-info-circle text-muted ms-1" data-bs-toggle="tooltip" data-bs-placement="right"
                  data-bs-title="NCBI Taxonomy ID for the organism (e.g. 562 for E. coli). Optional but improves accuracy using species-specific resistance rates."></i>
             </label>
-            <input type="number" name="taxon_id" class="form-control form-control-custom"
-                   placeholder="e.g. 562 (E. coli)" value="{{ form_data.get('taxon_id', '') }}">
-            <div class="form-hint">NCBI Taxonomy ID of the organism</div>
+            <input type="number" name="taxon_id" id="taxonInput" class="form-control form-control-custom"
+                   placeholder="Leave blank unless you have a training-set ID"
+                   value="{{ form_data.get('taxon_id', '') }}" list="taxonList">
+            <datalist id="taxonList"></datalist>
+            <div class="form-hint" id="taxonHint">Only IDs present in the training data change the result</div>
           </div>
 
           <div class="row g-2 mb-3">
@@ -112,16 +114,22 @@
                 <i class="bi bi-info-circle text-muted ms-1" data-bs-toggle="tooltip" data-bs-placement="right"
                    data-bs-title="Bacterial genus (e.g. Escherichia, Klebsiella). Used to look up population-level resistance rates."></i>
               </label>
-              <input type="text" name="genus" class="form-control form-control-custom"
-                     placeholder="e.g. Escherichia" value="{{ form_data.get('genus', '') }}">
+              <input type="text" name="genus" id="genusInput" class="form-control form-control-custom"
+                     placeholder="e.g. Escherichia" value="{{ form_data.get('genus', '') }}"
+                     list="genusList" autocomplete="off">
+              <datalist id="genusList"></datalist>
+              <div class="form-hint" id="genusHint"></div>
             </div>
             <div class="col-6">
               <label class="form-label-custom">Species
                 <i class="bi bi-info-circle text-muted ms-1" data-bs-toggle="tooltip" data-bs-placement="right"
                    data-bs-title="Bacterial species name (e.g. coli, pneumoniae). Combined with genus for species-encoded model features."></i>
               </label>
-              <input type="text" name="species" class="form-control form-control-custom"
-                     placeholder="e.g. coli" value="{{ form_data.get('species', '') }}">
+              <input type="text" name="species" id="speciesInput" class="form-control form-control-custom"
+                     placeholder="e.g. coli" value="{{ form_data.get('species', '') }}"
+                     list="speciesList" autocomplete="off">
+              <datalist id="speciesList"></datalist>
+              <div class="form-hint" id="speciesHint"></div>
             </div>
           </div>
 
@@ -144,16 +152,23 @@
                  data-bs-title="Pre-fills Genus, Species, and Taxon ID for common clinical pathogens. You can then adjust individual fields manually."></i>
             </label>
             <select class="form-select form-select-custom" id="orgSelect" onchange="fillOrganism(this.value)">
-              <option value="">-- Common organisms --</option>
-              <option value="Escherichia:coli:562">Escherichia coli</option>
-              <option value="Klebsiella:pneumoniae:573">Klebsiella pneumoniae</option>
-              <option value="Pseudomonas:aeruginosa:287">Pseudomonas aeruginosa</option>
-              <option value="Staphylococcus:aureus:1280">Staphylococcus aureus</option>
-              <option value="Salmonella:enterica:28901">Salmonella enterica</option>
-              <option value="Acinetobacter:baumannii:470">Acinetobacter baumannii</option>
-              <option value="Streptococcus:pneumoniae:1313">Streptococcus pneumoniae</option>
-              <option value="Enterococcus:faecium:1352">Enterococcus faecium</option>
+              <option value="">-- Organisms the model was trained on --</option>
+              <option value="Escherichia:coli">Escherichia coli</option>
+              <option value="Pseudomonas:aeruginosa">Pseudomonas aeruginosa</option>
+              <option value="Staphylococcus:aureus">Staphylococcus aureus</option>
+              <option value="Salmonella:enterica">Salmonella enterica</option>
+              <option value="Acinetobacter:baumannii">Acinetobacter baumannii</option>
+              <option value="Streptococcus:pneumoniae">Streptococcus pneumoniae</option>
+              <option value="Campylobacter:jejuni">Campylobacter jejuni</option>
+              <option value="Shigella:flexneri">Shigella flexneri</option>
+              <option value="Mycobacterium:tuberculosis">Mycobacterium tuberculosis</option>
             </select>
+            <div class="form-hint">Other organisms can be typed above, but the model has no
+              category for them and they will not change the result</div>
+          </div>
+
+          <div class="alert alert-warning-custom mb-3 d-none" id="evidencePreview" role="status" aria-live="polite">
+            <i class="bi bi-info-circle me-2"></i><span id="evidencePreviewText"></span>
           </div>
 
           <button type="submit" class="btn btn-primary-custom w-100 btn-lg" id="predictBtn">
@@ -222,6 +237,54 @@
           </div>
         </div>
       </div>
+
+      <!-- What the prediction is actually based on -->
+      {% if result.evidence %}
+      <div class="info-card mb-4 evidence-card evidence-{{ result.evidence.level }}">
+        <div class="d-flex align-items-center flex-wrap gap-2 mb-2">
+          <h6 class="card-section-title mb-0">
+            <i class="bi bi-clipboard-check me-2 text-accent"></i>What this prediction is based on
+          </h6>
+          <span class="status-badge evidence-badge evidence-badge-{{ result.evidence.level }} ms-auto">
+            {{ result.evidence.label }}
+          </span>
+          <span class="feature-tag">{{ result.evidence.used_count }} of {{ result.evidence.total_count }} inputs used</span>
+        </div>
+
+        <p class="text-muted fs-13 mb-3">{{ result.evidence.summary }}</p>
+
+        <table class="table table-custom table-sm mb-0">
+          {% for item in result.evidence.inputs %}
+          <tr>
+            <td class="evidence-state-cell">
+              {% if item.state == 'used' %}
+              <i class="bi bi-check-circle-fill text-emerald2" title="Used by the model"></i>
+              {% elif item.state == 'normalized' %}
+              <i class="bi bi-arrow-repeat text-amber2" title="Adjusted before use"></i>
+              {% elif item.state == 'unrecognized' %}
+              <i class="bi bi-exclamation-triangle-fill text-amber2" title="Not recognised — ignored"></i>
+              {% else %}
+              <i class="bi bi-dash-circle text-muted" title="Not provided"></i>
+              {% endif %}
+            </td>
+            <td class="text-muted" style="width: 22%">{{ item.field }}</td>
+            <td class="fw-500 text-capitalize" style="width: 26%">{{ item.value if item.value is not none else '—' }}</td>
+            <td class="fs-12 {% if item.state == 'used' %}text-2{% elif item.state == 'missing' %}text-muted{% else %}text-amber2{% endif %}">
+              {{ item.detail }}
+            </td>
+          </tr>
+          {% endfor %}
+        </table>
+
+        {% if result.evidence.level == 'drug_only' %}
+        <div class="alert alert-warning-custom mt-3 mb-0">
+          <i class="bi bi-exclamation-triangle me-2"></i>
+          This number would be identical for every isolate tested against
+          {{ result.antibiotic }}. Add an MIC value to make it specific to your sample.
+        </div>
+        {% endif %}
+      </div>
+      {% endif %}
 
       <div class="row g-4 mb-4">
         <!-- Drug Info -->
@@ -310,7 +373,7 @@
     <div class="mb-4">
       <div class="sec-eyebrow">Scientific Background</div>
       <div class="sec-title">Understanding LightGBM-Based AMR Forecasting</div>
-      <div class="sec-sub">Our model uses gradient boosting on 90,826 labeled genomic records to classify antibiotic resistance with clinical-grade accuracy.</div>
+      <div class="sec-sub">The model uses gradient boosting on 90,826 labeled genomic records to classify antibiotic resistance.</div>
     </div>
 
     <div class="row g-4 mb-4">
@@ -343,7 +406,7 @@
     <div class="row g-4 mb-4">
       <div class="col-lg-7">
         <div class="glass-card h-100">
-          <h6 class="card-section-title"><i class="bi bi-bacteria text-accent me-2"></i>WHO Priority Pathogens: Resistance Landscape</h6>
+          <h6 class="card-section-title"><i class="bi bi-bacteria text-accent me-2"></i>WHO Priority Pathogens: Resistance Rates</h6>
           <div class="table-responsive">
             <table class="table table-custom table-sm mb-0">
               <thead><tr>

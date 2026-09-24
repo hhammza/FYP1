@@ -24,8 +24,102 @@
     const parts = val.split(':');
     document.querySelector('[name=genus]').value    = parts[0] || '';
     document.querySelector('[name=species]').value  = parts[1] || '';
-    document.querySelector('[name=taxon_id]').value = parts[2] || '';
+    /* Taxon ID is deliberately not filled: the species-level IDs people
+       recognise (562 for E. coli) are absent from the training data, so
+       filling one would look meaningful while changing nothing. */
+    refreshRecognition();
   };
+
+  /* ── Input recognition: say up front what the model can use ──
+     The model only has categories for the values it saw in training. A
+     genus it does not know behaves exactly like a blank field, so the
+     form says so before the user submits rather than after. */
+  const genusInput   = document.getElementById('genusInput');
+  const speciesInput = document.getElementById('speciesInput');
+  const taxonInput   = document.getElementById('taxonInput');
+  const micInput     = document.querySelector('[name=mic_value]');
+  const preview      = document.getElementById('evidencePreview');
+  const previewText  = document.getElementById('evidencePreviewText');
+  let vocab = null;
+
+  function setHint(el, hintId, ok, text) {
+    const hint = document.getElementById(hintId);
+    if (!hint) return;
+    hint.textContent = text;
+    hint.classList.toggle('hint-ok', ok === true);
+    hint.classList.toggle('hint-warn', ok === false);
+  }
+
+  function inVocab(list, value) {
+    if (!list || !value) return null;
+    return list.some(v => String(v).toLowerCase() === value.trim().toLowerCase());
+  }
+
+  function refreshRecognition() {
+    if (!vocab) return;
+
+    const g = genusInput ? genusInput.value.trim() : '';
+    const gOk = inVocab(vocab.genera, g);
+    setHint(genusInput, 'genusHint', gOk,
+      !g ? '' : gOk ? 'Recognised — will be used' : 'Not in the training data — will be ignored');
+
+    const sp = speciesInput ? speciesInput.value.trim() : '';
+    const sOk = inVocab(vocab.species, sp);
+    setHint(speciesInput, 'speciesHint', sOk,
+      !sp ? '' : sOk ? 'Recognised — will be used' : 'Not in the training data — will be ignored');
+
+    const t = taxonInput ? taxonInput.value.trim() : '';
+    const tOk = t ? (vocab.taxon_ids || []).includes(parseInt(t, 10)) : null;
+    setHint(taxonInput, 'taxonHint', tOk,
+      !t ? 'Only IDs present in the training data change the result'
+         : tOk ? 'Recognised — organism-specific rate will be used'
+               : 'Not in the training data — will be ignored');
+
+    /* Headline: what the result will actually represent */
+    if (!preview || !previewText) return;
+    const hasMic = micInput && micInput.value.trim() !== '';
+    const hasOrg = gOk === true || tOk === true;
+    let msg = '';
+    if (!hasMic && !hasOrg) {
+      msg = 'With no MIC value and no recognised organism, the result will be the ' +
+            'population resistance rate for the selected drug — the same number for any isolate.';
+    } else if (!hasMic) {
+      msg = 'Without an MIC value, the result reflects historical rates for this ' +
+            'organism and drug, not this particular isolate.';
+    } else if (!hasOrg) {
+      msg = 'No recognised organism: the MIC drives the result, with population ' +
+            'rates standing in for the species.';
+    }
+    previewText.textContent = msg;
+    preview.classList.toggle('d-none', msg === '');
+  }
+
+  [genusInput, speciesInput, taxonInput, micInput].forEach(el => {
+    if (el) el.addEventListener('input', refreshRecognition);
+  });
+
+  fetch('/api/vocabulary')
+    .then(r => r.json())
+    .then(data => {
+      vocab = data && data.lgbm;
+      if (!vocab) return;
+      fillDatalist('genusList', vocab.genera);
+      fillDatalist('speciesList', vocab.species);
+      fillDatalist('taxonList', (vocab.taxon_ids || []).slice(0, 50));
+      refreshRecognition();
+    })
+    .catch(() => {});
+
+  function fillDatalist(id, values) {
+    const dl = document.getElementById(id);
+    if (!dl || !values) return;
+    dl.innerHTML = '';
+    values.forEach(v => {
+      const opt = document.createElement('option');
+      opt.value = v;
+      dl.appendChild(opt);
+    });
+  }
 
   /* ── Probability bar (width set from data-prob attribute) ──── */
   const probBar = document.querySelector('.prob-bar-fill[data-prob]');

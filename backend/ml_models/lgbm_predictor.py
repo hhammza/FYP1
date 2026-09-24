@@ -76,6 +76,12 @@ class LGBMResistancePredictor:
             'ab_resistance_rate', 'taxon_ab_resistance_rate', 'genus_ab_resistance_rate',
         ]
         self.CAT_FEATURES = ['Antibiotic', 'drug_class', 'genus', 'species', 'mic_sign']
+        # Category values the booster was actually trained on. Anything outside
+        # these sets is passed to LightGBM as an unknown category, which is
+        # indistinguishable from leaving the field blank — hence the evidence
+        # report built in predict().
+        self.known = {c: set() for c in self.CAT_FEATURES}
+        self.known_taxon_pairs = set()
         self._load()
 
     def _load(self):
@@ -110,6 +116,14 @@ class LGBMResistancePredictor:
                         }
                     else:
                         self.genus_rate = dict(df_g)
+                # The booster stores the pandas category levels seen at training,
+                # in the order the categorical columns appear in FINAL_FEATURES.
+                pandas_cats = getattr(self.model, 'pandas_categorical', None) or []
+                for col, levels in zip(self.CAT_FEATURES, pandas_cats):
+                    self.known[col] = {str(v).lower() for v in levels}
+                if self.taxon_rate:
+                    self.known_taxon_pairs = set(self.taxon_rate.keys())
+
                 meta_path = os.path.join(self.model_dir, 'lgbm_meta.joblib')
                 if os.path.exists(meta_path):
                     meta = joblib.load(meta_path)
@@ -152,10 +166,149 @@ class LGBMResistancePredictor:
         prob = float(np.clip(base_rate + noise, 0.02, 0.98))
         return prob
 
+    # Comparators a user may type or pick that the booster has no category for.
+    # Mapping them onto the nearest learned sign beats silently dropping the
+    # value into the unknown bucket, which reads as "no MIC sign given".
+    MIC_SIGN_ALIASES = {'>=': '>', '\u2265': '>', '\u2264': '<=', '=<': '<=', '=>': '>'}
+
+    def _normalize_mic_sign(self, mic_sign):
+        """Return (value_sent_to_model, was_rewritten)."""
+        if not mic_sign:
+            return 'unknown', False
+        sign = str(mic_sign).strip()
+        if sign.lower() in self.known['mic_sign']:
+            return sign, False
+        alias = self.MIC_SIGN_ALIASES.get(sign)
+        if alias and alias.lower() in self.known['mic_sign']:
+            return alias, True
+        return sign, False
+
+    def _evidence(self, *, antibiotic, taxon_id, genus, species, mic_value,
+                  mic_sign_in, mic_sign_used, sign_rewritten, rates):
+        """Per-field account of what the model recognised, ignored or inferred.
+
+        Every optional field that is blank, or holds a value the model has no
+        category for, contributes nothing to the prediction. Without this the
+        two cases look identical in the UI, which is the whole point of the
+        report: the user should never have to guess which of their inputs
+        actually moved the number.
+        """
+        known = self.known
+        inputs = []
+
+        ab_known = antibiotic in known['Antibiotic'] if known['Antibiotic'] else True
+        inputs.append({
+            'field': 'Antibiotic',
+            'value': antibiotic,
+            'state': 'used' if ab_known else 'unrecognized',
+            'detail': (
+                f"Population resistance rate {rates['drug'] * 100:.1f}%"
+                if ab_known else
+                'Not in the training data — the model is falling back to the '
+                f"overall resistance rate ({self.global_mean * 100:.1f}%)"
+            ),
+        })
+
+        if taxon_id in (None, '', 0):
+            inputs.append({
+                'field': 'Taxon ID', 'value': None, 'state': 'missing',
+                'detail': 'Not provided — using the drug-level rate instead of '
+                          'an organism-specific one',
+            })
+        else:
+            matched = (int(taxon_id), antibiotic) in self.known_taxon_pairs
+            inputs.append({
+                'field': 'Taxon ID',
+                'value': int(taxon_id),
+                'state': 'used' if matched else 'unrecognized',
+                'detail': (
+                    f"Organism-specific rate for this drug: {rates['taxon'] * 100:.1f}%"
+                    if matched else
+                    'No training records for this organism and drug together — '
+                    'this field did not affect the result'
+                ),
+            })
+
+        for field, value, vocab_key in (('Genus', genus, 'genus'), ('Species', species, 'species')):
+            if not value or value == 'unknown':
+                inputs.append({
+                    'field': field, 'value': None, 'state': 'missing',
+                    'detail': 'Not provided',
+                })
+                continue
+            vocab = known[vocab_key]
+            recognized = (not vocab) or str(value).lower() in vocab
+            detail = 'Recognised by the model'
+            if field == 'Genus' and recognized:
+                detail = f"Genus-level rate for this drug: {rates['genus'] * 100:.1f}%"
+            elif not recognized:
+                detail = 'Not among the organisms in the training data — this ' \
+                         'field did not affect the result'
+            inputs.append({
+                'field': field, 'value': value,
+                'state': 'used' if recognized else 'unrecognized',
+                'detail': detail,
+            })
+
+        if mic_value in (None, ''):
+            inputs.append({
+                'field': 'MIC', 'value': None, 'state': 'missing',
+                'detail': 'Not provided — the strongest available signal is absent',
+            })
+        else:
+            detail = f"{mic_value} mg/L"
+            state = 'used'
+            if sign_rewritten:
+                detail += f" — sign '{mic_sign_in}' has no match in the training " \
+                          f"data and was read as '{mic_sign_used}'"
+                state = 'normalized'
+            elif mic_sign_used == 'unknown':
+                detail += ' — no comparator given'
+            else:
+                detail += f" (comparator '{mic_sign_used}')"
+            inputs.append({'field': 'MIC', 'value': mic_value, 'state': state, 'detail': detail})
+
+        has_mic = mic_value not in (None, '')
+        # Species alone carries no rate lookup, so it does not lift the estimate
+        # to organism level on its own — only a matched taxon or genus does.
+        has_organism = any(i['state'] == 'used' and
+                           i['field'] in ('Taxon ID', 'Genus') for i in inputs)
+
+        if has_mic and has_organism:
+            level, label = 'full', 'Isolate-level estimate'
+            summary = ('Based on a measured MIC and organism-specific resistance '
+                       'rates — the model is using every signal it has.')
+        elif has_mic:
+            level, label = 'mic', 'MIC-driven estimate'
+            summary = ('Based on the measured MIC for this drug. No organism was '
+                       'recognised, so population-level rates stand in for the species.')
+        elif has_organism:
+            level, label = 'organism', 'Organism-level estimate'
+            summary = ('Based on historical resistance rates for this organism and '
+                       'drug. Without an MIC, this reflects the population, not this isolate.')
+        else:
+            level, label = 'drug_only', 'Population-level estimate'
+            summary = ('Based only on the historical resistance rate for this drug. '
+                       'Nothing about this specific isolate informed the number — '
+                       'add an MIC value for an isolate-level prediction.')
+
+        return {
+            'level': level,
+            'label': label,
+            'summary': summary,
+            'inputs': inputs,
+            'used_count': sum(1 for i in inputs if i['state'] in ('used', 'normalized')),
+            'total_count': len(inputs),
+            'rates': {k: round(v, 4) for k, v in rates.items()},
+        }
+
     def predict(self, antibiotic, taxon_id=None, mic_value=None, mic_sign=None,
                 genus='unknown', species='unknown', threshold=0.40):
         antibiotic = antibiotic.lower().strip()
         drug_class = DRUG_CLASS_MAP.get(antibiotic, 'other')
+
+        mic_sign_used, sign_rewritten = self._normalize_mic_sign(mic_sign)
+        rates = {'drug': self.global_mean, 'taxon': self.global_mean, 'genus': self.global_mean}
 
         if not self.is_trained:
             prob = self._heuristic_predict(antibiotic, taxon_id, mic_value, mic_sign, genus)
@@ -177,13 +330,15 @@ class LGBMResistancePredictor:
                 if self.genus_rate and genus and genus != 'unknown':
                     genus_ab_rate = self.genus_rate.get((genus.lower(), antibiotic), ab_rate)
 
+                rates = {'drug': ab_rate, 'taxon': taxon_ab_rate, 'genus': genus_ab_rate}
+
                 row = {
                     'Taxon ID': int(taxon_id) if taxon_id else 0,
                     'Antibiotic': antibiotic,
                     'drug_class': drug_class,
                     'genus': genus,
                     'species': species,
-                    'mic_sign': mic_sign or 'unknown',
+                    'mic_sign': mic_sign_used,
                     'is_lab_confirmed': 0,
                     'computational_f1': 0.85,
                     'mic_value': mic_val,
@@ -212,6 +367,24 @@ class LGBMResistancePredictor:
             'drug_class': drug_class,
             'threshold': threshold,
             'model_used': 'LightGBM (trained)' if self.is_trained else 'Heuristic (untrained)',
+            'evidence': self._evidence(
+                antibiotic=antibiotic, taxon_id=taxon_id, genus=genus, species=species,
+                mic_value=mic_value, mic_sign_in=mic_sign, mic_sign_used=mic_sign_used,
+                sign_rewritten=sign_rewritten, rates=rates,
+            ),
+        }
+
+    @property
+    def vocabulary(self):
+        """The values this model can actually distinguish, for the UI to offer."""
+        taxa = sorted({t for t, _ in self.known_taxon_pairs})
+        return {
+            'antibiotics': sorted(self.known['Antibiotic']),
+            'genera': sorted(g.capitalize() for g in self.known['genus']),
+            'species': sorted(self.known['species']),
+            'mic_signs': sorted(self.known['mic_sign'] - {'unknown', 'exact'}),
+            'taxon_ids': taxa,
+            'taxon_id_range': [taxa[0], taxa[-1]] if taxa else None,
         }
 
     def batch_predict(self, records):

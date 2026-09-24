@@ -75,6 +75,13 @@
 [data-theme="dark"] .form-select-custom option { background: #162032; color: var(--text-1); }
 
 /* Tables */
+/* Bootstrap sets --bs-table-bg: #fff on .table, which leaves tables white
+   inside dark cards. Let the card background show through instead. */
+[data-theme="dark"] .table-custom { --bs-table-bg: transparent; --bs-table-color: var(--text-2); }
+/* Bootstrap .text-muted is a near-black grey, giving ~1.25:1 contrast on the
+   dark background. Re-point it at the theme token (~7:1). */
+[data-theme="dark"] .text-muted { color: var(--text-2) !important; }
+
 [data-theme="dark"] .table-custom tbody tr:hover td { background: rgba(255,255,255,0.03); }
 
 /* Code block */

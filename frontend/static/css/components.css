@@ -362,3 +362,23 @@
 .text-amber        { color: var(--amber2) !important; }
 .text-indigo       { color: var(--indigo2) !important; }
 .feature-tag[href] { text-decoration: none; }
+
+/* ── Evidence card (forecast results) ─────────────────────────────
+   Shows which inputs the model actually used. The left border colour
+   encodes how much the prediction knows about the specific isolate. */
+.evidence-card                 { border-left: 3px solid var(--success); }
+.evidence-card.evidence-mic    { border-left-color: var(--success); }
+.evidence-card.evidence-organism { border-left-color: var(--warning); }
+.evidence-card.evidence-drug_only { border-left-color: var(--danger); }
+
+.evidence-badge                      { white-space: nowrap; }
+.evidence-badge-full,
+.evidence-badge-mic       { background: rgba(22,163,74,0.10);  border: 1px solid rgba(22,163,74,0.25);  color: var(--success); }
+.evidence-badge-organism  { background: rgba(217,119,6,0.10);  border: 1px solid rgba(217,119,6,0.25);  color: var(--warning); }
+.evidence-badge-drug_only { background: rgba(220,38,38,0.08);  border: 1px solid rgba(220,38,38,0.22);  color: var(--danger);  }
+
+.evidence-state-cell { width: 28px; text-align: center; }
+
+/* Inline recognition hints under the genus/species/taxon inputs */
+.form-hint.hint-ok   { color: var(--emerald2); }
+.form-hint.hint-warn { color: var(--amber2); }

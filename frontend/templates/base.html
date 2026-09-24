@@ -62,6 +62,11 @@
           </a>
         </li>
         <li class="nav-item">
+          <a class="nav-link {% if '/library' in request.path %}active{% endif %}" href="/library">
+            <i class="bi bi-box-seam me-1"></i>Library
+          </a>
+        </li>
+        <li class="nav-item">
           <a class="nav-link {% if '/about' in request.path %}active{% endif %}" href="/about">
             <i class="bi bi-info-circle me-1"></i>About
           </a>

@@ -7,6 +7,7 @@ urlpatterns = [
     path('predict/', views.ResistancePredictionView.as_view(), name='predict'),
     path('timeline/', views.MutationTimelineView.as_view(), name='timeline'),
     path('antibiotics/', views.AntibioticListView.as_view(), name='antibiotics'),
+    path('vocabulary/', views.VocabularyView.as_view(), name='vocabulary'),
     path('train/', views.TrainModelView.as_view(), name='train'),
     path('reload/', views.ReloadModelsView.as_view(), name='reload'),
 ]
