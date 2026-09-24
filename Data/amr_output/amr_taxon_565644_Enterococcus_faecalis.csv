@@ -1,0 +1,7 @@
+"Taxon ID","Genome ID","Genome Name","Antibiotic","Resistant Phenotype","Measurement","Measurement Sign","Measurement Value","Measurement Unit","Laboratory Typing Method","Laboratory Typing Method Version","Laboratory Typing Platform","Vendor","Testing Standard","Testing Standard Year","Computational Method","Computational Method Version","Computational Method Performance","Evidence","Source","PubMed"
+565644,"565644.5","Enterococcus faecalis CH188","gentamicin","Resistant","","","","","","","","","","","","","","Laboratory Method","",""
+565644,"565644.5","Enterococcus faecalis CH188","penicillin","Resistant","","","","","","","","","","","","","","Laboratory Method","",""
+565644,"565644.5","Enterococcus faecalis CH188","erythromycin","Resistant","","","","","","","","","","","","","","Laboratory Method","",""
+565644,"565644.5","Enterococcus faecalis CH188","streptomycin","Resistant","","","","","","","","","","","","","","Laboratory Method","",""
+565644,"565644.5","Enterococcus faecalis CH188","kanamycin","Resistant","","","","","","","","","","","","","","Laboratory Method","",""
+565644,"565644.5","Enterococcus faecalis CH188","tetracycline","Resistant","","","","","","","","","","","","","","Laboratory Method","",""

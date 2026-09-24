@@ -1,0 +1,4 @@
+"Taxon ID","Genome ID","Genome Name","Antibiotic","Resistant Phenotype","Measurement","Measurement Sign","Measurement Value","Measurement Unit","Laboratory Typing Method","Laboratory Typing Method Version","Laboratory Typing Platform","Vendor","Testing Standard","Testing Standard Year","Computational Method","Computational Method Version","Computational Method Performance","Evidence","Source","PubMed"
+565651,"565651.6","Enterococcus faecalis ARO1/DG","tetracycline","Resistant","","","","","","","","","","","","","","Laboratory Method","",""
+565651,"565651.6","Enterococcus faecalis ARO1/DG","erythromycin","Resistant","","","","","","","","","","","","","","Laboratory Method","",""
+565651,"565651.6","Enterococcus faecalis ARO1/DG","vancomycin","Resistant","","","","","","","","","","","","","","Laboratory Method","",""

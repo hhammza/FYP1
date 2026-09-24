@@ -20,22 +20,14 @@
 # ------------------------------------------------------------
 
 # BVBRC AMR CSV files (3,655+ files, ~90K records)
-amr_output/
 
 # NCBI GenBank WGS FASTA sequences (1,684 folders, 2,587 FASTA files)
-fasta_output/
 
 # Joined AMR + genome records (1,684 mapped CSV files)
-mapped_output/
 
 # Sample/dev subsets of the above datasets
-sample_amr_data/
-sample_fasta_output/
-sample_mapped_output/
 
 # K-mer frequency cache files (pre-computed .npy arrays, regenerable)
-kmer_cache/
-sample_kmer_cache/
 *.k4.npy
 
 
@@ -222,10 +214,11 @@ experiments/results/*/model/
 
 
 # ------------------------------------------------------------
-# DATA FOLDER — the whole export lives here now (~5 GB)
-# The per-dataset rules above catch amr_output/ etc. wherever they
-# sit; these catch what is left at the top level of the folder.
+# DATA FOLDER
+# The full BV-BRC export is committed so the project is
+# reproducible from a clone alone. Only partial downloads
+# (*.tmp) are excluded. The 101 MB Klebsiella CSV is stored via
+# Git LFS, see .gitattributes.
 # ------------------------------------------------------------
 
-Data/
-data/
+*.tmp

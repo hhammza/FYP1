@@ -1,0 +1,3 @@
+"Taxon ID","Genome ID","Genome Name","Antibiotic","Resistant Phenotype","Measurement","Measurement Sign","Measurement Value","Measurement Unit","Laboratory Typing Method","Laboratory Typing Method Version","Laboratory Typing Platform","Vendor","Testing Standard","Testing Standard Year","Computational Method","Computational Method Version","Computational Method Performance","Evidence","Source","PubMed"
+1288,"1288.256","Staphylococcus xylosus strain ESB009","ertapenem","Resistant",">1",">","1","mg/L","Broth dilution","","MicroScan","Siemens","CLSI","","","","","","",""
+1288,"1288.256","Staphylococcus xylosus strain ESB009","colistin","Resistant",">4",">","4","mg/L","Broth dilution","","MicroScan","Siemens","CLSI","","","","","","",""
