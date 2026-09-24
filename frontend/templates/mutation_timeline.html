@@ -71,7 +71,7 @@
                  data-bs-title="Select the antibiotic to simulate. Each has calibrated growth rate and peak resistance parameters derived from published clinical data."></i>
             </label>
             <select name="antibiotic" class="form-select form-select-custom" required
-                    data-populate="antibiotics" data-selected="{{ form_data.antibiotic }}">
+                    data-populate="antibiotics-kmer" data-selected="{{ form_data.antibiotic }}">
               <option value="">-- Select Antibiotic --</option>
             </select>
           </div>
@@ -107,9 +107,9 @@
           </ul>
 
           <div id="fileTab2" class="mb-3">
-            <label class="form-label-custom">FASTA File <span class="text-muted">(optional)</span>
+            <label class="form-label-custom">FASTA File <span class="required">*</span>
               <i class="bi bi-info-circle text-muted ms-1" data-bs-toggle="tooltip" data-bs-placement="right"
-                 data-bs-title="Optional: upload a genome assembly to adjust the starting resistant fraction based on GC content. Leave blank to use default parameters."></i>
+                 data-bs-title="Upload a genome assembly (.fasta, .fa, .fna). Its GC content sets the starting resistant fraction for the simulation. Required unless you paste a sequence instead."></i>
             </label>
             <div class="file-drop-zone" id="dropZone2">
               <i class="bi bi-cloud-arrow-up fs-3 mb-2 text-accent"></i>
@@ -121,9 +121,9 @@
           </div>
 
           <div id="textTab2" class="mb-3 d-none">
-            <label class="form-label-custom">FASTA Sequence <span class="text-muted">(optional)</span>
+            <label class="form-label-custom">FASTA Sequence <span class="required">*</span>
               <i class="bi bi-info-circle text-muted ms-1" data-bs-toggle="tooltip" data-bs-placement="right"
-                 data-bs-title="Optional: paste a FASTA sequence to customise the simulation baseline. GC content is extracted and used to set initial mutation pressure."></i>
+                 data-bs-title="Paste a FASTA sequence to set the simulation baseline. GC content is extracted and used to set initial mutation pressure. Required unless you upload a file instead."></i>
             </label>
             <textarea name="fasta_text" class="form-control form-control-custom mono-font"
                       rows="7" placeholder=">genome_header
@@ -131,6 +131,10 @@ ATGCATGCATGCATGCATGC..."></textarea>
             <div class="d-flex justify-content-end mt-1">
               <button type="button" class="btn btn-link btn-sm p-0" onclick="loadSample2()">Load Sample</button>
             </div>
+          </div>
+
+          <div id="fastaError2" class="alert alert-danger-custom mb-3 d-none" role="alert" aria-live="polite">
+            <i class="bi bi-exclamation-circle me-2"></i>Upload a FASTA file or paste a sequence before generating a timeline.
           </div>
 
           <button type="submit" class="btn btn-primary-custom btn-danger-custom w-100 btn-lg">

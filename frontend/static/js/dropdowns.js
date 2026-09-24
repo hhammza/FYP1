@@ -4,7 +4,9 @@
    <select data-populate="..."> elements on the page.
 
    Supported data-populate values:
-     "antibiotics"  → GET /api/antibiotics  (plain array)
+     "antibiotics"       → GET /api/antibiotics  (plain array)
+     "antibiotics-lgbm"  → only the drugs the forecasting model knows
+     "antibiotics-kmer"  → only the drugs the genome model knows
      "organisms"    → GET /api/organisms    (plain array)
      "mic-sign"     → built-in static list  (no fetch)
 
@@ -33,8 +35,12 @@
 
   /* ── API endpoints ────────────────────────────────────────── */
   const ENDPOINTS = {
-    antibiotics: '/api/antibiotics',
-    organisms:   '/api/organisms',
+    antibiotics:        '/api/antibiotics',
+    /* Model-specific lists: only the drugs that model was trained on, so a
+       selection can never silently fall back to a population average. */
+    'antibiotics-lgbm': '/api/antibiotics?model=lgbm',
+    'antibiotics-kmer': '/api/antibiotics?model=kmer',
+    organisms:          '/api/organisms',
   };
 
   /* ── Fetch with sessionStorage cache ─────────────────────── */

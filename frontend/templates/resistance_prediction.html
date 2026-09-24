@@ -71,7 +71,7 @@
                  data-bs-title="Select the antibiotic to predict resistance against. Must be one of the 62 antibiotics the K-mer model was trained on."></i>
             </label>
             <select name="antibiotic" class="form-select form-select-custom" required
-                    data-populate="antibiotics" data-selected="{{ form_data.antibiotic }}">
+                    data-populate="antibiotics-kmer" data-selected="{{ form_data.antibiotic }}">
               <option value="">-- Select Antibiotic --</option>
             </select>
           </div>
@@ -133,6 +133,10 @@ GCATGCATGCATGCATGCATGCATGCATGCAT
                    aria-valuemin="0.1" aria-valuemax="0.9"
                    aria-valuenow="{{ form_data.get('threshold', '0.5') }}">
             <div class="d-flex justify-content-between"><small class="text-muted">0.1 (Sensitive)</small><small class="text-muted">0.9 (Specific)</small></div>
+          </div>
+
+          <div id="fastaError" class="alert alert-danger-custom mb-3 d-none" role="alert" aria-live="polite">
+            <i class="bi bi-exclamation-circle me-2"></i>Upload a FASTA file or paste a sequence before predicting.
           </div>
 
           <button type="submit" class="btn btn-primary-custom btn-success-custom w-100 btn-lg">
