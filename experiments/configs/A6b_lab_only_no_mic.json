@@ -1,0 +1,30 @@
+{
+  "description": "A6 without MIC features, tests whether lab-label performance is just the breakpoint rule",
+  "data": {
+    "label_sources": [
+      "lab"
+    ]
+  },
+  "split": {
+    "strategy": "grouped",
+    "test_size": 0.2,
+    "seed": 42
+  },
+  "features": {
+    "target_encoding": "oof",
+    "drop": [
+      "mic_value",
+      "mic_log",
+      "has_mic",
+      "mic_sign"
+    ]
+  },
+  "model": {
+    "type": "lightgbm"
+  },
+  "threshold": {
+    "strategy": "fixed",
+    "fixed": 0.4
+  },
+  "id": "A6b_lab_only_no_mic"
+}

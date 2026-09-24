@@ -1,0 +1,20 @@
+{
+  "description": "Train without Klebsiella, test only on it, generalisation to an unseen genus",
+  "split": {
+    "strategy": "species_holdout",
+    "holdout_genus": "Klebsiella",
+    "seed": 42
+  },
+  "features": {
+    "target_encoding": "oof"
+  },
+  "model": {
+    "type": "lightgbm"
+  },
+  "threshold": {
+    "strategy": "fixed",
+    "fixed": 0.4
+  },
+  "id": "A12_species_holdout",
+  "data": {}
+}

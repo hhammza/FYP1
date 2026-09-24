@@ -1,0 +1,23 @@
+{
+  "id": "LC_100k",
+  "description": "Learning curve: LightGBM on a 100k-row sample",
+  "data": {
+    "sample_rows": 100000,
+    "seed": 42
+  },
+  "split": {
+    "strategy": "grouped",
+    "test_size": 0.2,
+    "seed": 42
+  },
+  "features": {
+    "target_encoding": "oof"
+  },
+  "model": {
+    "type": "lightgbm"
+  },
+  "threshold": {
+    "strategy": "fixed",
+    "fixed": 0.4
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "description": "A2 with the threshold tuned on validation instead of fixed at 0.40",
+  "split": {
+    "strategy": "grouped",
+    "test_size": 0.2,
+    "seed": 42
+  },
+  "features": {
+    "target_encoding": "oof"
+  },
+  "model": {
+    "type": "lightgbm"
+  },
+  "threshold": {
+    "strategy": "maximize_f1"
+  },
+  "id": "A9_threshold_f1",
+  "data": {}
+}

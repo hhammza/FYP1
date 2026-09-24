@@ -203,3 +203,29 @@ log/
 # ------------------------------------------------------------
 backend/trained_models/*
 !backend/trained_models/.gitkeep
+
+
+# ------------------------------------------------------------
+# EXPERIMENT ARTIFACTS (experiments/)
+# Committed:  configs, lib/, run.py, report.py, predict.py, docs,
+#             metrics.json, config.snapshot.json, registry.csv
+# Excluded:   regenerable or large binaries
+#   cache/          189 MB — rebuilt in ~20s from data/amr_output/
+#   predictions.csv 184 MB — raw test scores, one file per run
+#   model/           44 MB — trained artifacts + rate tables
+# To reproduce a model: python experiments/run.py experiments/configs/<id>.json
+# ------------------------------------------------------------
+
+experiments/cache/
+experiments/results/*/predictions.csv
+experiments/results/*/model/
+
+
+# ------------------------------------------------------------
+# DATA FOLDER — the whole export lives here now (~5 GB)
+# The per-dataset rules above catch amr_output/ etc. wherever they
+# sit; these catch what is left at the top level of the folder.
+# ------------------------------------------------------------
+
+Data/
+data/
