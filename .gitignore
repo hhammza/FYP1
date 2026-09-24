@@ -208,6 +208,9 @@ backend/trained_models/*
 # To reproduce a model: python experiments/run.py experiments/configs/<id>.json
 # ------------------------------------------------------------
 
+# CatBoost writes a training log folder into the working directory
+catboost_info/
+
 experiments/cache/
 experiments/results/*/predictions.csv
 experiments/results/*/model/
