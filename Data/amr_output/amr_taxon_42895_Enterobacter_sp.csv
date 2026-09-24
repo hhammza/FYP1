@@ -1,0 +1,5 @@
+"Taxon ID","Genome ID","Genome Name","Antibiotic","Resistant Phenotype","Measurement","Measurement Sign","Measurement Value","Measurement Unit","Laboratory Typing Method","Laboratory Typing Method Version","Laboratory Typing Platform","Vendor","Testing Standard","Testing Standard Year","Computational Method","Computational Method Version","Computational Method Performance","Evidence","Source","PubMed"
+42895,"42895.70","Enterobacter sp. 2485STDY5438361","trimotheprim","Susceptible","","","","","Disk diffusion","","","","EUCAST","","","","","Laboratory Method","","[31477167]"
+42895,"42895.70","Enterobacter sp. 2485STDY5438361","aminogycosides","Susceptible","","","","","Disk diffusion","","","","EUCAST","","","","","Laboratory Method","","[31477167]"
+42895,"42895.70","Enterobacter sp. 2485STDY5438361","fluoroquinolones","Susceptible","","","","","Disk diffusion","","","","EUCAST","","","","","Laboratory Method","","[31477167]"
+42895,"42895.70","Enterobacter sp. 2485STDY5438361","beta-lactam","Resistant","","","","","Disk diffusion","","","","EUCAST","","","","","Laboratory Method","","[31477167]"

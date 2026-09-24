@@ -1,0 +1,6 @@
+"Taxon ID","Genome ID","Genome Name","Antibiotic","Resistant Phenotype","Measurement","Measurement Sign","Measurement Value","Measurement Unit","Laboratory Typing Method","Laboratory Typing Method Version","Laboratory Typing Platform","Vendor","Testing Standard","Testing Standard Year","Computational Method","Computational Method Version","Computational Method Performance","Evidence","Source","PubMed"
+78331,"78331.98","Mycobacterium canettii strain IDR1300035880","isoniazid","Susceptible","0.1","","0.1","mg/L","Broth dilution","","","","CLSI","","","","","Laboratory Method","",""
+78331,"78331.98","Mycobacterium canettii strain IDR1300035880","pyrazinamide","Resistant","100","","100","mg/L","Broth dilution","","","","CLSI","","","","","Laboratory Method","",""
+78331,"78331.98","Mycobacterium canettii strain IDR1300035880","streptomycin","Resistant","1.0","","1.0","mg/L","Broth dilution","","","","CLSI","","","","","Laboratory Method","",""
+78331,"78331.98","Mycobacterium canettii strain IDR1300035880","rifampin","Susceptible","1.0","","1.0","mg/L","Broth dilution","","","","CLSI","","","","","Laboratory Method","",""
+78331,"78331.98","Mycobacterium canettii strain IDR1300035880","ethambutol","Susceptible","5.0","","5.0","mg/L","Broth dilution","","","","CLSI","","","","","Laboratory Method","",""

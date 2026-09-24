@@ -1,0 +1,5 @@
+"Taxon ID","Genome ID","Genome Name","Antibiotic","Resistant Phenotype","Measurement","Measurement Sign","Measurement Value","Measurement Unit","Laboratory Typing Method","Laboratory Typing Method Version","Laboratory Typing Platform","Vendor","Testing Standard","Testing Standard Year","Computational Method","Computational Method Version","Computational Method Performance","Evidence","Source","PubMed"
+599,"599.297","Salmonella sp. strain 301","ceftriaxone","Susceptible","1","<=","1","mg/L","Broth dilution","","VITEK 2","BioMerieux","CLSI","","","","","Laboratory Method","",""
+599,"599.297","Salmonella sp. strain 301","ampicillin","Susceptible","2","<=","2","mg/L","Broth dilution","","VITEK 2","BioMerieux","CLSI","","","","","Laboratory Method","",""
+599,"599.297","Salmonella sp. strain 301","trimethoprim/sulfamethoxazole","Susceptible","1/19","<=","1/19","mg/L","Broth dilution","","VITEK 2","BioMerieux","CLSI","","","","","Laboratory Method","",""
+599,"599.297","Salmonella sp. strain 301","ceftazidime","Susceptible","1","<=","1","mg/L","Broth dilution","","VITEK 2","BioMerieux","CLSI","","","","","Laboratory Method","",""

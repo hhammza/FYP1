@@ -1,0 +1,7 @@
+"Taxon ID","Genome ID","Genome Name","Antibiotic","Resistant Phenotype","Measurement","Measurement Sign","Measurement Value","Measurement Unit","Laboratory Typing Method","Laboratory Typing Method Version","Laboratory Typing Platform","Vendor","Testing Standard","Testing Standard Year","Computational Method","Computational Method Version","Computational Method Performance","Evidence","Source","PubMed"
+565665,"565665.3","Enterococcus faecium D344SRF","ampicillin","Susceptible","","","","","","","","","","","","","","Laboratory Method","",""
+565665,"565665.3","Enterococcus faecium D344SRF","ampicillin","Susceptible","","","","","","","","","","","SIR XGBoost Model","202503101","F1 score: 0.98, CI[0.97, 0.98]","Computational Method","",""
+565665,"565665.3","Enterococcus faecium D344SRF","gentamicin","Susceptible","","","","","","","","","","","SIR XGBoost Model","202503101","F1 score: 0.92, CI[0.81, 1.02]","Computational Method","",""
+565665,"565665.3","Enterococcus faecium D344SRF","linezolid","Susceptible","","","","","","","","","","","SIR XGBoost Model","202503101","F1 score: 0.94, CI[0.90, 0.98]","Computational Method","",""
+565665,"565665.3","Enterococcus faecium D344SRF","streptomycin","Resistant","","","","","","","","","","","SIR XGBoost Model","202503101","F1 score: 0.98, CI[0.94, 1.02]","Computational Method","",""
+565665,"565665.3","Enterococcus faecium D344SRF","vancomycin","Susceptible","","","","","","","","","","","SIR XGBoost Model","202503101","F1 score: 0.97, CI[0.96, 0.98]","Computational Method","",""

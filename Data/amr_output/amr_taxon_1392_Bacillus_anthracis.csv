@@ -1,0 +1,7 @@
+"Taxon ID","Genome ID","Genome Name","Antibiotic","Resistant Phenotype","Measurement","Measurement Sign","Measurement Value","Measurement Unit","Laboratory Typing Method","Laboratory Typing Method Version","Laboratory Typing Platform","Vendor","Testing Standard","Testing Standard Year","Computational Method","Computational Method Version","Computational Method Performance","Evidence","Source","PubMed"
+1392,"1392.1701","Bacillus anthracis IAL 52","ciprofloxacin","Nonsusceptible","==0.5","==","0.5","mg/L","MIC","","","","CLSI","","","","","","",""
+1392,"1392.1701","Bacillus anthracis IAL 52","levofloxacin","Susceptible","==0.06","==","0.06","mg/L","MIC","","","","CLSI","","","","","","",""
+1392,"1392.1701","Bacillus anthracis IAL 52","penicillin","Susceptible","<=0.03","<=","0.03","mg/L","MIC","","","","CLSI","","","","","","",""
+1392,"1392.1701","Bacillus anthracis IAL 52","amoxicillin","Susceptible","<=0.03","<=","0.03","mg/L","MIC","","","","CLSI","","","","","","",""
+1392,"1392.1701","Bacillus anthracis IAL 52","tetracycline","Susceptible","<=0.03","<=","0.03","mg/L","MIC","","","","CLSI","","","","","","",""
+1392,"1392.1701","Bacillus anthracis IAL 52","doxycycline","Susceptible","<=0.03","<=","0.03","mg/L","MIC","","","","CLSI","","","","","","",""
