@@ -1,0 +1,21 @@
+{
+  "description": "LightGBM on the identical 400k sample, the like-for-like comparison against A3_logistic",
+  "data": {
+    "sample_rows": 400000
+  },
+  "split": {
+    "strategy": "grouped",
+    "test_size": 0.2,
+    "seed": 42
+  },
+  "features": {
+    "target_encoding": "oof"
+  },
+  "model": {
+    "type": "lightgbm"
+  },
+  "threshold": {
+    "strategy": "maximize_f1"
+  },
+  "id": "A3b_lgbm_same_sample"
+}

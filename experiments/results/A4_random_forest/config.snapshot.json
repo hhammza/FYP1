@@ -1,0 +1,23 @@
+{
+  "id": "A4_random_forest",
+  "description": "Random forest on the same 400k sample, bagged trees vs boosted trees",
+  "data": {
+    "sample_rows": 400000,
+    "seed": 42
+  },
+  "split": {
+    "strategy": "grouped",
+    "test_size": 0.2,
+    "seed": 42
+  },
+  "features": {
+    "target_encoding": "oof"
+  },
+  "model": {
+    "type": "random_forest"
+  },
+  "threshold": {
+    "strategy": "maximize_f1"
+  },
+  "evaluation": {}
+}

@@ -1,0 +1,25 @@
+{
+  "description": "A2 restricted to wet-lab labels, removes computational-caller noise",
+  "data": {
+    "label_sources": [
+      "lab"
+    ]
+  },
+  "split": {
+    "strategy": "grouped",
+    "test_size": 0.2,
+    "seed": 42
+  },
+  "features": {
+    "target_encoding": "oof"
+  },
+  "model": {
+    "type": "lightgbm"
+  },
+  "threshold": {
+    "strategy": "fixed",
+    "fixed": 0.4
+  },
+  "id": "A6_lab_only",
+  "evaluation": {}
+}

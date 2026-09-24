@@ -1,0 +1,24 @@
+{
+  "description": "Antibiotic and drug class only, the floor the UI calls a population-level estimate",
+  "split": {
+    "strategy": "grouped",
+    "test_size": 0.2,
+    "seed": 42
+  },
+  "features": {
+    "target_encoding": "none",
+    "base": [
+      "Antibiotic",
+      "drug_class"
+    ]
+  },
+  "model": {
+    "type": "lightgbm"
+  },
+  "threshold": {
+    "strategy": "fixed",
+    "fixed": 0.4
+  },
+  "id": "A_ablation_drug_only",
+  "data": {}
+}

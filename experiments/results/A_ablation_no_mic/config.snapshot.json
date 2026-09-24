@@ -1,0 +1,27 @@
+{
+  "description": "A2 without any MIC input, the value of a measured MIC",
+  "split": {
+    "strategy": "grouped",
+    "test_size": 0.2,
+    "seed": 42
+  },
+  "features": {
+    "target_encoding": "oof",
+    "drop": [
+      "mic_value",
+      "mic_log",
+      "has_mic",
+      "mic_sign"
+    ]
+  },
+  "model": {
+    "type": "lightgbm"
+  },
+  "threshold": {
+    "strategy": "fixed",
+    "fixed": 0.4
+  },
+  "id": "A_ablation_no_mic",
+  "data": {},
+  "evaluation": {}
+}
