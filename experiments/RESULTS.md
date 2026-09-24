@@ -12,8 +12,11 @@
 | `A10_monotonic_mic` | grouped | oof | lightgbm | 0.8222 [0.8192-0.8257] | 0.7372 | 0.6640 | 10.1% | 46.5% | 0.1722 | 0.40 |
 | `LC_800k` | grouped | oof | lightgbm | 0.8200 [0.8162-0.8245] | 0.7372 | 0.6599 | 9.8% | 47.7% | 0.1728 | 0.40 |
 | `LC_100k` | grouped | oof | lightgbm | 0.8195 [0.8123-0.8263] | 0.7349 | 0.6589 | 10.0% | 47.6% | 0.1735 | 0.40 |
-| `A3b_lgbm_same_sample` | grouped | oof | lightgbm | 0.8201 [0.8163-0.8245] | 0.7348 | 0.6683 | 20.4% | 33.5% | 0.1733 | 0.47 |
 | `LC_400k` | grouped | oof | lightgbm | 0.8201 [0.8163-0.8245] | 0.7348 | 0.6575 | 8.8% | 49.3% | 0.1733 | 0.40 |
+| `A3b_lgbm_same_sample` | grouped | oof | lightgbm | 0.8201 [0.8163-0.8245] | 0.7348 | 0.6683 | 20.4% | 33.5% | 0.1733 | 0.47 |
+| `A5_xgboost` | grouped | oof | xgboost | 0.8195 [0.8158-0.8238] | 0.7343 | 0.6675 | 20.8% | 33.2% | 0.1737 | 0.49 |
+| `A5b_catboost` | grouped | oof | catboost | 0.8191 [0.8154-0.8234] | 0.7329 | 0.6674 | 20.6% | 33.5% | 0.1736 | 0.47 |
+| `A5c_catboost_native` | grouped | none | catboost | 0.8186 [0.8146-0.8226] | 0.7323 | 0.6671 | 20.8% | 33.3% | 0.1739 | 0.47 |
 | `LC_50k` | grouped | oof | lightgbm | 0.8157 [0.8060-0.8233] | 0.7307 | 0.6595 | 12.5% | 44.9% | 0.1759 | 0.40 |
 | `LC_200k` | grouped | oof | lightgbm | 0.8174 [0.8115-0.8223] | 0.7307 | 0.6581 | 11.2% | 46.2% | 0.1740 | 0.40 |
 | `A4_random_forest` | grouped | oof | random_forest | 0.8173 [0.8136-0.8214] | 0.7282 | 0.6657 | 21.4% | 32.9% | 0.1748 | 0.48 |
@@ -43,4 +46,7 @@
 - `LC_800k` - Learning curve: LightGBM on a 800k-row sample
 - `A2_oof_grouped` - A1 with genome-grouped split, the corrected baseline
 - `A4_random_forest` - Random forest on the same 400k sample, bagged trees vs boosted trees
+- `A5_xgboost` - XGBoost on the same 400k sample, library comparison against LightGBM
+- `A5b_catboost` - CatBoost with the hand-built rate encodings, same 400k sample
+- `A5c_catboost_native` - CatBoost with no rate features, its ordered target statistics instead of the hand-built encoding
 

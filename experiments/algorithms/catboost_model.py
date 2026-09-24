@@ -39,10 +39,17 @@ class CatBoostModel:
         self.cat_features = []
 
     def _as_strings(self, X):
+        """Categoricals as plain strings, with missing values named.
+
+        align_categories() leaves a NaN wherever a test row holds a category
+        the training set never saw. CatBoost refuses NaN in a categorical
+        column, so those become the literal string 'unknown', which is also
+        how the rest of the pipeline spells a missing category.
+        """
         X = X.copy()
         for c in self.cat_features:
             if c in X.columns:
-                X[c] = X[c].astype(str)
+                X[c] = X[c].astype('object').where(X[c].notna(), 'unknown').astype(str)
         return X
 
     def fit(self, X_tr, y_tr, X_val, y_val, cat_features):
