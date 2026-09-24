@@ -8,12 +8,12 @@ Baseline is commit **`52ae361`** *(Add amrpredict library and macOS launcher, 20
 
 | File | What it is | Status |
 |---|---|---|
-| [PROJECT_GUIDE.md](PROJECT_GUIDE.md) | How the whole system fits together | Created, then revised |
+| [README.md](README.md) | How the whole system fits together | Created, then revised |
 | [EXPERIMENT_PLAN.md](EXPERIMENT_PLAN.md) | Staged plan for model experiments | Created, then corrected against measurements |
 | [experiments/HANDBOOK.md](experiments/HANDBOOK.md) | Full reference for the training setup | Created, then revised |
 | [experiments/README.md](experiments/README.md) | Usage card for the harness | Created, then revised |
 | [experiments/RESULTS.md](experiments/RESULTS.md) | Generated comparison table | Regenerated after every run |
-| [PROJECT_DOCUMENTATION.md](PROJECT_DOCUMENTATION.md) | The original long reference | **Unchanged**. Superseding facts are recorded in [PROJECT_GUIDE.md](PROJECT_GUIDE.md) instead |
+| [PROJECT_DOCUMENTATION.md](PROJECT_DOCUMENTATION.md) | The original long reference | **Unchanged**. Superseding facts are recorded in [README.md](README.md) instead |
 
 ---
 
@@ -23,7 +23,7 @@ Em dashes and en dashes removed from every document and from the experiment code
 
 | Area | Files |
 |---|---|
-| Documents | [CHANGES.md](CHANGES.md), [PROJECT_GUIDE.md](PROJECT_GUIDE.md), [EXPERIMENT_PLAN.md](EXPERIMENT_PLAN.md), [HANDBOOK.md](experiments/HANDBOOK.md), [README.md](experiments/README.md), [RESULTS.md](experiments/RESULTS.md) |
+| Documents | [CHANGES.md](CHANGES.md), [README.md](README.md), [EXPERIMENT_PLAN.md](EXPERIMENT_PLAN.md), [HANDBOOK.md](experiments/HANDBOOK.md), [README.md](experiments/README.md), [RESULTS.md](experiments/RESULTS.md) |
 | Code | all 14 files under [experiments/](experiments/), docstrings and comments |
 | Stored text | 33 JSON files (configs, config snapshots, metrics) plus [registry.csv](experiments/results/registry.csv), since [report.py](experiments/report.py) regenerates `RESULTS.md` from those descriptions |
 
@@ -42,11 +42,11 @@ Two repairs during the pass: collapsing `..` sequences had turned relative links
 - [§12 File reference](experiments/HANDBOOK.md#12-file-reference) restructured into four groups (entry points, algorithms, pipeline stages, data in and out) plus a note on what [.gitignore](.gitignore) excludes.
 - [§6.1](experiments/HANDBOOK.md#61-the-saved-model-bundle) added, documenting the saved-model bundle.
 
-### [PROJECT_GUIDE.md](PROJECT_GUIDE.md)
-- [Repository map](PROJECT_GUIDE.md#2-repository-map) now includes `data/` and [experiments/](experiments/).
-- New [§5.4](PROJECT_GUIDE.md#54-the-experiment-harness---experiments) describing the experiment harness.
-- [§10](PROJECT_GUIDE.md#10-the-numbers-and-where-each-one-comes-from) carries a correction: the 0.9255 AUC is superseded by a measured **0.8232 [0.8200-0.8269]**.
-- [Reading order](PROJECT_GUIDE.md#13-reading-order-for-someone-new-to-the-repo) updated to include the handbook.
+### [README.md](README.md)
+- [Repository map](README.md#2-repository-map) now includes `data/` and [experiments/](experiments/).
+- New [§5.4](README.md#54-the-experiment-harness---experiments) describing the experiment harness.
+- [§10](README.md#10-the-numbers-and-where-each-one-comes-from) carries a correction: the 0.9255 AUC is superseded by a measured **0.8232 [0.8200-0.8269]**.
+- [Reading order](README.md#13-reading-order-for-someone-new-to-the-repo) updated to include the handbook.
 
 ### [EXPERIMENT_PLAN.md](EXPERIMENT_PLAN.md)
 - Status banner: 19 runs across three algorithms.
@@ -182,15 +182,15 @@ Full table in [RESULTS.md](experiments/RESULTS.md), interpretation in [HANDBOOK 
 
 ---
 
-## PROJECT_GUIDE.md created (2026-09-24)
+## README.md created (was README.md) (2026-09-24)
 
 A walkthrough of the whole system, verified against the code instead of summarised from the existing documentation. Three findings it recorded:
 
-1. **The k-mer model never runs in the web app.** [train_models.py](backend/train_models.py) fits the scaler on 256 k-mer columns; [resistance_predictor.py:158](backend/ml_models/resistance_predictor.py#L158) passes all 321. The exception is swallowed and a random heuristic answers instead, while the response still reports `'RandomForest K-mer (trained)'`. Reproduced live. The one-line fix already exists at [amrpredict-lib/src/amrpredict/kmer.py:166](amrpredict-lib/src/amrpredict/kmer.py#L166). **Still unfixed in the backend.** Detail in [§11.1](PROJECT_GUIDE.md#111-the-k-mer-model-never-runs-in-the-web-app-).
-2. **Two AUC lineages.** The notebook model scores 0.8881 on one BV-BRC CSV; the shipped artifact's 0.9255 came from a [train_models.py](backend/train_models.py) run over the per-species exports. Not interchangeable. Detail in [§10](PROJECT_GUIDE.md#10-the-numbers-and-where-each-one-comes-from).
-3. `forecasting_formulation.ipynb` is a 0-byte file, the UI dropdown offered 48 antibiotics while the k-mer model knows 62, and `db.sqlite3` is vestigial. Detail in [§11.5](PROJECT_GUIDE.md#115-smaller-things).
+1. **The k-mer model never runs in the web app.** [train_models.py](backend/train_models.py) fits the scaler on 256 k-mer columns; [resistance_predictor.py:158](backend/ml_models/resistance_predictor.py#L158) passes all 321. The exception is swallowed and a random heuristic answers instead, while the response still reports `'RandomForest K-mer (trained)'`. Reproduced live. The one-line fix already exists at [amrpredict-lib/src/amrpredict/kmer.py:166](amrpredict-lib/src/amrpredict/kmer.py#L166). **Still unfixed in the backend.** Detail in [§11.1](README.md#111-the-k-mer-model-never-runs-in-the-web-app-).
+2. **Two AUC lineages.** The notebook model scores 0.8881 on one BV-BRC CSV; the shipped artifact's 0.9255 came from a [train_models.py](backend/train_models.py) run over the per-species exports. Not interchangeable. Detail in [§10](README.md#10-the-numbers-and-where-each-one-comes-from).
+3. `forecasting_formulation.ipynb` is a 0-byte file, the UI dropdown offered 48 antibiotics while the k-mer model knows 62, and `db.sqlite3` is vestigial. Detail in [§11.5](README.md#115-smaller-things).
 
-[PROJECT_DOCUMENTATION.md](PROJECT_DOCUMENTATION.md) was left untouched. Its line 726 claim that the k-mer scaler "is applied identically at inference time" is contradicted by finding 1, and that contradiction is recorded in [PROJECT_GUIDE.md §11.1](PROJECT_GUIDE.md#111-the-k-mer-model-never-runs-in-the-web-app-) instead of by editing the original.
+[PROJECT_DOCUMENTATION.md](PROJECT_DOCUMENTATION.md) was left untouched. Its line 726 claim that the k-mer scaler "is applied identically at inference time" is contradicted by finding 1, and that contradiction is recorded in [README.md §11.1](README.md#111-the-k-mer-model-never-runs-in-the-web-app-) instead of by editing the original.
 
 ---
 
@@ -208,10 +208,10 @@ A plain HTML `required` attribute does not work here. One of the two inputs is a
 
 | Item | Detail |
 |---|---|
-| **K-mer scaler bug**, `/predict` answers from a random heuristic | [PROJECT_GUIDE.md §11.1](PROJECT_GUIDE.md#111-the-k-mer-model-never-runs-in-the-web-app-) |
+| **K-mer scaler bug**, `/predict` answers from a random heuristic | [README.md §11.1](README.md#111-the-k-mer-model-never-runs-in-the-web-app-) |
 | Promotion path: rate tables need renaming and reshaping for the backend | [HANDBOOK §13](experiments/HANDBOOK.md#13-limitations-of-this-harness), [README](experiments/README.md#promoting-a-model-to-the-app) |
 | Taxon IDs are strain-level, so the UI's Taxon ID field can never match | [HANDBOOK §3.4](experiments/HANDBOOK.md#34-known-data-quality-issues) |
-| Timeline compartments exceed 100% after susceptible exhaustion | [PROJECT_GUIDE.md §11.3](PROJECT_GUIDE.md#113-timeline-population-shares-exceed-100) |
+| Timeline compartments exceed 100% after susceptible exhaustion | [README.md §11.3](README.md#113-timeline-population-shares-exceed-100) |
 | No DeLong or McNemar test between runs, no calibration plots, single seed | [HANDBOOK §13](experiments/HANDBOOK.md#13-limitations-of-this-harness) |
 | XGBoost and CatBoost written but not installed | [HANDBOOK §7](experiments/HANDBOOK.md#7-algorithms) |
 | Junk antibiotic names still in the vocabulary (`amipicillin_sulbactam`, `extended spectrum beta lactamase`) | [HANDBOOK §3.4](experiments/HANDBOOK.md#34-known-data-quality-issues), fix in [data_prep.py](experiments/lib/data_prep.py) |

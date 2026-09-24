@@ -21,9 +21,9 @@ The current pipeline has two measurement faults that make any comparison meaning
 1. [Three blockers before any retraining](#1-three-blockers-before-any-retraining)
 2. [The measurement protocol](#2-the-measurement-protocol)
 3. [The experiment harness](#3-the-experiment-harness)
-4. [Track A, tabular forecaster experiments](#4-track-a--tabular-forecaster-experiments)
-5. [Track B, genome model experiments](#5-track-b--genome-model-experiments)
-6. [Track C, the timeline simulation](#6-track-c--the-timeline-simulation)
+4. [Track A, tabular forecaster experiments](#4-track-a-tabular-forecaster-experiments)
+5. [Track B, genome model experiments](#5-track-b-genome-model-experiments)
+6. [Track C, the timeline simulation](#6-track-c-the-timeline-simulation)
 7. [Ablations: which inputs actually earn their place](#7-ablations-which-inputs-actually-earn-their-place)
 8. [Comparing runs statistically](#8-comparing-runs-statistically)
 9. [Suggested schedule](#9-suggested-schedule)
@@ -227,7 +227,7 @@ threshold:
 
 **Non-negotiables for every run:** fixed seeds, the config snapshotted into the results folder, `predictions.csv` saved (you need raw scores for DeLong tests in §8), and one appended row in `registry.csv`.
 
-**Also fix the metrics gap while you are here.** `train_models.py` currently prints AUC and discards it ([§11.5 of PROJECT_GUIDE.md](PROJECT_GUIDE.md)). Have the runner write `metrics.json` **next to the model artifact**, and have `LGBMResistancePredictor.status` read it. Then the UI badges stop being hand-transcribed and can never silently go stale.
+**Also fix the metrics gap while you are here.** `train_models.py` currently prints AUC and discards it ([§11.5 of README.md](README.md)). Have the runner write `metrics.json` **next to the model artifact**, and have `LGBMResistancePredictor.status` read it. Then the UI badges stop being hand-transcribed and can never silently go stale.
 
 ---
 
@@ -260,7 +260,7 @@ Run in this order. Each row changes **one** thing from the row above unless stat
 
 ### B0. Fix the scaler bug first 🔴
 
-The current k-mer model never runs at inference ([PROJECT_GUIDE.md §11.1](PROJECT_GUIDE.md)); the fix already exists in [amrpredict-lib/src/amrpredict/kmer.py](amrpredict-lib/src/amrpredict/kmer.py). Port it to [backend/ml_models/resistance_predictor.py:158](backend/ml_models/resistance_predictor.py#L158) before measuring anything, or every Track B number describes a random heuristic.
+The current k-mer model never runs at inference ([README.md §11.1](README.md)); the fix already exists in [amrpredict-lib/src/amrpredict/kmer.py](amrpredict-lib/src/amrpredict/kmer.py). Port it to [backend/ml_models/resistance_predictor.py:158](backend/ml_models/resistance_predictor.py#L158) before measuring anything, or every Track B number describes a random heuristic.
 
 | ID | Strategy | What it tests | Effort | Expected |
 |---|---|---|---|---|

@@ -1,4 +1,4 @@
-# AMR Intelligence Platform: Project Guide
+# AMR Intelligence Platform
 
 *A walkthrough of how the whole system fits together, written from the code as it stands on 2026-09-24 (commit `52ae361`).*
 
