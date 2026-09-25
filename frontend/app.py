@@ -29,7 +29,7 @@ ANTIBIOTICS = [
     'sulfamethoxazole', 'trimethoprim', 'trimethoprim/sulfamethoxazole',
     'chloramphenicol', 'azithromycin', 'erythromycin',
     'colistin', 'polymyxin b', 'vancomycin', 'teicoplanin',
-    'clindamycin', 'nitrofurantoin', 'rifampicin', 'rifampin',
+    'clindamycin', 'nitrofurantoin', 'rifampicin',
 ]
 
 BACTERIA_LIST = [

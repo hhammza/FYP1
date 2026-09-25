@@ -193,7 +193,7 @@ class AntibioticListView(View):
             'sulfamethoxazole', 'trimethoprim', 'trimethoprim/sulfamethoxazole',
             'chloramphenicol', 'azithromycin', 'erythromycin',
             'colistin', 'polymyxin b', 'vancomycin', 'teicoplanin',
-            'clindamycin', 'nitrofurantoin', 'rifampicin', 'rifampin',
+            'clindamycin', 'nitrofurantoin', 'rifampicin',
         ]
         return JsonResponse({'antibiotics': sorted(antibiotics)})
 
