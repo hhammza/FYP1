@@ -123,7 +123,8 @@ New folder `experiments/genome/`, reusing `lib/splits.py` and `lib/metrics.py`.
 
 | From / to | What | Needed by | Status |
 |---|---|---|---|
-| From Ali | Clean antibiotic names (T1.5) | Week 1, day 2 | [x] merged 2026-09-25 (`75a9875`) |
+| From Ali | Clean antibiotic names (T1.5) | Week 1, day 2 | [x] merged 2026-09-25 (`0ba94cd`) |
+| From Ali | Trainer data path fixed (T1.2): `train_models.py` finds `Data/`, reads all files by default, `--max-files N` for a seeded subset, `--model-dir` to avoid overwriting `trained_models/`. LightGBM on all files: about 4 min. K-mer on all files: about 1 hour, because GC content is computed per row (worth caching per genome) | Week 1 | [x] merged |
 | From Ali | Species-level taxon grouping | Week 1 | [ ] |
 | From Ali | 20-genome sample gene matrix | Week 2, day 2 | [ ] |
 | From Ali | Full gene matrix | End of week 2 | [ ] |

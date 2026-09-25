@@ -124,6 +124,7 @@ Build against Hamza's sample `metrics.json`, then switch to the real files.
 | From / to | What | Needed by | Status |
 |---|---|---|---|
 | From Ali | Antibiotic dropdown note | Week 1 | [x] in this file (week 1) |
+| From Ali | FYI: `backend/api/views.py` `TrainModelView` now returns 503 when training data is missing (8 lines, T1.2). Optional: set `DATA_DIR = BASE_DIR.parent / 'Data'` in `settings.py` for clarity; the trainer already finds `Data/` itself | Week 1 | [x] merged |
 | From Hamza | Sample `metrics.json` | Day 1 | [ ] |
 | From Hamza | Real `metrics.json` for both models | End of week 1 | [ ] |
 | From Hamza | Genome response with `genes_found` | Week 3 | [ ] |
