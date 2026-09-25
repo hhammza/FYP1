@@ -1,0 +1,324 @@
+{% extends "base.html" %}
+{% block title %}Model Comparison{% endblock %}
+
+{% block page_header %}
+<div class="page-header">
+  <div class="container-xl">
+    <nav aria-label="breadcrumb"><ol class="breadcrumb breadcrumb-custom">
+      <li class="breadcrumb-item"><a href="/">Dashboard</a></li>
+      <li class="breadcrumb-item"><a href="/models">Model Report</a></li>
+      <li class="breadcrumb-item active">Comparison</li>
+    </ol></nav>
+    <div class="d-flex align-items-center gap-3">
+      <div class="page-header-icon"><i class="bi bi-layout-split"></i></div>
+      <div>
+        <h1 class="page-title">Deployed vs Experimental Models</h1>
+        <p class="page-subtitle">What each model learned from, how it was tested, and how it scores on genomes it has never seen</p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% macro n(x) %}{{ '{:,}'.format(x) }}{% endmacro %}
+{% macro p(x) %}{{ '%.1f' | format(100 * x) }}%{% endmacro %}
+{% macro data_desc(run) -%}
+  {%- if run.split == 'species_holdout' -%}All files except Klebsiella
+  {%- elif run.label_sources -%}Lab-confirmed labels only
+  {%- elif run.sample_rows -%}Random {{ (run.sample_rows / 1000) | int }}k-row sample
+  {%- else -%}All 3,655 files{%- endif -%}
+{%- endmacro %}
+
+{% block content %}
+<div class="container-xl py-4">
+
+{% if error or not report.shipped or not report.training_profiles %}
+  <div class="empty-state">
+    <div class="empty-state-icon"><i class="bi bi-clipboard-x"></i></div>
+    <h5 class="fw-700">Comparison not available</h5>
+    <p class="text-muted mb-0">{{ error or 'The report has no training-data profiles yet. Run: python experiments/evaluate_shipped.py, then python experiments/export_report.py' }}</p>
+  </div>
+{% else %}
+{% set tp = report.training_profiles %}
+{% set full = tp.full_data %}
+{% set lg = report.shipped.lightgbm %}
+{% set km = report.shipped.kmer %}
+{% set lgp = lg.train_profile %}
+{% set kmp = km.train_profile %}
+{% set best = report.runs | selectattr('id', 'equalto', report.best_run) | first %}
+{% set bp = tp[report.best_run] %}
+
+  <!-- ── Headline contrast ────────────────────────────────────── -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3"><div class="stat-mini">
+      <div class="stat-mini-value stat-mini-static text-indigo2">{{ (bp.rows / lgp.rows) | round | int }}×</div>
+      <div class="stat-mini-label">More training rows in {{ best.id }} than the deployed LightGBM</div>
+    </div></div>
+    <div class="col-6 col-lg-3"><div class="stat-mini">
+      <div class="stat-mini-value stat-mini-static">{{ lgp.genera }} vs {{ bp.genera }}</div>
+      <div class="stat-mini-label">Bacterial genera seen: deployed vs best experiment</div>
+    </div></div>
+    <div class="col-6 col-lg-3"><div class="stat-mini">
+      <div class="stat-mini-value">{{ p(lgp.genus_rows.get('Klebsiella', 0) / lgp.rows) }}</div>
+      <div class="stat-mini-label">Klebsiella in deployed training data ({{ p(full.genus_rows.Klebsiella / full.rows) }} of all data)</div>
+    </div></div>
+    <div class="col-6 col-lg-3"><div class="stat-mini">
+      <div class="stat-mini-value stat-mini-static">{{ '%.3f' | format(lg.results[1].auc_roc) }} vs {{ '%.3f' | format(best.auc_roc) }}</div>
+      <div class="stat-mini-label">AUC on new genomes: deployed vs best experiment</div>
+    </div></div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════
+       WHERE THE DATA COMES FROM
+       ════════════════════════════════════════════════════════════ -->
+  <div class="mb-5">
+    <div class="sec-eyebrow">Section 1</div>
+    <h2 class="sec-title">Where each model's training data comes from</h2>
+    <p class="sec-sub mb-4">
+      All data comes from one BV-BRC / PATRIC export. The deployed models read only the first files of each folder,
+      in alphabetical order, because <code>train_models.py</code> caps how many files it loads.
+    </p>
+
+    <div class="glass-card">
+      <div class="flow-lane">
+        <div class="flow-source">
+          <div class="flow-source-name"><i class="bi bi-folder2-open me-2"></i>amr_output/</div>
+          <div class="flow-source-meta">{{ n(lg.files_total) }} CSVs, one per taxon</div>
+          <div class="flow-source-meta">{{ n(full.rows) }} rows after cleaning</div>
+          <div class="flow-source-meta">{{ n(full.genomes) }} genomes, {{ full.genera }} genera</div>
+        </div>
+        <div class="flow-arrow"><i class="bi bi-arrow-right"></i></div>
+        <div class="flow-targets">
+          <div class="flow-target deployed">
+            <div class="flow-target-head"><span class="flow-dot deployed"></span>Deployed LightGBM <span class="caption-text ms-1">/forecast</span></div>
+            <div class="flow-target-meta">Files 1 to {{ lg.files_used }} ({{ p(lg.files_used / lg.files_total) }} of files) → {{ n(lgp.rows) }} rows</div>
+            <div class="flow-meter"><div class="flow-meter-fill deployed" style="width: {{ [100 * lgp.rows / full.rows, 0.6] | max }}%"></div></div>
+            <div class="caption-text">{{ p(lgp.rows / full.rows) }} of the available rows</div>
+          </div>
+          <div class="flow-target experiment">
+            <div class="flow-target-head"><span class="flow-dot experiment"></span>Experiments <span class="caption-text ms-1">A0 to A12, learning curves</span></div>
+            <div class="flow-target-meta">All {{ n(lg.files_total) }} files → up to {{ n(full.rows) }} rows, 80% for training</div>
+            <div class="flow-meter"><div class="flow-meter-fill experiment" style="width: 100%"></div></div>
+            <div class="caption-text">100% of the available rows (some runs sample or filter, see the table below)</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="flow-lane mt-4">
+        <div class="flow-source">
+          <div class="flow-source-name"><i class="bi bi-folder2-open me-2"></i>mapped_output/ + fasta_output/</div>
+          <div class="flow-source-meta">{{ n(km.files_total) }} CSVs joined to genome files</div>
+          <div class="flow-source-meta">{{ n(km.genomes_with_fasta) }} genomes with a FASTA assembly</div>
+          <div class="flow-source-meta">About 4 GB of sequence</div>
+        </div>
+        <div class="flow-arrow"><i class="bi bi-arrow-right"></i></div>
+        <div class="flow-targets">
+          <div class="flow-target deployed">
+            <div class="flow-target-head"><span class="flow-dot deployed"></span>Deployed K-mer RF <span class="caption-text ms-1">/predict</span></div>
+            <div class="flow-target-meta">Files 1 to {{ km.files_used }} → {{ n(kmp.rows) }} rows from {{ n(kmp.genomes) }} genomes</div>
+            <div class="flow-meter"><div class="flow-meter-fill deployed" style="width: {{ 100 * kmp.genomes / km.genomes_with_fasta }}%"></div></div>
+            <div class="caption-text">{{ p(kmp.genomes / km.genomes_with_fasta) }} of the genomes with a FASTA</div>
+          </div>
+          <div class="flow-target empty">
+            <div class="flow-target-head"><span class="flow-dot"></span>Experiments</div>
+            <div class="flow-target-meta">No genome-sequence experiment yet. All experiments use the tabular AMR data.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════
+       SIDE BY SIDE
+       ════════════════════════════════════════════════════════════ -->
+  <div class="mb-5">
+    <div class="sec-eyebrow">Section 2</div>
+    <h2 class="sec-title">Side by side</h2>
+    <p class="sec-sub mb-4">The two models the app serves today, next to the best experimental model.</p>
+
+    <div class="glass-card">
+      <div class="table-responsive">
+        <table class="table table-custom mb-0 compare-table">
+          <thead>
+            <tr>
+              <th></th>
+              <th><span class="flow-dot deployed"></span>Deployed LightGBM</th>
+              <th><span class="flow-dot deployed"></span>Deployed K-mer RF</th>
+              <th><span class="flow-dot experiment"></span>Best experiment ({{ best.id }})</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="compare-section"><td colspan="4">Model</td></tr>
+            <tr><td>Status</td>
+              <td>Serves <a href="/forecast">/forecast</a></td>
+              <td>Loaded for <a href="/predict">/predict</a>, but never runs (heuristic fallback)</td>
+              <td>Experiment, not deployed yet</td></tr>
+            <tr><td>Algorithm</td>
+              <td>LightGBM, {{ lg.trees }} trees</td>
+              <td>Random forest, {{ km.trees }} trees</td>
+              <td>LightGBM, {{ report.best.model_info.n_trees }} trees</td></tr>
+            <tr><td>What it reads</td>
+              <td>Antibiotic, organism, MIC, resistance-rate lookups</td>
+              <td>4-letter DNA word frequencies of the genome, plus antibiotic and GC content</td>
+              <td>Same inputs as the deployed LightGBM ({{ report.best.features | length }} features)</td></tr>
+
+            <tr class="compare-section"><td colspan="4">Training data</td></tr>
+            <tr><td>Source</td>
+              <td class="font-mono small">amr_output/, files 1 to {{ lg.files_used }}</td>
+              <td class="font-mono small">mapped_output/, files 1 to {{ km.files_used }}</td>
+              <td class="font-mono small">amr_output/, all {{ n(lg.files_total) }} files</td></tr>
+            <tr><td>Training rows</td>
+              <td class="font-mono">{{ n(lgp.rows) }}</td><td class="font-mono">{{ n(kmp.rows) }}</td>
+              <td class="font-mono">{{ n(bp.rows) }} <span class="caption-text">incl. validation</span></td></tr>
+            <tr><td>Genomes</td>
+              <td class="font-mono">{{ n(lgp.genomes) }}</td><td class="font-mono">{{ n(kmp.genomes) }}</td><td class="font-mono">{{ n(bp.genomes) }}</td></tr>
+            <tr><td>Genera / taxa</td>
+              <td class="font-mono">{{ lgp.genera }} / {{ n(lgp.taxa) }}</td><td class="font-mono">{{ kmp.genera }} / {{ n(kmp.taxa) }}</td><td class="font-mono">{{ bp.genera }} / {{ n(bp.taxa) }}</td></tr>
+            <tr><td>Antibiotics</td>
+              <td class="font-mono">{{ lgp.antibiotics }}</td><td class="font-mono">{{ kmp.antibiotics }}</td><td class="font-mono">{{ bp.antibiotics }}</td></tr>
+            <tr><td>Klebsiella rows</td>
+              <td class="font-mono">{{ n(lgp.genus_rows.get('Klebsiella', 0)) }}</td><td class="font-mono">{{ n(kmp.genus_rows.get('Klebsiella', 0)) }}</td><td class="font-mono">{{ n(bp.genus_rows.get('Klebsiella', 0)) }}</td></tr>
+            <tr><td>Resistant share</td>
+              <td class="font-mono">{{ p(lgp.prevalence) }}</td><td class="font-mono">{{ p(kmp.prevalence) }}</td><td class="font-mono">{{ p(bp.prevalence) }}</td></tr>
+            <tr><td>Lab-confirmed labels</td>
+              <td class="font-mono">{{ p(lgp.lab_share) }}</td><td class="font-mono">{{ p(kmp.lab_share) }}</td><td class="font-mono">{{ p(bp.lab_share) }}</td></tr>
+
+            <tr class="compare-section"><td colspan="4">How it was tested</td></tr>
+            <tr><td>Split</td>
+              <td>Random rows, 80/20</td><td>Random rows, 80/20</td><td>By genome, 80/20</td></tr>
+            <tr><td>Resistance-rate features</td>
+              <td>Fitted on all rows, test rows included</td><td>Not used</td><td>Fitted out of fold, training rows only</td></tr>
+            <tr><td>Test genomes also in training</td>
+              <td>Most (same genome, other antibiotics)</td><td>Most (identical k-mer vector)</td><td class="font-mono">{{ bp.shared_genomes }}</td></tr>
+
+            <tr class="compare-section"><td colspan="4">Results</td></tr>
+            <tr><td>AUC as originally reported</td>
+              <td class="font-mono">{{ lg.claimed_auc }}</td><td class="font-mono">{{ km.claimed_auc }}</td><td class="font-mono">{{ '%.3f' | format(best.auc_roc) }}</td></tr>
+            <tr><td>AUC on genomes never seen</td>
+              <td class="font-mono fw-700">{{ '%.3f' | format(lg.results[1].auc_roc) }}</td>
+              <td class="font-mono fw-700">{{ '%.3f' | format(km.results[1].auc_roc) }}</td>
+              <td class="font-mono fw-700 text-indigo2">{{ '%.3f' | format(best.auc_roc) }}</td></tr>
+            <tr><td>Resistant isolates missed (VME)</td>
+              <td class="font-mono">{{ '%.0f' | format(100 * lg.results[1].very_major_error) }}%</td>
+              <td class="font-mono">{{ '%.0f' | format(100 * km.results[1].very_major_error) }}%</td>
+              <td class="font-mono">{{ '%.0f' | format(100 * best.very_major_error) }}%</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════
+       CHARTS
+       ════════════════════════════════════════════════════════════ -->
+  <div class="mb-5">
+    <div class="sec-eyebrow">Section 3</div>
+    <h2 class="sec-title">The training data, compared</h2>
+    <p class="sec-sub mb-4">Size, organism mix and label mix of every training set, and what each model scores as a result.</p>
+
+    <div class="row g-4 mb-4">
+      <div class="col-lg-6">
+        <div class="glass-card h-100">
+          <h6 class="card-section-title mb-1"><i class="bi bi-database text-accent me-2"></i>Training set size</h6>
+          <p class="small text-muted mb-2">Rows each model learned from. Log scale: every gridline is 10 times more data.</p>
+          <div id="sizeChart" class="report-chart" style="height:420px"></div>
+        </div>
+      </div>
+      <div class="col-lg-6">
+        <div class="glass-card h-100">
+          <h6 class="card-section-title mb-1"><i class="bi bi-arrow-down-right text-accent me-2"></i>Reported AUC vs AUC on new genomes</h6>
+          <p class="small text-muted mb-2">Experiments are already tested on unseen genomes, so their two dots sit on top of each other.</p>
+          <div id="claimChart" class="report-chart" style="height:420px"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="glass-card mb-4">
+      <h6 class="card-section-title mb-1"><i class="bi bi-grid-3x3 text-accent me-2"></i>Which bacteria each model learned from</h6>
+      <p class="small text-muted mb-2">
+        Share of training rows per genus. The deployed models learned almost only from <em>Escherichia</em> and
+        <em>Salmonella</em> and never saw <em>Klebsiella</em>, the largest genus in the data.
+      </p>
+      <div id="genusChart" class="report-chart" style="height:520px"></div>
+    </div>
+
+    <div class="glass-card">
+      <h6 class="card-section-title mb-1"><i class="bi bi-tags text-accent me-2"></i>Label mix</h6>
+      <p class="small text-muted mb-2">
+        The deployed LightGBM learned from data that is {{ p(lgp.prevalence) }} resistant, against {{ p(full.prevalence) }} overall,
+        so it expects resistance to be rarer than it is. The K-mer model has no lab-confirmed labels at all.
+      </p>
+      <div id="labelChart" class="report-chart" style="height:380px"></div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════
+       ALL MODELS TABLE
+       ════════════════════════════════════════════════════════════ -->
+  <div class="mb-5">
+    <div class="sec-eyebrow">Section 4</div>
+    <h2 class="sec-title">Every model and its data</h2>
+    <p class="sec-sub mb-4">All deployed and experimental models. Training rows include the validation slice.</p>
+    <div class="glass-card">
+      <div class="table-responsive">
+        <table class="table table-custom table-sm mb-0">
+          <thead><tr><th>Model</th><th>Type</th><th>Algorithm</th><th>Trained on</th><th>Train rows</th><th>Genomes</th><th>Genera</th><th>Resistant</th><th>Lab labels</th><th>Split</th><th>AUC, new genomes</th></tr></thead>
+          <tbody>
+            {% for m, prof, algo, src in [(lg, lgp, 'lightgbm', 'amr_output files 1 to ' ~ lg.files_used), (km, kmp, 'random_forest', 'mapped_output files 1 to ' ~ km.files_used)] %}
+            <tr>
+              <td><span class="text-white fw-600">{{ m.name }}</span><div class="caption-text">{{ m.page }}</div></td>
+              <td class="text-nowrap"><span class="flow-dot deployed"></span>Deployed</td>
+              <td class="small">{{ algo }}</td>
+              <td class="small">{{ src }}</td>
+              <td class="font-mono small">{{ n(prof.rows) }}</td>
+              <td class="font-mono small">{{ n(prof.genomes) }}</td>
+              <td class="font-mono small">{{ prof.genera }}</td>
+              <td class="font-mono small">{{ p(prof.prevalence) }}</td>
+              <td class="font-mono small">{{ p(prof.lab_share) }}</td>
+              <td class="small">random</td>
+              <td class="font-mono small">{{ '%.3f' | format(m.results[1].auc_roc) }}</td>
+            </tr>
+            {% endfor %}
+            {% for run in report.runs %}
+            {% set prof = tp[run.id] %}
+            <tr{% if run.id == report.best_run %} class="report-best-row"{% endif %}>
+              <td><span class="font-mono small text-white">{{ run.id }}</span><div class="caption-text">{{ run.description }}</div></td>
+              <td class="text-nowrap"><span class="flow-dot experiment"></span>Experiment</td>
+              <td class="small">{{ run.model }}</td>
+              <td class="small">{{ data_desc(run) }}</td>
+              <td class="font-mono small">{{ n(prof.rows) }}</td>
+              <td class="font-mono small">{{ n(prof.genomes) }}</td>
+              <td class="font-mono small">{{ prof.genera }}</td>
+              <td class="font-mono small">{{ p(prof.prevalence) }}</td>
+              <td class="font-mono small">{{ p(prof.lab_share) }}</td>
+              <td class="small">{{ run.split }}</td>
+              <td class="font-mono small">{{ '%.3f' | format(run.auc_roc) }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <p class="caption-text mt-2 mb-0">
+        A0 and A1 use a random split, so some of their test genomes were also in training. Every other experiment keeps test genomes out of training.
+        The deployed models' AUC comes from <code>experiments/evaluate_shipped.py</code>, on genomes outside the files they read.
+      </p>
+    </div>
+  </div>
+
+  <div class="alert-info-custom">
+    <i class="bi bi-lightbulb me-2"></i>
+    <strong>Bottom line.</strong> The deployed models are weaker mainly because of their data, not their algorithm:
+    they learned from {{ p(lgp.rows / full.rows) }} and {{ p(kmp.genomes / km.genomes_with_fasta) }} of what was available, from a narrow set of bacteria,
+    and were scored on genomes they had already seen. Trained on all the data and tested fairly, the same LightGBM algorithm reaches
+    {{ '%.3f' | format(best.auc_roc) }}. See the <a href="/models">Model Report</a> for how the split works.
+  </div>
+
+  <script type="application/json" id="report-data">{{ report | tojson }}</script>
+{% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/report-charts.js') }}"></script>
+<script src="{{ url_for('static', filename='js/compare.js') }}"></script>
+{% endblock %}

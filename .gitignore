@@ -195,6 +195,7 @@ log/
 # ------------------------------------------------------------
 backend/trained_models/*
 !backend/trained_models/.gitkeep
+!backend/trained_models/model_report.json
 
 
 # ------------------------------------------------------------

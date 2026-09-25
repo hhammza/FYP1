@@ -41,7 +41,7 @@
           </a>
         </li>
         <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle {% if '/forecast' in request.path or '/predict' in request.path %}active{% endif %}"
+          <a class="nav-link dropdown-toggle {% if '/forecast' in request.path or '/predict' in request.path or '/models' in request.path or '/compare' in request.path %}active{% endif %}"
              href="#" role="button" data-bs-toggle="dropdown">
             <i class="bi bi-cpu me-1"></i>ML Models
           </a>
@@ -49,6 +49,9 @@
             <li><h6 class="dropdown-header dropdown-section-label">TRAINED ML MODELS</h6></li>
             <li><a class="dropdown-item" href="/forecast"><i class="bi bi-graph-up-arrow me-2 text-accent"></i>AMR Forecasting <span class="badge bg-success ms-1 badge-xs">LightGBM</span></a></li>
             <li><a class="dropdown-item" href="/predict"><i class="bi bi-dna me-2 text-emerald2"></i>Resistance Prediction <span class="badge bg-primary ms-1 badge-xs">K-mer RF</span></a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="/models"><i class="bi bi-clipboard-data me-2 text-accent"></i>Model Report <span class="badge bg-secondary ms-1 badge-xs">All models</span></a></li>
+            <li><a class="dropdown-item" href="/compare"><i class="bi bi-layout-split me-2 text-accent"></i>Deployed vs Experimental</a></li>
           </ul>
         </li>
         <li class="nav-item">
@@ -120,6 +123,8 @@
           <li class="footer-nav-divider">ML Models</li>
           <li class="mb-1"><a href="/forecast" class="footer-link"><i class="bi bi-graph-up-arrow me-1"></i>AMR Forecasting</a></li>
           <li class="mb-1"><a href="/predict" class="footer-link"><i class="bi bi-dna me-1"></i>Resistance Prediction</a></li>
+          <li class="mb-1"><a href="/models" class="footer-link"><i class="bi bi-clipboard-data me-1"></i>Model Report</a></li>
+          <li class="mb-1"><a href="/compare" class="footer-link"><i class="bi bi-layout-split me-1"></i>Model Comparison</a></li>
           <li class="footer-nav-divider">Tools</li>
           <li class="mb-1"><a href="/timeline" class="footer-link"><i class="bi bi-activity me-1"></i>Bio-Simulation</a></li>
           <li class="mb-1"><a href="/datasets" class="footer-link"><i class="bi bi-database me-1"></i>Datasets</a></li>

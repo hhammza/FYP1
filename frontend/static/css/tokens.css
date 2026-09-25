@@ -55,6 +55,14 @@
   --glow-e:  rgba(22,163,74,0.06);
   --glow-r:  rgba(220,38,38,0.06);
 
+  /* ── Chart series (fixed order, validated for colour-blind separation) ── */
+  --viz-1: #4f46e5;
+  --viz-2: #d97706;
+  --viz-3: #0d9488;
+  --viz-4: #e11d48;
+  --viz-5: #7c3aed;
+  --viz-other: #94a3b8;
+
   /* ── Text ── */
   --text-1: #0f172a;
   --text-2: #475569;

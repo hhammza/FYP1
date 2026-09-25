@@ -1,0 +1,400 @@
+{% extends "base.html" %}
+{% block title %}Model Report{% endblock %}
+
+{% block page_header %}
+<div class="page-header">
+  <div class="container-xl">
+    <nav aria-label="breadcrumb"><ol class="breadcrumb breadcrumb-custom">
+      <li class="breadcrumb-item"><a href="/">Dashboard</a></li>
+      <li class="breadcrumb-item active">Model Report</li>
+    </ol></nav>
+    <div class="d-flex align-items-center gap-3">
+      <div class="page-header-icon"><i class="bi bi-clipboard-data"></i></div>
+      <div>
+        <h1 class="page-title">Model Report</h1>
+        <p class="page-subtitle">Every model we trained, how the data was split for testing, and how each one scores on genomes it has never seen</p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="container-xl py-4">
+
+{% if error %}
+  <div class="empty-state">
+    <div class="empty-state-icon"><i class="bi bi-clipboard-x"></i></div>
+    <h5 class="fw-700">Report not available</h5>
+    <p class="text-muted mb-0">{{ error }}</p>
+  </div>
+{% else %}
+{% set s = report.split %}
+{% set g = s.strategies.grouped %}
+{% set r = s.strategies.random %}
+{% set best = report.runs | selectattr('id', 'equalto', report.best_run) | first %}
+{% set sh = report.shipped %}
+
+  <!-- ── Headline numbers ─────────────────────────────────────── -->
+  <div class="d-flex gap-3 flex-wrap mb-4">
+    <div class="flex-fill min-w-130"><div class="stat-mini">
+      <div class="stat-mini-value text-indigo2">{{ '%.3f' | format(best.auc_roc) }}</div>
+      <div class="stat-mini-label">Best model AUC (LightGBM, {{ best.id }})</div>
+    </div></div>
+    {% if sh %}
+    <div class="flex-fill min-w-130"><div class="stat-mini">
+      <div class="stat-mini-value">{{ '%.3f' | format(sh.lightgbm.results[1].auc_roc) }}</div>
+      <div class="stat-mini-label">Deployed LightGBM, new genomes</div>
+    </div></div>
+    <div class="flex-fill min-w-130"><div class="stat-mini">
+      <div class="stat-mini-value">{{ '%.3f' | format(sh.kmer.results[1].auc_roc) }}</div>
+      <div class="stat-mini-label">Deployed K-mer RF, new genomes</div>
+    </div></div>
+    {% endif %}
+    <div class="flex-fill min-w-130"><div class="stat-mini">
+      <div class="stat-mini-value">{{ report.runs | length }}</div>
+      <div class="stat-mini-label">Experiment runs</div>
+    </div></div>
+    <div class="flex-fill min-w-130"><div class="stat-mini">
+      <div class="stat-mini-value">{{ '{:,}'.format(s.total_rows) }}</div>
+      <div class="stat-mini-label">Labelled rows</div>
+    </div></div>
+    <div class="flex-fill min-w-130"><div class="stat-mini">
+      <div class="stat-mini-value">{{ '{:,}'.format(s.total_genomes) }}</div>
+      <div class="stat-mini-label">Genomes</div>
+    </div></div>
+  </div>
+
+  <div class="glass-card mb-5">
+    <h5 class="fw-700 mb-2"><i class="bi bi-trophy me-2 text-indigo2"></i>Which model is best</h5>
+    <p class="body-text mb-2">
+      <strong>LightGBM trained on all {{ '{:,}'.format(s.total_rows) }} rows with a genome-grouped split
+      ({{ best.id }}) scores AUC {{ '%.3f' | format(best.auc_roc) }}
+      [{{ '%.3f' | format(best.auc_ci[0]) }} to {{ '%.3f' | format(best.auc_ci[1]) }}]</strong>
+      on genomes it never saw. XGBoost and CatBoost tie with it (their confidence intervals overlap),
+      and all three clearly beat logistic regression.
+      <a href="/compare">Compare the deployed and experimental models, and the data each trained on <i class="bi bi-arrow-right"></i></a>
+    </p>
+    {% if sh %}
+    <div class="alert-warning-custom">
+      <i class="bi bi-exclamation-triangle me-2"></i>
+      The models the app serves today were quoted at AUC 0.93. That figure was measured on genomes they had
+      already seen in training. On new genomes the deployed LightGBM scores
+      {{ '%.3f' | format(sh.lightgbm.results[1].auc_roc) }} and the K-mer model
+      {{ '%.3f' | format(sh.kmer.results[1].auc_roc) }}. See <a href="#deployed">Deployed models</a>.
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════
+       HOW WE SPLIT
+       ════════════════════════════════════════════════════════════ -->
+  <div class="mb-5" id="split">
+    <div class="sec-eyebrow">Section 1</div>
+    <h2 class="sec-title">How we split train and test</h2>
+    <p class="sec-sub mb-4">
+      Each genome is tested against about {{ s.rows_per_genome }} antibiotics, so it appears in about
+      {{ s.rows_per_genome }} rows. The split is made by <strong>genome</strong>, not by row, so no genome
+      is ever in both training and test.
+    </p>
+
+    <div class="row g-4 mb-4">
+      <div class="col-lg-7">
+        <div class="info-card h-100">
+          <h6 class="card-section-title"><i class="bi bi-layout-three-columns text-accent me-2"></i>Where every row goes</h6>
+          {% set total = s.total_rows %}
+          <div class="split-bar" role="img" aria-label="Fit {{ s.fit_rows }} rows, validation {{ s.validation_rows }} rows, test {{ s.test_rows }} rows">
+            <div class="split-seg split-fit" style="flex: {{ s.fit_rows }}">
+              <span class="split-seg-name">Fit</span><span class="split-seg-pct">{{ '%.0f' | format(100 * s.fit_rows / total) }}%</span>
+            </div>
+            <div class="split-seg split-val" style="flex: {{ s.validation_rows }}">
+              <span class="split-seg-name">Val</span><span class="split-seg-pct">{{ '%.0f' | format(100 * s.validation_rows / total) }}%</span>
+            </div>
+            <div class="split-seg split-test" style="flex: {{ s.test_rows }}">
+              <span class="split-seg-name">Test</span><span class="split-seg-pct">{{ '%.0f' | format(100 * s.test_rows / total) }}%</span>
+            </div>
+          </div>
+          <div class="table-responsive mt-3">
+            <table class="table table-custom table-sm mb-0">
+              <thead><tr><th>Part</th><th>Rows</th><th>Genomes</th><th>Used for</th></tr></thead>
+              <tbody>
+                <tr><td><span class="split-key split-fit"></span>Fit</td><td class="font-mono">{{ '{:,}'.format(s.fit_rows) }}</td>
+                    <td class="font-mono" rowspan="2">{{ '{:,}'.format(g.train_genomes) }}</td><td class="small text-muted">Learning the trees</td></tr>
+                <tr><td><span class="split-key split-val"></span>Validation</td><td class="font-mono">{{ '{:,}'.format(s.validation_rows) }}</td>
+                    <td class="small text-muted">Early stopping and choosing the threshold</td></tr>
+                <tr><td><span class="split-key split-test"></span>Test</td><td class="font-mono">{{ '{:,}'.format(s.test_rows) }}</td>
+                    <td class="font-mono">{{ '{:,}'.format(g.test_genomes) }}</td><td class="small text-muted">Final metrics only, used once</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-5">
+        <div class="info-card h-100">
+          <h6 class="card-section-title"><i class="bi bi-list-ol text-accent me-2"></i>The procedure</h6>
+          <div class="method-steps">
+            <div class="split-step"><span class="step-num step-indigo">1</span>
+              <div><strong>Test set.</strong> <code>StratifiedGroupKFold</code> with 5 folds, grouped by Genome ID. One fold (20% of genomes) becomes the test set.</div></div>
+            <div class="split-step"><span class="step-num step-indigo">2</span>
+              <div><strong>Validation set.</strong> The training genomes are split again into {{ s.validation_folds }} grouped folds. One is held out for early stopping and the threshold.</div></div>
+            <div class="split-step"><span class="step-num step-indigo">3</span>
+              <div><strong>Rate features.</strong> Resistance rates per drug, taxon and genus are computed out of fold ({{ s.encoding_folds }} grouped folds), so a row never sees its own label.</div></div>
+            <div class="split-step"><span class="step-num step-indigo">4</span>
+              <div><strong>Stratified.</strong> Train and test keep the same resistant share:
+                {{ '%.1f' | format(100 * g.train_prevalence) }}% and {{ '%.1f' | format(100 * g.test_prevalence) }}%.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+      <div class="col-md-6">
+        <div class="info-card h-100">
+          <div class="d-flex justify-content-between align-items-start mb-2">
+            <h6 class="card-section-title mb-0">Random row split</h6>
+            <span class="status-badge simulated">Old pipeline</span>
+          </div>
+          <p class="small text-muted">Rows are shuffled one by one. Rows from the same genome land on both sides.</p>
+          <div class="genome-demo" data-mode="random" aria-hidden="true"></div>
+          <div class="d-flex gap-3 mt-3">
+            <div class="flex-fill"><div class="stat-mini">
+              <div class="stat-mini-value">{{ '{:,}'.format(r.shared_genomes) }}</div>
+              <div class="stat-mini-label">Genomes on both sides</div>
+            </div></div>
+            <div class="flex-fill"><div class="stat-mini">
+              <div class="stat-mini-value">{{ '%.1f' | format(100 * r.test_rows_from_seen_genomes) }}%</div>
+              <div class="stat-mini-label">Test rows from a seen genome</div>
+            </div></div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="info-card h-100">
+          <div class="d-flex justify-content-between align-items-start mb-2">
+            <h6 class="card-section-title mb-0">Genome-grouped split</h6>
+            <span class="status-badge trained">Used now</span>
+          </div>
+          <p class="small text-muted">Each genome goes entirely to one side, like a new patient's isolate in real use.</p>
+          <div class="genome-demo" data-mode="grouped" aria-hidden="true"></div>
+          <div class="d-flex gap-3 mt-3">
+            <div class="flex-fill"><div class="stat-mini">
+              <div class="stat-mini-value">{{ '{:,}'.format(g.shared_genomes) }}</div>
+              <div class="stat-mini-label">Genomes on both sides</div>
+            </div></div>
+            <div class="flex-fill"><div class="stat-mini">
+              <div class="stat-mini-value">{{ '%.1f' | format(100 * g.test_rows_from_seen_genomes) }}%</div>
+              <div class="stat-mini-label">Test rows from a seen genome</div>
+            </div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="genome-demo-legend small text-muted mb-4">
+      <span><span class="split-key split-fit"></span>Training row</span>
+      <span><span class="split-key split-test"></span>Test row</span>
+      <span>Each line is one genome, each square one antibiotic test</span>
+    </div>
+
+    <div class="glass-card">
+      <h6 class="card-section-title"><i class="bi bi-diagram-2 text-accent me-2"></i>Split strategies in the project</h6>
+      <div class="table-responsive">
+        <table class="table table-custom table-sm mb-0">
+          <thead><tr><th>Strategy</th><th>What it does</th><th>Used by</th><th>Why</th></tr></thead>
+          <tbody>
+            <tr><td class="fw-600 text-white">grouped</td><td class="small">80/20 by genome, stratified</td>
+                <td class="small font-mono">A2, A3 to A10, learning curves</td><td class="small text-muted">Honest estimate for new isolates. The default.</td></tr>
+            <tr><td class="fw-600 text-white">random</td><td class="small">80/20 by row, stratified</td>
+                <td class="small font-mono">A0, A1, the deployed models</td><td class="small text-muted">Kept only to measure how much it inflates scores</td></tr>
+            <tr><td class="fw-600 text-white">species_holdout</td><td class="small">Train without one genus, test only on it</td>
+                <td class="small font-mono">A12 (Klebsiella)</td><td class="small text-muted">Can the model handle an organism it has never seen?</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════
+       DEPLOYED MODELS
+       ════════════════════════════════════════════════════════════ -->
+  {% if sh %}
+  <div class="mb-5" id="deployed">
+    <div class="sec-eyebrow">Section 2</div>
+    <h2 class="sec-title">Deployed models, re-tested</h2>
+    <p class="sec-sub mb-4">
+      The models behind <a href="/forecast">/forecast</a> and <a href="/predict">/predict</a> were trained with a
+      random row split. We reconstructed exactly which genomes they trained on and scored them on every genome they never saw.
+    </p>
+
+    <div class="glass-card mb-4">
+      <h6 class="card-section-title mb-1"><i class="bi bi-bar-chart text-accent me-2"></i>AUC on genomes seen in training vs never seen</h6>
+      <p class="small text-muted mb-2">Near-perfect on familiar genomes, much weaker on new ones. That gap is what a random split hides.</p>
+      <div id="seenChart" class="report-chart" style="height:320px"></div>
+    </div>
+
+    <div class="row g-4 mb-4">
+      {% for key, icon in [('lightgbm', 'graph-up-arrow'), ('kmer', 'upc-scan')] %}
+      {% set m = sh[key] %}
+      <div class="col-lg-6">
+        <div class="info-card h-100">
+          <h6 class="card-section-title"><i class="bi bi-{{ icon }} text-accent me-2"></i>{{ m.name }} <a href="{{ m.page }}" class="small ms-1">{{ m.page }}</a></h6>
+          <div class="table-responsive">
+            <table class="table table-custom table-sm mb-2">
+              <thead><tr><th>Tested on</th><th>Rows</th><th>AUC [95% CI]</th><th>VME</th><th>ME</th></tr></thead>
+              <tbody>
+              {% for row in m.results %}
+                <tr><td class="small">{{ row.subset }}</td><td class="font-mono small">{{ '{:,}'.format(row.rows) }}</td>
+                  <td class="font-mono small text-nowrap">{{ '%.3f' | format(row.auc_roc) }}<div class="caption-text">{{ '%.3f' | format(row.auc_ci[0]) }} to {{ '%.3f' | format(row.auc_ci[1]) }}</div></td>
+                  <td class="font-mono small">{{ '%.0f' | format(100 * row.very_major_error) }}%</td>
+                  <td class="font-mono small">{{ '%.0f' | format(100 * row.major_error) }}%</td></tr>
+              {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          <ul class="small text-muted mb-0 ps-3">
+            <li>Trained on {{ '{:,}'.format(m.train_rows) }} rows from {{ '{:,}'.format(m.train_genomes) }} genomes, {{ m.trees }} trees, {{ m.known_antibiotics }} antibiotics.</li>
+            <li>Quoted AUC {{ m.claimed_auc }}; split: {{ m.split }}.</li>
+            {% if key == 'lightgbm' and m.head_to_head_a2 %}
+            <li>Same {{ '{:,}'.format(m.head_to_head_a2.rows) }} test rows: deployed {{ '%.3f' | format(m.head_to_head_a2.shipped_auc) }} vs {{ report.best_run }} <strong>{{ '%.3f' | format(m.head_to_head_a2.a2_auc) }}</strong>.</li>
+            <li>Only knows {{ m.known_genera | length }} genera: {{ m.known_genera | join(', ') }}.</li>
+            {% endif %}
+            {% if key == 'kmer' %}
+            <li>Within a single antibiotic the AUC averages {{ '%.2f' | format(m.within_antibiotic_auc) }}, so the genome adds little beyond knowing the drug.</li>
+            <li class="text-rose2"><i class="bi bi-bug me-1"></i>The web page never runs this model: {{ '%.0f' | format(100 * m.served_fallback_rate) }}% of <code>/predict</code> calls fall back to a heuristic because of a scaler shape bug.</li>
+            {% endif %}
+          </ul>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- ════════════════════════════════════════════════════════════
+       ALL EXPERIMENTS
+       ════════════════════════════════════════════════════════════ -->
+  <div class="mb-5" id="experiments">
+    <div class="sec-eyebrow">Section 3</div>
+    <h2 class="sec-title">All experiment runs</h2>
+    <p class="sec-sub mb-4">Every run from <code>experiments/</code>, on the test genomes it held out. The bars show the 95% confidence interval, resampled by genome.</p>
+
+    <div class="glass-card mb-4">
+      <h6 class="card-section-title mb-1"><i class="bi bi-bar-chart-steps text-accent me-2"></i>AUC-ROC by run</h6>
+      <div id="aucChart" class="report-chart" style="height:{{ 140 + 24 * (report.runs | length) }}px"></div>
+    </div>
+
+    <div class="row g-4 mb-4">
+      <div class="col-lg-6">
+        <div class="glass-card h-100">
+          <h6 class="card-section-title mb-1"><i class="bi bi-bezier2 text-accent me-2"></i>ROC curves</h6>
+          <p class="small text-muted mb-2">Higher and further left is better. The dotted line is guessing.</p>
+          <div id="rocChart" class="report-chart" style="height:440px"></div>
+        </div>
+      </div>
+      <div class="col-lg-6">
+        <div class="glass-card h-100">
+          <h6 class="card-section-title mb-1"><i class="bi bi-graph-up text-accent me-2"></i>Learning curve</h6>
+          <p class="small text-muted mb-2">LightGBM AUC as training data grows. It flattens early, so more rows alone will not fix it.</p>
+          <div id="learningChart" class="report-chart" style="height:440px"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="glass-card mb-4">
+      <h6 class="card-section-title mb-1"><i class="bi bi-sliders text-accent me-2"></i>The error trade-off</h6>
+      <p class="small text-muted mb-2">
+        <strong>VME</strong> (very major error) is a resistant isolate called susceptible, the dangerous mistake.
+        <strong>ME</strong> (major error) is a false resistant call. Moving the threshold trades one for the other,
+        which is why A2 (threshold 0.40) and A9 (0.47) share an AUC but sit far apart here.
+      </p>
+      <div id="errorChart" class="report-chart" style="height:380px"></div>
+    </div>
+
+    <div class="glass-card">
+      <h6 class="card-section-title"><i class="bi bi-table text-accent me-2"></i>Results table</h6>
+      <div class="table-responsive">
+        <table class="table table-custom table-sm mb-0">
+          <thead><tr><th>Run</th><th>Model</th><th>Split</th><th>Rows</th><th>AUC [95% CI]</th><th>AUPRC</th><th>F1</th><th>VME</th><th>ME</th><th>Thr</th></tr></thead>
+          <tbody>
+          {% for run in report.runs %}
+            <tr{% if run.id == report.best_run %} class="report-best-row"{% endif %}>
+              <td><span class="font-mono small text-white">{{ run.id }}</span>
+                  <div class="caption-text">{{ run.description }}</div></td>
+              <td class="small">{{ run.model }}</td>
+              <td class="small">{{ run.split }}</td>
+              <td class="font-mono small">{{ '{:,}'.format(run.rows) }}</td>
+              <td class="font-mono small text-nowrap">{{ '%.3f' | format(run.auc_roc) }}<div class="caption-text">{{ '%.3f' | format(run.auc_ci[0]) }} to {{ '%.3f' | format(run.auc_ci[1]) }}</div></td>
+              <td class="font-mono small">{{ '%.3f' | format(run.auc_pr) }}</td>
+              <td class="font-mono small">{{ '%.3f' | format(run.f1) }}</td>
+              <td class="font-mono small">{{ '%.1f' | format(100 * run.very_major_error) }}%</td>
+              <td class="font-mono small">{{ '%.1f' | format(100 * run.major_error) }}%</td>
+              <td class="font-mono small">{{ '%.2f' | format(run.threshold) }}</td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <p class="caption-text mt-2 mb-0">
+        A6 (lab labels only) scores highest because a wet-lab label is almost fixed by the MIC value. Without MIC (A6b)
+        it drops to about 0.87, so it is an easier task, not a better model.
+      </p>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════
+       BEST MODEL DETAIL
+       ════════════════════════════════════════════════════════════ -->
+  {% set b = report.best %}
+  <div class="mb-5" id="best">
+    <div class="sec-eyebrow">Section 4</div>
+    <h2 class="sec-title">Inside the best model ({{ b.id }})</h2>
+    <p class="sec-sub mb-4">
+      {{ b.model_info.kind }}, {{ b.model_info.n_trees }} trees, {{ b.features | length }} features,
+      tested on {{ '{:,}'.format(s.test_rows) }} rows at threshold {{ '%.2f' | format(b.test.threshold) }}.
+    </p>
+    <div class="row g-4">
+      <div class="col-lg-4">
+        <div class="info-card h-100">
+          <h6 class="card-section-title"><i class="bi bi-grid text-accent me-2"></i>Confusion matrix</h6>
+          {% set c = b.confusion %}
+          <div class="confusion">
+            <div></div><div class="confusion-head">Called S</div><div class="confusion-head">Called R</div>
+            <div class="confusion-side">Truly S</div>
+            <div class="confusion-cell ok"><strong>{{ '{:,}'.format(c.tn) }}</strong><span>correct</span></div>
+            <div class="confusion-cell warn"><strong>{{ '{:,}'.format(c.fp) }}</strong><span>ME {{ '%.0f' | format(100 * b.test.major_error) }}%</span></div>
+            <div class="confusion-side">Truly R</div>
+            <div class="confusion-cell bad"><strong>{{ '{:,}'.format(c.fn) }}</strong><span>VME {{ '%.0f' | format(100 * b.test.very_major_error) }}%</span></div>
+            <div class="confusion-cell ok"><strong>{{ '{:,}'.format(c.tp) }}</strong><span>correct</span></div>
+          </div>
+          <div class="d-flex gap-2 mt-3">
+            <div class="flex-fill"><div class="stat-mini"><div class="stat-mini-value fs-16">{{ '%.0f' | format(100 * b.test.sensitivity) }}%</div><div class="stat-mini-label">Sensitivity</div></div></div>
+            <div class="flex-fill"><div class="stat-mini"><div class="stat-mini-value fs-16">{{ '%.0f' | format(100 * b.test.specificity) }}%</div><div class="stat-mini-label">Specificity</div></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-8">
+        <div class="glass-card h-100">
+          <h6 class="card-section-title mb-1"><i class="bi bi-capsule text-accent me-2"></i>Best and worst antibiotics</h6>
+          <p class="small text-muted mb-2">AUC per antibiotic, among the {{ b.per_antibiotic_count }} with at least 1,000 test rows.</p>
+          <div id="drugChart" class="report-chart" style="height:460px"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="glass-card">
+    <h6 class="card-section-title"><i class="bi bi-arrow-repeat text-accent me-2"></i>Updating this page</h6>
+    <p class="small text-muted">This page reads <code>backend/trained_models/model_report.json</code>, generated {{ report.generated_at[:10] }}. After new experiments or retraining, rebuild it:</p>
+    <div class="code-block"><pre class="code-content"><code>python experiments/run.py experiments/configs/&lt;config&gt;.json
+python experiments/evaluate_shipped.py   # after retraining the app's models
+python experiments/export_report.py</code></pre></div>
+  </div>
+
+  <script type="application/json" id="report-data">{{ report | tojson }}</script>
+{% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/report-charts.js') }}"></script>
+<script src="{{ url_for('static', filename='js/models.js') }}"></script>
+{% endblock %}

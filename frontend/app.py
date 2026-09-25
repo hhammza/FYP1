@@ -282,6 +282,26 @@ def reload_models():
     return jsonify(data), status
 
 
+@app.route('/models')
+def model_report():
+    """Evaluation results for every model, served by the Django API."""
+    report, status = backend_get('models/')
+    if status != 200 or 'error' in report:
+        return render_template('models.html', report=None,
+                               error=report.get('error', f'Backend returned HTTP {status}'))
+    return render_template('models.html', report=report, error=None)
+
+
+@app.route('/compare')
+def model_compare():
+    """Deployed vs experimental models and the data each trained on."""
+    report, status = backend_get('models/')
+    if status != 200 or 'error' in report:
+        return render_template('compare.html', report=None,
+                               error=report.get('error', f'Backend returned HTTP {status}'))
+    return render_template('compare.html', report=report, error=None)
+
+
 @app.route('/datasets')
 def datasets():
     return render_template('datasets.html')

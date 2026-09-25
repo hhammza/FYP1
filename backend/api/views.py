@@ -1,5 +1,7 @@
 import json
+import os
 import traceback
+from django.conf import settings
 from django.http import JsonResponse
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
@@ -280,3 +282,21 @@ class TrainModelView(View):
         except Exception as e:
             traceback.print_exc()
             return json_error(str(e), 500)
+
+
+class ModelReportView(View):
+    """Evaluation results for every model, built by experiments/export_report.py."""
+    def get(self, request):
+        path = os.path.join(str(settings.TRAINED_MODELS_DIR), 'model_report.json')
+        if not os.path.exists(path):
+            return json_error('model_report.json not found. Run: '
+                              'python experiments/export_report.py', status=404)
+        with open(path) as fh:
+            report = json.load(fh)
+        lgbm = model_registry.get_lgbm()
+        kmer = model_registry.get_kmer()
+        report['live'] = {
+            'lgbm_loaded': bool(lgbm and lgbm.is_trained),
+            'kmer_loaded': bool(kmer and kmer.is_trained),
+        }
+        return JsonResponse(report)

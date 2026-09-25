@@ -9,5 +9,6 @@ urlpatterns = [
     path('antibiotics/', views.AntibioticListView.as_view(), name='antibiotics'),
     path('vocabulary/', views.VocabularyView.as_view(), name='vocabulary'),
     path('train/', views.TrainModelView.as_view(), name='train'),
+    path('models/', views.ModelReportView.as_view(), name='models'),
     path('reload/', views.ReloadModelsView.as_view(), name='reload'),
 ]

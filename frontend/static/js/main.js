@@ -158,7 +158,8 @@ function initNumberAnimation() {
     });
   }, { threshold: 0.3 });
 
-  document.querySelectorAll('.stat-mini-value, .stat-number, .hpanel-stat-val')
+  /* .stat-mini-static opts out: values like "9 vs 37" are not one number */
+  document.querySelectorAll('.stat-mini-value:not(.stat-mini-static), .stat-number, .hpanel-stat-val')
     .forEach(el => observer.observe(el));
 }
 
