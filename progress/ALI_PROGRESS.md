@@ -10,7 +10,7 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done · `[!]` blocke
 
 | Week | Dates (planned) | Focus | Status |
 | --- | --- | --- | --- |
-| 1 | 28 Sep to 2 Oct | Clean names, data path, taxon grouping, start AMRFinderPlus | In progress (name clean-up done, not merged) |
+| 1 | 28 Sep to 2 Oct | Clean names, data path, taxon grouping, start AMRFinderPlus | In progress (name clean-up merged) |
 | 2 | 5 Oct to 9 Oct | Gene matrix | Not started |
 | 3 | 12 Oct to 16 Oct | Evolution: fix, sensitivity, calibration | Not started |
 | 4 | 19 Oct to 23 Oct | RL agent, CTGAN experiment | Not started |
@@ -36,7 +36,7 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done · `[!]` blocke
 
 ## Week 1: data correctness
 
-### T1.5 Antibiotic name clean-up (first two days, Hamza re-promotes after this) `[~]` done locally, not merged
+### T1.5 Antibiotic name clean-up (first two days, Hamza re-promotes after this) `[x]` merged in `75a9875`
 
 - [x] List every antibiotic spelling in the data: 152 names after the v1 clean-up
 
@@ -182,11 +182,11 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done · `[!]` blocke
 
 | To | What | Needed by | Status |
 | --- | --- | --- | --- |
-| Hamza | Clean antibiotic names merged | Week 1, day 2 | \[\~\] done locally |
+| Hamza | Clean antibiotic names merged | Week 1, day 2 | [x] merged 2026-09-25 (`75a9875`); tell Hamza |
 | Hamza | Species-level taxon grouping | Week 1 | \[ \] |
 | Hamza | 20-genome sample gene matrix | Week 2, day 2 | \[ \] |
 | Hamza | Full gene matrix | End of week 2 | \[ \] |
-| Suleman | Canonical antibiotic list for dropdowns | Week 1 | \[\~\] note written (T1.5) |
+| Suleman | Canonical antibiotic list for dropdowns | Week 1 | [x] in `SULEMAN_PROGRESS.md` week 1 |
 | Suleman | Timeline + RL response format | Day 1 | \[ \] |
 | Suleman | Working RL output | Week 4 | \[ \] |
 
