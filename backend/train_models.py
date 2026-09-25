@@ -5,6 +5,7 @@ Run: python train_models.py [--model lgbm|kmer|all]
 import os
 import sys
 import glob
+import random
 import re
 import pickle
 import argparse
@@ -99,19 +100,49 @@ def normalize_antibiotics(names):
     return names.replace(rename), ~names.isin(drop)
 
 
-def load_amr_data(data_dir, max_files=500):
-    """Load and combine AMR output CSV files."""
+DATA_SUBDIRS = ('amr_output', 'mapped_output', 'sample_mapped_output')
+
+
+def resolve_data_dir(base):
+    """The folder holding amr_output/ and mapped_output/, or None.
+
+    Accepts either that folder or the project root, where the data lives in
+    Data/ (data/ on a case-sensitive clone). Both the command line and
+    /api/train/ pass the project root.
+    """
+    for candidate in (base, os.path.join(base, 'Data'), os.path.join(base, 'data')):
+        if any(os.path.isdir(os.path.join(candidate, d)) for d in DATA_SUBDIRS):
+            return candidate
+    return None
+
+
+def select_files(files, max_files=None, seed=42):
+    """Sorted file list, optionally a seeded random subset.
+
+    The old code took the first N files of an unsorted directory listing.
+    On the machine that trained the shipped models that listing was
+    alphabetical by taxon ID, so the LightGBM never saw Klebsiella. A random
+    subset keeps every genus in proportion.
+    """
+    files = sorted(f for f in files if not f.endswith('.tmp'))
+    if max_files and len(files) > max_files:
+        files = sorted(random.Random(seed).sample(files, max_files))
+    return files
+
+
+def load_amr_data(data_dir, max_files=None):
+    """Load and combine AMR output CSV files (all of them unless max_files)."""
     amr_dir = os.path.join(data_dir, 'amr_output')
     if not os.path.exists(amr_dir):
         print(f"[Data] amr_output not found at {amr_dir}")
         return None
 
-    csv_files = glob.glob(os.path.join(amr_dir, '*.csv'))
-    csv_files = [f for f in csv_files if not f.endswith('.tmp')]
-    print(f"[Data] Found {len(csv_files)} AMR CSV files. Loading up to {max_files}...")
+    found = glob.glob(os.path.join(amr_dir, '*.csv'))
+    csv_files = select_files(found, max_files)
+    print(f"[Data] Found {len(found)} AMR CSV files. Loading {len(csv_files)}...")
 
     frames = []
-    for i, f in enumerate(csv_files[:max_files]):
+    for i, f in enumerate(csv_files):
         try:
             df = pd.read_csv(f, low_memory=False)
             frames.append(df)
@@ -196,7 +227,7 @@ def clean_amr_data(df_raw):
     return df_labeled
 
 
-def train_lgbm(data_dir, model_dir):
+def train_lgbm(data_dir, model_dir, max_files=None):
     """Train LightGBM resistance forecasting model."""
     import joblib
     try:
@@ -212,7 +243,11 @@ def train_lgbm(data_dir, model_dir):
     print("  TRAINING LIGHTGBM AMR RESISTANCE FORECASTING MODEL")
     print("="*60)
 
-    df_raw = load_amr_data(data_dir)
+    data_dir = resolve_data_dir(data_dir)
+    if data_dir is None:
+        print("[LightGBM] Training data not found (looked for Data/amr_output).")
+        return False
+    df_raw = load_amr_data(data_dir, max_files)
     if df_raw is None or len(df_raw) < 100:
         print("[LightGBM] Insufficient data for training.")
         return False
@@ -305,7 +340,7 @@ def train_lgbm(data_dir, model_dir):
     return True
 
 
-def train_kmer(data_dir, model_dir):
+def train_kmer(data_dir, model_dir, max_files=None):
     """Train K-mer RandomForest resistance prediction model."""
     import glob
     from itertools import product
@@ -324,6 +359,10 @@ def train_kmer(data_dir, model_dir):
     ALL_KMERS = [''.join(p) for p in product(NUCLEOTIDES, repeat=K)]
     _STRIP = str.maketrans('', '', ''.join(c for c in map(chr, range(256)) if c not in 'ATCG'))
 
+    data_dir = resolve_data_dir(data_dir)
+    if data_dir is None:
+        print("[K-mer] Training data not found (looked for Data/mapped_output).")
+        return False
     mapped_dir = os.path.join(data_dir, 'mapped_output')
     fasta_dir = os.path.join(data_dir, 'fasta_output')
 
@@ -332,14 +371,14 @@ def train_kmer(data_dir, model_dir):
         fasta_dir = os.path.join(data_dir, 'sample_fasta_output')
         print(f"[K-mer] Using sample data from {mapped_dir}")
 
-    csv_files = glob.glob(os.path.join(mapped_dir, '*.csv'))
+    csv_files = select_files(glob.glob(os.path.join(mapped_dir, '*_mapped.csv')), max_files)
     if not csv_files:
         print("[K-mer] No mapped CSV files found.")
         return False
 
     print(f"[K-mer] Found {len(csv_files)} mapped CSV files. Loading...")
     frames = []
-    for f in csv_files[:200]:
+    for f in csv_files:
         try:
             frames.append(pd.read_csv(f, low_memory=False))
         except Exception:
@@ -461,14 +500,21 @@ def train_kmer(data_dir, model_dir):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Train AMR models')
     parser.add_argument('--model', default='all', choices=['lgbm', 'kmer', 'all'])
+    parser.add_argument('--max-files', type=int, default=None,
+                        help='use a seeded random subset of this many CSV files (default: all)')
+    parser.add_argument('--model-dir', default=MODEL_DIR,
+                        help='where to write the artifacts (default: backend/trained_models)')
     args = parser.parse_args()
 
-    data_dir = ROOT_DIR
+    data_dir = resolve_data_dir(ROOT_DIR)
+    if data_dir is None:
+        sys.exit('[Data] Training data not found. Expected Data/amr_output/ in the project root.')
+    print(f"[Data] Using {data_dir}")
 
     if args.model in ('lgbm', 'all'):
-        train_lgbm(data_dir, MODEL_DIR)
+        train_lgbm(data_dir, args.model_dir, args.max_files)
 
     if args.model in ('kmer', 'all'):
-        train_kmer(data_dir, MODEL_DIR)
+        train_kmer(data_dir, args.model_dir, args.max_files)
 
     print("\n[Training] Complete!")

@@ -7,7 +7,8 @@ noticing.
 
 Differences from backend/train_models.py, all deliberate and all recorded on
 the frame so an experiment can opt out:
-  * no 500-file cap, the full export is loaded
+  * the full export is loaded (train_models.py also does now; until
+    2026-09-25 it read only the first 500 files)
   * antibiotic spellings are normalised (optional, see normalize_antibiotics)
   * every row keeps a `label_source` so MIC-rule labels can be excluded
 """

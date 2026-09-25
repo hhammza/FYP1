@@ -252,6 +252,14 @@ class TrainModelView(View):
             import os
             from django.conf import settings
 
+            # Fail now rather than report "Training started" for a thread
+            # that will find no data.
+            sys.path.insert(0, str(settings.BASE_DIR))
+            from train_models import resolve_data_dir
+            if resolve_data_dir(str(settings.DATA_DIR)) is None:
+                return json_error('Training data not found. Expected Data/amr_output/ '
+                                  'and Data/mapped_output/ in the project root.', 503)
+
             def train_in_background(model_name, model_dir, data_dir):
                 try:
                     sys.path.insert(0, str(settings.BASE_DIR))

@@ -225,7 +225,7 @@ The two sources share no key directly, so this script builds one. CSV files are 
 Two functions, run with `--model lgbm|kmer|all`.
 
 **`train_lgbm()`**
-1. Load up to 500 CSVs from `amr_output/`, concatenate.
+1. Load every CSV in `Data/amr_output/` and concatenate. (Until 2026-09-25 it read only the first 500 files of a directory listing; `--max-files N` now takes a seeded random subset instead.)
 2. Clean (`clean_amr_data`): parse `Measurement` into `mic_sign` + `mic_value` with regex; split `Genome Name` into genus/species; map phenotypes to binary; extract the F1 score out of the free-text `Computational Method Performance` column; deduplicate on (Genome ID, Antibiotic), keeping lab-confirmed rows first.
 3. Build the three target-encoding tables.
 4. Split 80/20 stratified, then carve 15% of train for validation.
@@ -233,7 +233,7 @@ Two functions, run with `--model lgbm|kmer|all`.
 6. Print AUC + classification report, dump test predictions to `report_figures/`, save 5 artifacts.
 
 **`train_kmer()`**
-1. Load mapped CSVs (falling back to `sample_mapped_output/` if the full set is absent).
+1. Load every mapped CSV (falling back to `sample_mapped_output/` if the full set is absent). Until 2026-09-25 it read only the first 200.
 2. For each row, read the FASTA at `fasta_path`, with a path-repair step, because the CSVs contain Windows paths written on another machine. Sequences are cached in a dict so a genome referenced by 20 antibiotic rows is read once.
 3. Build the 321-vector, fit `StandardScaler` **on the 256 k-mer columns only**, train the forest, report, pickle `{model, scaler, ab_list, ALL_KMERS}`.
 
@@ -408,8 +408,10 @@ Windows: `start.bat` (ports 8000 + 5000, two `cmd` windows).
 
 ```bash
 cd backend && python train_models.py --model all     # or lgbm / kmer
+python train_models.py --model lgbm --max-files 500  # seeded random subset of files
+python train_models.py --model lgbm --model-dir /tmp/out   # write somewhere other than trained_models/
 ```
-Windows: `train_all.bat`. Both need the raw data directories, which are not in the repo.
+Windows: `train_all.bat`. The trainer finds the data in `Data/` itself. With all files, the LightGBM trains in about 4 minutes on 1.52 M rows; the K-mer model takes about an hour, because it computes GC content row by row. **Training overwrites the deployed models in `backend/trained_models/`** unless `--model-dir` is given.
 
 ### Deployment (Railway, two services)
 
@@ -520,9 +522,11 @@ feat[:N_KMERS] = self.scaler.transform(feat[:N_KMERS].reshape(1, -1))[0]
 
 Porting it to `backend/ml_models/resistance_predictor.py` is the highest-value change available in this repo. It is not applied here because this document was asked to explain the project, not change it, say the word and it is a two-minute edit plus a re-check.
 
-### 11.2 Training cannot run from a fresh clone
+### 11.2 Training could not run from a fresh clone (fixed 2026-09-25)
 
-The trainer looks for `amr_output/`, `mapped_output/` and `fasta_output/` directly inside the project root (`train_models.py:412`, `data_dir = ROOT_DIR`), but the data lives in `Data/`. So `POST /api/train/` starts its thread, prints `[Data] amr_output not found`, and returns `False`, while the UI has already reported "Training started". The fix is to point `data_dir` at `os.path.join(ROOT_DIR, 'Data')`, or to symlink the three folders into the root. The committed models in `trained_models/` date from 10 July; §10 shows which files they were trained on.
+The trainer looked for `amr_output/`, `mapped_output/` and `fasta_output/` directly inside the project root, but the data lives in `Data/`. So `POST /api/train/` started its thread, printed `[Data] amr_output not found`, and returned `False`, while the UI had already reported "Training started".
+
+Now `resolve_data_dir()` in `train_models.py` accepts the project root or the data folder and finds `Data/` (or `data/`) itself, so both the command line and `/api/train/` work. `/api/train/` returns HTTP 503 with a message when no data is found, instead of starting a thread. The trainer also reads every file by default instead of the first 500 (LightGBM) and 200 (K-mer) of an unsorted listing, which is how the shipped LightGBM missed *Klebsiella*. The committed models in `trained_models/` still date from 10 July; §10 shows which files they were trained on.
 
 ### 11.3 Timeline population shares exceed 100%
 
