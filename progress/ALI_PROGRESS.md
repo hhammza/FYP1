@@ -34,13 +34,13 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done · `[!]` blocke
 
 > Agreed formats:
 
-\*&gt; *(paste here once agreed)*
+> *(paste here once agreed)*
 
 ---
 
 ## Week 1: data correctness
 
-### T1.5 Antibiotic name clean-up (first two days, Hamza re-promotes after this) `[x]` merged in `75a9875`
+### T1.5 Antibiotic name clean-up (first two days, Hamza re-promotes after this) `[x]` merged in `0ba94cd`
 
 - [x] List every antibiotic spelling in the data: 152 names after the v1 clean-up
 
@@ -56,7 +56,7 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done · `[!]` blocke
 
 - [x] Apply the same map in `backend/train_models.py` (`normalize_antibiotics()`, used by both the LightGBM and K-mer trainers; maps checked identical)
 
-- \[\~\] Update the dropdown list in `frontend/app.py:ANTIBIOTICS` (Suleman's file): send him the note below
+- [~] Update the dropdown list in `frontend/app.py:ANTIBIOTICS` (Suleman's file): note below, also in Suleman's tracker
 
 - [x] Rebuild the cache: `python experiments/lib/data_prep.py` → 130 names, 1,521,644 rows (was 152 and 1,525,796)
 
@@ -68,13 +68,19 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done · `[!]` blocke
 
 > **Note for Suleman (dropdown list):** replace `rifampin` with `rifampicin`, the only UI name not in the cleaned data. Consider adding these drugs with 1,000+ rows that the dropdown lacks: spectinomycin, ceftiofur, ampicillin/sulbactam, sulfisoxazole, pefloxacin, penicillin, ceftazidime/avibactam, ceftolozane/tazobactam, cefixime, telithromycin, moxifloxacin, clarithromycin, temocillin, cefpirome, florfenicol.
 
-### T1.2 Training data path
+### T1.2 Training data path `[x]` done 2026-09-25 in `8f47f45`
 
-- [ ] `backend/train_models.py:412`: `data_dir = os.path.join(ROOT_DIR, 'Data')`
+- [x] `resolve_data_dir()` finds `Data/` from the project root or the data folder, so both the command line and `/api/train/` work (no change needed in `settings.py`)
 
-- [ ] Sort the file lists and remove or seed the caps (`max_files=500` at line 63, `[:200]` at line 290)
+- [x] `select_files()`: sorted, all files by default; `--max-files N` takes a seeded random subset (500 files: 19 genera instead of 11). New `--model-dir` flag so test runs don't overwrite deployed models
 
-- [ ] `/api/train/` returns an error when the data folder is missing, instead of "Training started"
+- [x] K-mer trainer reads only `*_mapped.csv` (no longer loads `mapping_summary.csv`)
+
+- [x] `/api/train/` returns HTTP 503 with a message when the data is missing (Suleman's `views.py`, 8 lines; noted in Suleman's tracker)
+
+- [x] Tested: LightGBM on all files, 1,521,618 rows, about 4 min, test AUC 0.825; K-mer on 15 files; deployed models untouched
+
+- [x] README §5, §9, §11.2 updated
 
 - **Done when:** `cd backend && python train_models.py --model lgbm` finds the data
 
@@ -120,7 +126,7 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done · `[!]` blocke
 
 ## Week 3: evolution component (T3.1)
 
-- [ ] **Fix &gt;100% bug** in `mutation_timeline.py`: susceptible + intermediate + resistant = 100 every week
+- [ ] **Fix >100% bug** in `mutation_timeline.py`: susceptible + intermediate + resistant = 100 every week
 
 - [ ] Seed the random parts, so the same inputs give the same output
 
@@ -186,13 +192,14 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done · `[!]` blocke
 
 | To | What | Needed by | Status |
 | --- | --- | --- | --- |
-| Hamza | Clean antibiotic names merged | Week 1, day 2 | \[x\] merged 2026-09-25 (`75a9875`); tell Hamza |
-| Hamza | Species-level taxon grouping | Week 1 | \[ \] |
-| Hamza | 20-genome sample gene matrix | Week 2, day 2 | \[ \] |
-| Hamza | Full gene matrix | End of week 2 | \[ \] |
-| Suleman | Canonical antibiotic list for dropdowns | Week 1 | \[x\] in `SULEMAN_PROGRESS.md` week 1 |
-| Suleman | Timeline + RL response format | Day 1 | \[ \] |
-| Suleman | Working RL output | Week 4 | \[ \] |
+| Hamza | Clean antibiotic names merged | Week 1, day 2 | [x] merged 2026-09-25 (`0ba94cd`) |
+| Hamza | Trainer data path fix (T1.2) | Week 1 | [x] merged 2026-09-25 (`8f47f45`), noted in Hamza's tracker |
+| Hamza | Species-level taxon grouping | Week 1 | [ ] |
+| Hamza | 20-genome sample gene matrix | Week 2, day 2 | [ ] |
+| Hamza | Full gene matrix | End of week 2 | [ ] |
+| Suleman | Canonical antibiotic list for dropdowns | Week 1 | [x] in `SULEMAN_PROGRESS.md` week 1 |
+| Suleman | Timeline + RL response format | Day 1 | [ ] |
+| Suleman | Working RL output | Week 4 | [ ] |
 
 ---
 
@@ -214,5 +221,6 @@ Newest first. One line per work session: date, what I did, what is next, anythin
 
 | Date | Done | Next | Blockers |
 | --- | --- | --- | --- |
-| 2026-09-25 | T1.5 name clean-up: 24 new aliases, cleaning v2 (152 → 130 names), same map in `train_models.py`, handbook updated | Commit and push, tell Hamza and Suleman, then T1.2 data path | None |
+| 2026-09-25 | T1.2 data path: trainer finds `Data/`, reads all files (seeded subset optional), `/api/train/` fails clearly, README updated | Species-level taxon grouping, then AMRFinderPlus | None |
+| 2026-09-25 | T1.5 name clean-up: 24 new aliases, cleaning v2 (152 → 130 names), same map in `train_models.py`, handbook updated | T1.2 data path | None |
 | 2026-09-25 | Created this tracker | Agree formats with Hamza and Suleman | None |
