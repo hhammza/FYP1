@@ -39,7 +39,7 @@ DRUG_CLASS_MAP = {
     'colistin': 'polymyxin', 'polymyxin b': 'polymyxin',
     'vancomycin': 'glycopeptide', 'teicoplanin': 'glycopeptide',
     'clindamycin': 'lincosamide', 'nitrofurantoin': 'nitrofuran',
-    'rifampicin': 'rifamycin', 'rifampin': 'rifamycin',
+    'rifampicin': 'rifamycin',
 }
 
 # Known resistance rates per antibiotic (from training data statistics)
@@ -62,7 +62,7 @@ RESISTANCE_RATES = {
     'colistin': 0.05, 'polymyxin b': 0.06,
     'vancomycin': 0.10, 'teicoplanin': 0.08,
     'clindamycin': 0.28, 'nitrofurantoin': 0.15,
-    'rifampicin': 0.20, 'rifampin': 0.20,
+    'rifampicin': 0.20,
 }
 
 
@@ -126,9 +126,17 @@ class LGBMResistancePredictor:
         else:
             _log.info("No trained model found. Using heuristic predictions.")
 
+    LEGACY_ANTIBIOTIC_ALIASES = {'rifampin': 'rifampicin'}
+
+    def _normalize_antibiotic(self, antibiotic):
+        if antibiotic in (None, ''):
+            return antibiotic
+        ab = str(antibiotic).strip().lower()
+        return self.LEGACY_ANTIBIOTIC_ALIASES.get(ab, ab)
+
     def _heuristic_predict(self, antibiotic, taxon_id, mic_value=None, mic_sign=None, genus=None):
         """Rule-based fallback when no trained model exists."""
-        ab = antibiotic.lower().strip()
+        ab = self._normalize_antibiotic(antibiotic)
         base_rate = RESISTANCE_RATES.get(ab, 0.35)
 
         # MIC-based adjustment
@@ -159,7 +167,7 @@ class LGBMResistancePredictor:
 
     def predict(self, antibiotic, taxon_id=None, mic_value=None, mic_sign=None,
                 genus='unknown', species='unknown', threshold=0.40):
-        antibiotic = antibiotic.lower().strip()
+        antibiotic = self._normalize_antibiotic(antibiotic)
         drug_class = DRUG_CLASS_MAP.get(antibiotic, 'other')
 
         if not self.is_trained:

@@ -34,7 +34,7 @@ DRUG_CLASS_MAP = {
     'colistin': 'polymyxin', 'polymyxin b': 'polymyxin',
     'vancomycin': 'glycopeptide', 'teicoplanin': 'glycopeptide',
     'clindamycin': 'lincosamide', 'nitrofurantoin': 'nitrofuran',
-    'rifampicin': 'rifamycin', 'rifampin': 'rifamycin',
+    'rifampicin': 'rifamycin',
 }
 
 # Known resistance rates per antibiotic (from training data statistics)
@@ -57,7 +57,7 @@ RESISTANCE_RATES = {
     'colistin': 0.05, 'polymyxin b': 0.06,
     'vancomycin': 0.10, 'teicoplanin': 0.08,
     'clindamycin': 0.28, 'nitrofurantoin': 0.15,
-    'rifampicin': 0.20, 'rifampin': 0.20,
+    'rifampicin': 0.20,
 }
 
 
@@ -137,7 +137,7 @@ class LGBMResistancePredictor:
 
     def _heuristic_predict(self, antibiotic, taxon_id, mic_value=None, mic_sign=None, genus=None):
         """Rule-based fallback when no trained model exists."""
-        ab = antibiotic.lower().strip()
+        ab = self._normalize_antibiotic(antibiotic)
         base_rate = RESISTANCE_RATES.get(ab, 0.35)
 
         # MIC-based adjustment
@@ -170,6 +170,14 @@ class LGBMResistancePredictor:
     # Mapping them onto the nearest learned sign beats silently dropping the
     # value into the unknown bucket, which reads as "no MIC sign given".
     MIC_SIGN_ALIASES = {'>=': '>', '\u2265': '>', '\u2264': '<=', '=<': '<=', '=>': '>'}
+    LEGACY_ANTIBIOTIC_ALIASES = {'rifampin': 'rifampicin'}
+
+    def _normalize_antibiotic(self, antibiotic):
+        if antibiotic in (None, ''):
+            return antibiotic
+        ab = str(antibiotic).strip().lower()
+        # Canonical model name: rifampicin. Only legacy raw names are rewritten.
+        return self.LEGACY_ANTIBIOTIC_ALIASES.get(ab, ab)
 
     def _normalize_mic_sign(self, mic_sign):
         """Return (value_sent_to_model, was_rewritten)."""
@@ -304,7 +312,7 @@ class LGBMResistancePredictor:
 
     def predict(self, antibiotic, taxon_id=None, mic_value=None, mic_sign=None,
                 genus='unknown', species='unknown', threshold=0.40):
-        antibiotic = antibiotic.lower().strip()
+        antibiotic = self._normalize_antibiotic(antibiotic)
         drug_class = DRUG_CLASS_MAP.get(antibiotic, 'other')
 
         mic_sign_used, sign_rewritten = self._normalize_mic_sign(mic_sign)
@@ -378,8 +386,9 @@ class LGBMResistancePredictor:
     def vocabulary(self):
         """The values this model can actually distinguish, for the UI to offer."""
         taxa = sorted({t for t, _ in self.known_taxon_pairs})
+        antibiotics = sorted({self._normalize_antibiotic(ab) for ab in self.known['Antibiotic']})
         return {
-            'antibiotics': sorted(self.known['Antibiotic']),
+            'antibiotics': antibiotics,
             'genera': sorted(g.capitalize() for g in self.known['genus']),
             'species': sorted(self.known['species']),
             'mic_signs': sorted(self.known['mic_sign'] - {'unknown', 'exact'}),
@@ -396,7 +405,7 @@ class LGBMResistancePredictor:
         return results
 
     def get_drug_class_summary(self, antibiotic):
-        ab = antibiotic.lower().strip()
+        ab = self._normalize_antibiotic(antibiotic)
         dc = DRUG_CLASS_MAP.get(ab, 'other')
         related = [k for k, v in DRUG_CLASS_MAP.items() if v == dc and k != ab][:5]
         return {'drug_class': dc, 'related_antibiotics': related}

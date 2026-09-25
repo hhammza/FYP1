@@ -195,6 +195,7 @@ class AntibioticListView(View):
             'colistin', 'polymyxin b', 'vancomycin', 'teicoplanin',
             'clindamycin', 'nitrofurantoin', 'rifampicin',
         ]
+        antibiotics = [ab for ab in antibiotics if ab != 'rifampin']
         return JsonResponse({'antibiotics': sorted(antibiotics)})
 
 

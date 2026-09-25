@@ -45,7 +45,7 @@ DRUG_CLASS_MAP = {
     'colistin': 'polymyxin', 'polymyxin b': 'polymyxin',
     'vancomycin': 'glycopeptide', 'teicoplanin': 'glycopeptide',
     'clindamycin': 'lincosamide', 'nitrofurantoin': 'nitrofuran',
-    'rifampicin': 'rifamycin', 'rifampin': 'rifamycin',
+    'rifampicin': 'rifamycin',
 }
 
 # Spelling variants, typos and non-drugs in the raw Antibiotic column.

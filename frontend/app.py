@@ -229,6 +229,7 @@ VOCAB_EXCLUDE = {
     'trimethoprim-sulfamethoxazole',  # → trimethoprim/sulfamethoxazole
     'sulfamethoxazole/trimethoprim',  # → trimethoprim/sulfamethoxazole
     'co_trimoxazole',                 # → trimethoprim/sulfamethoxazole
+    'rifampin',                       # legacy spelling; canonical name is rifampicin
 }
 
 _vocab_cache = {}
@@ -258,7 +259,8 @@ def antibiotics_api():
     vocab = model_vocabulary()
     names = (vocab.get(model) or {}).get('antibiotics') if model else None
     if names:
-        return jsonify([n for n in names if n not in VOCAB_EXCLUDE])
+        canonical = ["rifampicin" if n == "rifampin" else n for n in names]
+        return jsonify([n for n in canonical if n not in VOCAB_EXCLUDE])
     return jsonify(ANTIBIOTICS)
 
 
