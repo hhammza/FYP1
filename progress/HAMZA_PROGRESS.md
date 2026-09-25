@@ -125,7 +125,8 @@ New folder `experiments/genome/`, reusing `lib/splits.py` and `lib/metrics.py`.
 |---|---|---|---|
 | From Ali | Clean antibiotic names (T1.5) | Week 1, day 2 | [x] merged 2026-09-25 (`0ba94cd`) |
 | From Ali | Trainer data path fixed (T1.2): `train_models.py` finds `Data/`, reads all files by default, `--max-files N` for a seeded subset, `--model-dir` to avoid overwriting `trained_models/`. LightGBM on all files: about 4 min. K-mer on all files: about 1 hour, because GC content is computed per row (worth caching per genome) | Week 1 | [x] merged |
-| From Ali | Species-level taxon grouping | Week 1 | [ ] |
+| From Ali | Species-level taxon grouping | Week 1 | [x] 2026-09-25. `backend/taxon_species.csv` maps every Taxon ID to its NCBI species; `train_models.load_species_map()` / `to_species_taxon()`; `species_taxon_id` column in cleaning v3. **To do (Hamza):** in `lgbm_predictor.py` map the user's `taxon_id` through `load_species_map()` before the rate lookup, and ship it with the retrained model (the deployed model is still strain level). Also worth a grouped-split run comparing `Taxon ID` and `species_taxon_id` (random-split AUC fell 0.825 → 0.805, expected) |
+| From Ali | FYI: the FASTAs in `Data/fasta_output/` are truncated (E. coli about 0.8 of 5 MB), so the shipped K-mer model and any k-mer run on them saw partial genomes. Complete assemblies are being downloaded to `Data/genomes_full/<genome_id>.fna` (gitignored; see `experiments/genome/README.md`). Consider running B0 to B4 on those | Week 2 | [~] download running 2026-09-25 |
 | From Ali | 20-genome sample gene matrix | Week 2, day 2 | [ ] |
 | From Ali | Full gene matrix | End of week 2 | [ ] |
 | To Suleman | Sample `metrics.json` | Day 1 | [ ] |

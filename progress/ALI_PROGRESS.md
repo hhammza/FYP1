@@ -14,7 +14,7 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done · `[!]` blocke
 
 | Week | Dates (planned) | Focus | Status |
 | --- | --- | --- | --- |
-| 1 | 28 Sep to 2 Oct | Clean names, data path, taxon grouping, start AMRFinderPlus | In progress: T1.5 names and T1.2 data path done; next taxon grouping, AMRFinderPlus |
+| 1 | 28 Sep to 2 Oct | Clean names, data path, taxon grouping, start AMRFinderPlus | In progress: names, data path and taxon grouping done; AMRFinderPlus full run going |
 | 2 | 5 Oct to 9 Oct | Gene matrix | Not started |
 | 3 | 12 Oct to 16 Oct | Evolution: fix, sensitivity, calibration | Not started |
 | 4 | 19 Oct to 23 Oct | RL agent, CTGAN experiment | Not started |
@@ -84,23 +84,37 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done · `[!]` blocke
 
 - **Done when:** `cd backend && python train_models.py --model lgbm` finds the data
 
-### Species-level taxon grouping (part of T1.4)
+### Species-level taxon grouping (part of T1.4) `[x]` done 2026-09-25
 
-- [ ] Group resistance-rate tables on species-level taxon instead of strain-level PATRIC IDs
+- [x] `experiments/build_taxonomy.py`: all 3,655 Taxon IDs looked up in NCBI → `backend/taxon_species.csv` (164 species, none unknown)
 
-- [ ] Hand the grouping function to Hamza for `promote.py`
+- [x] `train_models.py`: `load_species_map()` / `to_species_taxon()`; trains and builds the taxon table on species IDs (strain ID kept as `strain_taxon_id`)
 
-- **Done when:** taxon 562 (*E. coli*) matches a rate on `/forecast`
+- [x] `data_prep.py`: new `species_taxon_id` column, cleaning v3 (3,549 IDs → 124 species; `Taxon ID` unchanged so Hamza can compare)
 
-### Start AMRFinderPlus (longest job, start by Wednesday)
+- [x] Fixed stray quotes in genome names (`"neisseria` was a separate genus; 41 → 40 genera)
 
-- [ ] Install in WSL2 or Colab: `conda install -c bioconda -c conda-forge ncbi-amrfinderplus`, then `amrfinder -u`
+- [x] Tested: retrained model recognises taxon 562 (ciprofloxacin rate 6.5%); deployed model does not. Trainer's random-split AUC 0.825 → 0.805, because strain IDs let it partly recognise genomes
 
-- [ ] Test on 5 genomes: `amrfinder -n <genome>.fasta --organism Escherichia -o <genome>.tsv`
+- [x] Hand the grouping function to Hamza for `promote.py` (in Hamza's tracker)
 
-- [ ] Map each genus to its `--organism` value (skip the flag for unsupported genera)
+- **Done when:** taxon 562 (*E. coli*) matches a rate on `/forecast`. **Met for a retrained model;** live once Hamza promotes one
 
-- [ ] Start the full run over `Data/fasta_output/` (2,484 genomes)
+### Start AMRFinderPlus (longest job, start by Wednesday) `[~]` started 2026-09-25
+
+- [x] Found the local FASTAs are truncated (E. coli about 0.8 of 5 MB; 1000561.3 is 74 KB of 6.3 MB). `download_genomes.py` fetches complete assemblies from the BV-BRC API into `Data/genomes_full/` (gitignored), keeping a file only if its length matches BV-BRC within 1%
+
+- [x] Installed natively on the Mac (no WSL2 or Colab needed): conda env `amrfinder`, AMRFinderPlus 4.2.7, database 2026-08-07.1
+
+- [x] Tested on 5 genomes: P. aeruginosa found `gyrA_T83I`, `blaOXA-904`, `oprD`/`nalC` carbapenem mutations; S. pneumoniae found `pbp1a`/`pbp2b` mutations and `mef(A)`, `msr(D)`
+
+- [x] Species mapped to `--organism` from `backend/taxon_species.csv`, in `run_amrfinder.py`: 2,533 genomes get a flag, 54 run without one (M. tuberculosis, K. michiganensis and 3 small ones). Table in `experiments/genome/README.md`
+
+- [~] Full run over all 2,587 genomes: download (12 workers, about 3 hours) and AMRFinderPlus running together in the background
+
+- [x] `Data/genomes_full/` and `Data/amrfinder_output/` added to `.gitignore`
+
+> **Note for Hamza:** the K-mer model was trained on the truncated FASTAs. Worth retraining B-track k-mer runs on `Data/genomes_full/` once downloaded.
 
 ---
 
@@ -118,7 +132,7 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done · `[!]` blocke
 
 - [ ] Short summary: genes found, genes per genome, most common genes per genus
 
-- [ ] Do **not** commit the per-genome TSVs (add them to `.gitignore`)
+- [x] Do **not** commit the per-genome TSVs (add them to `.gitignore`): done in week 1
 
 - **Done when:** Hamza can load the matrix and join it to labels without help
 
@@ -194,7 +208,7 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done · `[!]` blocke
 | --- | --- | --- | --- |
 | Hamza | Clean antibiotic names merged | Week 1, day 2 | [x] merged 2026-09-25 (`0ba94cd`) |
 | Hamza | Trainer data path fix (T1.2) | Week 1 | [x] merged 2026-09-25 (`8f47f45`), noted in Hamza's tracker |
-| Hamza | Species-level taxon grouping | Week 1 | [ ] |
+| Hamza | Species-level taxon grouping | Week 1 | [x] 2026-09-25, in Hamza's tracker |
 | Hamza | 20-genome sample gene matrix | Week 2, day 2 | [ ] |
 | Hamza | Full gene matrix | End of week 2 | [ ] |
 | Suleman | Canonical antibiotic list for dropdowns | Week 1 | [x] in `SULEMAN_PROGRESS.md` week 1 |
@@ -221,6 +235,8 @@ Newest first. One line per work session: date, what I did, what is next, anythin
 
 | Date | Done | Next | Blockers |
 | --- | --- | --- | --- |
+| 2026-09-25 | AMRFinderPlus: found truncated FASTAs, download script for full assemblies, installed natively, tested 5 genomes, organism mapping, full run started | Finish the full run, then the 20-genome sample matrix | None (download takes about 3 hours) |
+| 2026-09-25 | Species-level taxon grouping: NCBI lookup table, species IDs in trainer and cleaning v3, quote fix, docs | Start AMRFinderPlus | None |
 | 2026-09-25 | T1.2 data path: trainer finds `Data/`, reads all files (seeded subset optional), `/api/train/` fails clearly, README updated | Species-level taxon grouping, then AMRFinderPlus | None |
 | 2026-09-25 | T1.5 name clean-up: 24 new aliases, cleaning v2 (152 → 130 names), same map in `train_models.py`, handbook updated | T1.2 data path | None |
 | 2026-09-25 | Created this tracker | Agree formats with Hamza and Suleman | None |

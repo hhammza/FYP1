@@ -30,6 +30,11 @@
 # K-mer frequency cache files (pre-computed .npy arrays, regenerable)
 *.k4.npy
 
+# Complete assemblies downloaded from BV-BRC (about 12 GB, regenerable with
+# experiments/genome/features/download_genomes.py) and AMRFinderPlus output
+Data/genomes_full/
+Data/amrfinder_output/
+
 
 # ------------------------------------------------------------
 # TRAINED MODEL ARTIFACTS
