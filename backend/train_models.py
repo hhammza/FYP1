@@ -47,6 +47,57 @@ DRUG_CLASS_MAP = {
     'rifampicin': 'rifamycin', 'rifampin': 'rifamycin',
 }
 
+# Spelling variants, typos and non-drugs in the raw Antibiotic column.
+# None means drop the row. Keep in step with ANTIBIOTIC_ALIASES in
+# experiments/lib/data_prep.py; the backend deploys without experiments/.
+ANTIBIOTIC_ALIASES = {
+    'ampicillin-sulbactam': 'ampicillin/sulbactam',
+    'ampicillin_clavulanic_acid': 'amoxicillin/clavulanic acid',
+    'amoxicillin-clavulanic acid': 'amoxicillin/clavulanic acid',
+    'piperacillin-tazobactam': 'piperacillin/tazobactam',
+    'trimethoprim-sulfamethoxazole': 'trimethoprim/sulfamethoxazole',
+    'sulfamethoxazole/trimethoprim': 'trimethoprim/sulfamethoxazole',
+    'co_trimoxazole': 'trimethoprim/sulfamethoxazole',
+    'co-trimoxazole': 'trimethoprim/sulfamethoxazole',
+    'geamycin': 'gentamicin',
+    'trimotheprim': 'trimethoprim',
+    'cefalothin': 'cephalothin',
+    'rifampin': 'rifampicin',
+    'tazobactam_piperacillin': 'piperacillin/tazobactam',
+    'ceftazidime_avibactam': 'ceftazidime/avibactam',
+    'ceftolozane_tazobactam': 'ceftolozane/tazobactam',
+    'ticarcillin_clavulanate': 'ticarcillin/clavulanic acid',
+    'cefpodoxime_clavulanic_acid': 'cefpodoxime/clavulanic acid',
+    'trimethoprim_sulfobactam': 'trimethoprim/sulfobactam',
+    'para_aminosalicylic_acid': 'para-aminosalicylic acid',
+    'amipicillin_sulbactam': 'ampicillin/sulbactam',
+    'tgecycline': 'tigecycline',
+    'cefuroxim\u00e2': 'cefuroxime',
+    'pristimycin': 'pristinamycin',
+    'strofurantoin': 'nitrofurantoin',
+    'cefuroxime_sodium': 'cefuroxime',
+    'cefalotin': 'cephalothin',
+    'cefalexin': 'cephalexin',
+    'synercid': 'quinupristin/dalfopristin',
+    'carbapenem': None,
+    'beta-lactam': None,
+    'cephalosporin': None,
+    'fluoroquinolones': None,
+    'aminogycosides': None,
+    'macrolides': None,
+    'sulfonamides': None,
+    'extended spectrum beta lactamase': None,
+    'instrument': None,
+}
+
+
+def normalize_antibiotics(names):
+    """Lower-case, strip and alias antibiotic names. Returns (names, keep_mask)."""
+    names = names.astype(str).str.strip().str.lower()
+    drop = {k for k, v in ANTIBIOTIC_ALIASES.items() if v is None}
+    rename = {k: v for k, v in ANTIBIOTIC_ALIASES.items() if v is not None}
+    return names.replace(rename), ~names.isin(drop)
+
 
 def load_amr_data(data_dir, max_files=500):
     """Load and combine AMR output CSV files."""
@@ -118,7 +169,8 @@ def clean_amr_data(df_raw):
     df_labeled = df_labeled[df_labeled['Resistant Phenotype'].notna()]
     df_labeled['target'] = (df_labeled['Resistant Phenotype'] == 'Resistant').astype(int)
 
-    df_labeled['Antibiotic'] = df_labeled['Antibiotic'].str.strip().str.lower()
+    df_labeled['Antibiotic'], keep = normalize_antibiotics(df_labeled['Antibiotic'])
+    df_labeled = df_labeled[keep].copy()
     df_labeled['drug_class'] = df_labeled['Antibiotic'].map(DRUG_CLASS_MAP).fillna('other')
     df_labeled['is_lab_confirmed'] = (df_labeled.get('Evidence', '') == 'Laboratory Method').astype(int)
 
@@ -297,6 +349,8 @@ def train_kmer(data_dir, model_dir):
     df = df.dropna(subset=['Antibiotic', 'Resistant Phenotype', 'fasta_path'])
     LABEL_MAP = {'Susceptible': 0, 'Intermediate': 1, 'Resistant': 1}
     df = df[df['Resistant Phenotype'].isin(LABEL_MAP)].copy()
+    df['Antibiotic'], keep = normalize_antibiotics(df['Antibiotic'])
+    df = df[keep].copy()
     df['label'] = df['Resistant Phenotype'].map(LABEL_MAP)
     print(f"[K-mer] {len(df)} labeled rows. Loading FASTA sequences...")
 

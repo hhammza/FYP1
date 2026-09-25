@@ -113,11 +113,11 @@ The cleaned frame is cached; later runs load it in under a second. Bump `CLEAN_V
 
 | | |
 |---|---|
-| Rows (one per genome × antibiotic) | 1,525,796 |
+| Rows (one per genome × antibiotic) | 1,525,796 (cleaning v1; v2 gives 1,521,644, see §3.4) |
 | Unique genomes | 128,317 |
 | Rows per genome | ~11.9 |
 | Unique taxon IDs | 3,549 |
-| Antibiotics | 152 |
+| Antibiotics | 152 (v1; 130 after the v2 name clean-up) |
 | Drug classes | 20 |
 | Genera | 41 |
 | Species | 94 |
@@ -147,7 +147,7 @@ The cleaned frame is cached; later runs load it in under a second. Bump `CLEAN_V
 
 - **93% of rows have no MIC.** `mic_value` is present for only 104,205 rows, and `mic_sign` is `unknown` for 96.3%. The MIC features are mostly missing data. LightGBM handles that natively, but it means the strongest clinical signal is absent from most training rows.
 - **Label provenance is confounded with MIC availability.** Lab rows carry an MIC 47% of the time; computational rows 0.6%. Any comparison between the two subsets is partly a comparison of "has MIC" versus "doesn't".
-- **Antibiotic names are still messy** even after normalisation: `amipicillin_sulbactam`, `ceftazidime_avibactam` (underscore variant), `extended spectrum beta lactamase` (a phenotype, not a drug), `furazolidone`. These appear with tiny counts and sit at AUC 0.500. Extend `ANTIBIOTIC_ALIASES` in `data_prep.py` as you find more.
+- **Antibiotic names were messy; fixed in cleaning v2 (2026-09-25).** `CLEAN_VERSION = 'v2'` extends `ANTIBIOTIC_ALIASES`: 16 renames (underscore variants such as `ceftazidime_avibactam`, typos such as `amipicillin_sulbactam`, `tgecycline` and `strofurantoin`, the mis-encoded `cefuroximâ`, and alternative names such as `synercid` and `cefalotin`) and 8 drops (drug classes such as `fluoroquinolones`, the phenotype `extended spectrum beta lactamase`, and `instrument`, 593 *C. difficile* rows whose drug name was lost). Names go from 152 to 130 and rows from 1,525,796 to 1,521,644. `trimethoprim/sulfobactam` is kept as it is: every one of its genomes also has a separate trimethoprim/sulfamethoxazole row, so it is not a duplicate. **All 22 runs in §10 used v1**; re-run a config to get v2 numbers. `backend/train_models.py` carries the same map.
 - **Taxon IDs are strain-level.** 3,549 distinct IDs in a dataset of 41 genera, these are BV-BRC strain identifiers, not the species IDs a user would type (562 for *E. coli*). This is why the `/forecast` page's Taxon ID field never matches a lookup.
 - **`computational_f1` is self-reported** by whichever caller produced the row, parsed out of a free-text field, and forced to 1.0 for lab rows. Treat it as a provenance hint, not a calibrated quality score.
 

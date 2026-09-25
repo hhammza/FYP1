@@ -20,7 +20,7 @@ import time
 import numpy as np
 import pandas as pd
 
-CLEAN_VERSION = 'v1'
+CLEAN_VERSION = 'v2'  # v2: extended ANTIBIOTIC_ALIASES (2026-09-25)
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 CACHE_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'cache')
@@ -58,7 +58,9 @@ DRUG_CLASS_MAP = {
     'clindamycin': 'lincosamide', 'nitrofurantoin': 'nitrofuran',
     'rifampicin': 'rifamycin', 'rifampin': 'rifamycin', 'rifabutin': 'rifamycin',
     'linezolid': 'oxazolidinone', 'daptomycin': 'lipopeptide',
-    'fusidic acid': 'fusidane', 'synercid': 'streptogramin',
+    'fusidic acid': 'fusidane', 'quinupristin/dalfopristin': 'streptogramin',
+    'pristinamycin': 'streptogramin', 'cephalexin': 'beta_lactam',
+    'cefpodoxime/clavulanic acid': 'beta_lactam', 'ticarcillin/clavulanic acid': 'beta_lactam',
     'isoniazid': 'antitubercular', 'ethambutol': 'antitubercular',
     'pyrazinamide': 'antitubercular', 'ethionamide': 'antitubercular',
     'prothionamide': 'antitubercular', 'cycloserine': 'antitubercular',
@@ -82,7 +84,37 @@ ANTIBIOTIC_ALIASES = {
     'trimotheprim': 'trimethoprim',
     'cefalothin': 'cephalothin',
     'rifampin': 'rifampicin',
+    # Separator variants of combination drugs
+    'tazobactam_piperacillin': 'piperacillin/tazobactam',
+    'ceftazidime_avibactam': 'ceftazidime/avibactam',
+    'ceftolozane_tazobactam': 'ceftolozane/tazobactam',
+    'ticarcillin_clavulanate': 'ticarcillin/clavulanic acid',
+    'cefpodoxime_clavulanic_acid': 'cefpodoxime/clavulanic acid',
+    'trimethoprim_sulfobactam': 'trimethoprim/sulfobactam',
+    'para_aminosalicylic_acid': 'para-aminosalicylic acid',
+    # Typos and a broken character encoding
+    'amipicillin_sulbactam': 'ampicillin/sulbactam',
+    'tgecycline': 'tigecycline',
+    'cefuroxim\u00e2': 'cefuroxime',
+    'pristimycin': 'pristinamycin',
+    # Shigella panel; never on the same genome as nitrofurantoin
+    'strofurantoin': 'nitrofurantoin',
+    # Alternative names for the same drug
+    'cefuroxime_sodium': 'cefuroxime',
+    'cefalotin': 'cephalothin',
+    'cefalexin': 'cephalexin',
+    'synercid': 'quinupristin/dalfopristin',
+    # Not a single drug: drug classes, a phenotype, and a lost drug name
+    # ('instrument' is 593 C. difficile lab rows with the drug name missing)
     'carbapenem': None,
+    'beta-lactam': None,
+    'cephalosporin': None,
+    'fluoroquinolones': None,
+    'aminogycosides': None,
+    'macrolides': None,
+    'sulfonamides': None,
+    'extended spectrum beta lactamase': None,
+    'instrument': None,
 }
 
 PHENOTYPE_MAP = {
