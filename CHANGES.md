@@ -17,6 +17,37 @@ Baseline is commit **`52ae361`** *(Add amrpredict library and macOS launcher, 20
 
 ---
 
+## Deployed models re-tested, and two report pages (2026-09-25)
+
+### Findings
+- The shipped models' training data was reconstructed: the first 500 `amr_output` files for the LightGBM and the first 200 `mapped_output` files for the K-mer model, confirmed by identical antibiotic sets, genera and stored resistance rate.
+- On genomes they never saw, the shipped LightGBM scores **0.644** (0.941 on its own genomes) and the K-mer model **0.695** (0.981), against **0.823** for `A2_oof_grouped`. The K-mer model does no better than the antibiotic's resistance rate alone (0.703).
+- The shipped LightGBM trained on 1.6% of the rows, not a seventh: 24,983 rows, 9 genera, no *Klebsiella*, 16.6% resistant against 36.5% overall.
+- A random split puts 99.7% of test rows on genomes also in training; the grouped split puts 0%.
+
+### Code
+| File | Change |
+|---|---|
+| [experiments/evaluate_shipped.py](experiments/evaluate_shipped.py) | New. Re-tests the shipped models, writes `results/shipped_eval.json` |
+| [experiments/export_report.py](experiments/export_report.py) | New. Builds `backend/trained_models/model_report.json` from every run |
+| [experiments/lib/profile.py](experiments/lib/profile.py) | New. Size, organism and label mix of a training set |
+| [backend/api/views.py](backend/api/views.py), [urls.py](backend/api/urls.py) | New `GET /api/models/` serving the report |
+| [frontend/app.py](frontend/app.py) | New routes `/models` and `/compare` |
+| [frontend/templates/models.html](frontend/templates/models.html), [compare.html](frontend/templates/compare.html) | New pages, linked from the ML Models menu and the footer |
+| [frontend/static/js/](frontend/static/js/) | New `models.js`, `compare.js` and the shared `report-charts.js`; `main.js` skips the count-up on `.stat-mini-static` tiles |
+| [frontend/static/css/](frontend/static/css/) | Chart colour tokens in `tokens.css` and `dark.css`; page styles in `charts.css` |
+| [.gitignore](.gitignore) | `backend/trained_models/model_report.json` is committed so the deployed backend can serve it |
+
+### Documents
+- [README.md](README.md): update banner, new counts (8 endpoints, 14 routes, 11 pages), repository map (and `Data/` described as committed, which it is), §5.4 report scripts, new §8.1 on the report pages, §10 re-test table, §11.2 corrected (the trainer looks in the project root, the data is in `Data/`), reading order.
+- [experiments/README.md](experiments/README.md): quick start, layout, new "The web report" section.
+- [experiments/HANDBOOK.md](experiments/HANDBOOK.md): §10 now lists all 22 runs (the XGBoost and CatBoost rows were missing), §11 gained the re-test and the five-algorithm table, §12 and §13 list the new files.
+- [EXPERIMENT_PLAN.md](EXPERIMENT_PLAN.md): status banner.
+
+Not yet changed: the "AUC 0.93" badges on the dashboard, `/predict`, `/about`, `/datasets` and in the footer still quote the original figures.
+
+---
+
 ## Plain prose pass (2026-09-24)
 
 Em dashes and en dashes removed from every document and from the experiment code, and phrasing that read as machine-written rewritten.

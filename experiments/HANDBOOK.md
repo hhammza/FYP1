@@ -1,6 +1,6 @@
 # Experiment Handbook
 
-*The training setup in `experiments/`: where the data comes from, what every field means, what happens during a run, which algorithms are available, how results are measured, and what the 19 runs have shown.*
+*The training setup in `experiments/`: where the data comes from, what every field means, what happens during a run, which algorithms are available, how results are measured, and what the 22 runs have shown.*
 
 Last updated 2026-09-24 against the code in this folder. [README.md](README.md) is the short usage card; this is the full reference. [CHANGES.md](../CHANGES.md) records how both got here.
 
@@ -476,7 +476,7 @@ VME and ME are the clinically meaningful pair and the reason the production thre
 
 ## 10. Results so far
 
-19 runs, identical protocol unless stated. Sorted by AUC.
+22 runs, identical protocol unless stated. Sorted by AUC.
 
 | Run | Algo | AUC-ROC [95% CI] | AUPRC | F1 | VME | ME | Brier | Thr | Rows |
 |---|---|---|---|---|---|---|---|---|---|
@@ -492,6 +492,9 @@ VME and ME are the clinically meaningful pair and the reason the production thre
 | `LC_400k` | lightgbm | 0.8201 [0.8163-0.8245] | 0.7348 | 0.6575 | 8.8% | 49.3% | 0.1733 | 0.40 | 400,000 |
 | `LC_800k` | lightgbm | 0.8200 [0.8162-0.8245] | 0.7372 | 0.6599 | 9.8% | 47.7% | 0.1728 | 0.40 | 800,000 |
 | `LC_100k` | lightgbm | 0.8195 [0.8123-0.8263] | 0.7349 | 0.6589 | 10.0% | 47.6% | 0.1735 | 0.40 | 100,000 |
+| `A5_xgboost` | xgboost | 0.8195 [0.8158-0.8238] | 0.7343 | 0.6675 | 20.8% | 33.2% | 0.1737 | 0.49 | 400,000 |
+| `A5b_catboost` | catboost | 0.8191 [0.8154-0.8234] | 0.7329 | 0.6674 | 20.6% | 33.5% | 0.1736 | 0.47 | 400,000 |
+| `A5c_catboost_native` | catboost | 0.8186 [0.8146-0.8226] | 0.7323 | 0.6671 | 20.8% | 33.3% | 0.1739 | 0.47 | 400,000 |
 | `LC_200k` | lightgbm | 0.8174 [0.8115-0.8223] | 0.7307 | 0.6581 | 11.2% | 46.2% | 0.1740 | 0.40 | 200,000 |
 | `A4_random_forest` | random_forest | 0.8173 [0.8136-0.8214] | 0.7282 | 0.6657 | 21.4% | 32.9% | 0.1748 | 0.48 | 400,000 |
 | `LC_50k` | lightgbm | 0.8157 [0.8060-0.8233] | 0.7307 | 0.6595 | 12.5% | 44.9% | 0.1759 | 0.40 | 50,000 |
@@ -508,21 +511,23 @@ Regenerate with `python experiments/report.py`.
 
 **The corrected baseline is AUC 0.823** (`A2_oof_grouped`): full data, out-of-fold encoding, zero genome overlap, threshold 0.40.
 
-**Target leakage costs 0.002, not the large correction expected.** `A0_baseline_leaky` 0.8243 vs `A1_oof_random` 0.8225, overlapping intervals. At 1.5 M rows each encoded group is estimated from many rows, so one test row's own label barely shifts its group mean. It would matter on the ~90 k subset the shipped model used; it does not here. Fix it anyway (it is free), but do not claim a large correction.
+**Target leakage costs 0.002, not the large correction expected.** `A0_baseline_leaky` 0.8243 vs `A1_oof_random` 0.8225, overlapping intervals. At 1.5 M rows each encoded group is estimated from many rows, so one test row's own label barely shifts its group mean. It would matter on the 25 k rows the shipped model used; it does not here. Fix it anyway (it is free), but do not claim a large correction.
 
-**Genome grouping also costs nothing here.** `A1_oof_random` has 106,815 genomes on both sides and scores 0.8225; `A2_oof_grouped` has zero overlap and scores 0.8232. With 128 k genomes there is not enough per-genome signal to memorise. Expect this to be very different for the k-mer model, where one genome's feature vector is *identical* across its rows.
+**Genome grouping also costs nothing here.** `A1_oof_random` has 106,815 genomes on both sides and scores 0.8225; `A2_oof_grouped` has zero overlap and scores 0.8232. With 128 k genomes there is not enough per-genome signal to memorise. It is very different for small training sets and for the k-mer model, where one genome's feature vector is *identical* across its rows; see the next paragraph.
 
 **The threshold matters more than any model choice.** Every algorithmic variant sits inside ±0.002 AUC. Meanwhile moving the threshold from 0.40 to 0.47 moves VME from 10.1% to 20.2% and ME from 46.4% to 33.6%. **At the production threshold, 46% of susceptible isolates are called resistant.** That is the single most important number in this table and it is a policy decision, not a modelling one.
 
-**Algorithm choice barely matters; model family does.** All three run on the identical 400 k sample, same split, same seed:
+**Algorithm choice barely matters; model family does.** All five run on the identical 400 k sample, same split, same seed:
 
 | Algorithm | AUC [95% CI] | AUPRC | Brier |
 |---|---|---|---|
 | LightGBM | 0.8201 [0.8163-0.8245] | 0.7348 | 0.1733 |
+| XGBoost | 0.8195 [0.8158-0.8238] | 0.7343 | 0.1737 |
+| CatBoost | 0.8191 [0.8154-0.8234] | 0.7329 | 0.1736 |
 | Random forest | 0.8173 [0.8136-0.8214] | 0.7282 | 0.1748 |
 | Logistic regression | 0.8024 [0.7985-0.8063] | 0.7083 | 0.1811 |
 
-Boosting over bagging is 0.003, overlapping intervals, not a real difference. Either tree method over linear is ~0.018 with non-overlapping intervals, so that one is real but modest. Most of the signal is in the features, not in non-linear interactions.
+The three boosting libraries are within 0.001 of each other. Boosting over bagging is 0.003, overlapping intervals, not a real difference. Either tree method over linear is ~0.018 with non-overlapping intervals, so that one is real but modest. Most of the signal is in the features, not in non-linear interactions.
 
 **MIC is worth about 0.02 AUC pooled** (`A_ablation_no_mic` 0.8033 vs 0.8232), smaller than expected because 93% of rows have no MIC. On the lab subset where MIC is present 47% of the time, it is worth **0.095** (`A6` 0.9654 vs `A6b` 0.8703).
 
@@ -531,6 +536,15 @@ Boosting over bagging is 0.003, overlapping intervals, not a real difference. Ei
 **Drug identity alone gives 0.6545.** This is the measured floor that the `/forecast` page labels a "Population-level estimate", what a user gets when they fill in nothing but the antibiotic.
 
 **Generalisation across genera collapses.** `A12_species_holdout`, train without *Klebsiella*, test only on it, gives 0.5971 with 82.9% ME, barely above chance. The model substantially encodes "this organism is usually resistant to this drug" rather than resistance mechanism.
+
+**The deployed models score far lower on genomes they never saw.** `evaluate_shipped.py` rebuilt which files each shipped artifact trained on (the first 500 `amr_output` and first 200 `mapped_output` files, confirmed by identical antibiotic sets, genera and stored resistance rate) and scored both on every other genome:
+
+| Model | Training data | Seen genomes | Unseen genomes |
+|---|---|---|---|
+| Shipped LightGBM | 24,983 rows, 1,007 genomes, 9 genera, 16.6% resistant | 0.941 | 0.644 [0.642-0.645] |
+| Shipped K-mer RF | 6,002 rows, 218 genomes, 6 genera, no lab labels | 0.981 | 0.695 [0.679-0.714] |
+
+On the 297,197 rows neither trained on, the shipped LightGBM scores 0.644 and `A2_oof_grouped` 0.820, with the same algorithm. The gap is the data: 1.6% of the rows, no *Klebsiella*, *Neisseria*, *Campylobacter* or *Shigella*, and half the resistant share of the full export. The K-mer model does no better than the antibiotic's resistance rate alone (0.703), and within a single antibiotic its AUC averages 0.62. At the shipped thresholds the two models miss 46% and 70% of resistant isolates.
 
 **The learning curve is flat from 50 k rows.** 50 k → 1.5 M moves AUC 0.8157 → 0.8232, all intervals overlapping. What full data does buy is precision (CI width 0.017 → 0.007) and tail coverage (36 → 90 antibiotics with enough test rows to evaluate). **More rows will not help; better features will**, which is the argument for AMR gene presence features (Track B6 in the plan) over further tuning.
 
@@ -546,6 +560,8 @@ Boosting over bagging is 0.003, overlapping intervals, not a real difference. Ei
 | `report.py` | `registry.csv` → Markdown; `--per-antibiotic <id>` for one run's weak spots |
 | `predict.py` | Loads a saved run and predicts with it; `--list` shows every loadable model |
 | `backfill_bundles.py` | Adds inference bundles to runs trained before the exporter existed |
+| `evaluate_shipped.py` | Re-tests the models in `backend/trained_models/` on genomes outside their training files; writes `results/shipped_eval.json` |
+| `export_report.py` | Collects runs, split counts, ROC curves, per-antibiotic results and training-data profiles into `backend/trained_models/model_report.json` for the app's `/models` and `/compare` pages |
 
 **Algorithms, one file each**
 
@@ -567,6 +583,7 @@ Boosting over bagging is 0.003, overlapping intervals, not a real difference. Ei
 | `lib/splits.py` | `make_split()` (grouped/random/species) and `inner_folds()` |
 | `lib/encoders.py` | `add_rate_features()`, the `oof`/`leaky`/`none` logic |
 | `lib/metrics.py` | `evaluate()`, `pick_threshold()`, `per_group()`, `bootstrap_ci()` |
+| `lib/profile.py` | `profile()`: rows, genomes, genera, antibiotics, resistant share, lab share and genus mix of a training set |
 
 **Data in and out**
 
@@ -579,6 +596,7 @@ Boosting over bagging is 0.003, overlapping intervals, not a real difference. Ei
 | `results/<id>/config.snapshot.json` | Exactly what produced this run |
 | `results/<id>/model/` | `model.*` + `rate_tables.joblib` + `feature_meta.json` (§6.1) |
 | `results/registry.csv` | One row per run, the comparison table |
+| `results/shipped_eval.json` | The deployed models' re-test, from `evaluate_shipped.py` |
 | `RESULTS.md` | Generated comparison table |
 
 Not committed (see `.gitignore`): `cache/` (189 MB), `results/*/predictions.csv`
@@ -588,7 +606,7 @@ Not committed (see `.gitignore`): `cache/` (189 MB), `results/*/predictions.csv`
 
 ## 13. Limitations of this harness
 
-- **Tabular model only.** The k-mer genome model and the timeline simulation have no equivalent harness yet.
+- **Tabular model only.** The k-mer genome model and the timeline simulation have no equivalent training harness yet. The shipped k-mer model can be re-tested (`evaluate_shipped.py`), but not retrained here.
 - **No hyperparameter search.** Configs are hand-written; there is no sweep or Bayesian search loop. Add one by generating configs programmatically.
 - **No statistical test between runs.** Bootstrap CIs are computed per run, but DeLong and McNemar tests across two runs are not implemented. `predictions.csv` holds everything needed to add them.
 - **No calibration curve.** Brier score is reported, but reliability plots are not produced (matplotlib is not installed).

@@ -8,8 +8,9 @@ The current pipeline has two measurement faults that make any comparison meaning
 
 ---
 
-> **Status:** the harness is built (`experiments/`) and **19 runs are done**, across
-> three algorithms. Every saved model is reloadable via `experiments/predict.py`.
+> **Status:** the harness is built (`experiments/`) and **22 runs are done**, across
+> five algorithms. The deployed models have been re-tested on unseen genomes
+> (`experiments/evaluate_shipped.py`: LightGBM 0.644, K-mer 0.695). Every saved model is reloadable via `experiments/predict.py`.
 > Results: [experiments/RESULTS.md](experiments/RESULTS.md); full documentation of
 > the data, fields, training procedure and findings in
 > [experiments/HANDBOOK.md](experiments/HANDBOOK.md).
@@ -344,7 +345,7 @@ Report every headline number as `0.881 [0.873-0.889]`. It is a small amount of w
 
 ---
 
-## 8b. What 19 runs have shown
+## 8b. What the runs have shown
 
 Measured, not predicted. Full table in [experiments/RESULTS.md](experiments/RESULTS.md),
 interpretation in [experiments/HANDBOOK.md §11](experiments/HANDBOOK.md).

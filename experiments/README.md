@@ -26,6 +26,10 @@ python experiments/report.py --out experiments/RESULTS.md
 
 # the weakest antibiotics for one run
 python experiments/report.py --per-antibiotic A2_oof_grouped
+
+# refresh the web app's /models and /compare pages
+python experiments/evaluate_shipped.py   # only after retraining the app's models
+python experiments/export_report.py
 ```
 
 First run reads 3,655 CSVs from `data/amr_output/` (~20 s) and caches the
@@ -49,14 +53,18 @@ experiments/
 │   ├── data_prep.py    raw CSV → clean modelling table (cached)
 │   ├── splits.py       random / grouped / species-holdout splitting
 │   ├── encoders.py     target encoding: none | leaky | oof
-│   └── metrics.py      AUC, AUPRC, VME/ME, Brier, bootstrap CIs
+│   ├── metrics.py      AUC, AUPRC, VME/ME, Brier, bootstrap CIs
+│   └── profile.py      size, organism and label mix of a training set
 ├── run.py              runs one config end to end
 ├── report.py           registry.csv → Markdown
 ├── predict.py          load a saved model and predict with it
+├── evaluate_shipped.py re-test the deployed models on genomes they never saw
+├── export_report.py    everything above → backend/trained_models/model_report.json
 ├── backfill_bundles.py adds bundles to runs made before the exporter existed
 ├── cache/              cleaned-data cache (safe to delete)
 └── results/
     ├── registry.csv    one row per run, the comparison table
+    ├── shipped_eval.json  deployed models re-tested, written by evaluate_shipped.py
     └── <run_id>/
         ├── metrics.json          every metric, plus per-antibiotic breakdown
         ├── predictions.csv       y_true, y_score, genome_id, antibiotic
@@ -127,6 +135,29 @@ REGISTRY = {
 
 It is immediately usable from any config via `{"model": {"type": "my_model"}}`.
 `run.py` does not change, so every earlier result stays comparable.
+
+## The web report
+
+The app's `/models` and `/compare` pages read
+`backend/trained_models/model_report.json`, which is committed so the deployed
+backend can serve it. Two scripts build it:
+
+| Script | Reads | Writes | Time |
+|---|---|---|---|
+| `evaluate_shipped.py` | `backend/trained_models/`, `data/amr_output/`, `data/mapped_output/`, `data/fasta_output/` | `results/shipped_eval.json` | about 2 min |
+| `export_report.py` | `results/registry.csv`, each run's `metrics.json`, `config.snapshot.json` and `predictions.csv`, `results/shipped_eval.json`, the data cache | `backend/trained_models/model_report.json` (about 40 KB) | about 1 min |
+
+`evaluate_shipped.py` reconstructs what the deployed models trained on.
+`train_models.py` reads the first 500 `amr_output` files and the first 200
+`mapped_output` files of a directory listing, which was alphabetical on the
+machine that trained them. The script checks this against the artifacts (same
+antibiotics, same genera, same stored resistance rate) and prints the result,
+then scores each model on every genome outside those files.
+
+`export_report.py` needs the `predictions.csv` files for ROC curves; they are
+not committed, so run it on a machine where the experiments were run. Run
+groups on the page (best model, algorithm comparison and so on) come from the
+`GROUPS` table at the top of the script; add new run ids there.
 
 ## Rules the harness enforces
 

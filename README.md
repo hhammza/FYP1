@@ -6,6 +6,11 @@
 > experiment harness lives in [`experiments/`](experiments/) (§5.4). The headline
 > accuracy figure has been re-measured (see §10).
 > Document history: [CHANGES.md](CHANGES.md).
+>
+> **Updated 2026-09-25.** The deployed models have been re-tested on genomes they
+> never trained on (§10), and the web app has two new pages, `/models` and
+> `/compare`, that show every model, how the data is split, and what each model
+> trained on (§8.1).
 
 This is a companion to `PROJECT_DOCUMENTATION.md`, not a replacement. That file is the long reference (datasets, hyperparameters, CSS classes). This one covers what the system is, what its parts are, how a click becomes a prediction, and what is true about it today. Every claim was checked against the code or reproduced by running it. Where the two documents disagree, sections 10 and 11 say why.
 
@@ -17,8 +22,8 @@ You built a full-stack antimicrobial-resistance (AMR) prediction system with **f
 
 | # | Deliverable | Where | What it is |
 |---|---|---|---|
-| 1 | **Django REST API** | `backend/` | 7 endpoints, loads 3 prediction engines into memory at startup |
-| 2 | **Flask web app** | `frontend/` | 12 routes, 9 pages, calls the Django API over HTTP |
+| 1 | **Django REST API** | `backend/` | 8 endpoints, loads 3 prediction engines into memory at startup |
+| 2 | **Flask web app** | `frontend/` | 14 routes, 11 pages, calls the Django API over HTTP |
 | 3 | **`amrpredict` Python package** | `amrpredict-lib/` | The same three engines, cleaned up, pip-installable, with a CLI and tests |
 | 4 | **Research notebooks** | `*.ipynb` | Where the models were originally designed and trained (Colab) |
 
@@ -55,7 +60,7 @@ FYP1/
 ├── backend/                     Django REST API (port 8000)
 │   ├── backend/settings.py      Config; no auth/admin/sessions apps installed
 │   ├── api/
-│   │   ├── urls.py              7 routes under /api/
+│   │   ├── urls.py              8 routes under /api/
 │   │   ├── views.py             All endpoint logic (266 lines, plain Django Views)
 │   │   ├── apps.py              ready() → loads all models at process start
 │   │   └── model_registry.py    Module-level singletons for the 3 engines
@@ -64,16 +69,17 @@ FYP1/
 │   │   ├── resistance_predictor.py  K-mer RandomForest + heuristic fallback
 │   │   └── mutation_timeline.py Logistic-growth simulation
 │   ├── train_models.py          Production trainer: raw CSV/FASTA → artifacts
-│   ├── trained_models/          6 committed artifacts (~7 MB)
+│   ├── trained_models/          6 committed artifacts (~7 MB) + model_report.json
 │   ├── Procfile / railway.toml  Gunicorn deploy config
 │   └── db.sqlite3               Exists but unused, there are no Django models
 │
 ├── frontend/                    Flask app (port 5001 by default)
-│   ├── app.py                   12 routes; a thin proxy over the Django API
-│   ├── templates/               9 Jinja2 pages, all extending base.html
+│   ├── app.py                   14 routes; a thin proxy over the Django API
+│   ├── templates/               11 Jinja2 pages, all extending base.html
 │   └── static/
 │       ├── css/                 8 files: tokens → layout → components → … → dark
-│       └── js/                  7 files, one per page + main.js + dropdowns.js
+│       └── js/                  10 files, one per page + main.js + dropdowns.js
+│                                + report-charts.js (shared by /models and /compare)
 │
 ├── amrpredict-lib/              The packaged library (see §7)
 │   ├── src/amrpredict/          Flat API, CLI, 3 predictors, bundled models
@@ -87,9 +93,11 @@ FYP1/
 │   ├── configs/                 One JSON per experiment
 │   ├── results/                 Per-run metrics, predictions and saved models
 │   ├── run.py / report.py / predict.py
+│   ├── evaluate_shipped.py      Re-tests the deployed models on unseen genomes
+│   ├── export_report.py         Builds model_report.json for the web pages
 │   └── HANDBOOK.md              Full documentation of the training setup
 │
-├── data/                        The BV-BRC export (not committed, 5 GB)
+├── Data/                        The BV-BRC export (committed, 5 GB)
 │   ├── amr_output/              3,655 per-species AMR CSVs
 │   ├── mapped_output/           The same rows joined to FASTA paths
 │   └── fasta_output/            Genome assemblies (4 GB)
@@ -102,7 +110,7 @@ FYP1/
 └── EXPERIMENT_PLAN.md           Staged plan for model experiments
 ```
 
-**The data is present but not committed.** `data/` holds 2.99 M raw AMR rows and 4 GB of FASTA; `.gitignore` excludes it, along with the experiment cache, saved models and raw predictions. The artifacts in `backend/trained_models/` are committed binaries dated 10 July, trained before this data layout existed, see §11.2.
+**The data is committed.** `Data/` holds 2.99 M raw AMR rows and 4 GB of FASTA, so the project runs from a clone alone; the 101 MB *Klebsiella* CSV is stored with Git LFS. `.gitignore` still excludes the experiment cache, saved experiment models and raw predictions. The artifacts in `backend/trained_models/` are committed binaries dated 10 July, trained before this data layout existed, see §11.2.
 
 ---
 
@@ -264,10 +272,17 @@ python experiments/report.py                    # comparison table
 python experiments/predict.py --list            # saved models you can reload
 ```
 
-Nineteen runs so far. The headline numbers: the corrected baseline is **AUC 0.823**
-(down from the 0.9255 quoted for the shipped artifact, which was measured on a
-seventh of the data under a leaky protocol), algorithm choice moves almost
-nothing, and the **threshold is the highest-leverage decision in the project**, at the production 0.40, major error is 46%.
+Twenty-two runs so far. The headline numbers: the corrected baseline is **AUC 0.823**
+(against 0.644 for the shipped artifact on genomes it never saw, see §10),
+algorithm choice moves almost nothing, and the **threshold is the
+highest-leverage decision in the project**, at the production 0.40, major error is 46%.
+
+Two scripts turn the results into the web app's report pages:
+
+```bash
+python experiments/evaluate_shipped.py   # re-test the deployed models (~2 min)
+python experiments/export_report.py      # write backend/trained_models/model_report.json
+```
 
 Full documentation in [experiments/HANDBOOK.md](experiments/HANDBOOK.md); the plan
 behind it in [EXPERIMENT_PLAN.md](EXPERIMENT_PLAN.md).
@@ -341,6 +356,8 @@ The bundled artifacts are **byte-identical** to `backend/trained_models/` (verif
 | `/datasets` | GET | n/a | `datasets.html`, the five datasets explained |
 | `/about` | GET | n/a | `about.html`, methodology, team, metrics |
 | `/library` | GET | n/a | `library.html` - `amrpredict` docs |
+| `/models` | GET | `models/` | `models.html`, every model, the split, charts (§8.1) |
+| `/compare` | GET | `models/` | `compare.html`, deployed vs experimental models and their data (§8.1) |
 | `/reload` | POST | `reload/` | JSON, re-reads artifacts without a restart |
 | `/api/health` | GET | `health/` | JSON passthrough |
 | `/api/antibiotics` | GET | n/a | JSON, 48 names (hardcoded list) |
@@ -353,6 +370,25 @@ The bundled artifacts are **byte-identical** to `backend/trained_models/` (verif
 - **JS is one file per page** plus `main.js` (the global `window.AMR` helper: Plotly theme fragment, toasts) and `dropdowns.js`.
 - **Dropdowns populate themselves.** Any `<select data-populate="antibiotics">` is filled by `dropdowns.js` from `/api/antibiotics`, cached in `sessionStorage` for the tab, with `data-selected="…"` restoring the choice after a POST. That's why the antibiotic list lives in exactly one place per source.
 - **Charts are server-data → inline JSON → Plotly.** The template writes `<script type="application/json" id="kmer-chart-data">{{ result.top_kmers | tojson }}</script>` and the page script parses it. No API call, no template-inlined JavaScript data.
+
+### 8.1 The report pages: `/models` and `/compare`
+
+Both pages are listed under **ML Models** in the navbar. They read one file,
+`backend/trained_models/model_report.json`, which the Django endpoint
+`GET /api/models/` serves with a live "is the model loaded" flag added. The file
+is committed so the deployed backend can serve it without the data or the
+experiment outputs. Rebuild it with the two scripts in §5.4.
+
+| Page | Sections |
+|---|---|
+| `/models` | Best model; how train and test are split (row counts, the four steps, random vs grouped split drawn per genome); deployed models re-tested on seen vs unseen genomes; all 22 runs with AUC and confidence intervals, ROC curves, learning curve, VME vs ME trade-off, results table; confusion matrix and best and worst antibiotics for the best run |
+| `/compare` | Where each model's training data comes from; a side-by-side table of the two deployed models and the best experiment; training set size, reported vs unseen-genome AUC, genus mix heatmap and label mix; a table of all 24 models and their data |
+
+Chart colours are CSS tokens (`--viz-1` to `--viz-5`, `--viz-other`) defined in
+`tokens.css` and stepped for the dark surface in `dark.css`, checked for
+colour-blind separation. Shared chart code lives in `static/js/report-charts.js`.
+Tiles whose value is not a single number (for example "9 vs 37") carry the
+`stat-mini-static` class so the count-up animation in `main.js` skips them.
 
 ---
 
@@ -406,6 +442,28 @@ full export (1.53 M rows) under a grouped split with out-of-fold encoding:
 from a seventh of the data under a protocol that fitted encodings on the test
 rows. Quote 0.823 and explain the difference; see
 [experiments/HANDBOOK.md §11](experiments/HANDBOOK.md).
+
+**Re-tested on unseen genomes, 2026-09-25.** `experiments/evaluate_shipped.py`
+worked out exactly what the shipped artifacts trained on: `train_models.py` reads
+the first N files of a directory listing, which on the Windows machine that
+trained them was alphabetical. The first 500 `amr_output` CSVs reproduce the
+LightGBM's 76 antibiotics, 9 genera and stored resistance rate (0.1662) exactly,
+and the first 200 mapped CSVs reproduce the K-mer model's 62 antibiotics exactly.
+Every genome outside those files is unseen:
+
+| Model | Trained on | AUC on genomes it trained on | AUC on genomes it never saw |
+|---|---|---|---|
+| Shipped LightGBM | 24,983 rows, 1,007 genomes, 9 genera | 0.941 | **0.644** [0.642-0.645] |
+| Shipped K-mer RF | 6,002 rows, 218 genomes, 6 genera | 0.981 | **0.695** [0.679-0.714] |
+| Experiment A2 | 1,220,637 rows, 102,578 genomes, 37 genera | n/a | **0.823** [0.820-0.827] |
+
+On the same 297,197 rows that neither model trained on, the shipped LightGBM
+scores 0.644 and A2 scores 0.820. The shipped LightGBM trained on 1.6% of the
+available rows, not a seventh as stated above: 500 of 3,655 files, but those
+files are small. It never saw *Klebsiella* (30% of the data) and its training
+data is 16.6% resistant against 36.5% overall. The K-mer model does no better
+than guessing from the antibiotic alone (0.703). Both pages in §8.1 show these
+numbers.
 
 Two caveats:
 
@@ -464,7 +522,7 @@ Porting it to `backend/ml_models/resistance_predictor.py` is the highest-value c
 
 ### 11.2 Training cannot run from a fresh clone
 
-`amr_output/`, `mapped_output/`, `fasta_output/` and the `sample_*` variants are absent. `POST /api/train/` will start its thread, print `[Data] amr_output not found`, and return `False`, while the UI has already reported "Training started". The models in `trained_models/` are committed binaries from 10 July whose exact training data is not reproducible from this repo.
+The trainer looks for `amr_output/`, `mapped_output/` and `fasta_output/` directly inside the project root (`train_models.py:412`, `data_dir = ROOT_DIR`), but the data lives in `Data/`. So `POST /api/train/` starts its thread, prints `[Data] amr_output not found`, and returns `False`, while the UI has already reported "Training started". The fix is to point `data_dir` at `os.path.join(ROOT_DIR, 'Data')`, or to symlink the three folders into the root. The committed models in `trained_models/` date from 10 July; §10 shows which files they were trained on.
 
 ### 11.3 Timeline population shares exceed 100%
 
@@ -506,12 +564,13 @@ Fine for an FYP, worth naming before someone else does: `SECRET_KEY` has a hardc
 ## 13. Reading order for someone new to the repo
 
 1. `frontend/app.py`, 250 lines, and it shows you every feature the system has
-2. `backend/api/views.py`: the seven endpoints and their validation rules
+2. `backend/api/views.py`: the eight endpoints and their validation rules
 3. `backend/ml_models/lgbm_predictor.py`: the cleanest of the three engines
 4. `backend/train_models.py`, where the features actually come from
 5. `experiments/HANDBOOK.md`: the training setup, data fields and measured results
-6. `amrpredict-lib/docs/known-issues.md`: the account of what is broken
-7. `LightGBM_Model_Improved.ipynb`, the research story, with outputs intact
-8. `PROJECT_DOCUMENTATION.md`: the deep reference, once you know the shape
+6. The `/models` and `/compare` pages in the running app: every model's results and training data, with charts
+7. `amrpredict-lib/docs/known-issues.md`: the account of what is broken
+8. `LightGBM_Model_Improved.ipynb`, the research story, with outputs intact
+9. `PROJECT_DOCUMENTATION.md`: the deep reference, once you know the shape
 
 If you only have ten minutes before a demo: know that engine 3 is a simulation and say so unprompted, and know that `/predict` is currently answering from a fallback heuristic (§11.1).
