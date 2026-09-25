@@ -21,10 +21,13 @@ import time
 import numpy as np
 import pandas as pd
 
-CLEAN_VERSION = 'v2'  # v2: extended ANTIBIOTIC_ALIASES (2026-09-25)
+CLEAN_VERSION = 'v3'  # v2: extended ANTIBIOTIC_ALIASES; v3: species_taxon_id (2026-09-25)
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 CACHE_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'cache')
+# Taxon ID -> species, from NCBI; built by experiments/build_taxonomy.py and
+# shared with backend/train_models.py
+TAXON_SPECIES_PATH = os.path.join(ROOT, 'backend', 'taxon_species.csv')
 
 DRUG_CLASS_MAP = {
     'ampicillin': 'beta_lactam', 'amoxicillin': 'beta_lactam',
@@ -130,6 +133,21 @@ PHENOTYPE_MAP = {
 MIC_SIGN_RE = re.compile(r'^\s*(<=|>=|==|<|>|=)')
 
 
+def species_taxon_ids(taxon_ids):
+    """Species-level Taxon IDs. Taxon ID itself is mostly strain level.
+
+    IDs not in the table, or above species level, keep their own value.
+    """
+    if not os.path.exists(TAXON_SPECIES_PATH):
+        print(f'[clean] {TAXON_SPECIES_PATH} missing, species_taxon_id = Taxon ID; '
+              f'run experiments/build_taxonomy.py')
+        return taxon_ids.copy()
+    table = pd.read_csv(TAXON_SPECIES_PATH)
+    species = table['species_taxon_id'].fillna(table['taxon_id']).astype('int64')
+    mapping = dict(zip(table['taxon_id'].astype('int64'), species))
+    return taxon_ids.map(mapping).fillna(taxon_ids).astype('int64')
+
+
 def _cache_path(source, normalize):
     tag = 'norm' if normalize else 'raw'
     return os.path.join(CACHE_DIR, f'clean_{CLEAN_VERSION}_{source}_{tag}.pkl')
@@ -188,7 +206,7 @@ def clean(df_raw, normalize_antibiotics=True, verbose=True):
     df['mic_log'] = np.log1p(df['mic_value'].clip(lower=0))
 
     # ── Organism ─────────────────────────────────────────────────────────
-    name = df['Genome Name'].astype('string').str.strip()
+    name = df['Genome Name'].astype('string').str.strip().str.strip('"\'')  # some names start with a stray quote
     parts = name.str.split(n=2, expand=True)
     df['genus'] = parts[0].str.capitalize().fillna('unknown')
     df['species'] = (parts[1].str.lower() if parts.shape[1] > 1 else 'unknown')
@@ -232,6 +250,7 @@ def clean(df_raw, normalize_antibiotics=True, verbose=True):
             'computational_f1', 'label_source', 'target']
     df = df[keep]
     df['Taxon ID'] = pd.to_numeric(df['Taxon ID'], errors='coerce').fillna(0).astype('int64')
+    df['species_taxon_id'] = species_taxon_ids(df['Taxon ID'])
     for col in ('Antibiotic', 'drug_class', 'genus', 'species', 'mic_sign', 'label_source'):
         df[col] = df[col].astype(str)
 

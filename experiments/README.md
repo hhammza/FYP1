@@ -59,6 +59,7 @@ experiments/
 ├── report.py           registry.csv → Markdown
 ├── predict.py          load a saved model and predict with it
 ├── evaluate_shipped.py re-test the deployed models on genomes they never saw
+├── build_taxonomy.py   Taxon ID → species via NCBI → backend/taxon_species.csv
 ├── export_report.py    everything above → backend/trained_models/model_report.json
 ├── backfill_bundles.py adds bundles to runs made before the exporter existed
 ├── cache/              cleaned-data cache (safe to delete)

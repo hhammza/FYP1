@@ -315,6 +315,8 @@ I already measured the live-model version of this for amoxicillin/clavulanic aci
 
 **Also fix the taxon grouping while you are in there.** `taxon_ab` is grouped on PATRIC strain-level IDs ([train_models.py:187](backend/train_models.py#L187)), which is why species IDs like 562 never match. Re-grouping on species-level taxonomy is a one-line change and its own experiment: does a taxon feature that users can actually supply beat one that silently never matches?
 
+> **Update 2026-09-25:** the mapping now exists. `experiments/build_taxonomy.py` maps all 3,655 Taxon IDs to 164 NCBI species (`backend/taxon_species.csv`); the cleaned data has a `species_taxon_id` column (cleaning v3) and `backend/train_models.py` trains on species IDs. The grouped-split experiment comparing strain and species taxon features is still to run.
+
 ---
 
 ## 8. Comparing runs statistically

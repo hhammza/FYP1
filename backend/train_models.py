@@ -100,6 +100,35 @@ def normalize_antibiotics(names):
     return names.replace(rename), ~names.isin(drop)
 
 
+# Taxon ID -> species taxon ID, from NCBI Taxonomy. Built by
+# experiments/build_taxonomy.py; the export's Taxon IDs are mostly strain level
+# (E. coli is spread over ~1,200 IDs and never appears as 562).
+TAXON_SPECIES_PATH = os.path.join(BASE_DIR, 'taxon_species.csv')
+
+
+def load_species_map(path=TAXON_SPECIES_PATH):
+    """{taxon_id: species_taxon_id}; species IDs map to themselves.
+
+    IDs above species level (a bare genus) map to themselves too. Returns an
+    empty dict if the table is missing, which leaves Taxon IDs unchanged.
+    """
+    if not os.path.exists(path):
+        print(f"[Taxonomy] {path} not found, Taxon IDs stay strain level")
+        return {}
+    table = pd.read_csv(path)
+    species = table['species_taxon_id'].fillna(table['taxon_id']).astype(int)
+    mapping = dict(zip(table['taxon_id'].astype(int), species))
+    mapping.update({sid: sid for sid in species.unique()})
+    return mapping
+
+
+def to_species_taxon(taxon_ids, mapping=None):
+    """Map a Series of Taxon IDs to species level; unknown IDs pass through."""
+    mapping = load_species_map() if mapping is None else mapping
+    ids = pd.to_numeric(taxon_ids, errors='coerce')
+    return ids.map(mapping).fillna(ids)
+
+
 DATA_SUBDIRS = ('amr_output', 'mapped_output', 'sample_mapped_output')
 
 
@@ -185,7 +214,7 @@ def clean_amr_data(df_raw):
 
     def extract_parts(name):
         if pd.isna(name): return pd.Series({'genus': 'unknown', 'species': 'unknown'})
-        parts = str(name).strip().split(None, 2)
+        parts = str(name).strip().strip('"\'').split(None, 2)  # stray quotes in some names
         genus = parts[0].capitalize() if parts else 'unknown'
         species = parts[1].lower() if len(parts) > 1 else 'unknown'
         return pd.Series({'genus': genus, 'species': species})
@@ -202,6 +231,9 @@ def clean_amr_data(df_raw):
 
     df_labeled['Antibiotic'], keep = normalize_antibiotics(df_labeled['Antibiotic'])
     df_labeled = df_labeled[keep].copy()
+    # Species level, so a user-supplied 562 means the same as the training data
+    df_labeled['strain_taxon_id'] = df_labeled['Taxon ID']
+    df_labeled['Taxon ID'] = to_species_taxon(df_labeled['Taxon ID'])
     df_labeled['drug_class'] = df_labeled['Antibiotic'].map(DRUG_CLASS_MAP).fillna('other')
     df_labeled['is_lab_confirmed'] = (df_labeled.get('Evidence', '') == 'Laboratory Method').astype(int)
 

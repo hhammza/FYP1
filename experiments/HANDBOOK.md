@@ -119,7 +119,7 @@ The cleaned frame is cached; later runs load it in under a second. Bump `CLEAN_V
 | Unique taxon IDs | 3,549 |
 | Antibiotics | 152 (v1; 130 after the v2 name clean-up) |
 | Drug classes | 20 |
-| Genera | 41 |
+| Genera | 41 (40 from v3, where a stray quote no longer makes `"neisseria` a genus) |
 | Species | 94 |
 | **Resistant** | **36.5%** |
 | Label provenance | 87% computational caller, 13% wet lab |
@@ -175,12 +175,13 @@ The cleaned frame is cached; later runs load it in under a second. Bump `CLEAN_V
 | `Vendor`, `Testing Standard`, `Testing Standard Year` | ❌ | >96% missing. `Testing Standard Year` would enable a temporal split if it were populated |
 | `Source`, `PubMed` | ❌ | >99% missing |
 
-### 4.2 Cleaned columns (14)
+### 4.2 Cleaned columns (15 from cleaning v3)
 
 | Column | Type | Coverage | Distinct | Meaning |
 |---|---|---|---|---|
 | `Genome ID` | float64 | 100% | 128,317 | Assembly identifier. **Grouping key, not a feature.** |
-| `Taxon ID` | int64 | 100% | 3,549 | BV-BRC strain-level taxonomy ID |
+| `Taxon ID` | int64 | 100% | 3,549 | BV-BRC taxonomy ID, mostly strain level (3,224 of 3,655 are strains or serotypes) |
+| `species_taxon_id` | int64 | 100% | 124 | Species-level NCBI Taxon ID (v3). *E. coli* is 562, spread over about 1,200 `Taxon ID`s. From `backend/taxon_species.csv`, built by `build_taxonomy.py` |
 | `Antibiotic` | str | 100% | 152 | Normalised drug name, lowercase |
 | `drug_class` | str | 100% | 20 | Mapped from `Antibiotic`; `other` when unmapped |
 | `genus` | str | 100% | 41 | First token of `Genome Name`, capitalised |
