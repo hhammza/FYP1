@@ -1,77 +1,77 @@
 {
  "run": {
-  "generated_at": "2026-09-26T15:33:54+00:00",
-  "git_commit": "8cbba02",
+  "generated_at": "2026-09-26T15:55:06+00:00",
+  "git_commit": "39b3c11",
   "amrfinder_version": "4.2.7",
   "database_version": "2026-08-07.1",
   "genomes_downloaded": 2587,
-  "genomes_searched": 2407,
-  "complete": false,
+  "genomes_searched": 2587,
+  "complete": true,
   "filter": "Scope = core, Type = AMR"
  },
  "summary": {
-  "genomes": 2407,
-  "with_gene": 1549,
-  "symbols": 506,
-  "genes": 287,
-  "point_mutations": 219,
+  "genomes": 2587,
+  "with_gene": 1673,
+  "symbols": 536,
+  "genes": 309,
+  "point_mutations": 227,
   "median_genes": 2.0,
   "max_genes": 30
  },
  "genes_per_genome": [
   {
    "genes": 0,
-   "genomes": 858,
+   "genomes": 914,
    "capped": false
   },
   {
    "genes": 1,
-   "genomes": 340,
+   "genomes": 374,
    "capped": false
   },
   {
    "genes": 2,
-   "genomes": 138,
+   "genomes": 147,
    "capped": false
   },
   {
    "genes": 3,
-   "genomes": 63,
+   "genomes": 89,
    "capped": false
   },
   {
    "genes": 4,
-   "genomes": 84,
+   "genomes": 90,
    "capped": false
   },
   {
    "genes": 5,
-   "genomes": 93,
+   "genomes": 101,
    "capped": false
   },
   {
    "genes": 6,
-   "genomes": 85,
+   "genomes": 89,
    "capped": false
   },
   {
    "genes": 7,
-   "genomes": 96,
+   "genomes": 98,
    "capped": false
   },
   {
    "genes": 8,
-   "genomes": 55,
+   "genomes": 59,
    "capped": false
   },
   {
    "genes": 9,
-   "genomes": 72,
+   "genomes": 77,
    "capped": false
   },
   {
    "genes": 10,
-   "genomes": 523,
+   "genomes": 549,
    "capped": true
   }
  ],
@@ -82,8 +82,8 @@
    "type": "gene",
    "class": "AMINOGLYCOSIDE",
    "subclass": "STREPTOMYCIN",
-   "genomes": 351,
-   "share": 0.1458
+   "genomes": 376,
+   "share": 0.1453
   },
   {
    "gene": "aph(3'')-Ib",
@@ -91,8 +91,8 @@
    "type": "gene",
    "class": "AMINOGLYCOSIDE",
    "subclass": "STREPTOMYCIN",
-   "genomes": 342,
-   "share": 0.1421
+   "genomes": 367,
+   "share": 0.1419
   },
   {
    "gene": "tet(A)",
@@ -100,8 +100,8 @@
    "type": "gene",
    "class": "TETRACYCLINE",
    "subclass": "TETRACYCLINE",
-   "genomes": 335,
-   "share": 0.1392
+   "genomes": 354,
+   "share": 0.1368
   },
   {
    "gene": "sul2",
@@ -109,8 +109,8 @@
    "type": "gene",
    "class": "SULFONAMIDE",
    "subclass": "SULFONAMIDE",
-   "genomes": 320,
-   "share": 0.1329
+   "genomes": 344,
+   "share": 0.133
   },
   {
    "gene": "blaTEM-1",
@@ -118,8 +118,8 @@
    "type": "gene",
    "class": "BETA-LACTAM",
    "subclass": "BETA-LACTAM",
-   "genomes": 289,
-   "share": 0.1201
+   "genomes": 314,
+   "share": 0.1214
   },
   {
    "gene": "sul1",
@@ -127,8 +127,8 @@
    "type": "gene",
    "class": "SULFONAMIDE",
    "subclass": "SULFONAMIDE",
-   "genomes": 247,
-   "share": 0.1026
+   "genomes": 285,
+   "share": 0.1102
   },
   {
    "gene": "fosA7",
@@ -136,8 +136,8 @@
    "type": "gene",
    "class": "FOSFOMYCIN",
    "subclass": "FOSFOMYCIN",
-   "genomes": 233,
-   "share": 0.0968
+   "genomes": 240,
+   "share": 0.0928
   },
   {
    "gene": "fosB",
@@ -146,7 +146,7 @@
    "class": "FOSFOMYCIN",
    "subclass": "FOSFOMYCIN",
    "genomes": 208,
-   "share": 0.0864
+   "share": 0.0804
   },
   {
    "gene": "mecA",
@@ -155,7 +155,7 @@
    "class": "BETA-LACTAM",
    "subclass": "METHICILLIN",
    "genomes": 206,
-   "share": 0.0856
+   "share": 0.0796
   },
   {
    "gene": "blaI",
@@ -164,7 +164,7 @@
    "class": "BETA-LACTAM",
    "subclass": "BETA-LACTAM",
    "genomes": 203,
-   "share": 0.0843
+   "share": 0.0785
   },
   {
    "gene": "mecR1",
@@ -173,7 +173,7 @@
    "class": "BETA-LACTAM",
    "subclass": "METHICILLIN",
    "genomes": 200,
-   "share": 0.0831
+   "share": 0.0773
   },
   {
    "gene": "aac(6')-I",
@@ -181,8 +181,8 @@
    "type": "gene",
    "class": "AMINOGLYCOSIDE",
    "subclass": "AMINOGLYCOSIDE",
-   "genomes": 195,
-   "share": 0.081
+   "genomes": 197,
+   "share": 0.0761
   },
   {
    "gene": "blaR1",
@@ -191,7 +191,7 @@
    "class": "BETA-LACTAM",
    "subclass": "BETA-LACTAM",
    "genomes": 195,
-   "share": 0.081
+   "share": 0.0754
   },
   {
    "gene": "msr(C)",
@@ -199,8 +199,17 @@
    "type": "gene",
    "class": "MACROLIDE/STREPTOGRAMIN",
    "subclass": "AZITHROMYCIN/ERYTHROMYCIN/STREPTOGRAMIN B/TYLOSIN",
-   "genomes": 192,
-   "share": 0.0798
+   "genomes": 194,
+   "share": 0.075
+  },
+  {
+   "gene": "gyrA_S83L",
+   "name": "Escherichia quinolone resistant GyrA",
+   "type": "point_mutation",
+   "class": "QUINOLONE",
+   "subclass": "QUINOLONE",
+   "genomes": 193,
+   "share": 0.0746
   },
   {
    "gene": "gyrA_S84L",
@@ -209,16 +218,7 @@
    "class": "QUINOLONE",
    "subclass": "QUINOLONE",
    "genomes": 188,
-   "share": 0.0781
-  },
-  {
-   "gene": "gyrA_S83L",
-   "name": "Escherichia quinolone resistant GyrA",
-   "type": "point_mutation",
-   "class": "QUINOLONE",
-   "subclass": "QUINOLONE",
-   "genomes": 183,
-   "share": 0.076
+   "share": 0.0727
   },
   {
    "gene": "pbp5_N496K",
@@ -226,8 +226,8 @@
    "type": "point_mutation",
    "class": "BETA-LACTAM",
    "subclass": "BETA-LACTAM",
-   "genomes": 181,
-   "share": 0.0752
+   "genomes": 183,
+   "share": 0.0707
   },
   {
    "gene": "ant(9)-Ia",
@@ -236,7 +236,7 @@
    "class": "AMINOGLYCOSIDE",
    "subclass": "SPECTINOMYCIN",
    "genomes": 179,
-   "share": 0.0744
+   "share": 0.0692
   },
   {
    "gene": "erm(A)",
@@ -245,7 +245,7 @@
    "class": "LINCOSAMIDE/MACROLIDE",
    "subclass": "AZITHROMYCIN/CLARITHROMYCIN/CLINDAMYCIN/ERYTHROMYCIN/TELITHROMYCIN",
    "genomes": 178,
-   "share": 0.074
+   "share": 0.0688
   },
   {
    "gene": "bleO",
@@ -254,213 +254,213 @@
    "class": "BLEOMYCIN",
    "subclass": "BLEOMYCIN",
    "genomes": 171,
-   "share": 0.071
+   "share": 0.0661
   }
  ],
  "classes": [
   {
    "class": "BETA-LACTAM",
-   "genomes": 973,
-   "share": 0.4042,
-   "symbols": 173
+   "genomes": 1060,
+   "share": 0.4097,
+   "symbols": 192
   },
   {
    "class": "AMINOGLYCOSIDE",
-   "genomes": 940,
-   "share": 0.3905,
-   "symbols": 58
+   "genomes": 1015,
+   "share": 0.3923,
+   "symbols": 61
   },
   {
    "class": "TETRACYCLINE",
-   "genomes": 673,
-   "share": 0.2796,
+   "genomes": 706,
+   "share": 0.2729,
    "symbols": 13
   },
   {
    "class": "QUINOLONE",
-   "genomes": 663,
-   "share": 0.2754,
+   "genomes": 690,
+   "share": 0.2667,
    "symbols": 54
   },
   {
    "class": "FOSFOMYCIN",
-   "genomes": 604,
-   "share": 0.2509,
-   "symbols": 21
+   "genomes": 634,
+   "share": 0.2451,
+   "symbols": 23
   },
   {
    "class": "SULFONAMIDE",
-   "genomes": 458,
-   "share": 0.1903,
+   "genomes": 502,
+   "share": 0.194,
    "symbols": 9
   },
   {
    "class": "TRIMETHOPRIM",
-   "genomes": 341,
-   "share": 0.1417,
-   "symbols": 17
+   "genomes": 375,
+   "share": 0.145,
+   "symbols": 18
   },
   {
    "class": "MACROLIDE/STREPTOGRAMIN",
-   "genomes": 283,
-   "share": 0.1176,
+   "genomes": 285,
+   "share": 0.1102,
    "symbols": 4
   },
   {
    "class": "PHENICOL",
-   "genomes": 262,
-   "share": 0.1088,
+   "genomes": 267,
+   "share": 0.1032,
    "symbols": 18
   },
   {
+   "class": "LINCOSAMIDE/MACROLIDE",
+   "genomes": 200,
+   "share": 0.0773,
+   "symbols": 2
+  },
+  {
    "class": "MACROLIDE",
-   "genomes": 185,
-   "share": 0.0769,
+   "genomes": 195,
+   "share": 0.0754,
    "symbols": 11
   },
   {
    "class": "BLEOMYCIN",
    "genomes": 181,
-   "share": 0.0752,
+   "share": 0.07,
    "symbols": 2
-  },
-  {
-   "class": "LINCOSAMIDE/MACROLIDE",
-   "genomes": 178,
-   "share": 0.074,
-   "symbols": 1
   },
   {
    "class": "LINCOSAMIDE/MACROLIDE/STREPTOGRAMIN",
    "genomes": 169,
-   "share": 0.0702,
+   "share": 0.0653,
    "symbols": 4
   },
   {
    "class": "LIPOPEPTIDE",
-   "genomes": 154,
-   "share": 0.064,
+   "genomes": 155,
+   "share": 0.0599,
    "symbols": 10
   },
   {
    "class": "GLYCOPEPTIDE",
    "genomes": 149,
-   "share": 0.0619,
+   "share": 0.0576,
    "symbols": 14
   },
   {
    "class": "STREPTOTHRICIN",
-   "genomes": 145,
-   "share": 0.0602,
+   "genomes": 147,
+   "share": 0.0568,
    "symbols": 2
   },
   {
    "class": "PLEUROMUTILIN",
    "genomes": 96,
-   "share": 0.0399,
+   "share": 0.0371,
    "symbols": 1
   },
   {
-   "class": "COLISTIN",
-   "genomes": 75,
-   "share": 0.0312,
-   "symbols": 12
-  },
-  {
    "class": "MULTIDRUG",
-   "genomes": 58,
-   "share": 0.0241,
+   "genomes": 77,
+   "share": 0.0298,
    "symbols": 13
   },
   {
-   "class": "NITROFURAN",
-   "genomes": 48,
-   "share": 0.0199,
-   "symbols": 18
-  },
-  {
-   "class": "RIFAMYCIN",
-   "genomes": 41,
-   "share": 0.017,
-   "symbols": 11
+   "class": "COLISTIN",
+   "genomes": 76,
+   "share": 0.0294,
+   "symbols": 12
   },
   {
    "class": "NITROFURAN/PHENICOL/QUINOLONE/TETRACYCLINE",
-   "genomes": 35,
-   "share": 0.0145,
+   "genomes": 63,
+   "share": 0.0244,
    "symbols": 2
+  },
+  {
+   "class": "NITROFURAN",
+   "genomes": 51,
+   "share": 0.0197,
+   "symbols": 21
+  },
+  {
+   "class": "RIFAMYCIN",
+   "genomes": 43,
+   "share": 0.0166,
+   "symbols": 11
+  },
+  {
+   "class": "FOSMIDOMYCIN",
+   "genomes": 37,
+   "share": 0.0143,
+   "symbols": 1
   },
   {
    "class": "LINCOSAMIDE",
    "genomes": 31,
-   "share": 0.0129,
+   "share": 0.012,
    "symbols": 4
   },
   {
    "class": "OXAZOLIDINONE",
    "genomes": 31,
-   "share": 0.0129,
+   "share": 0.012,
    "symbols": 4
-  },
-  {
-   "class": "FOSMIDOMYCIN",
-   "genomes": 22,
-   "share": 0.0091,
-   "symbols": 1
   },
   {
    "class": "MUPIROCIN",
    "genomes": 16,
-   "share": 0.0066,
+   "share": 0.0062,
    "symbols": 2
   },
   {
    "class": "AMINOGLYCOSIDE/QUINOLONE",
-   "genomes": 14,
+   "genomes": 15,
    "share": 0.0058,
    "symbols": 1
   },
   {
    "class": "STREPTOGRAMIN",
    "genomes": 14,
-   "share": 0.0058,
+   "share": 0.0054,
    "symbols": 2
   },
   {
    "class": "LINCOSAMIDE/STREPTOGRAMIN",
    "genomes": 13,
-   "share": 0.0054,
+   "share": 0.005,
    "symbols": 1
   },
   {
    "class": "PHENICOL/QUINOLONE",
-   "genomes": 10,
-   "share": 0.0042,
-   "symbols": 6
+   "genomes": 11,
+   "share": 0.0043,
+   "symbols": 7
   },
   {
    "class": "LIPOPEPTIDE/RIFAMYCIN",
    "genomes": 6,
-   "share": 0.0025,
+   "share": 0.0023,
    "symbols": 2
   },
   {
    "class": "AMINOGLYCOSIDE/BETA-LACTAM/QUINOLONE",
    "genomes": 5,
-   "share": 0.0021,
+   "share": 0.0019,
    "symbols": 3
+  },
+  {
+   "class": "QUINOLONE/TRICLOSAN",
+   "genomes": 4,
+   "share": 0.0015,
+   "symbols": 1
   },
   {
    "class": "FUSIDIC ACID",
    "genomes": 3,
    "share": 0.0012,
    "symbols": 2
-  },
-  {
-   "class": "QUINOLONE/TRICLOSAN",
-   "genomes": 3,
-   "share": 0.0012,
-   "symbols": 1
   },
   {
    "class": "EFFLUX",
@@ -502,57 +502,57 @@
  "genera": [
   {
    "genus": "Escherichia",
-   "genomes": 907,
-   "with_gene": 0.5436,
+   "genomes": 987,
+   "with_gene": 0.5583,
    "median_genes": 1.0,
    "top": [
     {
      "gene": "blaTEM-1",
-     "share": 0.2128
+     "share": 0.2188
     },
     {
      "gene": "aph(6)-Id",
-     "share": 0.2117
+     "share": 0.2138
     },
     {
      "gene": "aph(3'')-Ib",
-     "share": 0.2073
+     "share": 0.2097
     },
     {
      "gene": "sul2",
-     "share": 0.2029
+     "share": 0.2047
     },
     {
      "gene": "gyrA_S83L",
-     "share": 0.2018
+     "share": 0.1955
     }
    ]
   },
   {
    "genus": "Salmonella",
-   "genomes": 871,
-   "with_gene": 0.5408,
+   "genomes": 913,
+   "with_gene": 0.5246,
    "median_genes": 1.0,
    "top": [
     {
      "gene": "fosA7",
-     "share": 0.2675
+     "share": 0.2629
     },
     {
      "gene": "tet(A)",
-     "share": 0.2342
-    },
-    {
-     "gene": "aph(6)-Id",
-     "share": 0.1504
+     "share": 0.2234
     },
     {
      "gene": "aph(3'')-Ib",
-     "share": 0.1504
+     "share": 0.1435
+    },
+    {
+     "gene": "aph(6)-Id",
+     "share": 0.1435
     },
     {
      "gene": "floR",
-     "share": 0.1332
+     "share": 0.1271
     }
    ]
   },
@@ -586,29 +586,57 @@
   },
   {
    "genus": "Enterococcus",
-   "genomes": 199,
-   "with_gene": 0.9799,
+   "genomes": 202,
+   "with_gene": 0.9802,
    "median_genes": 17.0,
    "top": [
     {
      "gene": "aac(6')-I",
-     "share": 0.9799
+     "share": 0.9752
     },
     {
      "gene": "msr(C)",
-     "share": 0.9648
+     "share": 0.9604
     },
     {
      "gene": "pbp5_N496K",
-     "share": 0.9095
+     "share": 0.9059
     },
     {
      "gene": "liaR_E75K",
-     "share": 0.7236
+     "share": 0.7178
     },
     {
      "gene": "vanZ-A",
-     "share": 0.6734
+     "share": 0.6634
+    }
+   ]
+  },
+  {
+   "genus": "Klebsiella",
+   "genomes": 78,
+   "with_gene": 0.8974,
+   "median_genes": 9.5,
+   "top": [
+    {
+     "gene": "oqxA",
+     "share": 0.6667
+    },
+    {
+     "gene": "sul1",
+     "share": 0.6154
+    },
+    {
+     "gene": "oqxB",
+     "share": 0.6154
+    },
+    {
+     "gene": "aph(3')-Ia",
+     "share": 0.4744
+    },
+    {
+     "gene": "blaTEM-1",
+     "share": 0.3974
     }
    ]
   },
@@ -627,72 +655,44 @@
      "share": 0.3396
     },
     {
-     "gene": "mef(A)",
-     "share": 0.3208
-    },
-    {
      "gene": "msr(D)",
      "share": 0.3208
     },
     {
      "gene": "pbp2b_E476G",
      "share": 0.3208
-    }
-   ]
-  },
-  {
-   "genus": "Klebsiella",
-   "genomes": 51,
-   "with_gene": 0.8431,
-   "median_genes": 12.0,
-   "top": [
-    {
-     "gene": "fosA",
-     "share": 0.5882
     },
     {
-     "gene": "blaTEM-1",
-     "share": 0.5686
-    },
-    {
-     "gene": "sul1",
-     "share": 0.5686
-    },
-    {
-     "gene": "aadA2",
-     "share": 0.549
-    },
-    {
-     "gene": "oqxA",
-     "share": 0.4902
+     "gene": "mef(A)",
+     "share": 0.3208
     }
    ]
   },
   {
    "genus": "Acinetobacter",
-   "genomes": 43,
-   "with_gene": 0.907,
-   "median_genes": 12.0,
+   "genomes": 48,
+   "with_gene": 0.9167,
+   "median_genes": 10.5,
    "top": [
     {
      "gene": "ant(3'')-IIa",
-     "share": 0.814
+     "share": 0.7292
     },
     {
      "gene": "gyrA_S81L",
-     "share": 0.7907
+     "share": 0.7083
     },
     {
      "gene": "tet(B)",
-     "share": 0.5814
+     "share": 0.5208
     },
     {
      "gene": "parC_S84L",
-     "share": 0.5814
+     "share": 0.5208
     },
     {
      "gene": "aph(6)-Id",
-     "share": 0.5349
+     "share": 0.4792
     }
    ]
   },
@@ -703,11 +703,11 @@
    "median_genes": 8.0,
    "top": [
     {
-     "gene": "catB7",
+     "gene": "fosA",
      "share": 1.0
     },
     {
-     "gene": "fosA",
+     "gene": "catB7",
      "share": 1.0
     },
     {
@@ -725,6 +725,26 @@
    ]
   },
   {
+   "genus": "Mycobacterium",
+   "genomes": 22,
+   "with_gene": 1.0,
+   "median_genes": 3.0,
+   "top": [
+    {
+     "gene": "erm(37)",
+     "share": 1.0
+    },
+    {
+     "gene": "blaC",
+     "share": 1.0
+    },
+    {
+     "gene": "aac(2')-Ic",
+     "share": 1.0
+    }
+   ]
+  },
+  {
    "genus": "Campylobacter",
    "genomes": 8,
    "with_gene": 1.0,
@@ -735,48 +755,48 @@
      "share": 0.75
     },
     {
-     "gene": "cmeB",
-     "share": 0.25
-    },
-    {
      "gene": "gyrA_T86I",
      "share": 0.25
     },
     {
-     "gene": "blaOXA-184",
+     "gene": "cmeB",
+     "share": 0.25
+    },
+    {
+     "gene": "blaOXA-61_G-57T",
      "share": 0.125
     },
     {
-     "gene": "tet(O)",
+     "gene": "blaOXA-460",
      "share": 0.125
     }
    ]
   },
   {
    "genus": "Enterobacter",
-   "genomes": 4,
-   "with_gene": 0.75,
+   "genomes": 5,
+   "with_gene": 0.8,
    "median_genes": 4.0,
    "top": [
     {
-     "gene": "oqxA",
-     "share": 0.75
-    },
-    {
      "gene": "oqxB",
-     "share": 0.75
+     "share": 0.8
     },
     {
-     "gene": "blaACT",
-     "share": 0.5
+     "gene": "oqxA",
+     "share": 0.8
     },
     {
      "gene": "fosA",
-     "share": 0.5
+     "share": 0.6
     },
     {
-     "gene": "blaCMH",
-     "share": 0.25
+     "gene": "blaACT",
+     "share": 0.4
+    },
+    {
+     "gene": "blaACT-115",
+     "share": 0.2
     }
    ]
   },
@@ -787,11 +807,15 @@
    "median_genes": 0.5,
    "top": [
     {
-     "gene": "tet(B)",
+     "gene": "catA1",
      "share": 0.25
     },
     {
-     "gene": "sul1",
+     "gene": "rpsL_K43R",
+     "share": 0.25
+    },
+    {
+     "gene": "tet(B)",
      "share": 0.25
     },
     {
@@ -799,11 +823,7 @@
      "share": 0.25
     },
     {
-     "gene": "catA1",
-     "share": 0.25
-    },
-    {
-     "gene": "rpsL_K43R",
+     "gene": "sul1",
      "share": 0.25
     }
    ]
@@ -829,10 +849,11 @@
    "Salmonella",
    "Staphylococcus",
    "Enterococcus",
-   "Streptococcus",
    "Klebsiella",
+   "Streptococcus",
    "Acinetobacter",
-   "Pseudomonas"
+   "Pseudomonas",
+   "Mycobacterium"
   ],
   "genes": [
    "aph(6)-Id",
@@ -849,34 +870,34 @@
    "aac(6')-I",
    "blaR1",
    "msr(C)",
-   "gyrA_S84L"
+   "gyrA_S83L"
   ],
   "share": [
    [
-    0.2117,
-    0.2073,
-    0.1411,
-    0.2029,
-    0.2128,
-    0.1136,
+    0.2138,
+    0.2097,
+    0.1398,
+    0.2047,
+    0.2188,
+    0.1236,
     0.0,
     0.0,
     0.0,
-    0.0011,
+    0.001,
     0.0,
     0.0,
     0.0,
     0.0,
-    0.0
+    0.1955
    ],
    [
-    0.1504,
-    0.1504,
-    0.2342,
-    0.1286,
-    0.0723,
-    0.1056,
-    0.2675,
+    0.1435,
+    0.1435,
+    0.2234,
+    0.1227,
+    0.069,
+    0.1008,
+    0.2629,
     0.0,
     0.0,
     0.0,
@@ -901,7 +922,7 @@
     0.0,
     0.859,
     0.0,
-    0.8282
+    0.0
    ],
    [
     0.0,
@@ -915,9 +936,26 @@
     0.0,
     0.0,
     0.0,
-    0.9799,
+    0.9752,
     0.0,
-    0.9648,
+    0.9604,
+    0.0
+   ],
+   [
+    0.1026,
+    0.1026,
+    0.1282,
+    0.1282,
+    0.3974,
+    0.6154,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
     0.0
    ],
    [
@@ -938,29 +976,12 @@
     0.0
    ],
    [
-    0.0392,
-    0.0392,
-    0.0196,
-    0.0784,
-    0.5686,
-    0.5686,
-    0.0,
-    0.0,
-    0.0,
-    0.0,
-    0.0,
-    0.0,
-    0.0,
-    0.0,
-    0.0
-   ],
-   [
-    0.5349,
-    0.4186,
-    0.0465,
-    0.4651,
-    0.0698,
-    0.3488,
+    0.4792,
+    0.375,
+    0.0417,
+    0.4167,
+    0.0625,
+    0.3125,
     0.0,
     0.0,
     0.0,
@@ -987,6 +1008,23 @@
     0.0,
     0.0,
     0.0
+   ],
+   [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
    ]
   ],
   "min_genomes": 10
@@ -1002,8 +1040,8 @@
      "antibiotic": "tetracycline",
      "carriers": 31,
      "carriers_resistant": 1.0,
-     "others": 83,
-     "others_resistant": 0.0843
+     "others": 86,
+     "others_resistant": 0.093
     },
     {
      "gene": "aph(3'')-Ib",
@@ -1012,8 +1050,8 @@
      "antibiotic": "streptomycin",
      "carriers": 30,
      "carriers_resistant": 1.0,
-     "others": 68,
-     "others_resistant": 0.0441
+     "others": 70,
+     "others_resistant": 0.0429
     },
     {
      "gene": "aph(6)-Id",
@@ -1022,8 +1060,8 @@
      "antibiotic": "streptomycin",
      "carriers": 30,
      "carriers_resistant": 1.0,
-     "others": 68,
-     "others_resistant": 0.0441
+     "others": 70,
+     "others_resistant": 0.0429
     },
     {
      "gene": "blaCMY-2",
@@ -1032,8 +1070,8 @@
      "antibiotic": "cefoxitin",
      "carriers": 30,
      "carriers_resistant": 1.0,
-     "others": 67,
-     "others_resistant": 0.0149
+     "others": 69,
+     "others_resistant": 0.0435
     },
     {
      "gene": "blaCMY-2",
@@ -1042,8 +1080,8 @@
      "antibiotic": "ceftiofur",
      "carriers": 30,
      "carriers_resistant": 1.0,
-     "others": 67,
-     "others_resistant": 0.0299
+     "others": 68,
+     "others_resistant": 0.0294
     },
     {
      "gene": "blaCMY-2",
@@ -1052,8 +1090,8 @@
      "antibiotic": "ceftriaxone",
      "carriers": 30,
      "carriers_resistant": 1.0,
-     "others": 78,
-     "others_resistant": 0.0513
+     "others": 81,
+     "others_resistant": 0.0741
     },
     {
      "gene": "sul2",
@@ -1062,8 +1100,8 @@
      "antibiotic": "sulfisoxazole",
      "carriers": 30,
      "carriers_resistant": 0.9667,
-     "others": 67,
-     "others_resistant": 0.0448
+     "others": 68,
+     "others_resistant": 0.0441
     },
     {
      "gene": "sul2",
@@ -1072,8 +1110,8 @@
      "antibiotic": "trimethoprim/sulfamethoxazole",
      "carriers": 30,
      "carriers_resistant": 0.1,
-     "others": 84,
-     "others_resistant": 0.131
+     "others": 89,
+     "others_resistant": 0.1573
     },
     {
      "gene": "floR",
@@ -1082,8 +1120,8 @@
      "antibiotic": "chloramphenicol",
      "carriers": 28,
      "carriers_resistant": 1.0,
-     "others": 86,
-     "others_resistant": 0.0
+     "others": 89,
+     "others_resistant": 0.0225
     },
     {
      "gene": "mef(A)",
@@ -1092,7 +1130,7 @@
      "antibiotic": "erythromycin",
      "carriers": 14,
      "carriers_resistant": 1.0,
-     "others": 3,
+     "others": 4,
      "others_resistant": 1.0
     },
     {
@@ -1102,7 +1140,7 @@
      "antibiotic": "erythromycin",
      "carriers": 14,
      "carriers_resistant": 1.0,
-     "others": 3,
+     "others": 4,
      "others_resistant": 1.0
     },
     {
@@ -1112,8 +1150,8 @@
      "antibiotic": "penicillin",
      "carriers": 12,
      "carriers_resistant": 1.0,
-     "others": 5,
-     "others_resistant": 0.2
+     "others": 7,
+     "others_resistant": 0.4286
     },
     {
      "gene": "pbp2b_E476G",
@@ -1122,8 +1160,8 @@
      "antibiotic": "penicillin",
      "carriers": 12,
      "carriers_resistant": 1.0,
-     "others": 5,
-     "others_resistant": 0.2
+     "others": 7,
+     "others_resistant": 0.4286
     },
     {
      "gene": "pbp2b_T446A",
@@ -1132,8 +1170,8 @@
      "antibiotic": "penicillin",
      "carriers": 12,
      "carriers_resistant": 1.0,
-     "others": 5,
-     "others_resistant": 0.2
+     "others": 7,
+     "others_resistant": 0.4286
     },
     {
      "gene": "pbp2b",
@@ -1142,8 +1180,8 @@
      "antibiotic": "meropenem",
      "carriers": 11,
      "carriers_resistant": 0.6364,
-     "others": 5,
-     "others_resistant": 0.2
+     "others": 7,
+     "others_resistant": 0.1429
     },
     {
      "gene": "pbp2b_E476G",
@@ -1152,8 +1190,8 @@
      "antibiotic": "meropenem",
      "carriers": 11,
      "carriers_resistant": 0.6364,
-     "others": 5,
-     "others_resistant": 0.2
+     "others": 7,
+     "others_resistant": 0.1429
     },
     {
      "gene": "pbp2b_T446A",
@@ -1162,8 +1200,8 @@
      "antibiotic": "meropenem",
      "carriers": 11,
      "carriers_resistant": 0.6364,
-     "others": 5,
-     "others_resistant": 0.2
+     "others": 7,
+     "others_resistant": 0.1429
     },
     {
      "gene": "pbp2b_T489A",
@@ -1172,8 +1210,8 @@
      "antibiotic": "penicillin",
      "carriers": 11,
      "carriers_resistant": 1.0,
-     "others": 6,
-     "others_resistant": 0.3333
+     "others": 8,
+     "others_resistant": 0.5
     },
     {
      "gene": "pbp2b_T489A",
@@ -1182,8 +1220,8 @@
      "antibiotic": "meropenem",
      "carriers": 10,
      "carriers_resistant": 0.7,
-     "others": 6,
-     "others_resistant": 0.1667
+     "others": 8,
+     "others_resistant": 0.125
     },
     {
      "gene": "pbp2b",
@@ -1192,8 +1230,8 @@
      "antibiotic": "cefotaxime",
      "carriers": 9,
      "carriers_resistant": 0.4444,
-     "others": 6,
-     "others_resistant": 0.1667
+     "others": 7,
+     "others_resistant": 0.2857
     },
     {
      "gene": "pbp2b_E476G",
@@ -1202,8 +1240,8 @@
      "antibiotic": "cefotaxime",
      "carriers": 9,
      "carriers_resistant": 0.4444,
-     "others": 6,
-     "others_resistant": 0.1667
+     "others": 7,
+     "others_resistant": 0.2857
     },
     {
      "gene": "pbp2b_T446A",
@@ -1212,8 +1250,8 @@
      "antibiotic": "cefotaxime",
      "carriers": 9,
      "carriers_resistant": 0.4444,
-     "others": 6,
-     "others_resistant": 0.1667
+     "others": 7,
+     "others_resistant": 0.2857
     },
     {
      "gene": "pbp2b_T489A",
@@ -1222,8 +1260,8 @@
      "antibiotic": "cefotaxime",
      "carriers": 9,
      "carriers_resistant": 0.4444,
-     "others": 6,
-     "others_resistant": 0.1667
+     "others": 7,
+     "others_resistant": 0.2857
     },
     {
      "gene": "pbp1a",
@@ -1232,8 +1270,8 @@
      "antibiotic": "penicillin",
      "carriers": 8,
      "carriers_resistant": 1.0,
-     "others": 9,
-     "others_resistant": 0.5556
+     "others": 11,
+     "others_resistant": 0.6364
     },
     {
      "gene": "pbp1a_N609D",
@@ -1242,8 +1280,8 @@
      "antibiotic": "penicillin",
      "carriers": 8,
      "carriers_resistant": 1.0,
-     "others": 9,
-     "others_resistant": 0.5556
+     "others": 11,
+     "others_resistant": 0.6364
     },
     {
      "gene": "pbp1a_S575T",
@@ -1252,8 +1290,8 @@
      "antibiotic": "penicillin",
      "carriers": 8,
      "carriers_resistant": 1.0,
-     "others": 9,
-     "others_resistant": 0.5556
+     "others": 11,
+     "others_resistant": 0.6364
     },
     {
      "gene": "pbp2b",
@@ -1296,121 +1334,251 @@
      "others_resistant": 0.0
     }
    ],
-   "pairs_total": 51,
-   "genomes_labelled": 118
+   "pairs_total": 52,
+   "genomes_labelled": 125
   },
   "all": {
    "min_carriers": 20,
    "pairs": [
     {
-     "gene": "tet(A)",
-     "gene_class": "TETRACYCLINE",
-     "gene_subclass": "TETRACYCLINE",
-     "antibiotic": "tetracycline",
-     "carriers": 313,
-     "carriers_resistant": 0.9808,
-     "others": 1714,
-     "others_resistant": 0.0945
-    },
-    {
      "gene": "aph(6)-Id",
      "gene_class": "AMINOGLYCOSIDE",
      "gene_subclass": "STREPTOMYCIN",
      "antibiotic": "streptomycin",
-     "carriers": 308,
-     "carriers_resistant": 0.9708,
-     "others": 1590,
-     "others_resistant": 0.2157
+     "carriers": 327,
+     "carriers_resistant": 0.9725,
+     "others": 1717,
+     "others_resistant": 0.226
     },
     {
      "gene": "aph(3'')-Ib",
      "gene_class": "AMINOGLYCOSIDE",
      "gene_subclass": "STREPTOMYCIN",
      "antibiotic": "streptomycin",
-     "carriers": 304,
-     "carriers_resistant": 0.9868,
-     "others": 1594,
-     "others_resistant": 0.2146
+     "carriers": 323,
+     "carriers_resistant": 0.9876,
+     "others": 1721,
+     "others_resistant": 0.2249
+    },
+    {
+     "gene": "tet(A)",
+     "gene_class": "TETRACYCLINE",
+     "gene_subclass": "TETRACYCLINE",
+     "antibiotic": "tetracycline",
+     "carriers": 323,
+     "carriers_resistant": 0.9814,
+     "others": 1828,
+     "others_resistant": 0.0985
     },
     {
      "gene": "sul2",
      "gene_class": "SULFONAMIDE",
      "gene_subclass": "SULFONAMIDE",
      "antibiotic": "trimethoprim/sulfamethoxazole",
-     "carriers": 300,
-     "carriers_resistant": 0.6233,
-     "others": 1719,
-     "others_resistant": 0.071
+     "carriers": 318,
+     "carriers_resistant": 0.6258,
+     "others": 1828,
+     "others_resistant": 0.0739
     },
     {
      "gene": "sul2",
      "gene_class": "SULFONAMIDE",
      "gene_subclass": "SULFONAMIDE",
      "antibiotic": "sulfamethoxazole",
-     "carriers": 280,
-     "carriers_resistant": 0.7857,
-     "others": 1418,
-     "others_resistant": 0.0952
+     "carriers": 298,
+     "carriers_resistant": 0.7987,
+     "others": 1521,
+     "others_resistant": 0.092
     },
     {
      "gene": "blaTEM-1",
      "gene_class": "BETA-LACTAM",
      "gene_subclass": "BETA-LACTAM",
      "antibiotic": "amoxicillin/clavulanic acid",
-     "carriers": 248,
-     "carriers_resistant": 0.4355,
-     "others": 1450,
-     "others_resistant": 0.0917
+     "carriers": 271,
+     "carriers_resistant": 0.4576,
+     "others": 1548,
+     "others_resistant": 0.0872
     },
     {
      "gene": "blaTEM-1",
      "gene_class": "BETA-LACTAM",
      "gene_subclass": "BETA-LACTAM",
      "antibiotic": "ampicillin",
-     "carriers": 248,
-     "carriers_resistant": 0.9919,
-     "others": 1650,
-     "others_resistant": 0.1564
+     "carriers": 271,
+     "carriers_resistant": 0.9926,
+     "others": 1754,
+     "others_resistant": 0.1505
     },
     {
      "gene": "blaTEM-1",
      "gene_class": "BETA-LACTAM",
      "gene_subclass": "BETA-LACTAM",
      "antibiotic": "cefotaxime",
-     "carriers": 248,
-     "carriers_resistant": 0.2218,
-     "others": 1465,
-     "others_resistant": 0.0273
+     "carriers": 271,
+     "carriers_resistant": 0.2066,
+     "others": 1564,
+     "others_resistant": 0.0269
     },
     {
      "gene": "blaTEM-1",
      "gene_class": "BETA-LACTAM",
      "gene_subclass": "BETA-LACTAM",
      "antibiotic": "cefoxitin",
-     "carriers": 248,
-     "carriers_resistant": 0.0565,
-     "others": 1676,
-     "others_resistant": 0.1683
+     "carriers": 271,
+     "carriers_resistant": 0.0517,
+     "others": 1775,
+     "others_resistant": 0.1606
     },
     {
      "gene": "blaTEM-1",
      "gene_class": "BETA-LACTAM",
      "gene_subclass": "BETA-LACTAM",
      "antibiotic": "ceftiofur",
-     "carriers": 248,
-     "carriers_resistant": 0.2056,
-     "others": 1450,
-     "others_resistant": 0.0655
+     "carriers": 271,
+     "carriers_resistant": 0.1882,
+     "others": 1548,
+     "others_resistant": 0.0633
     },
     {
      "gene": "blaTEM-1",
      "gene_class": "BETA-LACTAM",
      "gene_subclass": "BETA-LACTAM",
      "antibiotic": "ceftriaxone",
-     "carriers": 248,
-     "carriers_resistant": 0.2339,
-     "others": 1461,
-     "others_resistant": 0.0691
+     "carriers": 271,
+     "carriers_resistant": 0.2177,
+     "others": 1561,
+     "others_resistant": 0.0673
+    },
+    {
+     "gene": "sul1",
+     "gene_class": "SULFONAMIDE",
+     "gene_subclass": "SULFONAMIDE",
+     "antibiotic": "trimethoprim/sulfamethoxazole",
+     "carriers": 219,
+     "carriers_resistant": 0.8037,
+     "others": 1927,
+     "others_resistant": 0.082
+    },
+    {
+     "gene": "blaTEM-1",
+     "gene_class": "BETA-LACTAM",
+     "gene_subclass": "BETA-LACTAM",
+     "antibiotic": "ceftazidime",
+     "carriers": 217,
+     "carriers_resistant": 0.2028,
+     "others": 825,
+     "others_resistant": 0.0679
+    },
+    {
+     "gene": "blaTEM-1",
+     "gene_class": "BETA-LACTAM",
+     "gene_subclass": "BETA-LACTAM",
+     "antibiotic": "imipenem",
+     "carriers": 217,
+     "carriers_resistant": 0.0138,
+     "others": 825,
+     "others_resistant": 0.0582
+    },
+    {
+     "gene": "blaTEM-1",
+     "gene_class": "BETA-LACTAM",
+     "gene_subclass": "BETA-LACTAM",
+     "antibiotic": "meropenem",
+     "carriers": 217,
+     "carriers_resistant": 0.0599,
+     "others": 840,
+     "others_resistant": 0.0512
+    },
+    {
+     "gene": "blaTEM-1",
+     "gene_class": "BETA-LACTAM",
+     "gene_subclass": "BETA-LACTAM",
+     "antibiotic": "ampicillin/sulbactam",
+     "carriers": 216,
+     "carriers_resistant": 0.0787,
+     "others": 790,
+     "others_resistant": 0.0405
+    },
+    {
+     "gene": "blaTEM-1",
+     "gene_class": "BETA-LACTAM",
+     "gene_subclass": "BETA-LACTAM",
+     "antibiotic": "aztreonam",
+     "carriers": 214,
+     "carriers_resistant": 0.1822,
+     "others": 784,
+     "others_resistant": 0.0344
+    },
+    {
+     "gene": "blaTEM-1",
+     "gene_class": "BETA-LACTAM",
+     "gene_subclass": "BETA-LACTAM",
+     "antibiotic": "cefepime",
+     "carriers": 214,
+     "carriers_resistant": 0.1729,
+     "others": 786,
+     "others_resistant": 0.028
+    },
+    {
+     "gene": "blaTEM-1",
+     "gene_class": "BETA-LACTAM",
+     "gene_subclass": "BETA-LACTAM",
+     "antibiotic": "piperacillin/tazobactam",
+     "carriers": 214,
+     "carriers_resistant": 0.1355,
+     "others": 785,
+     "others_resistant": 0.0153
+    },
+    {
+     "gene": "blaTEM-1",
+     "gene_class": "BETA-LACTAM",
+     "gene_subclass": "BETA-LACTAM",
+     "antibiotic": "amoxicillin",
+     "carriers": 213,
+     "carriers_resistant": 1.0,
+     "others": 759,
+     "others_resistant": 0.1265
+    },
+    {
+     "gene": "blaTEM-1",
+     "gene_class": "BETA-LACTAM",
+     "gene_subclass": "BETA-LACTAM",
+     "antibiotic": "cefazolin",
+     "carriers": 213,
+     "carriers_resistant": 0.2676,
+     "others": 749,
+     "others_resistant": 0.0334
+    },
+    {
+     "gene": "blaTEM-1",
+     "gene_class": "BETA-LACTAM",
+     "gene_subclass": "BETA-LACTAM",
+     "antibiotic": "cefuroxime",
+     "carriers": 213,
+     "carriers_resistant": 0.2207,
+     "others": 801,
+     "others_resistant": 0.0974
+    },
+    {
+     "gene": "blaTEM-1",
+     "gene_class": "BETA-LACTAM",
+     "gene_subclass": "BETA-LACTAM",
+     "antibiotic": "cephalothin",
+     "carriers": 213,
+     "carriers_resistant": 0.2113,
+     "others": 748,
+     "others_resistant": 0.0334
+    },
+    {
+     "gene": "blaTEM-1",
+     "gene_class": "BETA-LACTAM",
+     "gene_subclass": "BETA-LACTAM",
+     "antibiotic": "ertapenem",
+     "carriers": 213,
+     "carriers_resistant": 0.0,
+     "others": 749,
+     "others_resistant": 0.0
     },
     {
      "gene": "mecA",
@@ -1423,14 +1591,24 @@
      "others_resistant": 0.0
     },
     {
+     "gene": "sul1",
+     "gene_class": "SULFONAMIDE",
+     "gene_subclass": "SULFONAMIDE",
+     "antibiotic": "sulfamethoxazole",
+     "carriers": 203,
+     "carriers_resistant": 0.9655,
+     "others": 1616,
+     "others_resistant": 0.1126
+    },
+    {
      "gene": "blaI",
      "gene_class": "BETA-LACTAM",
      "gene_subclass": "BETA-LACTAM",
      "antibiotic": "cefoxitin",
      "carriers": 202,
      "carriers_resistant": 0.9208,
-     "others": 1722,
-     "others_resistant": 0.0639
+     "others": 1844,
+     "others_resistant": 0.0613
     },
     {
      "gene": "blaI",
@@ -1459,152 +1637,12 @@
      "antibiotic": "penicillin",
      "carriers": 201,
      "carriers_resistant": 1.0,
-     "others": 80,
-     "others_resistant": 0.1875
-    },
-    {
-     "gene": "mecR1",
-     "gene_class": "BETA-LACTAM",
-     "gene_subclass": "METHICILLIN",
-     "antibiotic": "methicillin",
-     "carriers": 200,
-     "carriers_resistant": 1.0,
-     "others": 26,
-     "others_resistant": 0.2308
-    },
-    {
-     "gene": "sul1",
-     "gene_class": "SULFONAMIDE",
-     "gene_subclass": "SULFONAMIDE",
-     "antibiotic": "trimethoprim/sulfamethoxazole",
-     "carriers": 199,
-     "carriers_resistant": 0.799,
-     "others": 1820,
-     "others_resistant": 0.0824
-    },
-    {
-     "gene": "aac(6')-I",
-     "gene_class": "AMINOGLYCOSIDE",
-     "gene_subclass": "AMINOGLYCOSIDE",
-     "antibiotic": "gentamicin",
-     "carriers": 195,
-     "carriers_resistant": 0.0462,
-     "others": 2006,
-     "others_resistant": 0.0937
-    },
-    {
-     "gene": "aac(6')-I",
-     "gene_class": "AMINOGLYCOSIDE",
-     "gene_subclass": "AMINOGLYCOSIDE",
-     "antibiotic": "streptomycin",
-     "carriers": 195,
-     "carriers_resistant": 0.1744,
-     "others": 1703,
-     "others_resistant": 0.357
-    },
-    {
-     "gene": "blaR1",
-     "gene_class": "BETA-LACTAM",
-     "gene_subclass": "BETA-LACTAM",
-     "antibiotic": "cefoxitin",
-     "carriers": 194,
-     "carriers_resistant": 0.9381,
-     "others": 1730,
-     "others_resistant": 0.0659
-    },
-    {
-     "gene": "blaR1",
-     "gene_class": "BETA-LACTAM",
-     "gene_subclass": "BETA-LACTAM",
-     "antibiotic": "methicillin",
-     "carriers": 194,
-     "carriers_resistant": 0.9381,
-     "others": 32,
-     "others_resistant": 0.75
-    },
-    {
-     "gene": "blaR1",
-     "gene_class": "BETA-LACTAM",
-     "gene_subclass": "BETA-LACTAM",
-     "antibiotic": "oxacillin",
-     "carriers": 194,
-     "carriers_resistant": 0.9124,
-     "others": 32,
-     "others_resistant": 0.75
-    },
-    {
-     "gene": "blaR1",
-     "gene_class": "BETA-LACTAM",
-     "gene_subclass": "BETA-LACTAM",
-     "antibiotic": "penicillin",
-     "carriers": 194,
-     "carriers_resistant": 1.0,
-     "others": 87,
-     "others_resistant": 0.2529
-    },
-    {
-     "gene": "blaTEM-1",
-     "gene_class": "BETA-LACTAM",
-     "gene_subclass": "BETA-LACTAM",
-     "antibiotic": "ceftazidime",
-     "carriers": 194,
-     "carriers_resistant": 0.2216,
-     "others": 765,
-     "others_resistant": 0.0706
-    },
-    {
-     "gene": "blaTEM-1",
-     "gene_class": "BETA-LACTAM",
-     "gene_subclass": "BETA-LACTAM",
-     "antibiotic": "imipenem",
-     "carriers": 194,
-     "carriers_resistant": 0.0155,
-     "others": 765,
-     "others_resistant": 0.0627
-    },
-    {
-     "gene": "blaTEM-1",
-     "gene_class": "BETA-LACTAM",
-     "gene_subclass": "BETA-LACTAM",
-     "antibiotic": "meropenem",
-     "carriers": 194,
-     "carriers_resistant": 0.067,
-     "others": 780,
-     "others_resistant": 0.0551
-    },
-    {
-     "gene": "blaTEM-1",
-     "gene_class": "BETA-LACTAM",
-     "gene_subclass": "BETA-LACTAM",
-     "antibiotic": "ampicillin/sulbactam",
-     "carriers": 193,
-     "carriers_resistant": 0.0725,
-     "others": 730,
-     "others_resistant": 0.0397
-    },
-    {
-     "gene": "blaTEM-1",
-     "gene_class": "BETA-LACTAM",
-     "gene_subclass": "BETA-LACTAM",
-     "antibiotic": "aztreonam",
-     "carriers": 191,
-     "carriers_resistant": 0.2042,
-     "others": 726,
-     "others_resistant": 0.0358
-    },
-    {
-     "gene": "blaTEM-1",
-     "gene_class": "BETA-LACTAM",
-     "gene_subclass": "BETA-LACTAM",
-     "antibiotic": "cefepime",
-     "carriers": 191,
-     "carriers_resistant": 0.1937,
-     "others": 726,
-     "others_resistant": 0.0289
+     "others": 82,
+     "others_resistant": 0.2073
     }
    ],
-   "pairs_total": 166,
-   "genomes_labelled": 2270
+   "pairs_total": 168,
+   "genomes_labelled": 2422
   }
  }
 }
