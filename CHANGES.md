@@ -18,6 +18,16 @@ Baseline is commit **`52ae361`** *(Add amrpredict library and macOS launcher, 20
 
 ---
 
+## Genome IDs that lost a trailing zero (2026-09-26)
+
+`fasta_amr_map.py` read each CSV with Genome ID as a number, so `1055537.10` became `1055537.1`; its substring search then still found `1055537.10.fasta`, so `fasta_path` was right and the ID wrong. 68 genomes in `Data/mapped_output/` were affected (3,271 rows in 26 files), and `1038927.40` had become `1038927.4`, a different genome, mixing the two genomes' labels.
+
+- [fasta_amr_map.py](fasta_amr_map.py): reads Genome ID as text.
+- `Data/mapped_output/`: each wrong ID replaced by the one in its own `fasta_path`, changing only that field. Every mapped genome now joins the gene matrix.
+- `Data/amr_output/` was never affected. The K-mer re-test (`evaluate_shipped.py`, `kmer_metrics.json`) groups by these IDs and should be rerun.
+
+---
+
 ## Resistance genes page (2026-09-26)
 
 A new `/genes` page (ML Models menu) shows the AMRFinderPlus results: run summary, top genes and mutations, genes per genome, drug classes, a genus × gene heatmap, gene vs lab result, and a genome lookup.

@@ -210,6 +210,7 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done · `[!]` blocke
 | Hamza | Trainer data path fix (T1.2) | Week 1 | [x] merged 2026-09-25 (`8f47f45`), noted in Hamza's tracker |
 | Hamza | Species-level taxon grouping | Week 1 | [x] 2026-09-25, in Hamza's tracker |
 | Hamza | 20-genome sample gene matrix | Week 2, day 2 | [x] 2026-09-26, `experiments/genome/features/sample/` |
+| Hamza | `Data/mapped_output/` Genome IDs fixed (68 genomes had lost a trailing zero, e.g. `1055537.10` → `1055537.1`; `1038927.40` had merged with `1038927.4`). Rerun `experiments/evaluate_shipped.py` for `kmer_metrics.json`, since it groups by these IDs | Week 2 | [ ] |
 | Hamza | Full gene matrix | End of week 2 | [x] 2026-09-26, `experiments/genome/features/gene_matrix.parquet` + `gene_info.csv` |
 | Suleman | Canonical antibiotic list for dropdowns | Week 1 | [x] in `SULEMAN_PROGRESS.md` week 1 |
 | Hamza, Suleman | `train_models.py` from the command line no longer writes to the served models: default is `trained_models/candidates/<model>/`, like `/api/train/` | Week 1 | [x] 2026-09-26; checked the served files are byte-identical after a run |
@@ -238,7 +239,7 @@ Newest first. One line per work session: date, what I did, what is next, anythin
 
 | Date | Done | Next | Blockers |
 | --- | --- | --- | --- |
-| 2026-09-26 | AMRFinderPlus complete (2,587 genomes, 0 failures); full gene matrix committed; `/genes` rebuilt on every genome. Found 68 genomes in `mapped_output` whose Genome ID lost a trailing zero | Fix those IDs and `fasta_amr_map.py` | None |
+| 2026-09-26 | AMRFinderPlus complete (2,587 genomes, 0 failures); full gene matrix committed; `/genes` rebuilt on every genome. Fixed 68 genomes in `mapped_output` whose Genome ID lost a trailing zero (3,271 rows, 26 files; one had merged with a different genome) and the cause in `fasta_amr_map.py`; every mapped genome now joins the matrix | Sensitivity analysis (T3.1) | None |
 | 2026-09-26 | `/genes` page: AMRFinderPlus summary, genes by species, gene vs lab result (lab labels by default), genome lookup; `export_gene_report.py` | Rerun the export when AMRFinderPlus finishes | None |
 | 2026-09-26 | Names and label maps centralised in `backend/amr_constants.py` (all files, values unchanged, frontend copy generated and tested); timeline applies the aliases | Full gene matrix; sensitivity analysis | None |
 | 2026-09-26 | 13 more antibiotic aliases and `sulfa` dropped (still v4: cleaned table unchanged); dropdown item ticked | Full gene matrix; sensitivity analysis | None |

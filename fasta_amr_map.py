@@ -221,7 +221,9 @@ def process_pair(
 
     # ── load CSV ──────────────────────────────────────────────────────────────
     try:
-        df = pd.read_csv(csv_path, low_memory=False)
+        # Genome ID as text: read as a number, 1055537.10 becomes 1055537.1
+        # and the substring match then pairs it with the wrong ID
+        df = pd.read_csv(csv_path, low_memory=False, dtype={"Genome ID": str})
     except Exception as exc:
         log.error("Cannot read CSV: %s", exc)
         return {"csv": csv_path.name, "error": str(exc)}
