@@ -108,10 +108,62 @@
   </div>
 
   <!-- ════════════════════════════════════════════════════════════
-       SECTION 2: BY SPECIES
+       SECTION 2: THE GENE MATRIX
+       ════════════════════════════════════════════════════════════ -->
+  {% set mx = report.matrix %}
+  <div class="mb-5" id="matrix">
+    <div class="sec-eyebrow">Section 2</div>
+    <h2 class="sec-title">The gene matrix</h2>
+    <p class="sec-sub mb-4">
+      The same results as one big yes/no table, the form the next models learn from:
+      one row per genome, one column per gene or mutation, <strong>1</strong> if AMRFinderPlus found it.
+    </p>
+
+    <div class="d-flex gap-3 flex-wrap align-items-stretch mb-4">
+      <div class="flex-fill min-w-130"><div class="stat-mini h-100">
+        <div class="stat-mini-value stat-mini-static">{{ '{:,}'.format(mx.genomes) }} × {{ mx.symbols }}</div>
+        <div class="stat-mini-label">Genomes × genes and mutations</div>
+      </div></div>
+      <div class="flex-fill min-w-130"><div class="stat-mini h-100">
+        <div class="stat-mini-value stat-mini-static">{{ '%.2f' | format(100 * mx.ones / mx.cells) }}%</div>
+        <div class="stat-mini-label">Cells that are 1 ({{ '{:,}'.format(mx.ones) }} of {{ '{:,}'.format(mx.cells) }}): a genome carries a handful of genes, if any</div>
+      </div></div>
+      <div class="d-flex flex-column justify-content-center gap-2">
+        <a class="btn btn-model" href="/genes/matrix.csv"><i class="bi bi-download me-2"></i>Gene matrix (CSV, opens in Excel)</a>
+        <a class="btn btn-model" href="/genes/info.csv"><i class="bi bi-download me-2"></i>What each column means (CSV)</a>
+      </div>
+    </div>
+
+    <div class="glass-card">
+      <h6 class="card-section-title mb-1"><i class="bi bi-grid-3x3-gap text-accent me-2"></i>A corner of the matrix</h6>
+      <p class="small text-muted mb-3">{{ mx.preview.rows | length }} real genomes and the {{ mx.preview.genes | length }} most common genes. <span class="matrix-dot on" aria-hidden="true"></span> = found (1), <span class="matrix-dot" aria-hidden="true"></span> = not found (0).</p>
+      <div class="table-responsive">
+        <table class="table table-custom table-sm mb-0 matrix-preview">
+          <thead><tr>
+            <th>Genome</th>
+            {% for g in mx.preview.genes %}<th class="text-center matrix-gene">{{ g }}</th>{% endfor %}
+            <th class="text-end">All genes</th>
+          </tr></thead>
+          <tbody>
+          {% for r in mx.preview.rows %}
+            <tr>
+              <td><a href="#genome={{ r.genome }}" class="lookup-example" data-id="{{ r.genome }}"><code>{{ r.genome }}</code></a><div class="caption-text"><em>{{ r.species }}</em></div></td>
+              {% for v in r['values'] %}<td class="text-center"><span class="matrix-dot{% if v %} on{% endif %}" role="img" aria-label="{{ 'found' if v else 'not found' }}"></span></td>{% endfor %}
+              <td class="text-end">{{ r.total }}</td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <p class="caption-text mt-2 mb-0">"All genes" counts every gene and mutation in the genome, including the {{ mx.symbols - mx.preview.genes | length }} columns not shown. Click a genome to see them all.</p>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════
+       SECTION 3: BY SPECIES
        ════════════════════════════════════════════════════════════ -->
   <div class="mb-5" id="species">
-    <div class="sec-eyebrow">Section 2</div>
+    <div class="sec-eyebrow">Section 3</div>
     <h2 class="sec-title">Genes by species</h2>
     <p class="sec-sub mb-4">Each species has its own resistance genes. Darker means more of that genus's genomes carry the gene.</p>
 
@@ -143,12 +195,12 @@
   </div>
 
   <!-- ════════════════════════════════════════════════════════════
-       SECTION 3: GENE VS LAB RESULT
+       SECTION 4: GENE VS LAB RESULT
        ════════════════════════════════════════════════════════════ -->
   {% set lab = report.gene_vs_lab.lab %}
   {% set comp = report.gene_vs_lab.all %}
   <div class="mb-5" id="lab">
-    <div class="sec-eyebrow">Section 3</div>
+    <div class="sec-eyebrow">Section 4</div>
     <h2 class="sec-title">Do the genes match the lab results?</h2>
     <p class="sec-sub mb-3">
       For a gene and an antibiotic AMRFinderPlus says it acts on: how often were genomes <strong>with</strong>
@@ -187,10 +239,10 @@
   </div>
 
   <!-- ════════════════════════════════════════════════════════════
-       SECTION 4: LOOKUP
+       SECTION 5: LOOKUP
        ════════════════════════════════════════════════════════════ -->
   <div class="mb-5" id="lookup">
-    <div class="sec-eyebrow">Section 4</div>
+    <div class="sec-eyebrow">Section 5</div>
     <h2 class="sec-title">Look up a genome</h2>
     <p class="sec-sub mb-3">Every core resistance gene and mutation AMRFinderPlus found in one genome.</p>
 

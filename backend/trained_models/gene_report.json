@@ -1,7 +1,7 @@
 {
  "run": {
-  "generated_at": "2026-09-26T15:55:06+00:00",
-  "git_commit": "39b3c11",
+  "generated_at": "2026-09-26T16:09:48+00:00",
+  "git_commit": "b05d718",
   "amrfinder_version": "4.2.7",
   "database_version": "2026-08-07.1",
   "genomes_downloaded": 2587,
@@ -17,6 +17,147 @@
   "point_mutations": 227,
   "median_genes": 2.0,
   "max_genes": 30
+ },
+ "matrix": {
+  "genomes": 2587,
+  "symbols": 536,
+  "cells": 1386632,
+  "ones": 12942,
+  "preview": {
+   "genes": [
+    "aph(6)-Id",
+    "aph(3'')-Ib",
+    "tet(A)",
+    "sul2",
+    "blaTEM-1",
+    "sul1",
+    "fosA7",
+    "fosB",
+    "mecA",
+    "blaI"
+   ],
+   "rows": [
+    {
+     "genome": "1001988.3",
+     "species": "Escherichia coli",
+     "values": [
+      1,
+      1,
+      1,
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     "total": 19
+    },
+    {
+     "genome": "1029989.3",
+     "species": "Salmonella enterica",
+     "values": [
+      1,
+      1,
+      1,
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     "total": 8
+    },
+    {
+     "genome": "1004953.3",
+     "species": "Staphylococcus aureus",
+     "values": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1,
+      1,
+      1
+     ],
+     "total": 16
+    },
+    {
+     "genome": "1074486.3",
+     "species": "Klebsiella pneumoniae",
+     "values": [
+      0,
+      0,
+      1,
+      0,
+      1,
+      1,
+      0,
+      0,
+      0,
+      0
+     ],
+     "total": 23
+    },
+    {
+     "genome": "1082934.5",
+     "species": "Acinetobacter baumannii",
+     "values": [
+      0,
+      0,
+      1,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0
+     ],
+     "total": 9
+    },
+    {
+     "genome": "1089456.3",
+     "species": "Pseudomonas aeruginosa",
+     "values": [
+      0,
+      0,
+      0,
+      0,
+      1,
+      1,
+      0,
+      0,
+      0,
+      0
+     ],
+     "total": 15
+    },
+    {
+     "genome": "1001744.3",
+     "species": "Streptococcus pneumoniae",
+     "values": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     "total": 0
+    }
+   ]
+  }
  },
  "genes_per_genome": [
   {

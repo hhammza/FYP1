@@ -363,6 +363,7 @@ The bundled artifacts are **byte-identical** to `backend/trained_models/` (verif
 | `/compare` | GET | `models/` | `compare.html`, deployed vs experimental models and their data (§8.1) |
 | `/genes` | GET | `genes/` | `genes.html`, AMRFinderPlus resistance genes (§8.2) |
 | `/api/genes/<genome_id>` | GET | `genes/<genome_id>/` | JSON, one genome's genes for the lookup |
+| `/genes/matrix.csv`, `/genes/info.csv` | GET | `genes/matrix.csv`, `genes/info.csv` | CSV downloads of the gene matrix and its columns |
 | `/reload` | POST | `reload/` | JSON, re-reads artifacts without a restart |
 | `/api/health` | GET | `health/` | JSON passthrough |
 | `/api/antibiotics` | GET | n/a | JSON, 48 names (hardcoded list) |
@@ -405,6 +406,7 @@ committed files that `experiments/genome/features/export_gene_report.py` builds:
 |---|---|
 | Headline | Genomes searched (with a banner while the run is incomplete), share with at least one gene, distinct genes and mutations |
 | What was found | Top 20 genes and mutations, genes per genome, genomes with a gene for each drug class |
+| The gene matrix | What the matrix is, its size, a readable corner of it (real genomes × the most common genes), and CSV downloads of the whole matrix and of what each column means. The backend builds the CSV from `gene_hits.json`; it matches `gene_matrix.parquet` cell for cell |
 | Genes by species | Genus × gene heatmap and a table of every genus |
 | Gene vs lab result | For a gene and an antibiotic its AMRFinderPlus subclass says it acts on, resistance with and without the gene. Laboratory results by default; BV-BRC's predicted labels behind a toggle, because they come from models that read the genome |
 | Look up a genome | Every gene and mutation in one genome; `/genes#genome=<id>` opens with it looked up |

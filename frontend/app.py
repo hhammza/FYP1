@@ -6,7 +6,7 @@ import os
 import json
 import time
 import requests
-from flask import Flask, render_template, request, jsonify, redirect, url_for
+from flask import Flask, Response, render_template, request, jsonify, redirect, url_for
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'fyp-flask-frontend-2024')
@@ -373,6 +373,20 @@ def gene_report():
         return render_template('genes.html', report=None,
                                error=report.get('error', f'Backend returned HTTP {status}'))
     return render_template('genes.html', report=report, error=None)
+
+
+@app.route('/genes/<any("matrix.csv", "info.csv"):name>')
+def gene_csv(name):
+    """Pass a gene CSV download through from the backend unchanged."""
+    try:
+        r = requests.get(f'{BACKEND_URL}/genes/{name}', timeout=60)
+    except requests.exceptions.RequestException as e:
+        return jsonify({'error': f'Backend not reachable: {e}'}), 503
+    if r.status_code != 200:
+        return Response(r.content, status=r.status_code, mimetype='application/json')
+    return Response(r.content, mimetype='text/csv',
+                    headers={'Content-Disposition': r.headers.get('Content-Disposition',
+                                                                  f'attachment; filename="{name}"')})
 
 
 @app.route('/api/genes/<genome_id>')

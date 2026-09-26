@@ -203,7 +203,9 @@
   document.querySelectorAll('.lookup-example').forEach(a => a.addEventListener('click', e => {
     e.preventDefault();
     document.getElementById('genomeId').value = a.dataset.id;
+    history.replaceState(null, '', '#genome=' + encodeURIComponent(a.dataset.id));
     lookup(a.dataset.id);
+    document.getElementById('lookup').scrollIntoView({ behavior: 'smooth' });
   }));
 
   /* /genes#genome=1000561.3 opens with that genome looked up, for sharing */

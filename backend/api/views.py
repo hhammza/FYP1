@@ -1,8 +1,10 @@
+import csv
+import io
 import json
 import os
 import traceback
 from django.conf import settings
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
@@ -223,17 +225,70 @@ class GeneReportView(View):
 _gene_hits = {}
 
 
+def load_gene_hits():
+    """gene_hits.json, read once; None if it has not been built."""
+    if 'data' not in _gene_hits:
+        path = os.path.join(str(settings.TRAINED_MODELS_DIR), 'gene_hits.json')
+        if not os.path.exists(path):
+            return None
+        with open(path) as fh:
+            _gene_hits['data'] = json.load(fh)
+    return _gene_hits['data']
+
+
+GENE_HITS_MISSING = ('gene_hits.json not found. Run: '
+                     'python experiments/genome/features/export_gene_report.py')
+
+
+def csv_download(rows, filename):
+    buffer = io.StringIO()
+    csv.writer(buffer).writerows(rows)
+    response = HttpResponse(buffer.getvalue(), content_type='text/csv; charset=utf-8')
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    return response
+
+
+class GeneMatrixCSVView(View):
+    """The gene matrix as CSV: one row per genome, one 0/1 column per gene or
+    mutation. Same content as experiments/genome/features/gene_matrix.parquet."""
+    def get(self, request):
+        data = load_gene_hits()
+        if data is None:
+            return json_error(GENE_HITS_MISSING, status=404)
+        symbols = sorted(data['symbols'])
+        column = {s: i for i, s in enumerate(symbols)}
+        rows = [['Genome ID'] + symbols]
+        for genome_id in sorted(data['genomes']):
+            values = [0] * len(symbols)
+            for hit in data['genomes'][genome_id]['hits']:
+                values[column[hit[0]]] = 1
+            rows.append([genome_id] + values)
+        return csv_download(rows, 'gene_matrix.csv')
+
+
+class GeneInfoCSVView(View):
+    """One row per matrix column: what each gene or mutation is."""
+    def get(self, request):
+        data = load_gene_hits()
+        if data is None:
+            return json_error(GENE_HITS_MISSING, status=404)
+        carriers = {}
+        for genome in data['genomes'].values():
+            for symbol in {hit[0] for hit in genome['hits']}:
+                carriers[symbol] = carriers.get(symbol, 0) + 1
+        rows = [['symbol', 'type', 'class', 'subclass', 'genomes', 'name']]
+        for symbol in sorted(data['symbols']):
+            kind, cls, subclass, name = data['symbols'][symbol]
+            rows.append([symbol, kind, cls, subclass, carriers.get(symbol, 0), name])
+        return csv_download(rows, 'gene_info.csv')
+
+
 class GeneLookupView(View):
     """Every core AMR gene and mutation AMRFinderPlus found in one genome."""
     def get(self, request, genome_id):
-        if 'data' not in _gene_hits:
-            path = os.path.join(str(settings.TRAINED_MODELS_DIR), 'gene_hits.json')
-            if not os.path.exists(path):
-                return json_error('gene_hits.json not found. Run: '
-                                  'python experiments/genome/features/export_gene_report.py', status=404)
-            with open(path) as fh:
-                _gene_hits['data'] = json.load(fh)
-        data = _gene_hits['data']
+        data = load_gene_hits()
+        if data is None:
+            return json_error(GENE_HITS_MISSING, status=404)
         genome_id = genome_id.strip()
         entry = data['genomes'].get(genome_id)
         if entry is None:

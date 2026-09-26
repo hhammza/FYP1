@@ -11,6 +11,8 @@ urlpatterns = [
     path('train/', views.TrainModelView.as_view(), name='train'),
     path('models/', views.ModelReportView.as_view(), name='models'),
     path('genes/', views.GeneReportView.as_view(), name='genes'),
+    path('genes/matrix.csv', views.GeneMatrixCSVView.as_view(), name='gene-matrix-csv'),
+    path('genes/info.csv', views.GeneInfoCSVView.as_view(), name='gene-info-csv'),
     path('genes/<str:genome_id>/', views.GeneLookupView.as_view(), name='gene-lookup'),
     path('reload/', views.ReloadModelsView.as_view(), name='reload'),
 ]

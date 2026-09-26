@@ -225,3 +225,12 @@
 .lab-meter-fill.with    { background: var(--viz-1); }
 .lab-meter-fill.without { background: var(--viz-other); }
 .lab-meter-val { font-variant-numeric: tabular-nums; font-size: 12px; color: var(--text-2); min-width: 44px; text-align: right; }
+
+/* ── /genes: gene matrix preview ────────────────────────────── */
+.matrix-dot {
+  display: inline-block; width: 12px; height: 12px; border-radius: 3px;
+  border: 1px solid var(--border-md, var(--border)); background: transparent; vertical-align: -1px;
+}
+.matrix-dot.on { background: var(--viz-1); border-color: var(--viz-1); }
+.matrix-preview .matrix-gene { font-family: var(--font-mono, monospace); font-size: 11px; white-space: nowrap; }
+.matrix-preview th.matrix-gene { text-transform: none; letter-spacing: 0; }  /* gene names are case-sensitive */

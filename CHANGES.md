@@ -37,6 +37,8 @@ A new `/genes` page (ML Models menu) shows the AMRFinderPlus results: run summar
 - Matching genes to antibiotics by drug class paired genes with drugs they do not act on (`aph(6)-Id`, a streptomycin gene, with gentamicin). Pairs now follow the AMRFinderPlus subclass.
 - A gene is not a verdict: `sul2` carriers were 10% resistant to co-trimoxazole (trimethoprim resistance needs a second gene), `blaTEM-1` carriers 6% to cefoxitin.
 
+A later addition the same day: a **gene matrix** section explains the matrix, shows a readable corner of it, and offers the whole matrix and its column list as CSV downloads (`/genes/matrix.csv`, `/genes/info.csv`, built by the backend from `gene_hits.json` and checked equal to `gene_matrix.parquet`).
+
 ### Code
 | File | Change |
 |---|---|

@@ -45,6 +45,8 @@ HEATMAP_GENES = 15
 HEATMAP_MIN_GENOMES = 10    # genera with fewer genomes are left off the heatmap
 MIN_CARRIERS = {'lab': 5, 'all': 20}
 MAX_PAIRS = 30
+PREVIEW_GENES = 10
+PREVIEW_GENOMES = 9
 
 # Whether a gene acts on an antibiotic, from its AMRFinderPlus Subclass. A
 # subclass word is either a family (matched by this project's drug class, see
@@ -190,6 +192,16 @@ def main():
     heat = [[round(float(matrix.loc[genus.values == g, s].mean()), 4) for s in heat_genes] for g in heat_genera]
 
     histogram = per_genome.clip(upper=10).value_counts().sort_index()
+
+    # A readable corner of the matrix: one genome per large genus that carries
+    # at least two of the most common genes, plus one genome with none
+    preview_genes = list(top['symbol'].head(PREVIEW_GENES))
+    preview_ids = []
+    for g in heat_genera[:PREVIEW_GENOMES - 1]:
+        ids = [i for i in matrix.index[genus.values == g] if matrix.loc[i, preview_genes].sum() >= 2]
+        if ids:
+            preview_ids.append(sorted(ids)[0])
+    preview_ids.append(sorted(matrix.index[per_genome.values == 0])[0])
     labels = labels_per_genome(searched)
 
     report = {
@@ -202,6 +214,13 @@ def main():
             'point_mutations': int((info['type'] == 'point_mutation').sum()),
             'median_genes': float(per_genome.median()),
             'max_genes': int(per_genome.max()),
+        },
+        'matrix': {
+            'genomes': n, 'symbols': int(matrix.shape[1]), 'cells': int(matrix.size),
+            'ones': int(matrix.values.sum()),
+            'preview': {'genes': preview_genes, 'rows': [
+                {'genome': i, 'species': species[i], 'values': [int(v) for v in matrix.loc[i, preview_genes]],
+                 'total': int(per_genome[i])} for i in preview_ids]},
         },
         'genes_per_genome': [{'genes': int(k), 'genomes': int(v), 'capped': bool(k == 10)}
                              for k, v in histogram.items()],
