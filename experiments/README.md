@@ -181,16 +181,23 @@ groups on the page (best model, algorithm comparison and so on) come from the
 Experiments never overwrite the served artifacts. When a run earns deployment:
 
 ```bash
-cp experiments/results/<run_id>/model/model.txt \
-   backend/trained_models/amr_lgbm_final_model.txt
-cp experiments/results/<run_id>/metrics.json \
-   backend/trained_models/metrics.json
+python experiments/promote.py <run_id> --dry-run   # checks it can be served, prints the numbers
+python experiments/promote.py <run_id>             # writes backend/trained_models/
+# restart the backend or POST /api/reload/, then:
+python experiments/evaluate_shipped.py             # re-test what is now served
+python experiments/export_report.py                # refresh /models and /compare
 ```
 
-The serving predictor also needs the three rate lookup tables
-(`ab_rate_full.joblib`, `taxon_ab_rate_full.joblib`, `genus_ab_rate_full.joblib`)
-and `lgbm_meta.joblib`. Those lookups now ship with each run in
-`model/rate_tables.joblib`, but under different names and in a different shape
-than the backend expects, so they need converting before promotion, otherwise
-the served model looks up rates that do not match what it was trained on.
-Restart the backend or `POST /api/reload/` afterwards.
+`promote.py` converts the run's rate tables to the files the backend loads,
+writes `lgbm_meta.joblib` (threshold, calibration, taxon level, drug-class map)
+and `lgbm_metrics.json` (the numbers the UI shows; format in
+[progress/formats/README.md](../progress/formats/README.md)). It refuses a run
+whose features differ from what `lgbm_predictor.py` builds, a run without rate
+features, and a run not evaluated on a grouped split.
+
+`--library` also copies into `amrpredict-lib`. It is off by default until the
+package loader applies calibration and species-level taxa (T2.6); until then
+it would score the promoted model differently from the web app.
+
+Currently served: **`D1_forecaster_deploy`** (A10 + species taxa + isotonic
+calibration + threshold 0.24 for VME ≤ 10%), promoted 2026-09-25.
