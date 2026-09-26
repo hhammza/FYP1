@@ -2,7 +2,7 @@
 
 **Role:** models
 **Plan:** the split by skill (Ali: data + evolution, Hamza: models, Suleman: platform), based on [FYP_Completion_Roadmap.md](../FYP_Completion_Roadmap.md)
-**Started:** 2026-09-25 · **Last updated:** 2026-09-25 (Day 1 + Week 1)
+**Started:** 2026-09-25 · **Last updated:** 2026-09-26 (Day 1 + Week 1, drug classes and D2)
 
 Status key: `[ ]` not started · `[~]` in progress · `[x]` done · `[!]` blocked (say why in the log)
 
@@ -64,15 +64,16 @@ Other people's files: ask the owner, or comment in their pull request.
 | July LightGBM (replaced) | 0.644 [0.642–0.645] | 0.941 on genomes it trained on: it memorised |
 | `A10_monotonic_mic`, strain taxa, v3 | 0.8223 [0.8193–0.8258] | same as on v1 (0.8222): the name clean-up cost nothing |
 | `A10s_monotonic_species` | 0.8044 [0.8011–0.8081] | species taxa cost 0.018, the price of a Taxon ID users can type |
-| **`D1_forecaster_deploy`** (served) | **0.8043 [0.801–0.808]** harness · **0.7998 [0.7965–0.8036]** as `/forecast` scores it | calibrated (Brier 0.1795 → 0.1678), threshold 0.24: VME 9.1%, ME 52.9%, recall 90.9%, accuracy 63.0%. Seen genomes 0.8005 vs unseen 0.7998: no memorisation |
+| `D1_forecaster_deploy` (served 2026-09-25, replaced by D2) | **0.8043 [0.801–0.808]** harness · **0.7998 [0.7965–0.8036]** as `/forecast` scores it | calibrated (Brier 0.1795 → 0.1678), threshold 0.24: VME 9.1%, ME 52.9%, recall 90.9%, accuracy 63.0%. Seen genomes 0.8005 vs unseen 0.7998: no memorisation |
+| **`D2_forecaster_deploy`** (served) | **0.8044 [0.8010–0.8080]** harness | D1 on cleaning v4: 54 drugs moved out of drug class `other`. Threshold 0.25: VME 9.0%, ME 53.0%. On the 5,106 test rows of those drugs AUC 0.8648 → 0.8652: the model already knew them by name; the gain is for drugs it never saw (e.g. ceftobiprole), which now get their real class |
 | K-mer RF (unchanged, now actually runs) | 0.695 [0.679–0.714] | 0/100 heuristic fallbacks (was every call); no better than the drug alone (0.703) |
 
-Threshold trade-off on D1's test set, for the report (the threshold itself was chosen on validation):
+Threshold trade-off on D2's test set, for the report (the threshold itself was chosen on validation):
 
-| Threshold | 0.20 | **0.24** | 0.30 | 0.35 | 0.40 | 0.50 |
+| Threshold | 0.20 | **0.25** | 0.30 | 0.35 | 0.40 | 0.50 |
 |---|---|---|---|---|---|---|
-| VME | 7.0% | **9.1%** | 17.2% | 24.2% | 27.7% | 54.2% |
-| ME | 57.3% | **52.9%** | 40.8% | 32.4% | 29.0% | 10.0% |
+| VME | 7.3% | **9.0%** | 17.4% | 24.7% | 30.2% | 54.2% |
+| ME | 56.4% | **53.0%** | 40.6% | 31.9% | 26.7% | 10.0% |
 
 ### T1.6 Metrics beside each deployed model
 - [x] `lgbm_metrics.json` written by `promote.py`; `kmer_metrics.json` written by `evaluate_shipped.py`
@@ -146,7 +147,7 @@ New folder `experiments/genome/`, reusing `lib/splits.py` and `lib/metrics.py`.
 | From Ali | Full gene matrix | End of week 2 | [ ] |
 | To Suleman | Sample `metrics.json` | Day 1 | [x] 2026-09-25: `progress/formats/lgbm_metrics.sample.json` (the real file) |
 | To Suleman | Real `metrics.json` for both models | End of week 1 | [x] 2026-09-25: `backend/trained_models/lgbm_metrics.json`, `kmer_metrics.json`; also in `/api/health/` → `models.*.metrics` |
-| To Suleman | **Threshold default: the slider and API must start at `default_threshold` (0.24), not 0.40.** Hardcoded in `resistance_forecast.html:137-145`, `frontend/app.py:109`, `backend/api/views.py:53`. At 0.40 the calibrated model misses 27.7% of resistant isolates instead of 9.1%. `/predict` likewise: `default_threshold` from `kmer_metrics.json`, 0.5 | Week 1 | [ ] |
+| To Suleman | **Threshold default: the slider and API must start at `default_threshold` (now 0.25), not 0.40.** Hardcoded in `resistance_forecast.html:137-145`, `frontend/app.py:109`, `backend/api/views.py:53`. At 0.40 the calibrated model misses 30.2% of resistant isolates instead of 9.0%. `/predict` likewise: `default_threshold` from `kmer_metrics.json`, 0.5 | Week 1 | [ ] |
 | To Suleman | New response fields: `/forecast` has `model_run`, `calibrated`; both pages can return `model_used: "Heuristic fallback"` (show a warning); `/predict` has `antibiotic_known` | Week 1 | [ ] |
 | To Suleman | Genome response with `genes_found` | Week 3 | [ ] |
 | To Ali | Proposed gene-matrix format in `progress/formats/README.md` §3 (string `Genome ID` index, zero rows for searched genomes, `gene_info.csv`); `pyarrow` needed | Day 1 | [~] waiting for Ali |
@@ -171,5 +172,6 @@ Newest first. One line per work session: date, what I did, what is next, anythin
 
 | Date | Done | Next | Blockers |
 |---|---|---|---|
+| 2026-09-26 | Drug classes for 54 drugs that were `other` (cleaning v4, `data_prep.py` and `train_models.py`; `lgbm_predictor.py` now imports the trainer's map instead of its own copy). Every dropdown drug has a class. Trained and promoted `D2_forecaster_deploy`, re-tested, report refreshed | Same as below | `data_prep.py` is Ali's file: tell him about v4 |
 | 2026-09-25 | Day 1 formats written (`progress/formats/`); scope email drafted. Week 1: k-mer scaler fix; antibiotic aliases at prediction time (`ml_models/common.py`); harness gains `taxon_level`, calibration and accuracy; ran A10 (v3), A10s, D1; `promote.py`; D1 promoted; July genus-rate lookup bug fixed in passing (table stored `Escherichia`, lookup used `escherichia`); `evaluate_shipped.py` re-tests promoted models through the backend's own `features_frame()` and writes `kmer_metrics.json`; `export_report.py` keeps ROC curves whose `predictions.csv` is missing | Send scope email; Suleman: threshold default + metrics in UI; Ali: confirm gene-matrix format; Week 2 k-mer runs | Library not updated (T2.6): promoting with `--library` before its loader applies calibration would make `amrpredict.forecast()` disagree with the web app. The other 21 registry rows are still cleaning v1 |
 | 2026-09-25 | Tracker created | Scope email, agree formats | None |
