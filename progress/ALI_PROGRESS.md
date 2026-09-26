@@ -4,7 +4,7 @@
 
 **Plan:** the split by skill (Ali: data + evolution, Hamza: models, Suleman: platform), based on [FYP_Completion_Roadmap.md](../FYP_Completion_Roadmap.md)
 
-**Started:** 2026-09-25 · **Last updated:** 2026-09-25
+**Started:** 2026-09-25 · **Last updated:** 2026-09-26
 
 Status key: `[ ]` not started · `[~]` in progress · `[x]` done · `[!]` blocked (say why in the log)
 
@@ -14,8 +14,8 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done · `[!]` blocke
 
 | Week | Dates (planned) | Focus | Status |
 | --- | --- | --- | --- |
-| 1 | 28 Sep to 2 Oct | Clean names, data path, taxon grouping, start AMRFinderPlus | In progress: names, data path and taxon grouping done; AMRFinderPlus full run going |
-| 2 | 5 Oct to 9 Oct | Gene matrix | Not started |
+| 1 | 28 Sep to 2 Oct | Clean names, data path, taxon grouping, start AMRFinderPlus | In progress: names, data path and taxon grouping done; AMRFinderPlus full run going (restarted 2026-09-26) |
+| 2 | 5 Oct to 9 Oct | Gene matrix | Started early: builder and 20-genome sample done 2026-09-26 |
 | 3 | 12 Oct to 16 Oct | Evolution: fix, sensitivity, calibration | Not started |
 | 4 | 19 Oct to 23 Oct | RL agent, CTGAN experiment | Not started |
 | 5 | 26 Oct to 30 Oct | Report chapters | Not started |
@@ -26,15 +26,13 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done · `[!]` blocke
 
 ## Day 1: agree the handover formats
 
-- [ ] **Gene matrix format** agreed with Hamza: parquet, one row per `Genome ID`, one 0/1 column per gene symbol
+- [x] **Gene matrix format** agreed with Hamza: parquet, one row per `Genome ID`, one 0/1 column per gene symbol. *Agreed 2026-09-26 with notes: filter `core` + `Type = AMR`, no plus file (run had no `--plus`)*
 
-- [ ] **Timeline + RL response** agreed with Suleman: weekly susceptible, intermediate and resistant fractions, plus a `policy` list (drug used each week)
+- [~] **Timeline + RL response** agreed with Suleman: weekly susceptible, intermediate and resistant fractions, plus a `policy` list (drug used each week). *Proposed 2026-09-26 with a sample; waiting for Suleman*
 
-- [ ] Both formats written down in the team channel or in this file (below)
+- [x] Both formats written down in the team channel or in this file (below)
 
-> Agreed formats:
-
-> *(paste here once agreed)*
+> Agreed formats: **[progress/formats/README.md](formats/README.md)** §3 gene matrix (with my notes) and §4 timeline + RL (sample: [`timeline_response.sample.json`](formats/timeline_response.sample.json))
 
 ---
 
@@ -120,13 +118,13 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done · `[!]` blocke
 
 ## Week 2: gene matrix (T2.1, data side)
 
-- [ ] **Day 2 of the week: commit a 20-genome sample matrix** so Hamza can write model code
+- [x] **Day 2 of the week: commit a 20-genome sample matrix** so Hamza can write model code. *Done early, 2026-09-26: `experiments/genome/features/sample/` (20 genomes, 7 genera, 7 with no core AMR hit; all 20 join to their labels)*
 
 - [ ] Full run finished, failures logged and re-run
 
-- [ ] Build the genome × gene 0/1 matrix, include point mutations (for example `gyrA_S83L`)
+- [~] Build the genome × gene 0/1 matrix, include point mutations (for example `gyrA_S83L`). *`build_gene_matrix.py` written; run it again when AMRFinderPlus finishes*
 
-- [ ] Save as parquet under `experiments/genome/features/`
+- [x] Save as parquet under `experiments/genome/features/` (`pyarrow` in the new `experiments/requirements.txt`)
 
 - [ ] Check the join: every `Genome ID` in `Data/mapped_output/` has a row
 
@@ -140,11 +138,11 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done · `[!]` blocke
 
 ## Week 3: evolution component (T3.1)
 
-- [ ] **Fix >100% bug** in `mutation_timeline.py`: susceptible + intermediate + resistant = 100 every week
+- [x] **Fix >100% bug** in `mutation_timeline.py`: susceptible + intermediate + resistant = 100 every week. *Done early, 2026-09-26, in the backend: checked on every drug profile at 1 to 52 weeks (20,020 weeks, all exactly 100). Also `simulation`, `seed`, `calibration` fields and `model_used` always `Biological Simulation`, per format §4*
 
-- [ ] Seed the random parts, so the same inputs give the same output
+- [x] Seed the random parts, so the same inputs give the same output (`predict(..., seed=42)`, one `numpy` generator)
 
-- [ ] Remove the strict `xfail` in `amrpredict-lib/tests/test_fasta.py:122` so the test must pass
+- [ ] Remove the strict `xfail` in `amrpredict-lib/tests/test_fasta.py:122` so the test must pass. *Waits for Hamza: the library has its own copy in `amrpredict-lib/src/amrpredict/timeline.py`; remove the xfail when he syncs the fix (T2.6)*
 
 - [ ] **Sensitivity analysis:** sweep `speed` and `peak` ±30%, plot how `failure_week` moves
 
@@ -209,10 +207,13 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done · `[!]` blocke
 | Hamza | Clean antibiotic names merged | Week 1, day 2 | [x] merged 2026-09-25 (`0ba94cd`) |
 | Hamza | Trainer data path fix (T1.2) | Week 1 | [x] merged 2026-09-25 (`8f47f45`), noted in Hamza's tracker |
 | Hamza | Species-level taxon grouping | Week 1 | [x] 2026-09-25, in Hamza's tracker |
-| Hamza | 20-genome sample gene matrix | Week 2, day 2 | [ ] |
+| Hamza | 20-genome sample gene matrix | Week 2, day 2 | [x] 2026-09-26, `experiments/genome/features/sample/` |
 | Hamza | Full gene matrix | End of week 2 | [ ] |
 | Suleman | Canonical antibiotic list for dropdowns | Week 1 | [x] in `SULEMAN_PROGRESS.md` week 1 |
-| Suleman | Timeline + RL response format | Day 1 | [ ] |
+| Hamza, Suleman | `train_models.py` from the command line no longer writes to the served models: default is `trained_models/candidates/<model>/`, like `/api/train/` | Week 1 | [x] 2026-09-26; checked the served files are byte-identical after a run |
+| Hamza | Timeline fix is in the backend only; the library copy (`amrpredict/timeline.py`) still has the >100% bug. Sync it in T2.6, then remove the strict xfail | Week 4 | [ ] |
+| Suleman | Templates still mention CNN-LSTM for the timeline (`mutation_timeline.html:164`, `train.html:132-137`, `datasets.html:468`); the API now says `Biological Simulation` only | Week 2 | [ ] |
+| Suleman | Timeline + RL response format | Day 1 | [~] proposed in `progress/formats/README.md` §4 with a sample; backend already returns the §4 timeline fields |
 | Suleman | Working RL output | Week 4 | [ ] |
 
 ---
@@ -235,6 +236,7 @@ Newest first. One line per work session: date, what I did, what is next, anythin
 
 | Date | Done | Next | Blockers |
 | --- | --- | --- | --- |
+| 2026-09-26 | Gene-matrix format agreed (§3, with notes) and timeline + RL format proposed (§4). `build_gene_matrix.py` and the 20-genome sample; `pyarrow` in `experiments/requirements.txt`. Trainer defaults to `candidates/`. Timeline partition, seed and honest label. Download and AMRFinderPlus restarted. Seen Hamza's cleaning v4 in `data_prep.py` (54 drug classes) | Full matrix once AMRFinderPlus finishes; Suleman to confirm §4 | None |
 | 2026-09-25 | AMRFinderPlus: found truncated FASTAs, download script for full assemblies, installed natively, tested 5 genomes, organism mapping, full run started | Finish the full run, then the 20-genome sample matrix | None (download takes about 3 hours) |
 | 2026-09-25 | Species-level taxon grouping: NCBI lookup table, species IDs in trainer and cleaning v3, quote fix, docs | Start AMRFinderPlus | None |
 | 2026-09-25 | T1.2 data path: trainer finds `Data/`, reads all files (seeded subset optional), `/api/train/` fails clearly, README updated | Species-level taxon grouping, then AMRFinderPlus | None |

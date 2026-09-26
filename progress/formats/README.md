@@ -7,8 +7,9 @@ The data that passes between our three areas of work. Proposed by Hamza on 2026-
 | [1. Model metrics](#1-model-metrics-metricsjson) | Hamza → Suleman | `backend/trained_models/lgbm_metrics.json`, `kmer_metrics.json` |
 | [2. Genome prediction response](#2-genome-prediction-response) | Hamza → Suleman | `POST /api/predict/` JSON |
 | [3. Gene matrix](#3-gene-matrix) | Ali → Hamza | `experiments/genome/features/gene_matrix.parquet` + `gene_info.csv` |
+| [4. Timeline + RL response](#4-timeline--rl-response) | Ali → Suleman | `POST /api/timeline/` JSON |
 
-Samples: [`lgbm_metrics.sample.json`](lgbm_metrics.sample.json), [`genome_response.sample.json`](genome_response.sample.json).
+Samples: [`lgbm_metrics.sample.json`](lgbm_metrics.sample.json), [`genome_response.sample.json`](genome_response.sample.json), [`timeline_response.sample.json`](timeline_response.sample.json).
 
 ---
 
@@ -110,3 +111,57 @@ For B6/B7 (Weeks 2–3). Built by Ali from `Data/amrfinder_output/*.tsv`.
 **Dependency:** parquet needs `pyarrow`, which is not in the project `.venv` yet. Add `pyarrow` to the experiments requirements when the first matrix is committed.
 
 **Sample first:** the 20-genome sample (Ali, Week 2 day 2) uses the same format, so the B6 code written against it works on the full matrix unchanged.
+
+### Ali's notes (agreed 2026-09-26)
+
+Agreed as above, with these details from the real AMRFinderPlus output:
+
+- **Filter is `Scope = core` and `Type = AMR`.** Core scope also holds a few `STRESS` / `BIOCIDE` hits (5 in the first 184 genomes), so `core` alone would let them in.
+- **`type`** comes from AMRFinderPlus `Subtype`: `POINT` and `POINT_DISRUPT` → `point_mutation`, everything else → `gene`.
+- **"Searched" means `Data/amrfinder_output/<Genome ID>.tsv` exists.** The runner writes that file only when AMRFinderPlus succeeds, and a searched genome with no hits still gets a header-only file. So far most searched genomes have no core hits (many are *S. pneumoniae*), so expect a lot of zero rows. That is real, not missing data.
+- **No `gene_matrix_plus.parquet` for now.** The run did not use `--plus`, so plus-scope genes were never searched. Re-running with `--plus` roughly doubles the run time; say if B6/B7 need it.
+- **`pyarrow`** is in the new `experiments/requirements.txt` (`pip install -r experiments/requirements.txt`).
+- **Builder and sample:** `experiments/genome/features/build_gene_matrix.py`. The 20-genome sample is in `experiments/genome/features/sample/` with the same two file names, so B6 code only changes the folder.
+
+---
+
+## 4. Timeline + RL response
+
+`POST /api/timeline/` (`backend/ml_models/mutation_timeline.py`). Proposed by Ali on 2026-09-26, waiting for Suleman. Sample: [`timeline_response.sample.json`](timeline_response.sample.json).
+
+Request is unchanged: `fasta_text` or `fasta_file`, `antibiotic`, `n_weeks` (1 to 52).
+
+### Timeline (Week 3, after the T3.1 fix)
+
+Today's fields stay. What changes:
+
+| Field | Type | Status | Meaning |
+|---|---|---|---|
+| `timeline[].week` | int | existing | 0 to `n_weeks` |
+| `timeline[].susceptible_fraction`, `intermediate_fraction`, `resistant_fraction` | number 0–100 | existing, **now a partition** | Percent of the population. The three add up to 100 every week (±0.01 from rounding). Today they can exceed 100 |
+| `timeline[].cumulative_mutations`, `mic_fold_change`, `treatment_effective` | | existing | Unchanged |
+| `failure_week` | int or `null` | existing | First week with `resistant_fraction` ≥ 50; `null` = never in the window |
+| `model_used` | string | existing, **value changed** | Always `Biological Simulation`. The `CNN-LSTM (trained)` label goes, since no trained model exists |
+| `simulation` | bool | **new** | Always `true`. Show "Simulation, not a trained model" next to the chart and in exports |
+| `seed` | int | **new** | Random seed used. Same inputs and seed give the same response |
+| `calibration` | object or `null` | **new, Week 3** | `{curves, drugs, rmse}` once fitted to published curves (T3.1); `null` before that, so show "not calibrated" |
+
+### RL panel (Week 4)
+
+A new `rl` object. **Field absent = RL not run** (Week 1 to 3, or the agent is not trained for this drug); hide the panel then.
+
+| Field | Type | Meaning |
+|---|---|---|
+| `rl.drugs` | list of strings | Drugs the agent can choose from each week (canonical names, e.g. `rifampicin`) |
+| `rl.n_weeks` | int | Same as the top-level `n_weeks` |
+| `rl.agent` | string | e.g. `PPO (stable-baselines3)` |
+| `rl.best` | string | `name` of the policy with the latest `failure_week` |
+| `rl.policies` | list | The RL policy and the fixed baselines, RL first |
+| `rl.policies[].name` | string | `rl`, `always_<drug>` or `cycle` |
+| `rl.policies[].label` | string | For the legend, e.g. `RL agent`, `Always ciprofloxacin`, `Cycle A → B → C` |
+| `rl.policies[].policy` | list of strings, length `n_weeks` | Drug given in weeks 1 to `n_weeks` |
+| `rl.policies[].resistant_fraction` | object: drug → list of numbers 0–100, length `n_weeks + 1` | Resistant percent per drug, week 0 to `n_weeks`. One line per drug on the chart |
+| `rl.policies[].failure_week` | int or `null` | First week the drug given that week has `resistant_fraction` ≥ 50 |
+| `rl.policies[].total_reward` | number | Episode reward (higher is better). For the comparison table only |
+
+**Display rules:** label the panel "Simulation + RL policy (not trained on patient data)". Percentages with one decimal. Show the policy as a row of drug chips per week under the chart.

@@ -1,0 +1,70 @@
+{
+  "antibiotic": "ciprofloxacin",
+  "antibiotic_class": "fluoroquinolone",
+  "sequence_length": 4641652,
+  "gc_content": 50.79,
+  "n_weeks": 4,
+  "timeline": [
+    {"week": 0, "susceptible_fraction": 95.0, "intermediate_fraction": 4.0, "resistant_fraction": 1.0, "cumulative_mutations": 0, "mic_fold_change": 1.0, "treatment_effective": true},
+    {"week": 1, "susceptible_fraction": 88.2, "intermediate_fraction": 7.6, "resistant_fraction": 4.2, "cumulative_mutations": 3, "mic_fold_change": 1.4, "treatment_effective": true},
+    {"week": 2, "susceptible_fraction": 70.5, "intermediate_fraction": 12.1, "resistant_fraction": 17.4, "cumulative_mutations": 7, "mic_fold_change": 2.9, "treatment_effective": true},
+    {"week": 3, "susceptible_fraction": 41.3, "intermediate_fraction": 14.9, "resistant_fraction": 43.8, "cumulative_mutations": 12, "mic_fold_change": 6.1, "treatment_effective": true},
+    {"week": 4, "susceptible_fraction": 22.6, "intermediate_fraction": 11.0, "resistant_fraction": 66.4, "cumulative_mutations": 16, "mic_fold_change": 11.8, "treatment_effective": false}
+  ],
+  "mutation_hotspots": [],
+  "resistance_genes": [
+    {"gene": "gyrA", "activation_week": 2, "resistance_contribution": 0.41}
+  ],
+  "failure_week": 4,
+  "final_resistant_percent": 66.4,
+  "peak_resistance": 92.0,
+  "model_used": "Biological Simulation",
+  "simulation": true,
+  "seed": 42,
+  "calibration": null,
+  "summary": "Under ciprofloxacin, resistance passes 50% in week 4.",
+  "rl": {
+    "drugs": ["ciprofloxacin", "ampicillin", "gentamicin"],
+    "n_weeks": 4,
+    "agent": "PPO (stable-baselines3)",
+    "best": "rl",
+    "policies": [
+      {
+        "name": "rl",
+        "label": "RL agent",
+        "policy": ["ciprofloxacin", "gentamicin", "ampicillin", "gentamicin"],
+        "resistant_fraction": {
+          "ciprofloxacin": [1.0, 4.2, 3.9, 3.6, 3.4],
+          "ampicillin": [1.0, 0.9, 0.9, 5.1, 4.7],
+          "gentamicin": [1.0, 0.9, 3.1, 2.9, 7.8]
+        },
+        "failure_week": null,
+        "total_reward": -3.2
+      },
+      {
+        "name": "always_ciprofloxacin",
+        "label": "Always ciprofloxacin",
+        "policy": ["ciprofloxacin", "ciprofloxacin", "ciprofloxacin", "ciprofloxacin"],
+        "resistant_fraction": {
+          "ciprofloxacin": [1.0, 4.2, 17.4, 43.8, 66.4],
+          "ampicillin": [1.0, 0.9, 0.9, 0.8, 0.8],
+          "gentamicin": [1.0, 0.9, 0.9, 0.8, 0.8]
+        },
+        "failure_week": 4,
+        "total_reward": -9.7
+      },
+      {
+        "name": "cycle",
+        "label": "Cycle A → B → C",
+        "policy": ["ciprofloxacin", "ampicillin", "gentamicin", "ciprofloxacin"],
+        "resistant_fraction": {
+          "ciprofloxacin": [1.0, 4.2, 3.9, 3.6, 12.0],
+          "ampicillin": [1.0, 0.9, 5.1, 4.7, 4.4],
+          "gentamicin": [1.0, 0.9, 0.9, 3.1, 2.9]
+        },
+        "failure_week": null,
+        "total_reward": -4.1
+      }
+    ]
+  }
+}
