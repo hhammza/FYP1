@@ -17,32 +17,13 @@ BACKEND_URL = os.environ.get('BACKEND_URL', 'http://127.0.0.1:8000/api')
 # Keep in step with amrpredict-lib/pyproject.toml.
 LIB_VERSION = os.environ.get('LIB_VERSION', '0.1.0')
 
-ANTIBIOTICS = [
-    'penicillin', 'ampicillin', 'ampicillin/sulbactam', 'amoxicillin',
-    'amoxicillin/clavulanic acid', 'piperacillin', 'piperacillin/tazobactam',
-    'oxacillin', 'temocillin', 'carbenicillin', 'ticarcillin/clavulanic acid',
-    'cefazolin', 'cefoxitin', 'cefotetan', 'cefmetazole', 'cefotaxime',
-    'cefotaxime/clavulanic acid', 'ceftazidime', 'ceftazidime/avibactam',
-    'ceftazidime/clavulanic acid', 'ceftolozane/tazobactam', 'ceftriaxone',
-    'cefepime', 'cefepime/taniborbactam', 'cefuroxime', 'cephalothin',
-    'cefixime', 'cefpodoxime', 'cefpodoxime/clavulanic acid', 'ceftibuten',
-    'cefoperazone/sulbactam', 'ceftiofur', 'cefpirome', 'cefozopran',
-    'ceftaroline', 'ceftobiprole',
-    'imipenem', 'imipenem/relebactam', 'meropenem', 'ertapenem', 'doripenem',
-    'aztreonam', 'ciprofloxacin', 'levofloxacin', 'norfloxacin',
-    'nalidixic acid', 'ofloxacin', 'moxifloxacin', 'pefloxacin',
-    'delafloxacin',
-    'gentamicin', 'tobramycin', 'amikacin', 'streptomycin', 'neomycin',
-    'kanamycin', 'spectinomycin', 'apramycin',
-    'tetracycline', 'oxytetracycline', 'doxycycline', 'minocycline',
-    'tigecycline',
-    'sulfamethoxazole', 'sulfisoxazole', 'trimethoprim',
-    'trimethoprim/sulfamethoxazole',
-    'chloramphenicol', 'florfenicol',
-    'azithromycin', 'erythromycin', 'clarithromycin', 'telithromycin',
-    'colistin', 'polymyxin b', 'vancomycin', 'teicoplanin',
-    'clindamycin', 'lincomycin', 'nitrofurantoin', 'fosfomycin', 'rifampicin',
-]
+# Generated from backend/amr_constants.py (the frontend deploys without
+# backend/); regenerate with `python backend/amr_constants.py`.
+with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'antibiotic_names.json'),
+          encoding='utf-8') as _fh:
+    _NAMES = json.load(_fh)
+ANTIBIOTICS = _NAMES['antibiotics']
+ANTIBIOTIC_ALIASES = _NAMES['aliases']
 
 BACTERIA_LIST = [
     'Escherichia coli', 'Klebsiella pneumoniae', 'Pseudomonas aeruginosa',
@@ -313,24 +294,6 @@ def health_proxy():
     return jsonify(data), status
 
 
-# Spellings that exist in the training vocabulary but should not be offered as
-# choices: a drug class rather than a drug, two misspellings, and duplicate
-# separator variants of combinations that also appear in canonical '/' form.
-# Excluding them keeps the dropdown honest (everything listed is a value the
-# model recognises) without showing the same drug three times.
-VOCAB_EXCLUDE = {
-    'carbapenem',                     # a class, not a drug
-    'geamycin',                       # misspelling of gentamicin
-    'trimotheprim',                   # misspelling of trimethoprim
-    'ampicillin-sulbactam',           # → ampicillin/sulbactam
-    'ampicillin_clavulanic_acid',     # → amoxicillin/clavulanic acid
-    'piperacillin-tazobactam',        # → piperacillin/tazobactam
-    'trimethoprim-sulfamethoxazole',  # → trimethoprim/sulfamethoxazole
-    'sulfamethoxazole/trimethoprim',  # → trimethoprim/sulfamethoxazole
-    'co_trimoxazole',                 # → trimethoprim/sulfamethoxazole
-    'rifampin',                       # legacy spelling; canonical name is rifampicin
-}
-
 _vocab_cache = {}
 
 
@@ -358,8 +321,10 @@ def antibiotics_api():
     vocab = model_vocabulary()
     names = (vocab.get(model) or {}).get('antibiotics') if model else None
     if names:
-        canonical = ["rifampicin" if n == "rifampin" else n for n in names]
-        return jsonify([n for n in canonical if n not in VOCAB_EXCLUDE])
+        # Offer each drug once, under its canonical name; names the cleaning
+        # drops (drug classes such as 'carbapenem') are not offered at all
+        canonical = [ANTIBIOTIC_ALIASES.get(n, n) for n in names]
+        return jsonify(list(dict.fromkeys(n for n in canonical if n)))
     return jsonify(ANTIBIOTICS)
 
 

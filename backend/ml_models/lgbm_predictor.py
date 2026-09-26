@@ -10,6 +10,7 @@ import pandas as pd
 import joblib
 import warnings
 
+from amr_constants import MIC_SIGN_ALIASES
 from ml_models.common import (TRAINING_DRUG_CLASS_MAP, load_metrics, load_species_map,
                               normalize_antibiotic)
 
@@ -175,7 +176,7 @@ class LGBMResistancePredictor:
     # Comparators a user may type or pick that the booster has no category for.
     # Mapping them onto the nearest learned sign beats silently dropping the
     # value into the unknown bucket, which reads as "no MIC sign given".
-    MIC_SIGN_ALIASES = {'>=': '>', '\u2265': '>', '\u2264': '<=', '=<': '<=', '=>': '>'}
+    MIC_SIGN_ALIASES = MIC_SIGN_ALIASES
 
     def _normalize_antibiotic(self, antibiotic):
         # Same alias table the training rows went through (train_models.py)

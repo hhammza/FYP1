@@ -18,6 +18,24 @@ Baseline is commit **`52ae361`** *(Add amrpredict library and macOS launcher, 20
 
 ---
 
+## Antibiotic names and label maps in one file (2026-09-26)
+
+### Findings
+- The alias table and drug-class map were kept identical by hand in `data_prep.py` and `train_models.py`, the dropdown list was typed twice (`frontend/app.py`, `views.py`), and the frontend kept its own exclusion list that mirrored the aliases.
+- The K-mer dropdown offered `cefalothin`, the old spelling, while every other list said `cephalothin`.
+
+### Code
+| File | Change |
+|---|---|
+| [backend/amr_constants.py](backend/amr_constants.py) | New. `DRUG_CLASS_MAP` (138 entries), `ANTIBIOTIC_ALIASES`, `PHENOTYPE_MAP` with each trainer's subset, `MIC_SIGN_ALIASES`, `UI_ANTIBIOTICS` (82), `normalize_antibiotic()` (now also collapses double spaces). Running it writes the frontend copy |
+| [frontend/antibiotic_names.json](frontend/antibiotic_names.json) | New, generated: the frontend deploys without `backend/` |
+| [backend/tests/test_amr_constants.py](backend/tests/test_amr_constants.py) | New. Fails if the frontend copy is stale, an alias chains or lacks a class, or a dropdown name is a variant |
+| `data_prep.py`, `train_models.py`, `ml_models/common.py`, `lgbm_predictor.py`, `api/views.py`, `frontend/app.py` | Import from it; their own copies removed (and the unused `MIC_SIGN_MAP` in the trainer) |
+
+Every value checked identical before and after; the cleaned table is unchanged (1,521,644 rows, 130 names), so still cleaning v4. `amrpredict-lib` keeps its own copies until the library sync (T2.6).
+
+---
+
 ## Handover formats, gene matrix, trainer default and timeline fix (2026-09-26)
 
 ### Findings

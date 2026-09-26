@@ -1,34 +1,20 @@
 """Helpers shared by the prediction engines.
 
-The antibiotic aliases, drug classes and species map live in train_models.py, which is
-what the served models were trained with; reading them from there keeps a
-user's input spelled the way the training rows were.
+Antibiotic names and drug classes come from amr_constants.py, the same table
+the training rows went through, so a user's input is spelled the way the
+training rows were. The species map lives in train_models.py.
 """
 import json
 import os
 
-try:
-    from train_models import ANTIBIOTIC_ALIASES, load_species_map
-    from train_models import DRUG_CLASS_MAP as TRAINING_DRUG_CLASS_MAP
-except ImportError:  # backend/ not on sys.path, e.g. a bare `python -c`
-    ANTIBIOTIC_ALIASES = {'rifampin': 'rifampicin'}
-    TRAINING_DRUG_CLASS_MAP = {}
+from amr_constants import ANTIBIOTIC_ALIASES, normalize_antibiotic  # noqa: F401
+from amr_constants import DRUG_CLASS_MAP as TRAINING_DRUG_CLASS_MAP  # noqa: F401
 
+try:
+    from train_models import load_species_map
+except ImportError:  # backend/ not on sys.path, e.g. a bare `python -c`
     def load_species_map():
         return {}
-
-
-def normalize_antibiotic(name):
-    """Lower-case, strip, and map a spelling variant to its canonical name.
-
-    Names the alias table drops from training (drug classes such as
-    'carbapenem') are returned unchanged; the model then reports them as
-    unrecognised instead of silently answering for a different drug.
-    """
-    if name in (None, ''):
-        return name
-    ab = str(name).strip().lower()
-    return ANTIBIOTIC_ALIASES.get(ab) or ab
 
 
 def load_metrics(path):

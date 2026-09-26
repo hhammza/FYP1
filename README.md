@@ -68,6 +68,7 @@ FYP1/
 │   │   ├── lgbm_predictor.py    LightGBM + heuristic fallback
 │   │   ├── resistance_predictor.py  K-mer RandomForest + heuristic fallback
 │   │   └── mutation_timeline.py Logistic-growth simulation
+│   ├── amr_constants.py         Antibiotic names, aliases, drug classes, label maps: the one copy
 │   ├── train_models.py          Production trainer: raw CSV/FASTA → artifacts
 │   ├── trained_models/          6 committed artifacts (~7 MB) + model_report.json
 │   ├── Procfile / railway.toml  Gunicorn deploy config
@@ -478,10 +479,10 @@ Other counts to keep straight:
 
 | Thing | Count | Where |
 |---|---|---|
-| Antibiotics offered in the UI dropdowns | 48 | `frontend/app.py:ANTIBIOTICS` |
+| Antibiotics offered in the UI dropdowns | 82 | `backend/amr_constants.py:UI_ANTIBIOTICS` (fallback; each page shows the names its model knows) |
 | Antibiotics the K-mer model knows | 62 | `ab_list` inside the pickle |
 | Antibiotics with a LightGBM rate table | 76 | `ab_rate_full.joblib` |
-| Drug classes mapped | 14 | `DRUG_CLASS_MAP` (48 entries) |
+| Drug classes mapped | 24 | `backend/amr_constants.py:DRUG_CLASS_MAP` (138 entries) |
 | Organisms in the quick-select | 15 | `frontend/app.py:BACTERIA_LIST` |
 | LightGBM trees / leaves | 217 / 63 | the `.txt` model file |
 | K-mer forest | 100 trees, depth 15, 321 features | the pickle |

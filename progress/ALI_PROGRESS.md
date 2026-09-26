@@ -238,6 +238,7 @@ Newest first. One line per work session: date, what I did, what is next, anythin
 
 | Date | Done | Next | Blockers |
 | --- | --- | --- | --- |
+| 2026-09-26 | Names and label maps centralised in `backend/amr_constants.py` (all files, values unchanged, frontend copy generated and tested); timeline applies the aliases | Full gene matrix; sensitivity analysis | None |
 | 2026-09-26 | 13 more antibiotic aliases and `sulfa` dropped (still v4: cleaned table unchanged); dropdown item ticked | Full gene matrix; sensitivity analysis | None |
 | 2026-09-26 | Gene-matrix format agreed (§3, with notes) and timeline + RL format proposed (§4). `build_gene_matrix.py` and the 20-genome sample; `pyarrow` in `experiments/requirements.txt`. Trainer defaults to `candidates/`. Timeline partition, seed and honest label. Download and AMRFinderPlus restarted. Seen Hamza's cleaning v4 in `data_prep.py` (54 drug classes) | Full matrix once AMRFinderPlus finishes; Suleman to confirm §4 | None |
 | 2026-09-25 | AMRFinderPlus: found truncated FASTAs, download script for full assemblies, installed natively, tested 5 genomes, organism mapping, full run started | Finish the full run, then the 20-genome sample matrix | None (download takes about 3 hours) |

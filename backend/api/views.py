@@ -6,6 +6,7 @@ from django.http import JsonResponse
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
+from amr_constants import UI_ANTIBIOTICS
 from api import model_registry
 
 
@@ -189,34 +190,7 @@ class MutationTimelineView(View):
 class AntibioticListView(View):
     """Return list of supported antibiotics."""
     def get(self, request):
-        antibiotics = [
-            'penicillin', 'ampicillin', 'ampicillin/sulbactam', 'amoxicillin',
-            'amoxicillin/clavulanic acid', 'piperacillin', 'piperacillin/tazobactam',
-            'oxacillin', 'temocillin', 'carbenicillin', 'ticarcillin/clavulanic acid',
-            'cefazolin', 'cefoxitin', 'cefotetan', 'cefmetazole', 'cefotaxime',
-            'cefotaxime/clavulanic acid', 'ceftazidime', 'ceftazidime/avibactam',
-            'ceftazidime/clavulanic acid', 'ceftolozane/tazobactam', 'ceftriaxone',
-            'cefepime', 'cefepime/taniborbactam', 'cefuroxime', 'cephalothin',
-            'cefixime', 'cefpodoxime', 'cefpodoxime/clavulanic acid', 'ceftibuten',
-            'cefoperazone/sulbactam', 'ceftiofur', 'cefpirome', 'cefozopran',
-            'ceftaroline', 'ceftobiprole',
-            'imipenem', 'imipenem/relebactam', 'meropenem', 'ertapenem', 'doripenem',
-            'aztreonam', 'ciprofloxacin', 'levofloxacin', 'norfloxacin',
-            'nalidixic acid', 'ofloxacin', 'moxifloxacin', 'pefloxacin',
-            'delafloxacin',
-            'gentamicin', 'tobramycin', 'amikacin', 'streptomycin', 'neomycin',
-            'kanamycin', 'spectinomycin', 'apramycin',
-            'tetracycline', 'oxytetracycline', 'doxycycline', 'minocycline',
-            'tigecycline',
-            'sulfamethoxazole', 'sulfisoxazole', 'trimethoprim',
-            'trimethoprim/sulfamethoxazole',
-            'chloramphenicol', 'florfenicol',
-            'azithromycin', 'erythromycin', 'clarithromycin', 'telithromycin',
-            'colistin', 'polymyxin b', 'vancomycin', 'teicoplanin',
-            'clindamycin', 'lincomycin', 'nitrofurantoin', 'fosfomycin', 'rifampicin',
-        ]
-        antibiotics = [ab for ab in antibiotics if ab != 'rifampin']
-        return JsonResponse({'antibiotics': sorted(antibiotics)})
+        return JsonResponse({'antibiotics': sorted(UI_ANTIBIOTICS)})
 
 
 @method_decorator(csrf_exempt, name='dispatch')
