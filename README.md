@@ -379,7 +379,7 @@ The bundled artifacts are **byte-identical** to `backend/trained_models/` (verif
 
 ### 8.1 The report pages: `/models` and `/compare`
 
-Both pages are listed under **ML Models** in the navbar. They read one file,
+Both pages are listed under **Insights** in the navbar, the menu for pages that explain results (ML Models holds only the two predictors). They read one file,
 `backend/trained_models/model_report.json`, which the Django endpoint
 `GET /api/models/` serves with a live "is the model loaded" flag added. The file
 is committed so the deployed backend can serve it without the data or the
@@ -396,7 +396,7 @@ colour-blind separation. Shared chart code lives in `static/js/report-charts.js`
 
 ### 8.2 The resistance genes page: `/genes`
 
-Also under **ML Models**. It shows what NCBI AMRFinderPlus found in the complete
+Also under **Insights**. It shows what NCBI AMRFinderPlus found in the complete
 genome of every isolate (core AMR genes and point mutations only), from two
 committed files that `experiments/genome/features/export_gene_report.py` builds:
 `backend/trained_models/gene_report.json` (served by `GET /api/genes/`) and

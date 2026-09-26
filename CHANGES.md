@@ -30,7 +30,7 @@ Baseline is commit **`52ae361`** *(Add amrpredict library and macOS launcher, 20
 
 ## Resistance genes page (2026-09-26)
 
-A new `/genes` page (ML Models menu) shows the AMRFinderPlus results: run summary, top genes and mutations, genes per genome, drug classes, a genus × gene heatmap, gene vs lab result, and a genome lookup.
+A new `/genes` page (Insights menu, next to the two model reports, which moved there from ML Models the same day) shows the AMRFinderPlus results: run summary, top genes and mutations, genes per genome, drug classes, a genus × gene heatmap, gene vs lab result, and a genome lookup.
 
 ### Findings
 - Only 118 of the searched genomes have laboratory results; the other labels on them are BV-BRC predictions made from the genome, so the gene vs lab table uses laboratory results by default and shows the predictions behind a labelled toggle.
