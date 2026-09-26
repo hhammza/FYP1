@@ -115,8 +115,10 @@ comparable result.
 | `features.drop` | feature names to remove, this is how ablations are expressed |
 | `model.type` | `lightgbm`, `logistic`, `random_forest`, `xgboost`*, `catboost`* |
 | `model.monotone_on` | LightGBM only, features whose effect must be non-decreasing |
-| `threshold.strategy` | `fixed`, `maximize_f1`, `vme_constrained` |
+| `threshold.strategy` | `fixed`, `maximize_f1`, `vme_constrained` (+ `vme_budget`: highest threshold whose validation VME fits, i.e. the lowest ME within it) |
+| `calibration.method` | `isotonic` or `platt`. The validation genomes are halved: the calibrator is fitted on one half, the threshold chosen on the other. `metrics.json` gets a `calibration` block with Brier and AUC before and after, and reliability points |
 | `data.label_sources` | `["lab"]`, `["computational"]`, or both |
+| `data.taxon_level` | `strain` (default, the export's own IDs) or `species` (cleaning v3's `species_taxon_id`, which is what a user can type, e.g. 562). Costs about 0.018 AUC (A10 vs A10s) |
 
 \* needs `pip install xgboost` / `catboost`; the run exits with that hint if missing.
 

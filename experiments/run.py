@@ -83,6 +83,7 @@ def run(cfg, verbose=True):
         normalize_antibiotics=dcfg.get('normalize_antibiotics', True),
         verbose=verbose)
     df = select_rows(df, dcfg, verbose)
+    df = apply_taxon_level(df, dcfg.get('taxon_level', 'strain'), verbose)
 
     # ── Split ────────────────────────────────────────────────────────────
     scfg = cfg['split']
@@ -133,19 +134,48 @@ def run(cfg, verbose=True):
     model.fit(X_fit, y_fit, X_val, y_val, cat_features)
     fit_seconds = time.time() - t_fit
 
-    # ── Threshold on validation, never on test ───────────────────────────
+    # ── Calibration and threshold on validation, never on test ───────────
+    # With calibration on, the validation genomes are split in two: the
+    # calibrator is fitted on one half and the threshold chosen on the other,
+    # so neither choice is made on rows it is then judged by.
+    val_raw = model.predict_proba(X_val)
+    ccfg = cfg.get('calibration')
+    calibrator = None
+    thr_pos = np.arange(len(y_val))
+    if ccfg:
+        val_df = train_df.iloc[val_pos].reset_index(drop=True)
+        cal_pos, thr_pos = splits.inner_folds(val_df, n_splits=2, seed=scfg.get('seed', 42))[0]
+        calibrator = metrics.fit_calibrator(y_val[cal_pos], val_raw[cal_pos],
+                                            ccfg.get('method', 'isotonic'))
+    val_score = metrics.apply_calibrator(calibrator, val_raw)
+
     tcfg = cfg['threshold']
-    val_score = model.predict_proba(X_val)
     threshold = metrics.pick_threshold(
-        y_val, val_score,
+        y_val[thr_pos], val_score[thr_pos],
         strategy=tcfg.get('strategy', 'fixed'),
         fixed=tcfg.get('fixed', 0.5),
         vme_budget=tcfg.get('vme_budget', 0.03))
 
     # ── Evaluate ─────────────────────────────────────────────────────────
-    test_score = model.predict_proba(X_test)
+    test_raw = model.predict_proba(X_test)
+    test_score = metrics.apply_calibrator(calibrator, test_raw)
     result = metrics.evaluate(y_test, test_score, threshold)
     val_result = metrics.evaluate(y_val, val_score, threshold)
+
+    calibration = None
+    if calibrator:
+        raw = metrics.evaluate(y_test, test_raw, threshold)
+        calibration = {
+            'method': calibrator['method'],
+            'fitted_on_rows': int(len(cal_pos)),
+            'threshold_chosen_on_rows': int(len(thr_pos)),
+            'test_brier_before': raw['brier'], 'test_brier_after': result['brier'],
+            'test_auc_before': raw['auc_roc'], 'test_auc_after': result['auc_roc'],
+            'reliability_before': metrics.calibration_curve_points(y_test, test_raw),
+            'reliability_after': metrics.calibration_curve_points(y_test, test_score),
+        }
+        print(f'[calibrate] {calibrator["method"]}: Brier {raw["brier"]:.4f} → '
+              f'{result["brier"]:.4f}, AUC {raw["auc_roc"]:.4f} → {result["auc_roc"]:.4f}')
 
     ecfg = cfg['evaluation']
     test_rows = df.loc[test_mask]
@@ -183,23 +213,27 @@ def run(cfg, verbose=True):
         'model_info': model.info,
         'test': result,
         'validation': val_result,
+        'calibration': calibration,
         'per_antibiotic': by_drug,
         'config': cfg,
     }
     with open(os.path.join(run_dir, 'metrics.json'), 'w') as fh:
         json.dump(payload, fh, indent=2)
 
-    pd.DataFrame({
+    pred = pd.DataFrame({
         'genome_id': test_rows['Genome ID'].to_numpy(),
         'antibiotic': test_rows['Antibiotic'].to_numpy(),
         'genus': test_rows['genus'].to_numpy(),
         'y_true': y_test,
         'y_score': test_score,
-    }).to_csv(os.path.join(run_dir, 'predictions.csv'), index=False)
+    })
+    if calibrator:
+        pred['y_score_raw'] = test_raw
+    pred.to_csv(os.path.join(run_dir, 'predictions.csv'), index=False)
 
     model.save(os.path.join(run_dir, 'model', 'model'))
     export_inference_bundle(run_dir, df, train_mask, features, cat_features,
-                            X_train_all, threshold, cfg, enc_mode)
+                            X_train_all, threshold, cfg, enc_mode, calibrator)
     with open(os.path.join(run_dir, 'config.snapshot.json'), 'w') as fh:
         json.dump(cfg, fh, indent=2)
 
@@ -209,8 +243,28 @@ def run(cfg, verbose=True):
     return payload
 
 
+def apply_taxon_level(df, level='strain', verbose=True):
+    """Use species-level Taxon IDs in place of the export's strain-level ones.
+
+    The export spreads one species over many strain IDs (E. coli over ~1,200,
+    never 562), so a taxon a user can actually type never matches a strain
+    rate. 'species' swaps in species_taxon_id (cleaning v3) for the feature
+    and for the taxon x antibiotic rate table.
+    """
+    if level == 'strain':
+        return df
+    if level != 'species':
+        raise ValueError(f'unknown taxon_level {level!r}')
+    out = df.copy()
+    out['Taxon ID'] = out['species_taxon_id']
+    if verbose:
+        print(f'[taxon] species level: {df["Taxon ID"].nunique():,} strain IDs → '
+              f'{out["Taxon ID"].nunique():,} species IDs')
+    return out
+
+
 def export_inference_bundle(run_dir, df, train_mask, features, cat_features,
-                            X_train, threshold, cfg, enc_mode):
+                            X_train, threshold, cfg, enc_mode, calibrator=None):
     """Everything needed to predict with this model later.
 
     A saved booster alone is not enough: three of its features are resistance
@@ -250,6 +304,12 @@ def export_inference_bundle(run_dir, df, train_mask, features, cat_features,
             'encoding_mode': enc_mode,
             'global_mean': global_mean,
             'threshold': float(threshold),
+            'calibration': calibrator,
+            'taxon_level': cfg['data'].get('taxon_level', 'strain'),
+            # What produced the categorical inputs, so inference can rebuild
+            # them exactly as training did.
+            'drug_class_map': data_prep.DRUG_CLASS_MAP,
+            'antibiotics_normalized': cfg['data'].get('normalize_antibiotics', True),
             'trained_on': {
                 'rows': int(train_mask.sum()),
                 'genomes': int(train_rows['Genome ID'].nunique()),

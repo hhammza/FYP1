@@ -29,6 +29,7 @@ def evaluate(y_true, y_score, threshold=0.5):
         'auc_roc': float(roc_auc_score(y_true, y_score)) if both else float('nan'),
         'auc_pr': float(average_precision_score(y_true, y_score)) if both else float('nan'),
         'f1': float(f1_score(y_true, y_pred, zero_division=0)),
+        'accuracy': float((tp + tn) / len(y_true)) if len(y_true) else float('nan'),
         'balanced_acc': float(balanced_accuracy_score(y_true, y_pred)),
         'brier': float(brier_score_loss(y_true, y_score)),
         'sensitivity': float(tp / (tp + fn)) if (tp + fn) else float('nan'),
@@ -37,6 +38,61 @@ def evaluate(y_true, y_score, threshold=0.5):
         'major_error': float(fp / (tn + fp)) if (tn + fp) else float('nan'),
         'tp': int(tp), 'fp': int(fp), 'tn': int(tn), 'fn': int(fn),
     }
+
+
+def fit_calibrator(y_true, y_score, method='isotonic'):
+    """Map raw scores to calibrated probabilities, as plain numbers.
+
+    Returned as a dict rather than a fitted estimator so the served model can
+    apply it with numpy alone (no pickled scikit-learn object to go stale).
+    Both methods are monotone, so they never reorder predictions; Platt keeps
+    AUC exactly, isotonic can merge near-equal scores into ties.
+    """
+    y_true = np.asarray(y_true)
+    y_score = np.asarray(y_score, dtype=float)
+    if method == 'isotonic':
+        from sklearn.isotonic import IsotonicRegression
+        iso = IsotonicRegression(y_min=0.0, y_max=1.0, out_of_bounds='clip').fit(y_score, y_true)
+        return {'method': 'isotonic',
+                'x': [float(v) for v in iso.X_thresholds_],
+                'y': [float(v) for v in iso.y_thresholds_]}
+    if method == 'platt':
+        from sklearn.linear_model import LogisticRegression
+        eps = 1e-6
+        logit = np.log(np.clip(y_score, eps, 1 - eps) / np.clip(1 - y_score, eps, 1 - eps))
+        lr = LogisticRegression(C=1e6).fit(logit.reshape(-1, 1), y_true)
+        return {'method': 'platt', 'a': float(lr.coef_[0][0]), 'b': float(lr.intercept_[0])}
+    raise ValueError(f'unknown calibration method {method!r}')
+
+
+def apply_calibrator(cal, y_score):
+    """Apply a calibrator from fit_calibrator(); None returns scores unchanged."""
+    y_score = np.asarray(y_score, dtype=float)
+    if not cal:
+        return y_score
+    if cal['method'] == 'isotonic':
+        return np.interp(y_score, cal['x'], cal['y'])
+    if cal['method'] == 'platt':
+        eps = 1e-6
+        logit = np.log(np.clip(y_score, eps, 1 - eps) / np.clip(1 - y_score, eps, 1 - eps))
+        return 1.0 / (1.0 + np.exp(-(cal['a'] * logit + cal['b'])))
+    raise ValueError(f'unknown calibration method {cal["method"]!r}')
+
+
+def calibration_curve_points(y_true, y_score, n_bins=10):
+    """Reliability diagram: mean predicted vs observed rate per score decile."""
+    y_true = np.asarray(y_true)
+    y_score = np.asarray(y_score, dtype=float)
+    edges = np.unique(np.quantile(y_score, np.linspace(0, 1, n_bins + 1)))
+    bins = np.clip(np.searchsorted(edges, y_score, side='right') - 1, 0, len(edges) - 2)
+    out = []
+    for b in range(len(edges) - 1):
+        m = bins == b
+        if m.any():
+            out.append({'predicted': round(float(y_score[m].mean()), 4),
+                        'observed': round(float(y_true[m].mean()), 4),
+                        'n': int(m.sum())})
+    return out
 
 
 def pick_threshold(y_true, y_score, strategy='fixed', fixed=0.5, vme_budget=0.03):
