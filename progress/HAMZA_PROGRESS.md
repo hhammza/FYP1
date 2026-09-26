@@ -25,7 +25,7 @@ Other people's files: ask the owner, or comment in their pull request.
 
 ## Day 1: leader tasks and handover formats
 
-- [~] **Scope email to the supervisor:** drug design and images descoped, GAN run as an experiment, RL built as a small agent on the simulation. Keep the reply. *Drafted 2026-09-25; send, then paste the reply date here*
+- [x] **Scope email to the supervisor:** drug design and images descoped, GAN run as an experiment, RL built as a small agent on the simulation. Keep the reply. *Sent 2026-09-25; waiting for the reply (paste its date and any scope changes here)*
 - [x] **`metrics.json` format** agreed with Suleman: run id, date, AUC with CI, AUPRC, F1, accuracy, recall, VME, ME, threshold, train rows, test rows, genera, git commit. Give Suleman a sample file. *Sample is the real file: [`progress/formats/lgbm_metrics.sample.json`](formats/lgbm_metrics.sample.json)*
 - [x] **Genome prediction response** agreed with Suleman: today's response plus `genes_found: [{gene, drug_class}]`. *Sample: [`progress/formats/genome_response.sample.json`](formats/genome_response.sample.json)*
 - [~] **Gene matrix format** agreed with Ali: parquet, one row per `Genome ID`, one 0/1 column per gene. *Proposed with a `gene_info.csv` sidecar and a string `Genome ID` index; waiting for Ali*
@@ -150,7 +150,7 @@ New folder `experiments/genome/`, reusing `lib/splits.py` and `lib/metrics.py`.
 | To Suleman | New response fields: `/forecast` has `model_run`, `calibrated`; both pages can return `model_used: "Heuristic fallback"` (show a warning); `/predict` has `antibiotic_known` | Week 1 | [ ] |
 | To Suleman | Genome response with `genes_found` | Week 3 | [ ] |
 | To Ali | Proposed gene-matrix format in `progress/formats/README.md` §3 (string `Genome ID` index, zero rows for searched genomes, `gene_info.csv`); `pyarrow` needed | Day 1 | [~] waiting for Ali |
-| To supervisor | Scope email | Day 1 | [~] drafted 2026-09-25 |
+| To supervisor | Scope email | Day 1 | [x] sent 2026-09-25; reply pending |
 
 ---
 
