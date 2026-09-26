@@ -28,6 +28,10 @@ caffeinate -i python experiments/genome/features/download_genomes.py --workers 1
 
 # 2. AMRFinderPlus on every downloaded genome: 10 to 45 seconds per genome
 caffeinate -i python experiments/genome/features/run_amrfinder.py --jobs 4 --threads 2
+
+# 3. Gene matrix from the AMRFinderPlus output: seconds (needs pyarrow)
+python experiments/genome/features/build_gene_matrix.py             # every searched genome
+python experiments/genome/features/build_gene_matrix.py --sample 20 # into sample/
 ```
 
 Test on a few genomes first with `--limit 5` on either script.
@@ -39,6 +43,12 @@ Test on a few genomes first with `--limit 5` on either script.
 | `Data/genomes_full/failures.csv` | downloads that failed or came back short |
 | `Data/amrfinder_output/<genome_id>.tsv` | AMRFinderPlus hits for one genome |
 | `Data/amrfinder_output/run_summary.csv` | organism used, hits, seconds, error, tool and database version |
+
+| Output (committed) | What it holds |
+| --- | --- |
+| `experiments/genome/features/gene_matrix.parquet` | genome x gene 0/1 matrix, format in `progress/formats/README.md` section 3 |
+| `experiments/genome/features/gene_info.csv` | symbol, type, class, subclass and genome count for each column |
+| `experiments/genome/features/sample/` | the same two files for a fixed 20-genome sample |
 
 A download is kept only when its length is within 1% of the length BV-BRC reports.
 

@@ -1,0 +1,5 @@
+# Experiments use the backend stack plus these. Install from the project root:
+#     pip install -r experiments/requirements.txt
+-r ../backend/requirements.txt
+scipy>=1.11
+pyarrow>=15
