@@ -288,6 +288,12 @@ def train_model():
     return render_template('train.html', result=result, error=error)
 
 
+@app.route('/favicon.ico')
+def favicon():
+    # Browsers ask for /favicon.ico directly, whatever the page links
+    return app.send_static_file('favicon.ico')
+
+
 @app.route('/api/health')
 def health_proxy():
     data, status = backend_get('health/')
