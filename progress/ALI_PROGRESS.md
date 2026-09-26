@@ -28,7 +28,7 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done · `[!]` blocke
 
 - [x] **Gene matrix format** agreed with Hamza: parquet, one row per `Genome ID`, one 0/1 column per gene symbol. *Agreed 2026-09-26 with notes: filter `core` + `Type = AMR`, no plus file (run had no `--plus`)*
 
-- [~] **Timeline + RL response** agreed with Suleman: weekly susceptible, intermediate and resistant fractions, plus a `policy` list (drug used each week). *Proposed 2026-09-26 with a sample; waiting for Suleman*
+- [x] **Timeline + RL response** agreed with Suleman: weekly susceptible, intermediate and resistant fractions, plus a `policy` list (drug used each week). *Agreed 2026-09-26; his three questions answered in formats §4 (tie rule for `rl.best`, requested drug always in `rl.drugs`, `calibration` types)*
 
 - [x] Both formats written down in the team channel or in this file (below)
 
@@ -215,7 +215,7 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done · `[!]` blocke
 | Hamza, Suleman | `train_models.py` from the command line no longer writes to the served models: default is `trained_models/candidates/<model>/`, like `/api/train/` | Week 1 | [x] 2026-09-26; checked the served files are byte-identical after a run |
 | Hamza | Timeline fix is in the backend only; the library copy (`amrpredict/timeline.py`) still has the >100% bug. Sync it in T2.6, then remove the strict xfail | Week 4 | [ ] |
 | Suleman | Templates still mention CNN-LSTM for the timeline (`mutation_timeline.html:164`, `train.html:132-137`, `datasets.html:468`); the API now says `Biological Simulation` only | Week 2 | [ ] |
-| Suleman | Timeline + RL response format | Day 1 | [~] proposed in `progress/formats/README.md` §4 with a sample; backend already returns the §4 timeline fields |
+| Suleman | Timeline + RL response format | Day 1 | [x] agreed 2026-09-26, `progress/formats/README.md` §4 |
 | Suleman | Working RL output | Week 4 | [ ] |
 
 ---

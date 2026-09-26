@@ -127,7 +127,7 @@ Agreed as above, with these details from the real AMRFinderPlus output:
 
 ## 4. Timeline + RL response
 
-`POST /api/timeline/` (`backend/ml_models/mutation_timeline.py`). Proposed by Ali on 2026-09-26, waiting for Suleman. Sample: [`timeline_response.sample.json`](timeline_response.sample.json).
+`POST /api/timeline/` (`backend/ml_models/mutation_timeline.py`). Proposed by Ali and agreed with Suleman on 2026-09-26 (checked against the live response). Sample: [`timeline_response.sample.json`](timeline_response.sample.json).
 
 Request is unchanged: `fasta_text` or `fasta_file`, `antibiotic`, `n_weeks` (1 to 52).
 
@@ -145,7 +145,7 @@ Today's fields stay. What changes:
 | `model_used` | string | existing, **value changed** | Always `Biological Simulation`. The `CNN-LSTM (trained)` label goes, since no trained model exists |
 | `simulation` | bool | **new** | Always `true`. Show "Simulation, not a trained model" next to the chart and in exports |
 | `seed` | int | **new** | Random seed used. Same inputs and seed give the same response |
-| `calibration` | object or `null` | **new, Week 3** | `{curves, drugs, rmse}` once fitted to published curves (T3.1); `null` before that, so show "not calibrated" |
+| `calibration` | object or `null` | **new, Week 3** | `{curves, drugs, rmse}` once fitted to published curves (T3.1); `null` before that, so show "not calibrated". Types below |
 
 ### RL panel (Week 4)
 
@@ -153,11 +153,11 @@ A new `rl` object. **Field absent = RL not run** (Week 1 to 3, or the agent is n
 
 | Field | Type | Meaning |
 |---|---|---|
-| `rl.drugs` | list of strings | Drugs the agent can choose from each week (canonical names, e.g. `rifampicin`) |
+| `rl.drugs` | list of strings | Drugs the agent can choose from each week (canonical names, e.g. `rifampicin`). **The requested `antibiotic` is always in it, first** |
 | `rl.n_weeks` | int | Same as the top-level `n_weeks` |
 | `rl.agent` | string | e.g. `PPO (stable-baselines3)` |
-| `rl.best` | string | `name` of the policy with the latest `failure_week` |
-| `rl.policies` | list | The RL policy and the fixed baselines, RL first |
+| `rl.best` | string | `name` of the policy with the latest `failure_week`; ties broken as below |
+| `rl.policies` | list | The RL policy and the fixed baselines, RL first. Always includes `always_<requested antibiotic>` |
 | `rl.policies[].name` | string | `rl`, `always_<drug>` or `cycle` |
 | `rl.policies[].label` | string | For the legend, e.g. `RL agent`, `Always ciprofloxacin`, `Cycle A → B → C` |
 | `rl.policies[].policy` | list of strings, length `n_weeks` | Drug given in weeks 1 to `n_weeks` |
@@ -166,3 +166,17 @@ A new `rl` object. **Field absent = RL not run** (Week 1 to 3, or the agent is n
 | `rl.policies[].total_reward` | number | Episode reward (higher is better). For the comparison table only |
 
 **Display rules:** label the panel "Simulation + RL policy (not trained on patient data)". Percentages with one decimal. Show the policy as a row of drug chips per week under the chart.
+
+### Answers to Suleman's questions (2026-09-26)
+
+1. **Tie for `rl.best`.** Compare `failure_week` with `null` (never fails in the window) as later than any week. If several policies share the latest, the higher `total_reward` wins; if that ties too, the one earlier in `rl.policies` wins, so the RL agent wins a full tie. The backend applies this rule, so the UI can trust `rl.best` without re-deriving it.
+2. **Is the requested drug always in `rl.drugs`?** Yes, always first, and `rl.policies` always has an `always_<requested antibiotic>` baseline, which is the same curve as the main timeline. If the agent was not trained for the requested drug, `rl` is absent rather than answering for other drugs.
+3. **`calibration` types.**
+
+| Field | Type | Meaning |
+|---|---|---|
+| `calibration.curves` | int | Published curves used in the fit |
+| `calibration.drugs` | list of strings | Canonical names of the drugs fitted; the requested drug may not be one of them |
+| `calibration.rmse` | number | Root mean squared error of the fit, in percentage points on the 0–100 `resistant_fraction` scale, averaged over curves |
+
+Show `rmse` with one decimal ("fit error ±4.2 points against 7 published curves").
