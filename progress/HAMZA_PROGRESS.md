@@ -75,10 +75,10 @@ Threshold trade-off on D2's test set, for the report (the threshold itself was c
 | VME | 7.3% | **9.0%** | 17.4% | 24.7% | 30.2% | 54.2% |
 | ME | 56.4% | **53.0%** | 40.6% | 31.9% | 26.7% | 10.0% |
 
-### T1.6 Metrics beside each deployed model
+### T1.6 Metrics beside each deployed model `[x]`
 - [x] `lgbm_metrics.json` written by `promote.py`; `kmer_metrics.json` written by `evaluate_shipped.py`
 - [x] Each predictor's `status` returns its metrics file (`/api/health/` → `models.*.metrics`, plus `default_threshold`)
-- **Done when:** Suleman's UI shows numbers read from these files, with nothing typed in by hand. *Waiting on Suleman (T1.3)*
+- **Done when:** Suleman's UI shows numbers read from these files, with nothing typed in by hand. **Met** (Suleman, `d5044a7`): the site shows 0.804 and 0.695 from the metrics files; the old 0.93 survives only in the `/about` sentence explaining why it was wrong
 
 ---
 
@@ -147,7 +147,7 @@ New folder `experiments/genome/`, reusing `lib/splits.py` and `lib/metrics.py`.
 | From Ali | Full gene matrix | End of week 2 | [ ] |
 | To Suleman | Sample `metrics.json` | Day 1 | [x] 2026-09-25: `progress/formats/lgbm_metrics.sample.json` (the real file) |
 | To Suleman | Real `metrics.json` for both models | End of week 1 | [x] 2026-09-25: `backend/trained_models/lgbm_metrics.json`, `kmer_metrics.json`; also in `/api/health/` → `models.*.metrics` |
-| To Suleman | **Threshold default: the slider and API must start at `default_threshold` (now 0.25), not 0.40.** Hardcoded in `resistance_forecast.html:137-145`, `frontend/app.py:109`, `backend/api/views.py:53`. At 0.40 the calibrated model misses 30.2% of resistant isolates instead of 9.0%. `/predict` likewise: `default_threshold` from `kmer_metrics.json`, 0.5 | Week 1 | [ ] |
+| To Suleman | **Threshold default: the slider and API must start at `default_threshold` (now 0.25), not 0.40.** Hardcoded in `resistance_forecast.html:137-145`, `frontend/app.py:109`, `backend/api/views.py:53`. At 0.40 the calibrated model misses 30.2% of resistant isolates instead of 9.0%. `/predict` likewise: `default_threshold` from `kmer_metrics.json`, 0.5 | Week 1 | [x] 2026-09-26 (`d5044a7`): the slider starts at `metrics.lgbm.threshold` and the API uses the model's own when none is sent, so it follows each promotion (0.25 for D2) |
 | To Suleman | New response fields: `/forecast` has `model_run`, `calibrated`; both pages can return `model_used: "Heuristic fallback"` (show a warning); `/predict` has `antibiotic_known` | Week 1 | [ ] |
 | To Suleman | Genome response with `genes_found` | Week 3 | [ ] |
 | To Ali | Proposed gene-matrix format in `progress/formats/README.md` §3 (string `Genome ID` index, zero rows for searched genomes, `gene_info.csv`); `pyarrow` needed | Day 1 | [~] waiting for Ali |
@@ -172,6 +172,7 @@ Newest first. One line per work session: date, what I did, what is next, anythin
 
 | Date | Done | Next | Blockers |
 |---|---|---|---|
+| 2026-09-26 | T1.6 met: Suleman's UI reads every score from the metrics files and the threshold from the model; checked it follows D2 (0.25), not a typed-in 0.24. `/train` now writes to `trained_models/candidates/`; the command-line trainer still defaults to `trained_models/` (Ali to fix) | Don't run `train_models.py` without `--model-dir` | None |
 | 2026-09-26 | Drug classes for 54 drugs that were `other` (cleaning v4, `data_prep.py` and `train_models.py`; `lgbm_predictor.py` now imports the trainer's map instead of its own copy). Every dropdown drug has a class. Trained and promoted `D2_forecaster_deploy`, re-tested, report refreshed | Same as below | `data_prep.py` is Ali's file: tell him about v4 |
 | 2026-09-25 | Day 1 formats written (`progress/formats/`); scope email drafted. Week 1: k-mer scaler fix; antibiotic aliases at prediction time (`ml_models/common.py`); harness gains `taxon_level`, calibration and accuracy; ran A10 (v3), A10s, D1; `promote.py`; D1 promoted; July genus-rate lookup bug fixed in passing (table stored `Escherichia`, lookup used `escherichia`); `evaluate_shipped.py` re-tests promoted models through the backend's own `features_frame()` and writes `kmer_metrics.json`; `export_report.py` keeps ROC curves whose `predictions.csv` is missing | Send scope email; Suleman: threshold default + metrics in UI; Ali: confirm gene-matrix format; Week 2 k-mer runs | Library not updated (T2.6): promoting with `--library` before its loader applies calibration would make `amrpredict.forecast()` disagree with the web app. The other 21 registry rows are still cleaning v1 |
 | 2026-09-25 | Tracker created | Scope email, agree formats | None |
