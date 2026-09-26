@@ -39,9 +39,10 @@ GROUPS = {
     'A6_lab_only': 'special', 'A6b_lab_only_no_mic': 'special',
     'A12_species_holdout': 'special',
     'A_ablation_no_mic': 'ablation', 'A_ablation_drug_only': 'ablation',
+    'A10s_monotonic_species': 'protocol', 'D1_forecaster_deploy': 'special',
 }
 ROC_RUNS = ['A2_oof_grouped', 'A3_logistic', 'A6_lab_only',
-            'A12_species_holdout', 'A_ablation_drug_only']
+            'A12_species_holdout', 'A_ablation_drug_only', 'D1_forecaster_deploy']
 BEST = 'A2_oof_grouped'
 
 
@@ -151,13 +152,25 @@ def best_run_detail():
     }
 
 
-def roc_curves():
+def roc_curves(previous=None):
+    """ROC points per run, from predictions.csv.
+
+    predictions.csv is gitignored, so a clone only has it for runs made on
+    that machine. Where it is missing, the curve already in the committed
+    report is kept rather than silently dropped.
+    """
     out = {}
+    kept = []
     for run_id in ROC_RUNS:
         path = os.path.join(RESULTS, run_id, 'predictions.csv')
         if os.path.exists(path):
             p = pd.read_csv(path, usecols=['y_true', 'y_score'])
             out[run_id] = roc_points(p.y_true.to_numpy(), p.y_score.to_numpy())
+        elif previous and run_id in previous.get('roc', {}):
+            out[run_id] = previous['roc'][run_id]
+            kept.append(run_id)
+    if kept:
+        print(f'[report] no predictions.csv for {", ".join(kept)}; kept their ROC from the last report')
     return out
 
 
@@ -167,13 +180,14 @@ def main():
     if shipped is None:
         print('[report] no shipped_eval.json, run experiments/evaluate_shipped.py first')
 
+    previous = load_json(OUT) if os.path.exists(OUT) else None
     report = {
         'generated_at': datetime.now(timezone.utc).isoformat(timespec='seconds'),
         'best_run': BEST,
         'runs': runs_table(),
         'split': split_summary(),
         'best': best_run_detail(),
-        'roc': roc_curves(),
+        'roc': roc_curves(previous),
         'shipped': shipped,
     }
     report['training_profiles'] = training_profiles([r['id'] for r in report['runs']])

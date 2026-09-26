@@ -2,7 +2,7 @@
 
 **Role:** models
 **Plan:** the split by skill (Ali: data + evolution, Hamza: models, Suleman: platform), based on [FYP_Completion_Roadmap.md](../FYP_Completion_Roadmap.md)
-**Started:** 2026-09-25 · **Last updated:** 2026-09-25
+**Started:** 2026-09-25 · **Last updated:** 2026-09-25 (Day 1 + Week 1)
 
 Status key: `[ ]` not started · `[~]` in progress · `[x]` done · `[!]` blocked (say why in the log)
 
@@ -12,7 +12,7 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done · `[!]` blocke
 
 | Week | Dates (planned) | Focus | Status |
 |---|---|---|---|
-| 1 | 28 Sep to 2 Oct | K-mer fix, promote the best model, threshold, calibration, `metrics.json` | Not started |
+| 1 | 28 Sep to 2 Oct | K-mer fix, promote the best model, threshold, calibration, `metrics.json` | Done 2026-09-25 (UI side waits on Suleman) |
 | 2 | 5 Oct to 9 Oct | Genome experiments B0 to B4 (k-mers) | Not started |
 | 3 | 12 Oct to 16 Oct | Gene-feature models B6/B7, deploy the best genome model | Not started |
 | 4 | 19 Oct to 23 Oct | Library v0.2.0, statistics and seeds | Not started |
@@ -25,44 +25,59 @@ Other people's files: ask the owner, or comment in their pull request.
 
 ## Day 1: leader tasks and handover formats
 
-- [ ] **Scope email to the supervisor:** drug design and images descoped, GAN run as an experiment, RL built as a small agent on the simulation. Keep the reply
-- [ ] **`metrics.json` format** agreed with Suleman: run id, date, AUC with CI, AUPRC, F1, accuracy, recall, VME, ME, threshold, train rows, test rows, genera, git commit. Give Suleman a sample file
-- [ ] **Genome prediction response** agreed with Suleman: today's response plus `genes_found: [{gene, drug_class}]`
-- [ ] **Gene matrix format** agreed with Ali: parquet, one row per `Genome ID`, one 0/1 column per gene
-- [ ] Formats written down in the team channel or below
+- [~] **Scope email to the supervisor:** drug design and images descoped, GAN run as an experiment, RL built as a small agent on the simulation. Keep the reply. *Drafted 2026-09-25; send, then paste the reply date here*
+- [x] **`metrics.json` format** agreed with Suleman: run id, date, AUC with CI, AUPRC, F1, accuracy, recall, VME, ME, threshold, train rows, test rows, genera, git commit. Give Suleman a sample file. *Sample is the real file: [`progress/formats/lgbm_metrics.sample.json`](formats/lgbm_metrics.sample.json)*
+- [x] **Genome prediction response** agreed with Suleman: today's response plus `genes_found: [{gene, drug_class}]`. *Sample: [`progress/formats/genome_response.sample.json`](formats/genome_response.sample.json)*
+- [~] **Gene matrix format** agreed with Ali: parquet, one row per `Genome ID`, one 0/1 column per gene. *Proposed with a `gene_info.csv` sidecar and a string `Genome ID` index; waiting for Ali*
+- [x] Formats written down in the team channel or below
 
-> Agreed formats:
->
-> *(paste here once agreed)*
+> Agreed formats: **[progress/formats/README.md](formats/README.md)** (metrics files, genome response, gene matrix). Suleman and Ali: edit that file if anything doesn't suit your side.
 
 ---
 
 ## Week 1: honest deployed models
 
-### T1.1 K-mer scaler fix
-- [ ] `backend/ml_models/resistance_predictor.py:158`: scale only the first 256 columns, as in `amrpredict-lib/src/amrpredict/kmer.py:166`
-- [ ] In the `except` branch set `model_used` to `'Heuristic fallback'`, so a failure can never be shown as the trained model
-- **Done when:** the same FASTA on `/predict` gives the same probability twice
+### T1.1 K-mer scaler fix `[x]`
+- [x] `backend/ml_models/resistance_predictor.py:158`: scale only the first 256 columns, as in `amrpredict-lib/src/amrpredict/kmer.py:166`
+- [x] In the `except` branch set `model_used` to `'Heuristic fallback'`, so a failure can never be shown as the trained model
+- **Done when:** the same FASTA on `/predict` gives the same probability twice. **Met:** `1001988.3` + ciprofloxacin → 0.8569 twice, `model_used: RandomForest K-mer (trained)`
 
-### Antibiotic names at prediction time (from Ali's T1.5)
-- [ ] Apply the `ANTIBIOTIC_ALIASES` map (in `backend/train_models.py`) to the user's input in `lgbm_predictor.py` and `resistance_predictor.py`, so `rifampin` matches `rifampicin`
-- [ ] Note: all 22 existing runs used the old (v1) names. Re-run before promoting
+### Antibiotic names at prediction time (from Ali's T1.5) `[x]`
+- [x] Apply the `ANTIBIOTIC_ALIASES` map (in `backend/train_models.py`) to the user's input in `lgbm_predictor.py` and `resistance_predictor.py`, so `rifampin` matches `rifampicin`. *Shared helper `backend/ml_models/common.py`; the k-mer model maps canonical names back to its own training spelling (`rifampin`)*
+- [x] Note: all 22 existing runs used the old (v1) names. Re-run before promoting. *A10 re-run on v3; the other 21 rows in the registry are still v1, so compare them with care*
 
-### T1.4 Promote the best tabular model
-- [ ] Choose the run: `A10_monotonic_mic` (recommended, safe with MIC) or `A2_oof_grouped`
-- [ ] Re-run it on cleaning v2: `python experiments/run.py experiments/configs/A10_monotonic_mic.json`
-- [ ] Threshold chosen on the **validation** set with a stated goal (for example VME ≤ 10%, lowest ME)
-- [ ] Calibration (isotonic or Platt) on a validation fold; Brier before and after
-- [ ] Species-level taxon grouping from Ali used in the rate tables
-- [ ] Write `experiments/promote.py`: converts the run's rate tables to the backend's file names, writes `amr_lgbm_final_model.txt`, `lgbm_meta.joblib` and `metrics.json`, copies to `backend/trained_models/` and `amrpredict-lib/src/amrpredict/models/`
-- [ ] Restart the backend, check `/api/health/`, run 5 known cases through `/forecast`
-- [ ] Re-run `python experiments/evaluate_shipped.py` and `python experiments/export_report.py` so `/models` and `/compare` show the new model
-- **Done when:** `/forecast` serves the promoted model and `/compare` shows it
+### T1.4 Promote the best tabular model `[x]`
+- [x] Choose the run: `A10_monotonic_mic` (recommended, safe with MIC) or `A2_oof_grouped`. *Chose A10 + species taxa + calibration + VME threshold = `D1_forecaster_deploy`*
+- [x] Re-run it on cleaning v2: `python experiments/run.py experiments/configs/A10_monotonic_mic.json`. *Re-run on v3*
+- [x] Threshold chosen on the **validation** set with a stated goal: VME ≤ 10%, lowest ME → **0.24**
+- [x] Calibration (isotonic) on a validation fold; Brier 0.1795 → **0.1678**, AUC unchanged
+- [x] Species-level taxon grouping from Ali used in the rate tables (`"taxon_level": "species"` in the config); taxon 562 now matches on `/forecast`
+- [x] Write `experiments/promote.py`. *Copies to `backend/trained_models/` only; `--library` is opt-in until T2.6, because the package loader doesn't apply calibration or species taxa yet*
+- [x] Restart the backend, check `/api/health/`, run 5 known cases through `/forecast`
+- [x] Re-run `python experiments/evaluate_shipped.py` and `python experiments/export_report.py` so `/models` and `/compare` show the new model
+- **Done when:** `/forecast` serves the promoted model and `/compare` shows it. **Met** (local): `/api/health/` reports `D1_forecaster_deploy`; `/models` and `/compare` show 0.800
+
+**Week 1 results**
+
+| Model | Unseen-genome AUC | Notes |
+|---|---|---|
+| July LightGBM (replaced) | 0.644 [0.642–0.645] | 0.941 on genomes it trained on: it memorised |
+| `A10_monotonic_mic`, strain taxa, v3 | 0.8223 [0.8193–0.8258] | same as on v1 (0.8222): the name clean-up cost nothing |
+| `A10s_monotonic_species` | 0.8044 [0.8011–0.8081] | species taxa cost 0.018, the price of a Taxon ID users can type |
+| **`D1_forecaster_deploy`** (served) | **0.8043 [0.801–0.808]** harness · **0.7998 [0.7965–0.8036]** as `/forecast` scores it | calibrated (Brier 0.1795 → 0.1678), threshold 0.24: VME 9.1%, ME 52.9%, recall 90.9%, accuracy 63.0%. Seen genomes 0.8005 vs unseen 0.7998: no memorisation |
+| K-mer RF (unchanged, now actually runs) | 0.695 [0.679–0.714] | 0/100 heuristic fallbacks (was every call); no better than the drug alone (0.703) |
+
+Threshold trade-off on D1's test set, for the report (the threshold itself was chosen on validation):
+
+| Threshold | 0.20 | **0.24** | 0.30 | 0.35 | 0.40 | 0.50 |
+|---|---|---|---|---|---|---|
+| VME | 7.0% | **9.1%** | 17.2% | 24.2% | 27.7% | 54.2% |
+| ME | 57.3% | **52.9%** | 40.8% | 32.4% | 29.0% | 10.0% |
 
 ### T1.6 Metrics beside each deployed model
-- [ ] `metrics.json` written for the LightGBM (by `promote.py`) and for the K-mer model (from `experiments/results/shipped_eval.json`)
-- [ ] Each predictor's `status` returns its `metrics.json`
-- **Done when:** Suleman's UI shows numbers read from these files, with nothing typed in by hand
+- [x] `lgbm_metrics.json` written by `promote.py`; `kmer_metrics.json` written by `evaluate_shipped.py`
+- [x] Each predictor's `status` returns its metrics file (`/api/health/` → `models.*.metrics`, plus `default_threshold`)
+- **Done when:** Suleman's UI shows numbers read from these files, with nothing typed in by hand. *Waiting on Suleman (T1.3)*
 
 ---
 
@@ -129,10 +144,13 @@ New folder `experiments/genome/`, reusing `lib/splits.py` and `lib/metrics.py`.
 | From Ali | FYI: the FASTAs in `Data/fasta_output/` are truncated (E. coli about 0.8 of 5 MB), so the shipped K-mer model and any k-mer run on them saw partial genomes. Complete assemblies are being downloaded to `Data/genomes_full/<genome_id>.fna` (gitignored; see `experiments/genome/README.md`). Consider running B0 to B4 on those | Week 2 | [~] download running 2026-09-25 |
 | From Ali | 20-genome sample gene matrix | Week 2, day 2 | [ ] |
 | From Ali | Full gene matrix | End of week 2 | [ ] |
-| To Suleman | Sample `metrics.json` | Day 1 | [ ] |
-| To Suleman | Real `metrics.json` for both models | End of week 1 | [ ] |
+| To Suleman | Sample `metrics.json` | Day 1 | [x] 2026-09-25: `progress/formats/lgbm_metrics.sample.json` (the real file) |
+| To Suleman | Real `metrics.json` for both models | End of week 1 | [x] 2026-09-25: `backend/trained_models/lgbm_metrics.json`, `kmer_metrics.json`; also in `/api/health/` → `models.*.metrics` |
+| To Suleman | **Threshold default: the slider and API must start at `default_threshold` (0.24), not 0.40.** Hardcoded in `resistance_forecast.html:137-145`, `frontend/app.py:109`, `backend/api/views.py:53`. At 0.40 the calibrated model misses 27.7% of resistant isolates instead of 9.1%. `/predict` likewise: `default_threshold` from `kmer_metrics.json`, 0.5 | Week 1 | [ ] |
+| To Suleman | New response fields: `/forecast` has `model_run`, `calibrated`; both pages can return `model_used: "Heuristic fallback"` (show a warning); `/predict` has `antibiotic_known` | Week 1 | [ ] |
 | To Suleman | Genome response with `genes_found` | Week 3 | [ ] |
-| To supervisor | Scope email | Day 1 | [ ] |
+| To Ali | Proposed gene-matrix format in `progress/formats/README.md` §3 (string `Genome ID` index, zero rows for searched genomes, `gene_info.csv`); `pyarrow` needed | Day 1 | [~] waiting for Ali |
+| To supervisor | Scope email | Day 1 | [~] drafted 2026-09-25 |
 
 ---
 
@@ -153,4 +171,5 @@ Newest first. One line per work session: date, what I did, what is next, anythin
 
 | Date | Done | Next | Blockers |
 |---|---|---|---|
+| 2026-09-25 | Day 1 formats written (`progress/formats/`); scope email drafted. Week 1: k-mer scaler fix; antibiotic aliases at prediction time (`ml_models/common.py`); harness gains `taxon_level`, calibration and accuracy; ran A10 (v3), A10s, D1; `promote.py`; D1 promoted; July genus-rate lookup bug fixed in passing (table stored `Escherichia`, lookup used `escherichia`); `evaluate_shipped.py` re-tests promoted models through the backend's own `features_frame()` and writes `kmer_metrics.json`; `export_report.py` keeps ROC curves whose `predictions.csv` is missing | Send scope email; Suleman: threshold default + metrics in UI; Ali: confirm gene-matrix format; Week 2 k-mer runs | Library not updated (T2.6): promoting with `--library` before its loader applies calibration would make `amrpredict.forecast()` disagree with the web app. The other 21 registry rows are still cleaning v1 |
 | 2026-09-25 | Tracker created | Scope email, agree formats | None |

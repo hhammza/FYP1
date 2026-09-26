@@ -1,0 +1,61 @@
+{
+  "schema": "amr-model-metrics/1",
+  "model": "kmer_random_forest",
+  "page": "/predict",
+  "run_id": "shipped_eval:kmer",
+  "description": "RandomForest on 4-mer frequencies (July artifact), re-tested on genomes outside the files it trained on",
+  "algorithm": "RandomForest, 100 trees",
+  "trained_at": null,
+  "promoted_at": null,
+  "evaluated_at": "2026-09-26T01:33:34+00:00",
+  "git_commit": "163373d",
+  "git_dirty": true,
+  "evaluation": {
+    "split": "reconstructed: trained on the first 200 mapped_output files; tested on every other genome",
+    "test_genomes_unseen": true,
+    "drug_only_baseline_auc": 0.7025,
+    "within_antibiotic_auc": 0.6215,
+    "served_fallback_rate": 0.0
+  },
+  "threshold": 0.5,
+  "threshold_rule": "fixed at 0.5 (the training default)",
+  "calibration": null,
+  "test": {
+    "n": 49881,
+    "prevalence": 0.1721,
+    "auc_roc": 0.6951,
+    "auc_roc_ci": [
+      0.679,
+      0.7141
+    ],
+    "auc_pr": 0.4352,
+    "f1": 0.3977,
+    "accuracy": 0.8461,
+    "recall": 0.2952,
+    "specificity": 0.9606,
+    "very_major_error": 0.7048,
+    "major_error": 0.0394,
+    "brier": 0.1278,
+    "tp": 2535,
+    "fp": 1625,
+    "tn": 39669,
+    "fn": 6052
+  },
+  "data": {
+    "source": "BV-BRC mapped_output + fasta_output (truncated assemblies)",
+    "train_rows": 6002,
+    "test_rows": 49881,
+    "train_genomes": 218,
+    "test_genomes": 2266,
+    "prevalence": 0.0978,
+    "antibiotics": 62,
+    "genera": [
+      "Escherichia",
+      "Mycobacterium",
+      "Pseudomonas",
+      "Salmonella",
+      "Staphylococcus",
+      "Streptococcus"
+    ]
+  }
+}

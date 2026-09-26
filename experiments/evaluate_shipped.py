@@ -32,7 +32,9 @@ warnings.filterwarnings('ignore')
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 sys.path.insert(0, HERE)
-from lib import data_prep, metrics  # noqa: E402
+from datetime import datetime, timezone  # noqa: E402
+
+from lib import data_prep, metrics, splits  # noqa: E402
 from lib.profile import profile  # noqa: E402
 
 MODEL_DIR = os.path.join(ROOT, 'backend', 'trained_models')
@@ -69,7 +71,107 @@ def summarise(name, y, s, groups, threshold, roc=False):
 
 # ── LightGBM forecaster ──────────────────────────────────────────────────
 
+def served_lgbm():
+    """The LightGBM predictor exactly as the backend loads it."""
+    import contextlib
+    import io
+    sys.path.insert(0, os.path.join(ROOT, 'backend'))
+    from ml_models.lgbm_predictor import LGBMResistancePredictor
+    with contextlib.redirect_stdout(io.StringIO()):
+        return LGBMResistancePredictor(MODEL_DIR)
+
+
 def evaluate_lgbm():
+    """Promoted models carry lgbm_metrics.json naming their run; the July
+    artifacts do not, and are re-tested by reconstructing their training files."""
+    served = served_lgbm()
+    if served.run_id:
+        return evaluate_promoted_lgbm(served)
+    return evaluate_july_lgbm()
+
+
+def evaluate_promoted_lgbm(served, seen_sample_genomes=20000, seed=0):
+    """Re-test a promoted model on the held-out genomes of the run it came from.
+
+    The run's split is rebuilt from its config (same cleaned data, same seed),
+    and every row is scored through the backend's own features_frame(), so the
+    result is what /forecast returns: calibrated, with the form's fixed
+    provenance inputs (is_lab_confirmed=0, computational_f1=0.85) rather than
+    the true ones the harness saw.
+    """
+    from run import apply_taxon_level, select_rows
+
+    run_id = served.run_id
+    print(f'[lgbm] promoted run {run_id}')
+    with open(os.path.join(HERE, 'results', run_id, 'config.snapshot.json')) as fh:
+        cfg = json.load(fh)
+    df = data_prep.get_clean(verbose=False)
+    df = select_rows(df, cfg.get('data', {}), verbose=False)
+    split_cfg = cfg.get('split', {})
+    # Split on the frame the run used (species-level taxa if it used them),
+    # but hand the predictor the raw Taxon ID, as a user would type it.
+    split_df = apply_taxon_level(df, cfg.get('data', {}).get('taxon_level', 'strain'), verbose=False)
+    tr, te = splits.make_split(split_df, strategy=split_cfg.get('strategy', 'grouped'),
+                               test_size=split_cfg.get('test_size', 0.2),
+                               seed=split_cfg.get('seed', 42), verbose=False)
+    m = served.metrics
+    reconstruction = {
+        'run_id': run_id,
+        'split': m['evaluation']['split'],
+        'test_rows_expected': m['data']['test_rows'],
+        'test_rows_rebuilt': int(te.sum()),
+        'split_reproduced': int(te.sum()) == m['data']['test_rows'],
+    }
+    print(f'[lgbm] reconstruction {reconstruction}')
+
+    def score(d):
+        records = pd.DataFrame({
+            'antibiotic': d['Antibiotic'], 'taxon_id': d['Taxon ID'],
+            'mic_value': d['mic_value'], 'mic_sign': d['mic_sign'],
+            'genus': d['genus'], 'species': d['species']})
+        return served.predict_frame(records)
+
+    def run(name, d, roc=False):
+        return summarise(name, d.target.to_numpy(), score(d), d['Genome ID'].to_numpy(),
+                         served.threshold, roc)
+
+    train_df, test_df = df.loc[tr], df.loc[te]
+    # Scoring all 1.2 M training rows adds minutes and changes nothing; a
+    # genome sample is enough to show the seen/unseen gap.
+    rng = np.random.default_rng(seed)
+    genomes = train_df['Genome ID'].unique()
+    pick = set(rng.choice(genomes, size=min(seen_sample_genomes, len(genomes)), replace=False))
+    seen_sample = train_df[train_df['Genome ID'].isin(pick)]
+    known_ab = served.known['Antibiotic']
+    known_genus = served.known['genus']
+    test_known = test_df[test_df.Antibiotic.str.lower().isin(known_ab)
+                         & test_df.genus.str.lower().isin(known_genus)]
+    rows = [
+        run(f'Genomes it trained on (sample of {len(pick):,})', seen_sample, roc=True),
+        run('Genomes it never saw', test_df, roc=True),
+        run('Never seen, organisms and drugs it knows', test_known),
+    ]
+    files = glob.glob(os.path.join(data_prep.data_root(), 'amr_output', '*.csv'))
+    return {
+        'name': 'LightGBM forecaster', 'page': '/forecast',
+        'artifact': 'backend/trained_models/amr_lgbm_final_model.txt',
+        'run_id': run_id,
+        'trees': served.model.num_trees(), 'known_antibiotics': len(known_ab),
+        'known_genera': sorted(g.capitalize() for g in known_genus),
+        'train_rows': int(len(train_df)), 'train_genomes': int(train_df['Genome ID'].nunique()),
+        'source': 'amr_output', 'files_used': len(files), 'files_total': len(files),
+        'train_profile': profile(train_df),
+        # What the harness measured for this run; results[1] is the same test
+        # set scored the way the web app scores it.
+        'claimed_auc': m['test']['auc_roc'],
+        'split': m['evaluation']['split'],
+        'threshold': served.threshold,
+        'calibration': (served.calibration or {}).get('method'),
+        'reconstruction': reconstruction, 'results': rows, 'head_to_head_a2': None,
+    }
+
+
+def evaluate_july_lgbm():
     import lightgbm as lgb
     print('[lgbm] loading shipped artifacts')
     booster = lgb.Booster(model_file=os.path.join(MODEL_DIR, 'amr_lgbm_final_model.txt'))
@@ -308,8 +410,75 @@ def evaluate_kmer():
     }
 
 
+def kmer_metrics(km):
+    """kmer_metrics.json for the served K-mer model, from its unseen-genome re-test.
+
+    Same format as lgbm_metrics.json (progress/formats/README.md). The model
+    has no run of its own in the harness, so run_id names this re-test.
+    """
+    sys.path.insert(0, HERE)
+    from promote import METRICS_SCHEMA, git_state, test_block
+
+    r = km['results'][1]
+    commit, dirty = git_state()
+    t = dict(r, n=r['rows'])
+    return {
+        'schema': METRICS_SCHEMA,
+        'model': 'kmer_random_forest',
+        'page': '/predict',
+        'run_id': 'shipped_eval:kmer',
+        'description': 'RandomForest on 4-mer frequencies (July artifact), re-tested on '
+                       'genomes outside the files it trained on',
+        'algorithm': 'RandomForest, 100 trees',
+        'trained_at': None,
+        'promoted_at': None,
+        'evaluated_at': datetime.now(timezone.utc).isoformat(timespec='seconds'),
+        'git_commit': commit,
+        'git_dirty': dirty,
+        'evaluation': {
+            'split': f"reconstructed: trained on the first {km['files_used']} mapped_output "
+                     f"files; tested on every other genome",
+            'test_genomes_unseen': True,
+            'drug_only_baseline_auc': km['results'][2]['auc_roc'],
+            'within_antibiotic_auc': km.get('within_antibiotic_auc'),
+            'served_fallback_rate': km.get('served_fallback_rate'),
+        },
+        'threshold': r['threshold'],
+        'threshold_rule': 'fixed at 0.5 (the training default)',
+        'calibration': None,
+        'test': test_block(t, r['auc_ci']),
+        'data': {
+            'source': 'BV-BRC mapped_output + fasta_output (truncated assemblies)',
+            'train_rows': km['train_rows'],
+            'test_rows': r['rows'],
+            'train_genomes': km['train_genomes'],
+            'test_genomes': r['genomes'],
+            'prevalence': km['train_profile']['prevalence'],
+            'antibiotics': km['known_antibiotics'],
+            'genera': sorted(k for k in km['train_profile']['genus_rows'] if k != 'Other'),
+        },
+    }
+
+
 if __name__ == '__main__':
+    previous = None
+    if os.path.exists(OUT):
+        with open(OUT) as fh:
+            old = json.load(fh)
+        # Keep the last re-test of a different LightGBM artifact as history, so
+        # the report can still show what the app served before a promotion.
+        previous = old.get('lightgbm_previous')
+        if old.get('lightgbm', {}).get('run_id') is None and old.get('lightgbm'):
+            previous = old['lightgbm']
+
     report = {'lightgbm': evaluate_lgbm(), 'kmer': evaluate_kmer()}
+    if previous and previous.get('run_id') != report['lightgbm'].get('run_id'):
+        report['lightgbm_previous'] = previous
     with open(OUT, 'w') as fh:
         json.dump(report, fh, indent=1)
     print(f'wrote {os.path.relpath(OUT, ROOT)}')
+
+    km_path = os.path.join(MODEL_DIR, 'kmer_metrics.json')
+    with open(km_path, 'w', encoding='utf-8') as fh:
+        json.dump(kmer_metrics(report['kmer']), fh, indent=2)
+    print(f'wrote {os.path.relpath(km_path, ROOT)}')

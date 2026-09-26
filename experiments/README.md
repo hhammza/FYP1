@@ -150,15 +150,19 @@ backend can serve it. Two scripts build it:
 | `evaluate_shipped.py` | `backend/trained_models/`, `data/amr_output/`, `data/mapped_output/`, `data/fasta_output/` | `results/shipped_eval.json` | about 2 min |
 | `export_report.py` | `results/registry.csv`, each run's `metrics.json`, `config.snapshot.json` and `predictions.csv`, `results/shipped_eval.json`, the data cache | `backend/trained_models/model_report.json` (about 40 KB) | about 1 min |
 
-`evaluate_shipped.py` reconstructs what the deployed models trained on.
-`train_models.py` reads the first 500 `amr_output` files and the first 200
-`mapped_output` files of a directory listing, which was alphabetical on the
-machine that trained them. The script checks this against the artifacts (same
-antibiotics, same genera, same stored resistance rate) and prints the result,
-then scores each model on every genome outside those files.
+`evaluate_shipped.py` re-tests what the backend serves. For a promoted
+LightGBM (one with `lgbm_metrics.json`) it rebuilds the run's split and scores
+the held-out genomes through the backend's own `features_frame()`, so the
+number is what `/forecast` returns. For the July artifacts it reconstructs
+their training files instead: `train_models.py` then read the first 500
+`amr_output` files and the first 200 `mapped_output` files of a directory
+listing, which was alphabetical on the machine that trained them. The last
+re-test of a replaced LightGBM is kept as `lightgbm_previous`. It also writes
+`backend/trained_models/kmer_metrics.json`.
 
 `export_report.py` needs the `predictions.csv` files for ROC curves; they are
-not committed, so run it on a machine where the experiments were run. Run
+not committed. Where one is missing, the curve from the committed
+`model_report.json` is kept and the script says so. Run
 groups on the page (best model, algorithm comparison and so on) come from the
 `GROUPS` table at the top of the script; add new run ids there.
 
