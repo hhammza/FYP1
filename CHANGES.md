@@ -18,6 +18,14 @@ Baseline is commit **`52ae361`** *(Add amrpredict library and macOS launcher, 20
 
 ---
 
+## Datasets page: four source datasets, counted once (2026-09-26)
+
+The page said "Five datasets" in its subtitle and stat strip, "All Four Datasets" in its table, and counted the test samples as Dataset 4, although they are small copies of the other data. It now lists **four source datasets** (AMR phenotype records, the partial FASTA genomes, the complete assemblies, and the single `BVBRC_genome_amr.csv` export used by the notebooks) and, separately, the data the project built from them (mapped records, gene matrix, test samples).
+
+Also corrected: 3,655 AMR CSVs (not 4,252) and 1.52M cleaned rows over 128,286 genomes, 130 antibiotics and 40 genera (not "90K+", 62 and "15+"); the FASTA files are partial (median 31% of the genome), not complete; the mapped records are 110,493 rows over 2,567 genomes (not 6,002 and 1,684); training writes to `candidates/` rather than reloading the site, and the K-mer model takes about an hour; no CNN-LSTM exists. The served models' training sizes are read live from their metrics files.
+
+---
+
 ## Genome IDs that lost a trailing zero (2026-09-26)
 
 `fasta_amr_map.py` read each CSV with Genome ID as a number, so `1055537.10` became `1055537.1`; its substring search then still found `1055537.10.fasta`, so `fasta_path` was right and the ID wrong. 68 genomes in `Data/mapped_output/` were affected (3,271 rows in 26 files), and `1038927.40` had become `1038927.4`, a different genome, mixing the two genomes' labels.

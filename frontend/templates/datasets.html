@@ -14,7 +14,7 @@
       </div>
       <div>
         <h1 class="page-title">Datasets &amp; Data Sources</h1>
-        <p class="page-subtitle">Five datasets from BVBRC/PATRIC and NCBI GenBank, powering three deployed ML models</p>
+        <p class="page-subtitle">Four source datasets from BV-BRC and NCBI GenBank, the data we built from them, and which model uses which</p>
       </div>
     </div>
   </div>
@@ -27,82 +27,107 @@
   <!-- ── Overview Stats Strip ──────────────────────────────────── -->
   <div class="d-flex gap-3 flex-wrap mb-4">
     <div class="flex-fill min-w-130"><div class="stat-mini">
-      <div class="stat-mini-value text-indigo2">5</div>
-      <div class="stat-mini-label">Distinct datasets</div>
+      <div class="stat-mini-value stat-mini-static text-indigo2">4</div>
+      <div class="stat-mini-label">Source datasets</div>
     </div></div>
     <div class="flex-fill min-w-130"><div class="stat-mini">
-      <div class="stat-mini-value">4,252</div>
-      <div class="stat-mini-label">AMR phenotype CSVs</div>
+      <div class="stat-mini-value stat-mini-static text-emerald2">1.52M</div>
+      <div class="stat-mini-label">Labelled AMR records (after cleaning)</div>
     </div></div>
     <div class="flex-fill min-w-130"><div class="stat-mini">
-      <div class="stat-mini-value text-emerald2">90K+</div>
-      <div class="stat-mini-label">Labeled AMR records</div>
+      <div class="stat-mini-value stat-mini-static">128,286</div>
+      <div class="stat-mini-label">Genomes with AMR results</div>
     </div></div>
     <div class="flex-fill min-w-130"><div class="stat-mini">
-      <div class="stat-mini-value text-amber2">2,587</div>
-      <div class="stat-mini-label">NCBI GenBank FASTA files</div>
+      <div class="stat-mini-value stat-mini-static text-amber2">2,587</div>
+      <div class="stat-mini-label">Genomes with DNA sequence</div>
     </div></div>
     <div class="flex-fill min-w-130"><div class="stat-mini">
-      <div class="stat-mini-value">1,684</div>
-      <div class="stat-mini-label">Taxon genome folders</div>
+      <div class="stat-mini-value stat-mini-static text-rose2">130</div>
+      <div class="stat-mini-label">Antibiotics</div>
     </div></div>
     <div class="flex-fill min-w-130"><div class="stat-mini">
-      <div class="stat-mini-value text-rose2">62</div>
-      <div class="stat-mini-label">Antibiotics covered</div>
-    </div></div>
-    <div class="flex-fill min-w-130"><div class="stat-mini">
-      <div class="stat-mini-value fs-13">BVBRC +<br>NCBI</div>
+      <div class="stat-mini-value stat-mini-static fs-13">BV-BRC +<br>NCBI</div>
       <div class="stat-mini-label">Data sources</div>
     </div></div>
   </div>
 
-  <!-- ── Dataset Overview Table ────────────────────────────────── -->
-  <div class="glass-card mb-5">
-    <h5 class="fw-700 mb-1"><i class="bi bi-table me-2 text-indigo2"></i>All Four Datasets at a Glance</h5>
-    <p class="fs-13 text-muted mb-3">Each dataset serves a distinct role in the AMR prediction pipeline. Datasets 1–4 originate from BVBRC/PATRIC; Dataset 2 is sourced from NCBI GenBank.</p>
+  <!-- ── Source datasets ───────────────────────────────────────── -->
+  <div class="glass-card mb-4">
+    <h5 class="fw-700 mb-1"><i class="bi bi-table me-2 text-indigo2"></i>The Four Source Datasets</h5>
+    <p class="fs-13 text-muted mb-3">Downloaded from outside the project. Everything else on this page is built from these.</p>
     <div class="table-responsive">
       <table class="table table-custom mb-0">
         <thead>
           <tr>
-            <th>#</th><th>Dataset</th><th>Location</th><th>Size</th><th>Format</th><th>Purpose</th><th>Model</th>
+            <th>#</th><th>Dataset</th><th>Location</th><th>Size</th><th>Source</th><th>Used for</th>
           </tr>
         </thead>
         <tbody>
           <tr>
             <td><span class="step-num step-indigo">1</span></td>
-            <td class="fw-600 text-white">AMR Phenotype Records</td>
+            <td class="fw-600 text-white"><a href="#ds-amr">AMR Phenotype Records</a></td>
             <td class="font-mono text-accent small">amr_output/</td>
-            <td>4,252 CSVs · 90K+ rows</td>
-            <td><span class="feature-tag">CSV</span></td>
-            <td class="small text-muted">Resistance labels (R/S/I) + MIC values</td>
+            <td>3,655 CSVs · 1.52M rows after cleaning</td>
+            <td class="small">BV-BRC</td>
             <td><span class="status-badge trained">LightGBM</span></td>
           </tr>
           <tr>
             <td><span class="step-num step-emerald">2</span></td>
-            <td class="fw-600 text-white">NCBI GenBank WGS Sequences <span class="feature-tag feature-tag-emerald badge-xs ms-1">NCBI GenBank</span></td>
+            <td class="fw-600 text-white"><a href="#ds-fasta">Genome Sequences (partial FASTA)</a></td>
             <td class="font-mono text-accent small">fasta_output/</td>
-            <td>1,684 folders · 2,587 files</td>
-            <td><span class="feature-tag">FASTA</span> <span class="feature-tag">WGS</span></td>
-            <td class="small text-muted">Whole-genome shotgun sequences for k-mer extraction</td>
+            <td>2,587 files · 4.0 GB</td>
+            <td class="small">NCBI GenBank</td>
             <td><span class="status-badge trained status-badge-emerald">K-mer RF</span></td>
           </tr>
           <tr>
             <td><span class="step-num step-amber">3</span></td>
-            <td class="fw-600 text-white">Mapped AMR Records</td>
-            <td class="font-mono text-accent small">mapped_output/</td>
-            <td>1,684 CSVs · linked</td>
-            <td><span class="feature-tag">CSV</span></td>
-            <td class="small text-muted">AMR phenotype rows with FASTA file paths</td>
-            <td><span class="status-badge trained status-badge-emerald">K-mer RF</span></td>
+            <td class="fw-600 text-white"><a href="#ds-assemblies">Complete Genome Assemblies</a></td>
+            <td class="font-mono text-accent small">genomes_full/</td>
+            <td>2,587 genomes · 11.4 billion bp</td>
+            <td class="small">BV-BRC</td>
+            <td><span class="status-badge trained status-badge-emerald">AMRFinderPlus</span></td>
           </tr>
           <tr>
             <td><span class="step-num step-rose">4</span></td>
-            <td class="fw-600 text-white">Sample / Test Subsets</td>
+            <td class="fw-600 text-white"><a href="#ds-export">Single AMR Export</a></td>
+            <td class="font-mono text-accent small">BVBRC_genome_amr.csv</td>
+            <td>171,000 rows · 69,708 genomes</td>
+            <td class="small">BV-BRC</td>
+            <td><span class="status-badge simulated">Notebooks</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── Built from the datasets ───────────────────────────────── -->
+  <div class="glass-card mb-5">
+    <h5 class="fw-700 mb-1"><i class="bi bi-diagram-3 me-2 text-indigo2"></i>Built From Them (not separate datasets)</h5>
+    <p class="fs-13 text-muted mb-3">Made by this project's code from the four datasets above, so they are not counted as datasets of their own.</p>
+    <div class="table-responsive">
+      <table class="table table-custom mb-0">
+        <thead>
+          <tr><th>What</th><th>Location</th><th>Made from</th><th>Used for</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="fw-600 text-white"><a href="#ds-mapped">Mapped AMR Records</a></td>
+            <td class="font-mono text-accent small">mapped_output/</td>
+            <td class="small">Dataset 1 rows joined to Dataset 2 files</td>
+            <td><span class="status-badge trained status-badge-emerald">K-mer RF</span></td>
+          </tr>
+          <tr>
+            <td class="fw-600 text-white"><a href="/genes">Gene Matrix</a></td>
+            <td class="font-mono text-accent small">experiments/genome/features/</td>
+            <td class="small">AMRFinderPlus run on Dataset 3</td>
+            <td><span class="status-badge simulated">Next models, <a href="/genes">/genes</a></span></td>
+          </tr>
+          <tr>
+            <td class="fw-600 text-white"><a href="#ds-samples">Test Samples</a></td>
             <td class="font-mono text-accent small">sample_*/</td>
-            <td>Small subset · dev/test</td>
-            <td><span class="feature-tag">FASTA</span> <span class="feature-tag">CSV</span></td>
-            <td class="small text-muted">Quick testing and development demo</td>
-            <td><span class="status-badge simulated">All models</span></td>
+            <td class="small">Small copies of Datasets 1 and 2 and the mapped records</td>
+            <td><span class="status-badge simulated">Quick tests</span></td>
           </tr>
         </tbody>
       </table>
@@ -112,7 +137,7 @@
   <!-- ════════════════════════════════════════════════════════════
        DATASET 1: AMR Phenotype Records
        ════════════════════════════════════════════════════════════ -->
-  <div class="mb-5">
+  <div class="mb-5" id="ds-amr">
     <div class="d-flex align-items-center gap-3 mb-3">
       <div class="step-num fs-5 fw-700 step-num-lg step-indigo">1</div>
       <div>
@@ -133,7 +158,7 @@
             Each row represents a single <em>genome–antibiotic test result</em>: a specific bacterial isolate tested against a specific antibiotic. The key label is the <strong class="text-rose2">Resistant Phenotype</strong> column, which shows whether the isolate was found <strong class="text-rose2">Resistant</strong>, <strong class="text-emerald2">Susceptible</strong>, or <strong class="text-amber2">Intermediate</strong>.
           </p>
           <p class="body-text lh-17">
-            Files are organized as one CSV per bacterial taxon (e.g., <code class="font-mono text-accent2">amr_taxon_562_Escherichia_coli.csv</code>). The dataset covers 15+ bacterial species across 62 antibiotics.
+            Files are organized as one CSV per bacterial taxon (e.g., <code class="font-mono text-accent2">amr_taxon_562_Escherichia_coli.csv</code>). After cleaning it covers 40 bacterial genera and 130 antibiotics. Only 13% of the labels were measured in a laboratory; the rest were predicted by BV-BRC's own models, and every row records which it is.
           </p>
 
           <h6 class="card-section-title mt-4"><i class="bi bi-table text-accent me-2"></i>Column Schema</h6>
@@ -162,22 +187,26 @@
         <div class="info-card mb-4">
           <h6 class="card-section-title"><i class="bi bi-bar-chart text-accent me-2"></i>Dataset Statistics</h6>
           <table class="table table-custom table-sm">
-            <tr><td class="text-muted">Total CSV files</td><td class="fw-600 text-white">4,252</td></tr>
-            <tr><td class="text-muted">Total rows (lines)</td><td class="fw-600 text-white">~2.99 million</td></tr>
-            <tr><td class="text-muted">Unique labeled samples</td><td class="fw-600 text-white">~90,826</td></tr>
-            <tr><td class="text-muted">Antibiotics</td><td class="fw-600 text-white">62</td></tr>
-            <tr><td class="text-muted">Bacterial species</td><td class="fw-600 text-white">15+</td></tr>
-            <tr><td class="text-muted">Files loaded in training</td><td class="fw-600 text-white">up to 500</td></tr>
+            <tr><td class="text-muted">CSV files (one per taxon)</td><td class="fw-600 text-white">3,655</td></tr>
+            <tr><td class="text-muted">Raw rows</td><td class="fw-600 text-white">2,986,755</td></tr>
+            <tr><td class="text-muted">Rows after cleaning</td><td class="fw-600 text-white">1,521,644</td></tr>
+            <tr><td class="text-muted">Genomes</td><td class="fw-600 text-white">128,286</td></tr>
+            <tr><td class="text-muted">Antibiotics</td><td class="fw-600 text-white">130</td></tr>
+            <tr><td class="text-muted">Genera</td><td class="fw-600 text-white">40</td></tr>
+            <tr><td class="text-muted">Laboratory-measured rows</td><td class="fw-600 text-white">199,763 (13%)</td></tr>
+            <tr><td class="text-muted">Resistant share</td><td class="fw-600 text-white">36.4%</td></tr>
+            <tr><td class="text-muted">Served model trained on</td><td class="fw-600 text-white">{{ metrics.lgbm.train_rows }} rows</td></tr>
           </table>
         </div>
 
         <div class="info-card mb-4">
-          <h6 class="card-section-title"><i class="bi bi-bacteria text-accent me-2"></i>Top Bacterial Species</h6>
+          <h6 class="card-section-title"><i class="bi bi-bacteria text-accent me-2"></i>Largest Genera (rows after cleaning)</h6>
           <div class="method-steps">
-            <div class="method-step"><span class="step-num step-num-xs">1</span><div><em>Escherichia coli</em>: largest subset (~50K)</div></div>
-            <div class="method-step"><span class="step-num step-num-xs">2</span><div><em>Salmonella enterica</em> (~15K records)</div></div>
-            <div class="method-step"><span class="step-num step-num-xs">3</span><div><em>Streptococcus pneumoniae</em> (~8K)</div></div>
-            <div class="method-step"><span class="step-num step-num-xs">4</span><div><em>Klebsiella pneumoniae</em>, <em>Staphylococcus aureus</em></div></div>
+            <div class="method-step"><span class="step-num step-num-xs">1</span><div><em>Klebsiella</em>: 451,852</div></div>
+            <div class="method-step"><span class="step-num step-num-xs">2</span><div><em>Salmonella</em>: 343,636</div></div>
+            <div class="method-step"><span class="step-num step-num-xs">3</span><div><em>Pseudomonas</em>: 184,592</div></div>
+            <div class="method-step"><span class="step-num step-num-xs">4</span><div><em>Acinetobacter</em>: 170,983</div></div>
+            <div class="method-step"><span class="step-num step-num-xs">5</span><div><em>Neisseria</em>: 90,062</div></div>
           </div>
         </div>
 
@@ -241,12 +270,12 @@
   <!-- ════════════════════════════════════════════════════════════
        DATASET 2: FASTA Genome Sequences
        ════════════════════════════════════════════════════════════ -->
-  <div class="mb-5">
+  <div class="mb-5" id="ds-fasta">
     <div class="d-flex align-items-center gap-3 mb-3">
       <div class="step-num fs-5 fw-700" style="width:44px;height:44px;background:rgba(16,185,129,0.15);border-color:rgba(16,185,129,0.4);color:var(--emerald2)">2</div>
       <div>
         <div class="sec-eyebrow">Dataset 2 · Genomic Sequences</div>
-        <h2 class="sec-title mb-0">Bacterial FASTA Genome Sequences</h2>
+        <h2 class="sec-title mb-0">Genome Sequences (partial FASTA)</h2>
       </div>
     </div>
 
@@ -255,7 +284,7 @@
         <div class="info-card h-100">
           <h6 class="card-section-title"><i class="bi bi-info-circle text-accent me-2"></i>What This Dataset Contains</h6>
           <p style="font-size:13px;color:var(--text-2);line-height:1.7;">
-            Raw bacterial whole-genome DNA sequences in <strong>FASTA format</strong>, the standard bioinformatics format for nucleotide sequences. Each file represents the complete assembled genome of a single bacterial isolate, containing between ~100,000 bp (small genomes) and ~5,000,000 bp (large genomes) of ATCG sequence data.
+            Bacterial DNA sequences in <strong>FASTA format</strong>, the standard bioinformatics format for nucleotide sequences, one file per isolate. <strong>These files are partial:</strong> a typical file holds about a third of its genome (median 31%; an <em>E. coli</em> file is about 0.8 of 5 MB), because they were saved truncated. A resistance gene in the missing part cannot be seen, which is why the gene search uses <a href="#ds-assemblies">Dataset 3</a> instead.
           </p>
           <p style="font-size:13px;color:var(--text-2);line-height:1.7;">
             Files are organized by BVBRC genome ID. A FASTA file begins with a header line (starting with <code class="font-mono">&gt;</code>) followed by the raw nucleotide sequence. These sequences are the input to the K-mer resistance predictor. The model reads the sequence, computes 4-mer frequencies, and classifies resistance without needing a reference genome alignment.
@@ -306,11 +335,13 @@ GCGAGTGTTGAAGTTCGGCGGTACATCAGTGGCAAATGCAGAACGTTTT
         <div class="info-card mb-4">
           <h6 class="card-section-title"><i class="bi bi-bar-chart text-accent me-2"></i>Dataset Statistics</h6>
           <table class="table table-custom table-sm">
-            <tr><td class="text-muted">Unique genome folders</td><td class="fw-600 text-white">~1,685</td></tr>
-            <tr><td class="text-muted">Genome size range</td><td class="fw-600 text-white">0.1 – 5 Mbp</td></tr>
+            <tr><td class="text-muted">FASTA files (genomes)</td><td class="fw-600 text-white">2,587</td></tr>
+            <tr><td class="text-muted">Taxon folders</td><td class="fw-600 text-white">1,683</td></tr>
+            <tr><td class="text-muted">Size on disk</td><td class="fw-600 text-white">4.0 GB</td></tr>
+            <tr><td class="text-muted">Share of each genome kept</td><td class="fw-600 text-white">median 31%</td></tr>
             <tr><td class="text-muted">BP analyzed per genome</td><td class="fw-600 text-white">up to 500,000</td></tr>
             <tr><td class="text-muted">4-mer dimensions</td><td class="fw-600 text-white">256</td></tr>
-            <tr><td class="text-muted">Genome-antibiotic pairs</td><td class="fw-600 text-white">6,002 (training)</td></tr>
+            <tr><td class="text-muted">Served K-mer model trained on</td><td class="fw-600 text-white">{{ metrics.kmer.train_rows }} genome–antibiotic pairs</td></tr>
           </table>
         </div>
 
@@ -353,13 +384,103 @@ GCGAGTGTTGAAGTTCGGCGGTACATCAGTGGCAAATGCAGAACGTTTT
 
 
   <!-- ════════════════════════════════════════════════════════════
-       DATASET 3: Mapped AMR Records
+       DATASET 3: Complete Genome Assemblies
        ════════════════════════════════════════════════════════════ -->
-  <div class="mb-5">
+  <div class="mb-5" id="ds-assemblies">
     <div class="d-flex align-items-center gap-3 mb-3">
       <div class="step-num fs-5 fw-700" style="width:44px;height:44px;background:rgba(245,158,11,0.15);border-color:rgba(245,158,11,0.4);color:var(--amber2)">3</div>
       <div>
-        <div class="sec-eyebrow">Dataset 3 · Linking Layer</div>
+        <div class="sec-eyebrow">Dataset 3 · Complete Genomes</div>
+        <h2 class="sec-title mb-0">Complete Genome Assemblies</h2>
+      </div>
+    </div>
+
+    <div class="row g-4">
+      <div class="col-lg-8">
+        <div class="info-card h-100">
+          <h6 class="card-section-title"><i class="bi bi-info-circle text-accent me-2"></i>What This Dataset Contains</h6>
+          <p class="body-text lh-17">
+            The whole genome of the same 2,587 isolates as Dataset 2, downloaded again from the <strong>BV-BRC API</strong> because the local FASTA files are partial. A download is kept only if its length is within 1% of the length BV-BRC reports for that genome, so every file here is complete.
+          </p>
+          <p class="body-text lh-17">
+            NCBI <strong>AMRFinderPlus</strong> searched every assembly for known resistance genes and resistance mutations. The results form the <a href="/genes">gene matrix</a>: one row per genome, one 0/1 column per gene. At 11 GB the assemblies are not stored in git; <code class="font-mono">experiments/genome/features/download_genomes.py</code> downloads them again.
+          </p>
+        </div>
+      </div>
+      <div class="col-lg-4">
+        <div class="info-card h-100">
+          <h6 class="card-section-title"><i class="bi bi-bar-chart text-accent me-2"></i>Dataset Statistics</h6>
+          <table class="table table-custom table-sm mb-0">
+            <tr><td class="text-muted">Genomes</td><td class="fw-600 text-white">2,587</td></tr>
+            <tr><td class="text-muted">Total length</td><td class="fw-600 text-white">11.4 billion bp</td></tr>
+            <tr><td class="text-muted">Median genome</td><td class="fw-600 text-white">4.8 million bp</td></tr>
+            <tr><td class="text-muted">Size on disk</td><td class="fw-600 text-white">11 GB</td></tr>
+            <tr><td class="text-muted">Searched by AMRFinderPlus</td><td class="fw-600 text-white">all 2,587</td></tr>
+            <tr><td class="text-muted">With a resistance gene</td><td class="fw-600 text-white">1,673</td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ════════════════════════════════════════════════════════════
+       DATASET 4: Single AMR Export
+       ════════════════════════════════════════════════════════════ -->
+  <div class="mb-5" id="ds-export">
+    <div class="d-flex align-items-center gap-3 mb-3">
+      <div class="step-num fs-5 fw-700" style="width:44px;height:44px;background:rgba(244,63,94,0.15);border-color:rgba(244,63,94,0.4);color:var(--rose2)">4</div>
+      <div>
+        <div class="sec-eyebrow">Dataset 4 · Notebook Data</div>
+        <h2 class="sec-title mb-0">Single AMR Export</h2>
+      </div>
+    </div>
+
+    <div class="row g-4">
+      <div class="col-lg-8">
+        <div class="info-card h-100">
+          <h6 class="card-section-title"><i class="bi bi-info-circle text-accent me-2"></i>What This Dataset Contains</h6>
+          <p class="body-text lh-17">
+            One CSV file, <code class="font-mono">BVBRC_genome_amr.csv</code>, exported from BV-BRC with the same kind of genome–antibiotic results as Dataset 1 but in a single file and a smaller, separate selection of genomes.
+          </p>
+          <p class="body-text lh-17">
+            The development notebooks were built on it, so their numbers come from this file, not from Dataset 1. <strong>The deployed models do not use it.</strong> The project uses it to check the antibiotic names offered in the dropdowns.
+          </p>
+        </div>
+      </div>
+      <div class="col-lg-4">
+        <div class="info-card h-100">
+          <h6 class="card-section-title"><i class="bi bi-bar-chart text-accent me-2"></i>Dataset Statistics</h6>
+          <table class="table table-custom table-sm mb-0">
+            <tr><td class="text-muted">Rows</td><td class="fw-600 text-white">171,000</td></tr>
+            <tr><td class="text-muted">Genomes</td><td class="fw-600 text-white">69,708</td></tr>
+            <tr><td class="text-muted">Antibiotics</td><td class="fw-600 text-white">93</td></tr>
+            <tr><td class="text-muted">Columns</td><td class="fw-600 text-white">21</td></tr>
+            <tr><td class="text-muted">Size</td><td class="fw-600 text-white">30 MB</td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ════════════════════════════════════════════════════════════
+       BUILT FROM THE DATASETS
+       ════════════════════════════════════════════════════════════ -->
+  <div class="mb-4">
+    <div class="sec-eyebrow"><i class="bi bi-diagram-3 me-2"></i>Built From the Datasets</div>
+    <h2 class="sec-title mb-1">Data This Project Made</h2>
+    <p class="sec-sub mb-0">Produced by the project's own code from the four datasets, so they are not separate datasets. The gene matrix has its own page: <a href="/genes">Resistance Genes</a>.</p>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════
+       BUILT: Mapped AMR Records
+       ════════════════════════════════════════════════════════════ -->
+  <div class="mb-5" id="ds-mapped">
+    <div class="d-flex align-items-center gap-3 mb-3">
+      <div class="step-num fs-5 fw-700" style="width:44px;height:44px"><i class="bi bi-link-45deg"></i></div>
+      <div>
+        <div class="sec-eyebrow">Built from Datasets 1 + 2 · Linking Layer</div>
         <h2 class="sec-title mb-0">Mapped AMR Records</h2>
       </div>
     </div>
@@ -369,13 +490,13 @@ GCGAGTGTTGAAGTTCGGCGGTACATCAGTGGCAAATGCAGAACGTTTT
         <div class="info-card h-100">
           <h6 class="card-section-title"><i class="bi bi-info-circle text-accent me-2"></i>What This Dataset Contains</h6>
           <p style="font-size:13px;color:var(--text-2);line-height:1.7;">
-            This is an <strong>intermediate linkage dataset</strong> that bridges Dataset 1 (AMR phenotype labels) and Dataset 2 (FASTA sequences). Each row from the AMR CSV files is enriched with a <code class="font-mono" style="color:var(--accent2)">fasta_path</code> column pointing to the actual genome FASTA file for that isolate.
+            This is a <strong>linking table</strong> made by <code class="font-mono">fasta_amr_map.py</code> that bridges Dataset 1 (AMR phenotype labels) and Dataset 2 (FASTA sequences). Each row from the AMR CSV files is enriched with a <code class="font-mono" style="color:var(--accent2)">fasta_path</code> column pointing to the actual genome FASTA file for that isolate.
           </p>
           <p style="font-size:13px;color:var(--text-2);line-height:1.7;">
             This linkage is essential for training the K-mer RandomForest model: the model needs both the <strong style="color:var(--rose2)">resistance label</strong> (from Dataset 1) AND the <strong style="color:var(--emerald2)">genome sequence</strong> (from Dataset 2). The mapped records provide both in one place.
           </p>
           <p style="font-size:13px;color:var(--text-2);line-height:1.7;">
-            Not all AMR records have a matching FASTA file; only 1,684 out of 4,252 taxons have genomes available in the database. This linkage step filters to the intersection.
+            Not every AMR record has a matching FASTA file: 1,683 of the 3,655 taxon files have genomes. This linkage step keeps only the rows that do.
           </p>
 
           <h6 class="card-section-title mt-4"><i class="bi bi-diagram-3 text-accent me-2"></i>How the Linkage Works</h6>
@@ -421,11 +542,12 @@ GCGAGTGTTGAAGTTCGGCGGTACATCAGTGGCAAATGCAGAACGTTTT
         <div class="info-card mb-4">
           <h6 class="card-section-title"><i class="bi bi-bar-chart text-accent me-2"></i>Dataset Statistics</h6>
           <table class="table table-custom table-sm">
-            <tr><td class="text-muted">Mapped CSV files</td><td class="fw-600 text-white">1,684</td></tr>
-            <tr><td class="text-muted">Total linked records</td><td class="fw-600 text-white">6,002</td></tr>
-            <tr><td class="text-muted">Unique genomes linked</td><td class="fw-600 text-white">1,684</td></tr>
-            <tr><td class="text-muted">Antibiotics covered</td><td class="fw-600 text-white">62</td></tr>
-            <tr><td class="text-muted">Linkage success rate</td><td class="fw-600" style="color:var(--emerald2)">~40%</td></tr>
+            <tr><td class="text-muted">Mapped CSV files</td><td class="fw-600 text-white">1,683</td></tr>
+            <tr><td class="text-muted">Linked rows</td><td class="fw-600 text-white">110,493</td></tr>
+            <tr><td class="text-muted">Genomes linked</td><td class="fw-600 text-white">2,567</td></tr>
+            <tr><td class="text-muted">Antibiotics</td><td class="fw-600 text-white">101</td></tr>
+            <tr><td class="text-muted">Taxon files with genomes</td><td class="fw-600" style="color:var(--emerald2)">1,683 of 3,655 (46%)</td></tr>
+            <tr><td class="text-muted">Served K-mer model trained on</td><td class="fw-600 text-white">{{ metrics.kmer.train_rows }} rows</td></tr>
           </table>
         </div>
 
@@ -437,7 +559,7 @@ GCGAGTGTTGAAGTTCGGCGGTACATCAGTGGCAAATGCAGAACGTTTT
             <div class="method-step"><span class="step-num" style="width:24px;height:24px;font-size:10px">3</span>Compute 256-dim k-mer vector from sequence</div>
             <div class="method-step"><span class="step-num" style="width:24px;height:24px;font-size:10px">4</span>Combine with antibiotic one-hot + GC features</div>
             <div class="method-step"><span class="step-num" style="width:24px;height:24px;font-size:10px">5</span>Train RandomForest on (features, label) pairs</div>
-            <div class="method-step"><span class="step-num" style="width:24px;height:24px;font-size:10px">6</span>Cache k-mer vectors in <code class="font-mono">kmer_cache/</code> for speed</div>
+            <div class="method-step"><span class="step-num" style="width:24px;height:24px;font-size:10px">6</span>Cache k-mer vectors as <code class="font-mono">*.k4.npy</code> files for speed</div>
           </div>
         </div>
       </div>
@@ -446,26 +568,26 @@ GCGAGTGTTGAAGTTCGGCGGTACATCAGTGGCAAATGCAGAACGTTTT
 
 
   <!-- ════════════════════════════════════════════════════════════
-       DATASET 4: Sample Subsets
+       BUILT: Test Samples
        ════════════════════════════════════════════════════════════ -->
-  <div class="mb-5">
+  <div class="mb-5" id="ds-samples">
     <div class="d-flex align-items-center gap-3 mb-3">
-      <div class="step-num fs-5 fw-700" style="width:44px;height:44px;background:rgba(244,63,94,0.15);border-color:rgba(244,63,94,0.4);color:var(--rose2)">4</div>
+      <div class="step-num fs-5 fw-700" style="width:44px;height:44px"><i class="bi bi-files"></i></div>
       <div>
-        <div class="sec-eyebrow">Dataset 4 · Test &amp; Development</div>
-        <h2 class="sec-title mb-0">Sample / Test Subsets</h2>
+        <div class="sec-eyebrow">Copies for testing · not a dataset</div>
+        <h2 class="sec-title mb-0">Test Samples</h2>
       </div>
     </div>
 
     <div class="row g-4">
       <div class="col-lg-6">
         <div class="info-card h-100">
-          <h6 class="card-section-title"><i class="bi bi-info-circle text-accent me-2"></i>What This Dataset Contains</h6>
+          <h6 class="card-section-title"><i class="bi bi-info-circle text-accent me-2"></i>What These Are</h6>
           <p style="font-size:13px;color:var(--text-2);line-height:1.7;">
-            Two smaller subsets of Datasets 2 and 3, stored at <code class="font-mono" style="color:var(--accent2)">sample_fasta_output/</code> and <code class="font-mono" style="color:var(--accent2)">sample_mapped_output/</code>. These contain a curated selection of genomes and their mapped records for rapid prototyping, debugging, and demonstration purposes.
+            Small copies taken from the data above, not new data: a few AMR files from Dataset 1, the genomes of one species (<em>Acinetobacter nosocomialis</em>) from Dataset 2, and their mapped records.
           </p>
           <p style="font-size:13px;color:var(--text-2);line-height:1.7;">
-            The sample datasets allow the system to be tested on any machine without requiring the full multi-gigabyte FASTA corpus. They are also used by the Train page when demonstrating the CNN-LSTM training pipeline.
+            They let the system run on a machine without the multi-gigabyte data: when <code class="font-mono">mapped_output/</code> is missing, the K-mer trainer falls back to <code class="font-mono">sample_mapped_output/</code> for a quick demonstration. No reported result comes from them.
           </p>
 
           <div class="row g-3 mt-2">
@@ -473,19 +595,19 @@ GCGAGTGTTGAAGTTCGGCGGTACATCAGTGGCAAATGCAGAACGTTTT
               <div class="example-box">
                 <div class="example-title">sample_fasta_output/</div>
                 <div class="example-content small">
-                  <div class="text-muted">Curated FASTA genomes</div>
-                  <div class="text-muted">Representative species</div>
-                  <div class="text-muted">Quick pipeline testing</div>
+                  <div class="text-muted">4 FASTA files, 5 MB</div>
+                  <div class="text-muted">One species</div>
+                  <div class="text-muted">Copied from Dataset 2</div>
                 </div>
               </div>
             </div>
             <div class="col-6">
               <div class="example-box">
-                <div class="example-title">sample_mapped_output/</div>
+                <div class="example-title">sample_mapped_output/ · sample_amr_data/</div>
                 <div class="example-content small">
-                  <div class="text-muted">Linked AMR + FASTA paths</div>
-                  <div class="text-muted">Training demonstrations</div>
-                  <div class="text-muted">Subset of Dataset 3</div>
+                  <div class="text-muted">1 mapped CSV, 4 AMR CSVs</div>
+                  <div class="text-muted">Trainer demonstration</div>
+                  <div class="text-muted">Copied from Dataset 1 and the mapped records</div>
                 </div>
               </div>
             </div>
@@ -520,7 +642,7 @@ GCGAGTGTTGAAGTTCGGCGGTACATCAGTGGCAAATGCAGAACGTTTT
   <div class="mb-5">
     <div class="sec-eyebrow"><i class="bi bi-diagram-3 me-2"></i>Model–Dataset Relationships</div>
     <h2 class="sec-title mb-1">Which Model Uses Which Dataset</h2>
-    <p class="sec-sub mb-4">Each of the three deployed models is trained on a specific dataset combination.</p>
+    <p class="sec-sub mb-4">The two trained models each learn from different data; the timeline is a simulation that reads only the genome you give it.</p>
 
     <div class="row g-4">
       <div class="col-lg-4">
@@ -535,7 +657,7 @@ GCGAGTGTTGAAGTTCGGCGGTACATCAGTGGCAAATGCAGAACGTTTT
           </div>
           <div class="method-steps">
             <div class="method-step"><span class="step-num" style="width:20px;height:20px;font-size:9px">→</span>14 features from AMR metadata</div>
-            <div class="method-step"><span class="step-num" style="width:20px;height:20px;font-size:9px">→</span>90,826 labeled training samples</div>
+            <div class="method-step"><span class="step-num" style="width:20px;height:20px;font-size:9px">→</span>{{ metrics.lgbm.train_rows }} training rows</div>
             <div class="method-step"><span class="step-num" style="width:20px;height:20px;font-size:9px">→</span>No FASTA sequence needed</div>
           </div>
           <a href="/forecast" class="btn btn-model w-100 mt-3"><i class="bi bi-arrow-right-circle me-2"></i>Use AMR Forecasting</a>
@@ -549,12 +671,12 @@ GCGAGTGTTGAAGTTCGGCGGTACATCAGTGGCAAATGCAGAACGTTTT
           </div>
           <div class="mb-3">
             <div class="text-muted small mb-2">Datasets used:</div>
-            <span class="feature-tag" style="background:rgba(245,158,11,0.15);color:var(--amber2);border-color:rgba(245,158,11,0.3)">Dataset 3  Mapped Records</span>
-            <span class="feature-tag ms-1" style="background:rgba(16,185,129,0.15);color:var(--emerald2);border-color:rgba(16,185,129,0.3)">Dataset 2  FASTA</span>
+            <span class="feature-tag" style="background:rgba(16,185,129,0.15);color:var(--emerald2);border-color:rgba(16,185,129,0.3)">Dataset 2  FASTA</span>
+            <span class="feature-tag ms-1">Mapped Records (labels)</span>
           </div>
           <div class="method-steps">
             <div class="method-step"><span class="step-num" style="width:20px;height:20px;font-size:9px">→</span>256 k-mer features per genome</div>
-            <div class="method-step"><span class="step-num" style="width:20px;height:20px;font-size:9px">→</span>6,002 genome–antibiotic pairs</div>
+            <div class="method-step"><span class="step-num" style="width:20px;height:20px;font-size:9px">→</span>{{ metrics.kmer.train_rows }} genome–antibiotic pairs</div>
             <div class="method-step"><span class="step-num" style="width:20px;height:20px;font-size:9px">→</span>Requires FASTA at inference</div>
           </div>
           <a href="/predict" class="btn btn-model btn-model-green w-100 mt-3"><i class="bi bi-arrow-right-circle me-2"></i>Use Resistance Prediction</a>
@@ -568,8 +690,8 @@ GCGAGTGTTGAAGTTCGGCGGTACATCAGTGGCAAATGCAGAACGTTTT
           </div>
           <div class="mb-3">
             <div class="text-muted small mb-2">Datasets used at inference:</div>
-            <span class="feature-tag" style="background:rgba(16,185,129,0.15);color:var(--emerald2);border-color:rgba(16,185,129,0.3)">Dataset 2  FASTA</span>
-            <span class="feature-tag ms-1">Hardcoded profiles</span>
+            <span class="feature-tag" style="background:rgba(16,185,129,0.15);color:var(--emerald2);border-color:rgba(16,185,129,0.3)">Your FASTA</span>
+            <span class="feature-tag ms-1">Hand-set drug profiles</span>
           </div>
           <div class="method-steps">
             <div class="method-step"><span class="step-num" style="width:20px;height:20px;font-size:9px">→</span>GC content from FASTA</div>
@@ -589,7 +711,7 @@ GCGAGTGTTGAAGTTCGGCGGTACATCAGTGGCAAATGCAGAACGTTTT
   <div class="mb-5">
     <div class="sec-eyebrow"><i class="bi bi-lightning-charge me-2"></i>System Guide</div>
     <h2 class="sec-title mb-1">How to Use This System</h2>
-    <p class="sec-sub mb-4">Step-by-step guide for all three analysis modes and the training pipeline.</p>
+    <p class="sec-sub mb-4">Step-by-step guide for the two prediction modes, the simulation, and training.</p>
 
     <div class="row g-4">
 
@@ -663,11 +785,11 @@ GCGAGTGTTGAAGTTCGGCGGTACATCAGTGGCAAATGCAGAACGTTTT
             <div class="method-step"><span class="step-num" style="width:22px;height:22px;font-size:10px">A</span>Via UI: <a href="/train">Train Models</a> page</div>
             <div class="method-step"><span class="step-num" style="width:22px;height:22px;font-size:10px">B</span>Via CLI in <code class="font-mono">backend/</code> folder</div>
             <div class="method-step"><span class="step-num" style="width:22px;height:22px;font-size:10px">C</span><code class="font-mono small">python train_models.py --model all</code></div>
-            <div class="method-step"><span class="step-num" style="width:22px;height:22px;font-size:10px">D</span>Models auto-reload after training</div>
+            <div class="method-step"><span class="step-num" style="width:22px;height:22px;font-size:10px">D</span>Saved to <code class="font-mono small">trained_models/candidates/</code>; the site keeps its model until one is promoted</div>
           </div>
           <div class="mt-3">
-            <div class="feature-tag">LightGBM: ~3 min</div>
-            <div class="feature-tag mt-1">K-mer RF: ~5 min</div>
+            <div class="feature-tag">LightGBM: ~4 min</div>
+            <div class="feature-tag mt-1">K-mer RF: ~1 hour</div>
           </div>
         </div>
       </div>
@@ -677,14 +799,14 @@ GCGAGTGTTGAAGTTCGGCGGTACATCAGTGGCAAATGCAGAACGTTTT
   <!-- ── Input Format Reference ─────────────────────────────────── -->
   <div class="glass-card mb-5">
     <h5 class="fw-700 mb-1"><i class="bi bi-code text-accent me-2"></i>Input Format Reference</h5>
-    <p style="font-size:13px;color:var(--text-3);margin-bottom:20px;">Quick reference for all accepted input formats across the three analysis modes.</p>
+    <p style="font-size:13px;color:var(--text-3);margin-bottom:20px;">Quick reference for the accepted inputs on the Forecasting, Prediction and Timeline pages.</p>
     <div class="row g-4">
       <div class="col-md-4">
         <div class="example-box">
           <div class="example-title" style="color:var(--indigo2)">AMR Forecasting Inputs</div>
           <div class="example-content small">
             <div class="font-mono" style="color:var(--accent2)">antibiotic:</div>
-            <div class="text-muted ms-2">Any from the 48-item dropdown (e.g., "ciprofloxacin")</div>
+            <div class="text-muted ms-2">Any drug in the dropdown, which lists only the drugs the loaded model knows (e.g., "ciprofloxacin")</div>
             <div class="font-mono mt-2" style="color:var(--accent2)">mic_sign:</div>
             <div class="text-muted ms-2">&lt;=, &lt;, =, &gt;, &gt;= (leave blank if unknown)</div>
             <div class="font-mono mt-2" style="color:var(--accent2)">mic_value:</div>
@@ -734,7 +856,7 @@ GCGAGTGTTGAAGTTCGGCGGTACATCAGTGGCAAATGCAGAACGTTTT
   <!-- ── Source & Citation ──────────────────────────────────────── -->
   <div class="glass-card">
     <h5 class="fw-700 mb-1"><i class="bi bi-journal-text text-accent me-2"></i>Data Source &amp; Citation</h5>
-    <p style="font-size:13px;color:var(--text-2);margin-bottom:16px;">All genomic and AMR phenotype data was retrieved from the <strong>BVBRC (Bacterial and Viral Bioinformatics Resource Center)</strong>, formerly known as PATRIC.</p>
+    <p style="font-size:13px;color:var(--text-2);margin-bottom:16px;">The AMR phenotype data and the complete assemblies come from <strong>BV-BRC (Bacterial and Viral Bioinformatics Resource Center)</strong>, formerly PATRIC; the partial FASTA files from NCBI GenBank.</p>
     <div class="row g-3">
       <div class="col-md-6">
         <div class="example-box">
