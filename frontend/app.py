@@ -6,10 +6,19 @@ import os
 import json
 import time
 import requests
-from flask import Flask, Response, render_template, request, jsonify, redirect, url_for
+from flask import (Flask, Response, render_template, request, jsonify, redirect, url_for,
+                   has_request_context)
 
 app = Flask(__name__)
-app.secret_key = os.environ.get('SECRET_KEY', 'fyp-flask-frontend-2024')
+# No sessions or flash messages are used, so no secret key is needed; one is
+# set only if given, never from a default committed here.
+if os.environ.get('SECRET_KEY'):
+    app.secret_key = os.environ['SECRET_KEY']
+
+# Refuse bodies bigger than a 20 MB FASTA plus form fields before reading
+# them. The backend checks the same limit (settings.MAX_FASTA_BYTES).
+MAX_FASTA_MB = 20
+app.config['MAX_CONTENT_LENGTH'] = (MAX_FASTA_MB + 1) * 1024 * 1024
 
 BACKEND_URL = os.environ.get('BACKEND_URL', 'http://127.0.0.1:8000/api')
 
@@ -42,9 +51,18 @@ def _parse_response(r):
         return {'error': f'Backend returned non-JSON response (HTTP {r.status_code}): {preview}'}, r.status_code
 
 
+def _forward_headers(extra=None):
+    """Headers for a backend call: the browser's IP, so the backend's rate
+    limit counts each visitor rather than this server, plus any extras."""
+    headers = dict(extra or {})
+    if has_request_context():
+        headers['X-Forwarded-For'] = request.headers.get('X-Forwarded-For', request.remote_addr or '')
+    return headers
+
+
 def backend_get(endpoint, timeout=10):
     try:
-        r = requests.get(f'{BACKEND_URL}/{endpoint}', timeout=timeout)
+        r = requests.get(f'{BACKEND_URL}/{endpoint}', headers=_forward_headers(), timeout=timeout)
         return _parse_response(r)
     except requests.exceptions.ConnectionError:
         return {'error': 'Django backend not running. Start it with: python manage.py runserver'}, 503
@@ -52,15 +70,16 @@ def backend_get(endpoint, timeout=10):
         return {'error': str(e)}, 500
 
 
-def backend_post(endpoint, data=None, files=None, json_data=None, timeout=30):
+def backend_post(endpoint, data=None, files=None, json_data=None, timeout=30, headers=None):
     try:
         url = f'{BACKEND_URL}/{endpoint}'
+        headers = _forward_headers(headers)
         if files:
-            r = requests.post(url, data=data, files=files, timeout=timeout)
+            r = requests.post(url, data=data, files=files, headers=headers, timeout=timeout)
         elif json_data is not None:
-            r = requests.post(url, json=json_data, timeout=timeout)
+            r = requests.post(url, json=json_data, headers=headers, timeout=timeout)
         else:
-            r = requests.post(url, data=data, timeout=timeout)
+            r = requests.post(url, data=data, headers=headers, timeout=timeout)
         return _parse_response(r)
     except requests.exceptions.ConnectionError:
         return {'error': 'Django backend not running. Start it with: python manage.py runserver'}, 503
@@ -150,6 +169,20 @@ def inject_model_numbers():
         'lgbm': summarize_metrics(models.get('lgbm_forecasting')),
         'kmer': summarize_metrics(models.get('kmer_resistance')),
     }}
+
+
+TOOL_TEMPLATES = {'/predict': 'resistance_prediction.html', '/timeline': 'mutation_timeline.html',
+                  '/forecast': 'resistance_forecast.html'}
+
+
+@app.errorhandler(413)
+def upload_too_large(_e):
+    """An oversized upload returns to its page with a message, not a bare 413."""
+    message = f'The file is too large: the limit is {MAX_FASTA_MB} MB.'
+    template = TOOL_TEMPLATES.get(request.path)
+    if template is None:
+        return jsonify({'error': message}), 413
+    return render_template(template, result=None, error=message, form_data={}), 413
 
 
 @app.route('/')
@@ -279,7 +312,8 @@ def train_model():
 
     if request.method == 'POST':
         model_name = request.form.get('model', 'lgbm')
-        data, status = backend_post('train/', json_data={'model': model_name})
+        data, status = backend_post('train/', json_data={'model': model_name},
+                                    headers={'X-Admin-Token': request.form.get('admin_token', '')})
         if status == 200:
             result = data
         else:
@@ -349,9 +383,11 @@ def organisms_api():
 
 @app.route('/reload', methods=['POST'])
 def reload_models():
-    _vocab_cache.pop('data', None)
-    _health_cache['data'] = None
-    data, status = backend_post('reload/')
+    data, status = backend_post('reload/',
+                                headers={'X-Admin-Token': request.headers.get('X-Admin-Token', '')})
+    if status == 200:
+        _vocab_cache.pop('data', None)
+        _health_cache['data'] = None
     return jsonify(data), status
 
 
@@ -423,6 +459,7 @@ def library():
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5001))
-    # debug=True locally (no PORT set); False in production (Railway sets PORT)
+    # debug=True locally (no PORT set); False in production (Railway sets PORT).
+    # The debugger can run code, so in debug mode listen on this machine only.
     debug = not bool(os.environ.get('PORT'))
-    app.run(debug=debug, port=port, host='0.0.0.0')
+    app.run(debug=debug, port=port, host='127.0.0.1' if debug else '0.0.0.0')

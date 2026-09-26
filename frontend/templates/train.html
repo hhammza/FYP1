@@ -36,6 +36,14 @@
   </div>
   {% endif %}
 
+  <!-- Admin password: sent to the backend as X-Admin-Token -->
+  <div class="form-card mb-4">
+    <label for="adminToken" class="form-label-custom">Admin password <span class="required">*</span></label>
+    <input type="password" id="adminToken" class="form-control form-control-custom" autocomplete="current-password"
+           placeholder="Needed to train or reload models">
+    <small class="text-muted">The <code>ADMIN_TOKEN</code> set on the backend. Without it, training and reloading are refused.</small>
+  </div>
+
   <div class="row g-4">
 
     <!-- LightGBM Training -->
@@ -73,6 +81,7 @@
 
         <form method="POST" action="/train">
           <input type="hidden" name="model" value="lgbm">
+          <input type="hidden" name="admin_token" class="admin-token-field">
           <button type="submit" class="btn btn-primary-custom w-100">
             <i class="bi bi-play-circle me-2"></i>Train LightGBM Model
           </button>
@@ -115,6 +124,7 @@
 
         <form method="POST" action="/train">
           <input type="hidden" name="model" value="kmer">
+          <input type="hidden" name="admin_token" class="admin-token-field">
           <button type="submit" class="btn btn-primary-custom w-100 btn-success-custom">
             <i class="bi bi-play-circle me-2"></i>Train K-mer Model
           </button>

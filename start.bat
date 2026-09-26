@@ -29,9 +29,13 @@ echo [2/4] Installing frontend dependencies...
 cd /d "%~dp0frontend"
 pip install -r requirements.txt -q
 
-REM Start Django backend in a new window
+REM Start Django backend in a new window. DEBUG=True is local development:
+REM no SECRET_KEY or ALLOWED_HOSTS needed. To use Train/Reload, first run
+REM   set ADMIN_TOKEN=some-password
+REM in this window; the Train page then asks for that password.
 echo [3/4] Starting Django backend on http://127.0.0.1:8000 ...
 cd /d "%~dp0backend"
+set DEBUG=True
 start "Django Backend (port 8000)" cmd /k "python manage.py runserver 8000 & pause"
 
 REM Wait for Django to start

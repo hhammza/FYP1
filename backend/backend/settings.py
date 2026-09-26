@@ -3,9 +3,35 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = os.environ.get('SECRET_KEY', 'fyp-amr-django-secret-key-2024-loopverse')
+from django.core.exceptions import ImproperlyConfigured
+
+
+def env_list(name):
+    return [v.strip() for v in os.environ.get(name, '').split(',') if v.strip()]
+
+
+# Local development: start.bat / start.sh set DEBUG=True. Production (Railway)
+# leaves DEBUG unset, so it is False, and must set SECRET_KEY and ALLOWED_HOSTS.
 DEBUG = os.environ.get('DEBUG', 'False') == 'True'
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '*').split(',')
+
+# No default key is committed. With DEBUG on and no key, a random one is made
+# per process: the API keeps no sessions or signed cookies, so nothing breaks.
+SECRET_KEY = os.environ.get('SECRET_KEY', '')
+if not SECRET_KEY:
+    if not DEBUG:
+        raise ImproperlyConfigured('SECRET_KEY must be set when DEBUG is False.')
+    from django.core.management.utils import get_random_secret_key
+    SECRET_KEY = get_random_secret_key()
+
+# Comma-separated host names this API answers to, e.g. the Railway domain.
+# With DEBUG on and none set, Django allows localhost, 127.0.0.1 and [::1].
+ALLOWED_HOSTS = env_list('ALLOWED_HOSTS')
+if not ALLOWED_HOSTS and not DEBUG:
+    raise ImproperlyConfigured('ALLOWED_HOSTS must be set when DEBUG is False.')
+
+# Token for /api/train/ and /api/reload/, sent as the X-Admin-Token header.
+# Unset = those endpoints are switched off (503), not open.
+ADMIN_TOKEN = os.environ.get('ADMIN_TOKEN', '')
 
 INSTALLED_APPS = [
     'django.contrib.contenttypes',
@@ -33,12 +59,11 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'backend.wsgi.application'
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
+# No database: the API is stateless and stores no user data.
+DATABASES = {}
+
+# Per-process cache, used only for the rate-limit counters.
+CACHES = {'default': {'BACKEND': 'django.core.cache.backends.locmem.LocMemCache'}}
 
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
@@ -47,8 +72,20 @@ USE_TZ = True
 STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-CORS_ALLOW_ALL_ORIGINS = True
-CORS_ALLOW_CREDENTIALS = True
+# Browsers never call this API directly: the Flask frontend calls it from
+# its server. So no cross-origin access is needed; list origins here only if a
+# page ever fetches the API from the browser.
+CORS_ALLOWED_ORIGINS = env_list('CORS_ALLOWED_ORIGINS')
+
+# Uploads. A FASTA over MAX_FASTA_BYTES is refused with 413 before it is read.
+MAX_FASTA_BYTES = 20 * 1024 * 1024
+DATA_UPLOAD_MAX_MEMORY_SIZE = MAX_FASTA_BYTES + 1024 * 1024   # pasted FASTA arrives as JSON
+FILE_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024                 # larger files spool to disk
+
+# Requests per client IP (per worker process) on the prediction endpoints.
+# RATELIMIT_ENABLE=False switches them off, e.g. for a load test.
+RATELIMIT_ENABLE = os.environ.get('RATELIMIT_ENABLE', 'True') == 'True'
+RATE_LIMITS = {'forecast': '60/m', 'predict': '10/m', 'timeline': '10/m'}
 
 REST_FRAMEWORK = {
     'DEFAULT_RENDERER_CLASSES': ['rest_framework.renderers.JSONRenderer'],

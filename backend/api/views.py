@@ -1,4 +1,12 @@
+"""The JSON API behind the Flask frontend.
+
+No CSRF protection is needed, and none is installed: CSRF abuses credentials a
+browser sends by itself (cookies), and this API uses none. It is called by the
+Flask server, and its two admin endpoints need an X-Admin-Token header, which
+a browser never adds on its own.
+"""
 import csv
+import hmac
 import io
 import json
 import os
@@ -6,14 +14,58 @@ import traceback
 from django.conf import settings
 from django.http import HttpResponse, JsonResponse
 from django.views import View
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
+from django_ratelimit.core import is_ratelimited
 from amr_constants import UI_ANTIBIOTICS
 from api import model_registry
 
 
 def json_error(message, status=400):
     return JsonResponse({'error': message}, status=status)
+
+
+def client_ip(group, request):
+    """The caller's IP for rate limiting. The Flask frontend passes the
+    browser's address in X-Forwarded-For; a direct caller can set that header
+    too, so this limits casual abuse, not a determined attacker."""
+    forwarded = request.META.get('HTTP_X_FORWARDED_FOR', '')
+    return forwarded.split(',')[0].strip() or request.META.get('REMOTE_ADDR', '')
+
+
+def rate_limited(request, group):
+    """429 response once this IP passes settings.RATE_LIMITS[group], else None."""
+    if is_ratelimited(request, group=group, key=client_ip,
+                      rate=settings.RATE_LIMITS[group], increment=True):
+        return json_error(f'Too many requests ({settings.RATE_LIMITS[group]} per IP). '
+                          'Wait a minute and try again.', 429)
+    return None
+
+
+def upload_too_large(request):
+    """413 response when the request body could hold a FASTA over the limit,
+    checked before the body is read, else None."""
+    try:
+        size = int(request.META.get('CONTENT_LENGTH') or 0)
+    except ValueError:
+        size = 0
+    if size > settings.DATA_UPLOAD_MAX_MEMORY_SIZE:
+        return fasta_too_large()
+    return None
+
+
+def fasta_too_large():
+    mb = settings.MAX_FASTA_BYTES // (1024 * 1024)
+    return json_error(f'FASTA is too large: the limit is {mb} MB.', 413)
+
+
+def admin_denied(request):
+    """401/503 response unless the request carries the admin token, else None."""
+    token = settings.ADMIN_TOKEN
+    if not token:
+        return json_error('Admin endpoints are switched off: set ADMIN_TOKEN on the backend.', 503)
+    sent = request.headers.get('X-Admin-Token', '')
+    if not hmac.compare_digest(sent.encode(), token.encode()):
+        return json_error('Admin token missing or wrong.', 401)
+    return None
 
 
 def optional_threshold(value):
@@ -24,7 +76,6 @@ def optional_threshold(value):
     return float(value)
 
 
-@method_decorator(csrf_exempt, name='dispatch')
 class HealthView(View):
     def get(self, request):
         lgbm = model_registry.get_lgbm()
@@ -40,11 +91,13 @@ class HealthView(View):
         })
 
 
-@method_decorator(csrf_exempt, name='dispatch')
 class ResistanceForecastView(View):
     """LightGBM AMR forecasting endpoint."""
 
     def post(self, request):
+        limited = rate_limited(request, 'forecast')
+        if limited:
+            return limited
         try:
             if request.content_type and 'multipart' in request.content_type:
                 data = request.POST
@@ -104,11 +157,13 @@ class ResistanceForecastView(View):
             return json_error(str(e), 500)
 
 
-@method_decorator(csrf_exempt, name='dispatch')
 class ResistancePredictionView(View):
     """K-mer CNN/MLP resistance prediction from FASTA."""
 
     def post(self, request):
+        refused = rate_limited(request, 'predict') or upload_too_large(request)
+        if refused:
+            return refused
         try:
             antibiotic = request.POST.get('antibiotic', '').strip()
             threshold = optional_threshold(request.POST.get('threshold'))
@@ -116,6 +171,8 @@ class ResistancePredictionView(View):
             fasta_text = ''
             if 'fasta_file' in request.FILES:
                 fasta_file = request.FILES['fasta_file']
+                if fasta_file.size > settings.MAX_FASTA_BYTES:
+                    return fasta_too_large()
                 fasta_text = fasta_file.read().decode('utf-8', errors='ignore')
             elif request.content_type and 'application/json' in request.content_type:
                 body = json.loads(request.body.decode('utf-8'))
@@ -128,6 +185,8 @@ class ResistancePredictionView(View):
 
             if not fasta_text:
                 return json_error('FASTA sequence or file is required')
+            if len(fasta_text) > settings.MAX_FASTA_BYTES:
+                return fasta_too_large()
             if not antibiotic:
                 return json_error('antibiotic is required')
 
@@ -143,11 +202,13 @@ class ResistancePredictionView(View):
             return json_error(str(e), 500)
 
 
-@method_decorator(csrf_exempt, name='dispatch')
 class MutationTimelineView(View):
     """Bacterial mutation timeline endpoint."""
 
     def post(self, request):
+        refused = rate_limited(request, 'timeline') or upload_too_large(request)
+        if refused:
+            return refused
         try:
             n_weeks_default = 8
             fasta_text = ''
@@ -156,6 +217,8 @@ class MutationTimelineView(View):
 
             if 'fasta_file' in request.FILES:
                 fasta_file = request.FILES['fasta_file']
+                if fasta_file.size > settings.MAX_FASTA_BYTES:
+                    return fasta_too_large()
                 fasta_text = fasta_file.read().decode('utf-8', errors='ignore')
                 antibiotic = request.POST.get('antibiotic', '').strip()
                 n_weeks = int(request.POST.get('n_weeks', n_weeks_default))
@@ -171,6 +234,8 @@ class MutationTimelineView(View):
 
             if not fasta_text:
                 return json_error('FASTA sequence or file is required')
+            if len(fasta_text) > settings.MAX_FASTA_BYTES:
+                return fasta_too_large()
             if not antibiotic:
                 return json_error('antibiotic is required')
             if n_weeks < 1 or n_weeks > 52:
@@ -188,14 +253,12 @@ class MutationTimelineView(View):
             return json_error(str(e), 500)
 
 
-@method_decorator(csrf_exempt, name='dispatch')
 class AntibioticListView(View):
     """Return list of supported antibiotics."""
     def get(self, request):
         return JsonResponse({'antibiotics': sorted(UI_ANTIBIOTICS)})
 
 
-@method_decorator(csrf_exempt, name='dispatch')
 class VocabularyView(View):
     """What each model can actually distinguish.
 
@@ -303,10 +366,12 @@ class GeneLookupView(View):
                              'genes': genes})
 
 
-@method_decorator(csrf_exempt, name='dispatch')
 class ReloadModelsView(View):
     """Force reload all models from disk without restarting server."""
     def post(self, request):
+        denied = admin_denied(request)
+        if denied:
+            return denied
         lgbm = model_registry.get_lgbm()
         kmer = model_registry.get_kmer()
         timeline = model_registry.get_timeline()
@@ -323,11 +388,13 @@ class ReloadModelsView(View):
         return JsonResponse({'status': 'reloaded', 'models': results})
 
 
-@method_decorator(csrf_exempt, name='dispatch')
 class TrainModelView(View):
     """Trigger model training asynchronously."""
 
     def post(self, request):
+        denied = admin_denied(request)
+        if denied:
+            return denied
         try:
             if request.content_type and 'application/json' in request.content_type:
                 body = json.loads(request.body.decode('utf-8'))
@@ -335,6 +402,8 @@ class TrainModelView(View):
                 body = request.POST
 
             model_name = body.get('model', 'lgbm')
+            if model_name not in ('lgbm', 'kmer'):
+                return json_error("model must be 'lgbm' or 'kmer'")
 
             import threading
             import sys

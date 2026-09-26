@@ -12,7 +12,7 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done · `[!]` blocke
 
 | Week | Dates (planned) | Focus | Status |
 | --- | --- | --- | --- |
-| 1 | 28 Sep to 2 Oct | Remove hardcoded AUCs, UI reads `metrics.json`, security | In progress (T1.3 done) |
+| 1 | 28 Sep to 2 Oct | Remove hardcoded AUCs, UI reads `metrics.json`, security | Done (T1.3, T2.4) |
 | 2 | 5 Oct to 9 Oct | Exports (CSV, PDF, PNG), batch CSV upload | Not started |
 | 3 | 12 Oct to 16 Oct | Genome result UI, Dockerfile with AMRFinderPlus | Not started |
 | 4 | 19 Oct to 23 Oct | RL panel on `/timeline`, automated tests | Not started |
@@ -87,23 +87,25 @@ Built against the real files (`backend/trained_models/lgbm_metrics.json`, `kmer_
 
 ### T2.4 Security hardening
 
-- [ ] `settings.py:6`: `SECRET_KEY` from the environment only; stop at startup if missing when `DEBUG=False`
+- [x] `settings.py:6`: `SECRET_KEY` from the environment only; stop at startup if missing when `DEBUG=False`. *With `DEBUG=True` and no key, a random one per process (the API keeps no sessions)*
 
-- [ ] `settings.py:8`: `ALLOWED_HOSTS` from the environment, no `*` default
+- [x] `settings.py:8`: `ALLOWED_HOSTS` from the environment, no `*` default; stops at startup if empty when `DEBUG=False`
 
-- [ ] `settings.py:50`: replace `CORS_ALLOW_ALL_ORIGINS = True` with `CORS_ALLOWED_ORIGINS` = the frontend URL
+- [x] `settings.py:50`: replace `CORS_ALLOW_ALL_ORIGINS = True` with `CORS_ALLOWED_ORIGINS` = the frontend URL. *Set to none by default: browsers never call the API (Flask calls it from its server), so no origin needs access; `CORS_ALLOWED_ORIGINS` env var if that changes*
 
-- [ ] `/api/train/` and `/api/reload/` need an `X-Admin-Token` header (value from the environment); the Train page asks for a password
+- [x] `/api/train/` and `/api/reload/` need an `X-Admin-Token` header (value from the environment); the Train page asks for a password. *No `ADMIN_TOKEN` set = both switched off (503); `/api/train/` also accepts only `lgbm` or `kmer`, since the name is now part of a folder path*
 
-- [ ] Review the 9 `csrf_exempt` uses in `backend/api/views.py`
+- [x] Review the 9 `csrf_exempt` uses in `backend/api/views.py`. *8 decorators (the 9th hit was the import). Removed: no CSRF middleware was installed, so they did nothing, and CSRF does not apply to an API that uses no cookies; reason written at the top of `views.py`*
 
-- [ ] Upload size limits (`DATA_UPLOAD_MAX_MEMORY_SIZE`, `FILE_UPLOAD_MAX_MEMORY_SIZE`); reject FASTA over 20 MB
+- [x] Upload size limits (`DATA_UPLOAD_MAX_MEMORY_SIZE`, `FILE_UPLOAD_MAX_MEMORY_SIZE`); reject FASTA over 20 MB. *413 from the backend (file, pasted text, or body size) and from Flask (`MAX_CONTENT_LENGTH`, message shown on the page)*
 
-- [ ] Rate limiting on predict endpoints (`django-ratelimit`)
+- [x] Rate limiting on predict endpoints (`django-ratelimit`). *Per visitor IP (Flask forwards it): forecast 60/min, predict and timeline 10/min, JSON 429. Counts are per worker process, and a direct caller can fake the IP header, so it stops casual abuse only*
 
-- [ ] Remove the unused `db.sqlite3` and `migrate` step, or add a prediction-history model
+- [x] Remove the unused `db.sqlite3` and `migrate` step, or add a prediction-history model. *Removed: `DATABASES = {}`, `release: migrate` gone from `Procfile`, `migrate` gone from `run_project.md`*
 
-- **Done when:** train/reload without the token return 401, and the app runs with no default secrets
+- [x] Also: Flask's hardcoded `secret_key` removed (it uses no sessions); Flask's debug server listens on 127.0.0.1 only (its debugger can run code); `start.bat`, `start.sh` and `run_project.md` set `DEBUG=True` for local runs
+
+- **Done when:** train/reload without the token return 401, and the app runs with no default secrets. **Met 2026-09-26:** `backend/tests/test_security.py`, 13 tests, all pass (with Ali's 6: 19/19)
 
 ---
 
@@ -149,6 +151,8 @@ Built against the real files (`backend/trained_models/lgbm_metrics.json`, `kmer_
 
 ### RL panel on `/timeline`
 
+- [ ] Remove the "CNN-LSTM deep-learning model is available for training" claim (`mutation_timeline.html:164`, `train.html:132-144`): `/train` only trains `lgbm` and `kmer`, and the format drops the CNN-LSTM label
+
 - [ ] Panel labelled **"Simulation + RL policy (not trained on patient data)"**, built against Ali's agreed response format
 
 - [ ] Chart of the RL policy against the fixed baselines
@@ -169,7 +173,7 @@ Built against the real files (`backend/trained_models/lgbm_metrics.json`, `kmer_
 
 ## Week 5: deploy and write-up
 
-- [ ] Railway environment variables: `SECRET_KEY`, `DEBUG=False`, `ALLOWED_HOSTS`, CORS origin, `ADMIN_TOKEN`, `BACKEND_URL`
+- [ ] Railway environment variables: `SECRET_KEY`, `DEBUG=False`, `ALLOWED_HOSTS`, CORS origin, `ADMIN_TOKEN`, `BACKEND_URL`. *Backend: `SECRET_KEY`, `ALLOWED_HOSTS` (its Railway domain, plus `healthcheck.railway.app` for the health check), `ADMIN_TOKEN`; `CORS_ALLOWED_ORIGINS` not needed. Frontend: `BACKEND_URL`*
 
 - [ ] Deploy both services; run the end-to-end checklist against the live URLs
 
@@ -215,6 +219,7 @@ Newest first. One line per work session: date, what I did, what is next, anythin
 
 | Date | Done | Next | Blockers |
 | --- | --- | --- | --- |
+| 2026-09-26 | T2.4 security: env-only secrets and hosts, no CORS, admin token on train/reload + password on `/train`, 20 MB upload limit, rate limits, no database; 13 tests | T2.2 exports | None |
 | 2026-09-26 | T1.3: every page reads its AUC from `metrics.json` via `/api/health/`; sliders start at the validated threshold (0.24); fallback and unknown-drug warnings | T2.4 security | None |
 | 2026-09-26 | Antibiotic dropdown 47 → 82: Ali's 15 drugs plus 20 more from `BVBRC_genome_amr.csv`; spelling variants listed for Ali | T1.3 hardcoded AUCs | None |
 | 2026-09-25 | Tracker created | Agree formats, start T1.3 | None |

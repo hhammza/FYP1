@@ -1,8 +1,28 @@
 /* ============================================================
    AMRPredict — Train Page (train.html)
-   Reload models via fetch and copy code-block to clipboard.
+   Reload models via fetch and copy code-block to clipboard. Both train
+   forms and the reload button send the admin password (#adminToken).
    Expects: window.AMR (from main.js)
    ============================================================ */
+
+function adminToken() {
+  const el = document.getElementById('adminToken');
+  return el ? el.value : '';
+}
+
+/* Copy the password into the train form being submitted; stop if empty */
+document.querySelectorAll('form[action="/train"]').forEach(form => {
+  form.addEventListener('submit', e => {
+    const token = adminToken();
+    if (!token) {
+      e.preventDefault();
+      AMR.toast('Enter the admin password first.', 'error', 'Password needed');
+      document.getElementById('adminToken')?.focus();
+      return;
+    }
+    form.querySelector('.admin-token-field').value = token;
+  });
+});
 
 window.reloadModels = function (btn) {
   btn = btn || event.currentTarget;
@@ -10,8 +30,11 @@ window.reloadModels = function (btn) {
   btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Reloading…';
   btn.disabled = true;
 
-  fetch('/reload', { method: 'POST' })
-    .then(r => r.json())
+  fetch('/reload', { method: 'POST', headers: { 'X-Admin-Token': adminToken() } })
+    .then(r => r.json().then(data => {
+      if (!r.ok) throw new Error(data.error || `Reload failed (HTTP ${r.status})`);
+      return data;
+    }))
     .then(data => {
       const trained = Object.entries(data.models || {})
         .map(([k, v]) => `${k}: ${v.trained ? '✅ Trained' : '⚠️ Heuristic'}`)

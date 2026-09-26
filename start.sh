@@ -113,7 +113,9 @@ trap cleanup EXIT INT TERM
 
 # --- Backend --------------------------------------------------------------
 echo "[4/5] Starting Django backend on http://127.0.0.1:$BACKEND_PORT ..."
-(cd "$ROOT/backend" && exec "$PY" manage.py runserver "$BACKEND_PORT") &
+# DEBUG=True is local development: no SECRET_KEY or ALLOWED_HOSTS needed.
+# Export ADMIN_TOKEN before running this to use Train/Reload.
+(cd "$ROOT/backend" && DEBUG=True exec "$PY" manage.py runserver "$BACKEND_PORT") &
 BACKEND_PID=$!
 
 for _ in $(seq 1 30); do
