@@ -201,6 +201,8 @@ log/
 backend/trained_models/*
 !backend/trained_models/.gitkeep
 !backend/trained_models/model_report.json
+# Measured numbers for each served model; the UI reads them, so they ship
+!backend/trained_models/*_metrics.json
 
 
 # ------------------------------------------------------------
