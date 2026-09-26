@@ -13,6 +13,8 @@ experiments/genome/features/ (or sample/ for --sample):
                        one uint8 0/1 column per AMRFinderPlus Element symbol,
                        genes and point mutations, Scope = core and Type = AMR
   gene_info.csv        one row per column: symbol, type, class, subclass, genomes
+  gene_summary.md      genes found, genes per genome, the join with the labels,
+                       and the most common genes overall and per genus
 
 A genome counts as searched when its .tsv exists: run_amrfinder.py writes it
 only when AMRFinderPlus succeeds, and a genome with no hits gets a header-only
@@ -117,7 +119,78 @@ def summary(matrix, info, check_join):
         print(f'  {g}: {len(rows):,} genomes; top: {top}')
     if check_join:
         missing = mapped_genome_ids() - set(matrix.index)
-        print(f'[join] {len(missing):,} genomes in Data/mapped_output/ have no row (not searched yet)')
+        print(f'[join] {len(missing):,} genomes in Data/mapped_output/ have no row')
+
+
+def write_summary(matrix, info, path):
+    """gene_summary.md: genes found, genes per genome, the join, and the most
+    common genes overall and per genus. Rewritten on every full build."""
+    n = len(matrix)
+    per_genome = matrix.sum(axis=1)
+    genus = pd.Series(genus_of(list(matrix.index)).values, index=matrix.index)
+    mapped = mapped_genome_ids()
+    in_matrix = set(matrix.index)
+    no_row = sorted(mapped - in_matrix)
+    unmapped = sorted(in_matrix - mapped)
+    points = int((info['type'] == 'point_mutation').sum())
+    version = database = 'unknown'
+    summary_csv = os.path.join(AMR_DIR, 'run_summary.csv')
+    if os.path.exists(summary_csv):
+        s = pd.read_csv(summary_csv, dtype=str)
+        version = s['amrfinder_version'].dropna().iloc[-1]
+        database = s['database_version'].dropna().iloc[-1]
+    pct = lambda k, total=n: f'{100 * k / total:.1f}%'
+
+    out = ['# Gene matrix summary', '',
+           f'Written by `build_gene_matrix.py`; regenerate it with the matrix. AMRFinderPlus {version}, '
+           f'database {database}. Only Scope = core, Type = AMR elements are counted.', '',
+           '## Genes found', '',
+           '| | Count |', '|---|---|',
+           f'| Genomes searched | {n:,} |',
+           f'| Genomes with at least one gene or mutation | {(per_genome > 0).sum():,} ({pct((per_genome > 0).sum())}) |',
+           f'| Genomes with none (searched, nothing found) | {(per_genome == 0).sum():,} ({pct((per_genome == 0).sum())}) |',
+           f'| Different genes and mutations (matrix columns) | {matrix.shape[1]:,}: {matrix.shape[1] - points:,} genes, {points:,} point mutations |',
+           f'| Hits (cells that are 1) | {int(matrix.values.sum()):,} of {matrix.size:,} ({pct(matrix.values.sum(), matrix.size)}) |',
+           '', '## Genes per genome', '',
+           f'Median {per_genome.median():g}, mean {per_genome.mean():.1f}, maximum {per_genome.max()}.', '',
+           '| Genes and mutations | Genomes | Share |', '|---|---|---|']
+    for label, lo, hi in (('0', 0, 0), ('1', 1, 1), ('2', 2, 2), ('3 to 5', 3, 5), ('6 to 10', 6, 10),
+                          ('11 to 20', 11, 20), ('21 or more', 21, 10 ** 6)):
+        k = int(((per_genome >= lo) & (per_genome <= hi)).sum())
+        out.append(f'| {label} | {k:,} | {pct(k)} |')
+
+    out += ['', '## Join with the labels', '',
+            f'- Every Genome ID in `Data/mapped_output/` has a row: **{"yes" if not no_row else "no"}** '
+            f'({len(mapped) - len(no_row):,} of {len(mapped):,}).']
+    if no_row:
+        out.append(f'- Without a row: {", ".join(no_row[:10])}{" ..." if len(no_row) > 10 else ""}')
+    out.append(f'- Matrix genomes with no rows in `Data/mapped_output/`: {len(unmapped):,}'
+               + (f' ({", ".join(unmapped[:5])}{" ..." if len(unmapped) > 5 else ""})' if unmapped else '') + '.')
+
+    classes = []
+    for cls, symbols in info.groupby('class')['symbol']:
+        classes.append((int((matrix[list(symbols)].sum(axis=1) > 0).sum()), cls, len(symbols)))
+    out += ['', '## Drug classes', '', '| Class | Genomes with a gene | Genes and mutations |', '|---|---|---|']
+    for k, cls, count in sorted(classes, reverse=True)[:12]:
+        out.append(f'| {cls.title()} | {k:,} ({pct(k)}) | {count} |')
+
+    top = info.sort_values(['genomes', 'symbol'], ascending=[False, True]).head(15)
+    out += ['', '## Most common genes and mutations', '', '| Gene | Type | Class | Genomes |', '|---|---|---|---|']
+    for _, r in top.iterrows():
+        out.append(f'| `{r.symbol}` | {r.type.replace("_", " ")} | {r["class"].title()} | {r.genomes:,} ({pct(r.genomes)}) |')
+
+    out += ['', '## Most common genes per genus', '',
+            '| Genus | Genomes | With a gene | Median | Most common (share of the genus) |', '|---|---|---|---|---|']
+    for g in genus.value_counts().index:
+        rows = matrix[genus == g]
+        counts = rows.sum().sort_values(ascending=False)
+        common = ', '.join(f'`{s}` {100 * c / len(rows):.0f}%' for s, c in counts[counts > 0].head(5).items()) or 'none found'
+        with_gene = int((rows.sum(axis=1) > 0).sum())
+        out.append(f'| *{g}* | {len(rows):,} | {pct(with_gene, len(rows))} | {rows.sum(axis=1).median():g} | {common} |')
+
+    with open(path, 'w') as fh:
+        fh.write('\n'.join(out) + '\n')
+    print(f'[matrix] wrote {os.path.relpath(path)}')
 
 
 def main():
@@ -140,6 +213,8 @@ def main():
     info.to_csv(os.path.join(out_dir, 'gene_info.csv'), index=False)
     print(f'[matrix] wrote {os.path.relpath(out_dir)}/gene_matrix.parquet and gene_info.csv')
     summary(matrix, info, check_join=not args.sample)
+    if not args.sample:
+        write_summary(matrix, info, os.path.join(out_dir, 'gene_summary.md'))
 
 
 if __name__ == '__main__':

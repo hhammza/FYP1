@@ -128,9 +128,9 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done · `[!]` blocke
 
 - [x] Save as parquet under `experiments/genome/features/` (`pyarrow` in the new `experiments/requirements.txt`)
 
-- [ ] Check the join: every `Genome ID` in `Data/mapped_output/` has a row
+- [x] Check the join: every `Genome ID` in `Data/mapped_output/` has a row: yes, 2,567 of 2,567 (after the trailing-zero fix in `b05d718`). 20 matrix genomes have no mapped rows; their labels were merged into other genomes by the Genome-ID-as-number bug below
 
-- [ ] Short summary: genes found, genes per genome, most common genes per genus
+- [x] Short summary: genes found, genes per genome, most common genes per genus: `experiments/genome/features/gene_summary.md`, rewritten by `build_gene_matrix.py` on every full build
 
 - [x] Do **not** commit the per-genome TSVs (add them to `.gitignore`): done in week 1
 
@@ -239,6 +239,7 @@ Newest first. One line per work session: date, what I did, what is next, anythin
 
 | Date | Done | Next | Blockers |
 | --- | --- | --- | --- |
+| 2026-09-26 | Week 2 join check (2,567 of 2,567) and `gene_summary.md`. Found that `data_prep.py` and `train_models.py` read Genome ID as a number: 3,312 genomes merged into others and 36,850 labelled rows (2.4%) dropped | Decide the Genome ID fix with Hamza (cleaning v5, retrain) | Needs Hamza for the retrain |
 | 2026-09-26 | AMRFinderPlus complete (2,587 genomes, 0 failures); full gene matrix committed; `/genes` rebuilt on every genome. Fixed 68 genomes in `mapped_output` whose Genome ID lost a trailing zero (3,271 rows, 26 files; one had merged with a different genome) and the cause in `fasta_amr_map.py`; every mapped genome now joins the matrix | Sensitivity analysis (T3.1) | None |
 | 2026-09-26 | `/genes` page: AMRFinderPlus summary, genes by species, gene vs lab result (lab labels by default), genome lookup; `export_gene_report.py` | Rerun the export when AMRFinderPlus finishes | None |
 | 2026-09-26 | Names and label maps centralised in `backend/amr_constants.py` (all files, values unchanged, frontend copy generated and tested); timeline applies the aliases | Full gene matrix; sensitivity analysis | None |
