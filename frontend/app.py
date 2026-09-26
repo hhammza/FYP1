@@ -4,6 +4,7 @@ Serves HTML pages and proxies requests to Django backend (port 8000)
 """
 import os
 import json
+import time
 import requests
 from flask import Flask, render_template, request, jsonify, redirect, url_for
 
@@ -86,10 +87,93 @@ def backend_post(endpoint, data=None, files=None, json_data=None, timeout=30):
         return {'error': str(e)}, 500
 
 
+HEALTH_TTL = 60        # seconds, for a good answer
+HEALTH_RETRY_TTL = 5   # seconds, for a failed one
+_health_cache = {'at': 0.0, 'data': None}
+
+
+def model_health():
+    """The backend's /api/health/ response, cached for HEALTH_TTL seconds.
+
+    Every page shows model numbers (the footer at least), so this keeps page
+    loads from each waiting on the backend. A failed call is kept only briefly:
+    the forms start their threshold sliders from this, and a backend that is
+    still starting up should not leave them on the fallback value for a minute.
+    """
+    now = time.monotonic()
+    ttl = HEALTH_TTL if _health_cache['data'] else HEALTH_RETRY_TTL
+    if _health_cache['data'] is None or now - _health_cache['at'] > ttl:
+        data, status = backend_get('health/', timeout=3)
+        _health_cache['data'] = data if status == 200 else {}
+        _health_cache['at'] = now
+    return _health_cache['data']
+
+
+def _pct(x):
+    return f'{x * 100:.1f}%' if isinstance(x, (int, float)) else 'not measured'
+
+
+def _compact(n):
+    """1217307 → '1.2M', 6002 → '6.0K', for tiles too narrow for the full count."""
+    if not n:
+        return 'n/a'
+    for size, unit in ((1_000_000, 'M'), (1_000, 'K')):
+        if n >= size:
+            return f'{n / size:.1f}{unit}'
+    return str(n)
+
+
+def summarize_metrics(status):
+    """Display strings for one model, from the metrics.json that /api/health/
+    passes through (format: progress/formats/README.md).
+
+    Nothing here is typed in by hand: when the file is missing every value
+    reads "not measured" instead of falling back to an old figure.
+    """
+    status = status or {}
+    m = status.get('metrics') or {}
+    test = m.get('test') or {}
+    data = m.get('data') or {}
+    auc = test.get('auc_roc')
+    ci = test.get('auc_roc_ci') or []
+    threshold = status.get('default_threshold', m.get('threshold'))
+    out = {
+        'measured': isinstance(auc, (int, float)),
+        'auc': 'not measured',
+        'auc_ci': 'not measured',
+        'recall': _pct(test.get('recall')),
+        'very_major_error': _pct(test.get('very_major_error')),
+        'major_error': _pct(test.get('major_error')),
+        'threshold': threshold,
+        'threshold_rule': m.get('threshold_rule') or '',
+        'run_id': m.get('run_id') or status.get('run_id') or '',
+        'algorithm': m.get('algorithm') or '',
+        'split': (m.get('evaluation') or {}).get('split') or '',
+        'train_rows': f"{data['train_rows']:,}" if data.get('train_rows') else 'not measured',
+        'train_rows_short': _compact(data.get('train_rows')),
+        'train_genomes': f"{data['train_genomes']:,}" if data.get('train_genomes') else 'not measured',
+        'antibiotics': data.get('antibiotics') or 'n/a',
+    }
+    if out['measured']:
+        out['auc'] = f'{auc:.3f}'
+        out['auc_ci'] = (f'{auc:.3f} [{ci[0]:.3f}–{ci[1]:.3f}]' if len(ci) == 2
+                         else out['auc'])
+    return out
+
+
+@app.context_processor
+def inject_model_numbers():
+    """`metrics.lgbm` and `metrics.kmer` in every template."""
+    models = (model_health() or {}).get('models') or {}
+    return {'metrics': {
+        'lgbm': summarize_metrics(models.get('lgbm_forecasting')),
+        'kmer': summarize_metrics(models.get('kmer_resistance')),
+    }}
+
+
 @app.route('/')
 def index():
-    health_data, _ = backend_get('health/')
-    return render_template('index.html', health=health_data)
+    return render_template('index.html', health=model_health())
 
 
 @app.route('/forecast', methods=['GET', 'POST'])
@@ -106,7 +190,8 @@ def resistance_forecast():
             'mic_sign': request.form.get('mic_sign', ''),
             'genus': request.form.get('genus', 'unknown'),
             'species': request.form.get('species', 'unknown'),
-            'threshold': request.form.get('threshold', '0.40'),
+            # Empty = let the backend use the model's validated threshold.
+            'threshold': request.form.get('threshold', ''),
         }
         payload = {k: v for k, v in form_data.items() if v and v != 'unknown'}
         data, status = backend_post('forecast/', json_data=payload)
@@ -127,11 +212,11 @@ def resistance_forecast():
 def resistance_prediction():
     result = None
     error = None
-    form_data = {'antibiotic': '', 'threshold': '0.5'}
+    form_data = {'antibiotic': '', 'threshold': ''}
 
     if request.method == 'POST':
         antibiotic = request.form.get('antibiotic', '').strip()
-        threshold = request.form.get('threshold', '0.5')
+        threshold = request.form.get('threshold', '')
         form_data = {'antibiotic': antibiotic, 'threshold': threshold}
 
         fasta_file = request.files.get('fasta_file')
@@ -139,11 +224,14 @@ def resistance_prediction():
 
         if fasta_file and fasta_file.filename:
             files = {'fasta_file': (fasta_file.filename, fasta_file.stream, 'text/plain')}
-            post_data = {'antibiotic': antibiotic, 'threshold': threshold}
+            post_data = {'antibiotic': antibiotic}
+            if threshold:
+                post_data['threshold'] = threshold
             data, status = backend_post('predict/', data=post_data, files=files)
         elif fasta_text:
             data, status = backend_post('predict/', json_data={
-                'fasta_text': fasta_text, 'antibiotic': antibiotic, 'threshold': float(threshold)
+                'fasta_text': fasta_text, 'antibiotic': antibiotic,
+                **({'threshold': float(threshold)} if threshold else {}),
             })
         else:
             error = 'Please provide a FASTA file or paste FASTA sequence text.'
@@ -291,6 +379,7 @@ def organisms_api():
 @app.route('/reload', methods=['POST'])
 def reload_models():
     _vocab_cache.pop('data', None)
+    _health_cache['data'] = None
     data, status = backend_post('reload/')
     return jsonify(data), status
 

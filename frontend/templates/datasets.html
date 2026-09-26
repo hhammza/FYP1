@@ -344,7 +344,7 @@ GCGAGTGTTGAAGTTCGGCGGTACATCAGTGGCAAATGCAGAACGTTTT
           <div class="d-flex flex-wrap gap-2 mt-2">
             <span class="feature-tag">Reference-free</span>
             <span class="feature-tag">O(n) scan</span>
-            <span class="feature-tag">AUC 0.93</span>
+            <span class="feature-tag">AUC {{ metrics.kmer.auc }}</span>
           </div>
         </div>
       </div>
@@ -724,7 +724,7 @@ GCGAGTGTTGAAGTTCGGCGGTACATCAGTGGCAAATGCAGAACGTTTT
             <div class="font-mono mt-2" style="color:var(--accent2)">Probability:</div>
             <div class="text-muted ms-2">Model's confidence that this isolate is resistant (0–100%).</div>
             <div class="font-mono mt-2" style="color:var(--accent2)">Threshold:</div>
-            <div class="text-muted ms-2">Default 0.4 (LightGBM), 0.5 (K-mer). Adjustable.</div>
+            <div class="text-muted ms-2">Default {{ metrics.lgbm.threshold or 'not measured' }} (LightGBM), {{ metrics.kmer.threshold or 'not measured' }} (K-mer), the thresholds each model was evaluated at. Adjustable.</div>
           </div>
         </div>
       </div>

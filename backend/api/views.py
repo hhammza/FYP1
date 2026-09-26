@@ -13,6 +13,14 @@ def json_error(message, status=400):
     return JsonResponse({'error': message}, status=status)
 
 
+def optional_threshold(value):
+    """A threshold from the request, or None so the model uses the one it
+    was validated at (its metrics.json), not a number typed in here."""
+    if value is None or str(value).strip() == '':
+        return None
+    return float(value)
+
+
 @method_decorator(csrf_exempt, name='dispatch')
 class HealthView(View):
     def get(self, request):
@@ -50,7 +58,7 @@ class ResistanceForecastView(View):
             mic_sign = data.get('mic_sign', None)
             genus = data.get('genus', 'unknown')
             species = data.get('species', 'unknown')
-            threshold = float(data.get('threshold', 0.40))
+            threshold = optional_threshold(data.get('threshold'))
 
             model = model_registry.get_lgbm()
             if model is None:
@@ -100,7 +108,7 @@ class ResistancePredictionView(View):
     def post(self, request):
         try:
             antibiotic = request.POST.get('antibiotic', '').strip()
-            threshold = float(request.POST.get('threshold', 0.5))
+            threshold = optional_threshold(request.POST.get('threshold'))
 
             fasta_text = ''
             if 'fasta_file' in request.FILES:
@@ -110,7 +118,8 @@ class ResistancePredictionView(View):
                 body = json.loads(request.body.decode('utf-8'))
                 fasta_text = body.get('fasta_text', '')
                 antibiotic = body.get('antibiotic', antibiotic)
-                threshold = float(body.get('threshold', threshold))
+                if body.get('threshold') is not None:
+                    threshold = optional_threshold(body.get('threshold'))
             else:
                 fasta_text = request.POST.get('fasta_text', '')
 

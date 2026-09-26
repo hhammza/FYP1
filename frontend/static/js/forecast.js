@@ -128,15 +128,17 @@
   }
 
   /* ── Comparison chart ─────────────────────────────────────── */
-  function renderChart(compData) {
+  /* thresholdPct: the model's decision threshold as a percentage, so a bar
+     is red exactly when the model would call that drug Resistant */
+  function renderChart(compData, thresholdPct) {
     if (!compData || !compData.length) return;
 
     const labels = compData.map(d => d.antibiotic);
     const values = compData.map(d => d.resistance_probability);
     const colors = values.map(v =>
-      v > 50 ? 'rgba(239,68,68,0.82)' :
-      v > 30 ? 'rgba(245,158,11,0.82)' :
-               'rgba(34,197,94,0.82)'
+      v >= thresholdPct       ? 'rgba(239,68,68,0.82)' :
+      v >= thresholdPct * 0.6 ? 'rgba(245,158,11,0.82)' :
+                                'rgba(34,197,94,0.82)'
     );
     const t = AMR.plotLayout();
 
@@ -168,12 +170,12 @@
       shapes: [{
         type: 'line',
         x0: -0.5, x1: labels.length - 0.5,
-        y0: 50,   y1: 50,
+        y0: thresholdPct, y1: thresholdPct,
         line: { color: 'rgba(239,68,68,0.55)', width: 1.5, dash: 'dash' },
       }],
       annotations: [{
-        x: labels.length - 1, y: 53,
-        text: '50% threshold',
+        x: labels.length - 1, y: thresholdPct + 3,
+        text: Math.round(thresholdPct) + '% threshold',
         font: { color: 'rgba(239,68,68,0.75)', size: 10 },
         showarrow: false,
       }],
@@ -184,7 +186,8 @@
   /* Auto-init from data island */
   const dataEl = document.getElementById('forecast-chart-data');
   if (dataEl) {
-    try { renderChart(JSON.parse(dataEl.textContent)); } catch (_) {}
+    const thr = parseFloat(dataEl.dataset.threshold);
+    try { renderChart(JSON.parse(dataEl.textContent), isNaN(thr) ? 50 : thr * 100); } catch (_) {}
   }
 
 })();

@@ -31,15 +31,15 @@
       <div class="stat-mini-label">ML models + 1 bio-sim</div>
     </div></div>
     <div class="about-stat-wrap"><div class="stat-mini">
-      <div class="stat-mini-value text-emerald">0.93</div>
-      <div class="stat-mini-label">AUC-ROC (both models)</div>
+      <div class="stat-mini-value text-emerald">{{ metrics.lgbm.auc }}</div>
+      <div class="stat-mini-label">Forecaster AUC (unseen genomes)</div>
     </div></div>
     <div class="about-stat-wrap"><div class="stat-mini">
-      <div class="stat-mini-value">90K+</div>
+      <div class="stat-mini-value">{{ metrics.lgbm.train_rows_short }}</div>
       <div class="stat-mini-label">Training records</div>
     </div></div>
     <div class="about-stat-wrap"><div class="stat-mini">
-      <div class="stat-mini-value text-amber">62</div>
+      <div class="stat-mini-value text-amber">{{ metrics.lgbm.antibiotics }}</div>
       <div class="stat-mini-label">Antibiotics modeled</div>
     </div></div>
     <div class="about-stat-wrap"><div class="stat-mini">
@@ -152,12 +152,12 @@
           <div class="d-flex align-items-center gap-2 mb-2">
             <div class="model-icon lgbm-icon about-model-icon"><i class="bi bi-graph-up-arrow"></i></div>
             <div class="example-title mb-0">Model 1: LightGBM Resistance Forecasting</div>
-            <span class="status-badge trained ms-auto">AUC 0.9255</span>
+            <span class="status-badge trained ms-auto">AUC {{ metrics.lgbm.auc }}</span>
           </div>
           <div class="table-responsive">
             <table class="table table-custom table-sm mb-0">
               <tr><td class="text-muted about-td-label">Algorithm</td><td>Gradient Boosted Decision Trees (LightGBM 4.x)</td></tr>
-              <tr><td class="text-muted">Training data</td><td>90,826 labeled AMR records from 4,252 CSV files (BVBRC)</td></tr>
+              <tr><td class="text-muted">Training data</td><td>{{ metrics.lgbm.train_rows }} labeled AMR records from {{ metrics.lgbm.train_genomes }} genomes (BVBRC)</td></tr>
               <tr><td class="text-muted">Features</td><td>14 engineered features (MIC, taxonomy, drug class, target-encoded rates)</td></tr>
               <tr><td class="text-muted">Hyperparameters</td><td>500 estimators, lr=0.05, num_leaves=63, is_unbalance=True, early_stop=30</td></tr>
               <tr><td class="text-muted">Saved as</td><td class="font-mono">trained_models/amr_lgbm_final_model.txt</td></tr>
@@ -171,12 +171,12 @@
           <div class="d-flex align-items-center gap-2 mb-2">
             <div class="model-icon kmer-icon about-model-icon"><i class="bi bi-dna"></i></div>
             <div class="example-title mb-0">Model 2: K-mer RandomForest Predictor</div>
-            <span class="status-badge trained about-kmer-badge ms-auto">AUC 0.93</span>
+            <span class="status-badge trained about-kmer-badge ms-auto">AUC {{ metrics.kmer.auc }}</span>
           </div>
           <div class="table-responsive">
             <table class="table table-custom table-sm mb-0">
               <tr><td class="text-muted about-td-label">Algorithm</td><td>RandomForest Classifier (scikit-learn), 100 trees</td></tr>
-              <tr><td class="text-muted">Training data</td><td>6,002 genome–antibiotic pairs from 1,684 unique bacterial genomes</td></tr>
+              <tr><td class="text-muted">Training data</td><td>{{ metrics.kmer.train_rows }} genome–antibiotic pairs from {{ metrics.kmer.train_genomes }} bacterial genomes</td></tr>
               <tr><td class="text-muted">Features</td><td>256 4-mer frequencies + N antibiotic one-hot + 3 GC features = 321+ total</td></tr>
               <tr><td class="text-muted">Class balance</td><td>class_weight='balanced' (handles imbalance without SMOTE)</td></tr>
               <tr><td class="text-muted">Saved as</td><td class="font-mono">trained_models/kmer_resistance_model.pkl</td></tr>
@@ -500,29 +500,37 @@
         <table class="table table-custom table-sm">
           <tr>
             <td class="text-muted">LightGBM AUC-ROC</td>
-            <td><span class="about-perf-val">0.9255</span></td>
+            <td><span class="about-perf-val">{{ metrics.lgbm.auc_ci }}</span></td>
           </tr>
           <tr>
             <td class="text-muted">K-mer RF AUC-ROC</td>
-            <td><span class="about-perf-val">0.93</span></td>
+            <td><span class="about-perf-val">{{ metrics.kmer.auc_ci }}</span></td>
           </tr>
           <tr>
             <td class="text-muted">LightGBM threshold</td>
-            <td class="fw-500">0.40 (optimised F1)</td>
+            <td class="fw-500">{{ metrics.lgbm.threshold or 'not measured' }} (very major error {{ metrics.lgbm.very_major_error }}, recall {{ metrics.lgbm.recall }})</td>
           </tr>
           <tr>
             <td class="text-muted">K-mer threshold</td>
-            <td class="fw-500">0.50 (default)</td>
+            <td class="fw-500">{{ metrics.kmer.threshold or 'not measured' }} (training default)</td>
           </tr>
           <tr>
             <td class="text-muted">LightGBM train size</td>
-            <td class="fw-500">90,826 samples</td>
+            <td class="fw-500">{{ metrics.lgbm.train_rows }} rows</td>
           </tr>
           <tr>
             <td class="text-muted">K-mer train size</td>
-            <td class="fw-500">6,002 pairs</td>
+            <td class="fw-500">{{ metrics.kmer.train_rows }} pairs</td>
           </tr>
         </table>
+        <p class="small text-muted mb-0">
+          An earlier version of this site reported AUC 0.93 (0.9255). That figure was inflated:
+          it came from a model trained on 1.6% of the data and tested on genomes it had already seen,
+          with resistance rates computed from the test rows. Tested on genomes it never saw,
+          that model scored 0.644. The forecaster now served scores {{ metrics.lgbm.auc_ci }}
+          under a genome-grouped split. The current figures on this page are read from each model's metrics file.
+          <a href="/models">Full results</a>.
+        </p>
       </div>
 
       <!-- Data Sources -->

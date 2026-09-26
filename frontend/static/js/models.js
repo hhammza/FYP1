@@ -188,9 +188,9 @@
                                         thr: r.threshold, group: groupOf(r) }));
     if (shipped) {
       pts.push({ label: 'Deployed LightGBM', me: shipped.lightgbm.results[1].major_error,
-                 vme: shipped.lightgbm.results[1].very_major_error, thr: 0.40, group: 'shipped' });
+                 vme: shipped.lightgbm.results[1].very_major_error, thr: shipped.lightgbm.threshold ?? 0.40, group: 'shipped' });
       pts.push({ label: 'Deployed K-mer RF', me: shipped.kmer.results[1].major_error,
-                 vme: shipped.kmer.results[1].very_major_error, thr: 0.50, group: 'shipped' });
+                 vme: shipped.kmer.results[1].very_major_error, thr: shipped.kmer.threshold ?? 0.50, group: 'shipped' });
       LABELLED.add('Deployed LightGBM'); LABELLED.add('Deployed K-mer RF');
     }
     const traces = Object.keys(GROUPS).map(key => {

@@ -78,8 +78,8 @@
     {% if sh %}
     <div class="alert-warning-custom">
       <i class="bi bi-exclamation-triangle me-2"></i>
-      The models the app serves today were quoted at AUC 0.93. That figure was measured on genomes they had
-      already seen in training. On new genomes the deployed LightGBM scores
+      Earlier versions of this app quoted AUC 0.93 for both models. That figure was measured on genomes they
+      had already seen in training. On new genomes the deployed LightGBM scores
       {{ '%.3f' | format(sh.lightgbm.results[1].auc_roc) }} and the K-mer model
       {{ '%.3f' | format(sh.kmer.results[1].auc_roc) }}. See <a href="#deployed">Deployed models</a>.
     </div>

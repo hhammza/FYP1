@@ -12,7 +12,7 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done · `[!]` blocke
 
 | Week | Dates (planned) | Focus | Status |
 | --- | --- | --- | --- |
-| 1 | 28 Sep to 2 Oct | Remove hardcoded AUCs, UI reads `metrics.json`, security | Not started |
+| 1 | 28 Sep to 2 Oct | Remove hardcoded AUCs, UI reads `metrics.json`, security | In progress (T1.3 done) |
 | 2 | 5 Oct to 9 Oct | Exports (CSV, PDF, PNG), batch CSV upload | Not started |
 | 3 | 12 Oct to 16 Oct | Genome result UI, Dockerfile with AMRFinderPlus | Not started |
 | 4 | 19 Oct to 23 Oct | RL panel on `/timeline`, automated tests | Not started |
@@ -28,15 +28,13 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done · `[!]` blocke
 
 - [x] **Genome prediction response** agreed with Hamza: today's response plus `genes_found: [{gene, drug_class}]`
 
-- [x] **Timeline + RL response** agreed with Ali: weekly susceptible, intermediate and resistant fractions, plus a `policy` list
+- [ ] **Timeline + RL response** agreed with Ali: weekly susceptible, intermediate and resistant fractions, plus a `policy` list. *Not yet: Ali's tracker still shows it open*
 
 - [x] **Batch CSV template and response** defined by me: columns `antibiotic, genus, species, taxon_id, mic_value, mic_sign`; one result row per input row with an `error` column
 
 - [x] Formats written down in the team channel or below
 
-> Agreed formats:
->
-> *(paste here once agreed)*
+> Agreed formats: **[progress/formats/README.md](formats/README.md)** (Hamza: metrics files, genome response). Timeline + RL with Ali and my batch CSV format still to be added there.
 
 ---
 
@@ -56,21 +54,31 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done · `[!]` blocke
 
 ### T1.3 Replace every hardcoded AUC (22 places)
 
-Build against Hamza's sample `metrics.json`, then switch to the real files.
+Built against the real files (`backend/trained_models/lgbm_metrics.json`, `kmer_metrics.json`), read through `/api/health/`. Done 2026-09-26.
 
-- [ ] `base.html:140` (footer)
+- [x] `base.html:140` (footer), plus the footer's records and antibiotics tiles
 
-- [ ] `index.html:39, 40, 59, 67, 217, 255, 294, 435, 497`
+- [x] `index.html:39, 40, 59, 67, 217, 255, 294, 435, 497`, plus the training-size figures in the same cards
 
-- [ ] `resistance_forecast.html:29, 385, 460`
+- [x] `resistance_forecast.html:29, 385, 460`
 
-- [ ] `resistance_prediction.html:15, 29, 344`
+- [x] `resistance_prediction.html:15, 29, 344` (344 was `0.9290`, which the grep below misses)
 
-- [ ] `about.html:34, 155, 174, 503, 507`
+- [x] `about.html:34, 155, 174, 503, 507`, plus the threshold and training-size rows
 
-- [ ] `datasets.html:347`
+- [x] `datasets.html:347`
 
-- [ ] One sentence on `/about` explaining that the earlier 0.93 was inflated and the honest figure is about 0.82
+- [x] One sentence on `/about` explaining that the earlier 0.93 was inflated and the honest figure is about 0.82. *The served model (D1, species taxa) scores 0.804, so the page says that*
+
+- [x] Also: sliders on `/forecast` and `/predict` start at the model's `default_threshold` (0.24, 0.5) instead of 0.40 and 0.5, with step 0.01 so 0.24 doesn't snap to 0.25; the API no longer forces 0.40 / 0.5 when no threshold is sent; the `/forecast` chart line sits at the model's threshold, not 50%
+
+- [x] Also: warnings for `model_used: Heuristic fallback` (both pages) and `antibiotic_known: false` (`/predict`), per Hamza's format
+
+- [x] Also: `/datasets` threshold note and the deployed-model points on the `/models` VME/ME chart read the real threshold (0.24), not 0.40
+
+- [!] **Flag for Hamza/Ali:** `train_models.py` (via `/train`) overwrites the served model in `backend/trained_models/` but does not rewrite `lgbm_metrics.json`, and its `lgbm_meta.joblib` drops the threshold and calibration. After a retrain from the web page, every page would show D1's 0.804 for a different model. Until fixed, don't use `/train` on the served models (T2.4 will put it behind a token)
+
+- **Met 2026-09-26:** the grep finds only `/about` and `/models`; all 10 pages render 0.804 / 0.695 from the files, and "not measured" when the backend is down
 
 - **Done when:** `grep -rn "0\.93\|0\.9255" frontend/templates` finds nothing except the explanation on `/about` and `/models`
 
@@ -178,8 +186,8 @@ Build against Hamza's sample `metrics.json`, then switch to the real files.
 | --- | --- | --- | --- |
 | From Ali | Antibiotic dropdown note | Week 1 | \[x\] in this file (week 1) |
 | From Ali | FYI: `backend/api/views.py` `TrainModelView` now returns 503 when training data is missing (8 lines, T1.2). Optional: set `DATA_DIR = BASE_DIR.parent / 'Data'` in `settings.py` for clarity; the trainer already finds `Data/` itself | Week 1 | \[x\] merged |
-| From Hamza | Sample `metrics.json` | Day 1 | \[ \] |
-| From Hamza | Real `metrics.json` for both models | End of week 1 | \[ \] |
+| From Hamza | Sample `metrics.json` | Day 1 | \[x\] `progress/formats/lgbm_metrics.sample.json` |
+| From Hamza | Real `metrics.json` for both models | End of week 1 | \[x\] used by T1.3 |
 | From Hamza | Genome response with `genes_found` | Week 3 | \[ \] |
 | From Ali | Timeline + RL response format | Day 1 | \[ \] |
 | From Ali | Working RL output | Week 4 | \[ \] |
@@ -203,5 +211,6 @@ Newest first. One line per work session: date, what I did, what is next, anythin
 
 | Date | Done | Next | Blockers |
 | --- | --- | --- | --- |
+| 2026-09-26 | T1.3: every page reads its AUC from `metrics.json` via `/api/health/`; sliders start at the validated threshold (0.24); fallback and unknown-drug warnings | T2.4 security | None |
 | 2026-09-26 | Antibiotic dropdown 47 → 82: Ali's 15 drugs plus 20 more from `BVBRC_genome_amr.csv`; spelling variants listed for Ali | T1.3 hardcoded AUCs | None |
 | 2026-09-25 | Tracker created | Agree formats, start T1.3 | None |

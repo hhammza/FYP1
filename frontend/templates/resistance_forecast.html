@@ -26,8 +26,8 @@
   <div class="d-flex gap-3 flex-wrap mb-4">
     <div class="flex-fill min-w-160">
       <div class="stat-mini">
-        <div class="stat-mini-value text-indigo2">0.93</div>
-        <div class="stat-mini-label">AUC-ROC (test set)</div>
+        <div class="stat-mini-value text-indigo2">{{ metrics.lgbm.auc }}</div>
+        <div class="stat-mini-label">AUC-ROC (unseen genomes)</div>
       </div>
     </div>
     <div class="flex-fill min-w-160">
@@ -133,16 +133,17 @@
             </div>
           </div>
 
+          {% set thr = form_data.get('threshold') or metrics.lgbm.threshold or 0.5 %}
           <div class="mb-3">
-            <label class="form-label-custom">Decision Threshold: <span id="threshVal">{{ form_data.get('threshold', '0.40') }}</span>
+            <label class="form-label-custom">Decision Threshold: <span id="threshVal">{{ thr }}</span>
               <i class="bi bi-info-circle text-muted ms-1" data-bs-toggle="tooltip" data-bs-placement="right"
-                 data-bs-title="Probability cutoff for Resistant classification. Lower values catch more resistance (higher recall) but increase false alarms. Default 0.40 is optimised for clinical screening."></i>
+                 data-bs-title="Probability cutoff for Resistant classification. Lower values catch more resistance (higher recall) but increase false alarms. Starts at the model's validated threshold, {{ metrics.lgbm.threshold or 'not measured' }}: {{ metrics.lgbm.threshold_rule or 'no rule recorded' }}."></i>
             </label>
-            <input type="range" name="threshold" class="form-range" min="0.1" max="0.9" step="0.05"
-                   value="{{ form_data.get('threshold', '0.40') }}" id="threshSlider"
+            <input type="range" name="threshold" class="form-range" min="0.1" max="0.9" step="0.01"
+                   value="{{ thr }}" id="threshSlider"
                    aria-label="Decision Threshold"
                    aria-valuemin="0.1" aria-valuemax="0.9"
-                   aria-valuenow="{{ form_data.get('threshold', '0.40') }}">
+                   aria-valuenow="{{ thr }}">
             <div class="d-flex justify-content-between"><small class="text-muted">0.1 (Liberal)</small><small class="text-muted">0.9 (Conservative)</small></div>
           </div>
 
@@ -203,6 +204,13 @@
       {% endif %}
 
       {% if result %}
+      {% if result.model_used and result.model_used.startswith('Heuristic') %}
+      <div class="alert alert-warning-custom mb-3" role="status">
+        <i class="bi bi-exclamation-triangle me-2"></i><strong>This is not a model prediction.</strong>
+        {% if result.model_used == 'Heuristic fallback' %}The trained model failed on this input{% else %}No trained model is loaded{% endif %},
+        so the result comes from per-antibiotic resistance rates. Do not rely on it.
+      </div>
+      {% endif %}
       <!-- Main Result Badge -->
       <div class="result-hero {% if result.prediction == 'Resistant' %}result-resistant{% else %}result-susceptible{% endif %} mb-4">
         <div class="result-hero-content">
@@ -382,7 +390,7 @@
           <div class="crisis-icon"><i class="bi bi-cpu text-accent"></i></div>
           <div class="crisis-val">LightGBM</div>
           <div class="fw-600 mb-2 text-accent2">Gradient Boosting Algorithm</div>
-          <div class="crisis-desc">LightGBM builds an ensemble of decision trees sequentially, each correcting the errors of the previous. It uses histogram-based splitting and leaf-wise tree growth for superior speed and accuracy on tabular genomic metadata, achieving an AUC-ROC of 0.9255 on the AMR test set.</div>
+          <div class="crisis-desc">LightGBM builds an ensemble of decision trees sequentially, each correcting the errors of the previous. It uses histogram-based splitting and leaf-wise tree growth for superior speed and accuracy on tabular genomic metadata. On genomes it never saw in training it scores AUC-ROC {{ metrics.lgbm.auc_ci }}.</div>
         </div>
       </div>
       <div class="col-md-4">
@@ -453,11 +461,11 @@
         <div class="glass-card h-100">
           <h6 class="card-section-title"><i class="bi bi-gear text-accent me-2"></i>Model Training Pipeline</h6>
           <div class="method-steps">
-            <div class="method-step"><span class="step-num">1</span>Load 4,252 AMR CSV files from BVBRC/PATRIC database (90K+ records)</div>
+            <div class="method-step"><span class="step-num">1</span>Load every AMR CSV file from the BVBRC/PATRIC export ({{ metrics.lgbm.train_rows }} training rows)</div>
             <div class="method-step"><span class="step-num">2</span>Parse MIC values, extract genus/species, merge Intermediate→Resistant</div>
             <div class="method-step"><span class="step-num">3</span>Target-encode resistance rates per antibiotic, taxon, genus (5-fold CV)</div>
             <div class="method-step"><span class="step-num">4</span>Train LightGBM with <code>is_unbalance=True</code> and early stopping (50 rounds)</div>
-            <div class="method-step"><span class="step-num">5</span>Evaluate on holdout set with AUC-ROC: <strong class="text-accent2">0.9255</strong></div>
+            <div class="method-step"><span class="step-num">5</span>Evaluate on genomes held out of training with AUC-ROC: <strong class="text-accent2">{{ metrics.lgbm.auc_ci }}</strong></div>
           </div>
           <div class="mt-3 pt-2 border-top-subtle">
             <div class="d-flex gap-2 flex-wrap">
@@ -508,7 +516,7 @@
 
 {% block scripts %}
 {% if result and result.comparison_chart %}
-<script type="application/json" id="forecast-chart-data">{{ result.comparison_chart | tojson }}</script>
+<script type="application/json" id="forecast-chart-data" data-threshold="{{ result.threshold }}">{{ result.comparison_chart | tojson }}</script>
 {% endif %}
 <script src="{{ url_for('static', filename='js/forecast.js') }}"></script>
 {% endblock %}

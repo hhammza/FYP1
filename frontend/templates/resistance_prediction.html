@@ -12,7 +12,7 @@
       <div class="page-header-icon kmer-icon"><i class="bi bi-dna"></i></div>
       <div>
         <h1 class="page-title">Genomic Resistance Prediction</h1>
-        <p class="page-subtitle">K-mer frequency analysis on FASTA genome sequences using a RandomForest classifier (AUC 0.93)</p>
+        <p class="page-subtitle">K-mer frequency analysis on FASTA genome sequences using a RandomForest classifier (AUC {{ metrics.kmer.auc }} on unseen genomes)</p>
       </div>
     </div>
   </div>
@@ -26,8 +26,8 @@
   <div class="d-flex gap-3 flex-wrap mb-4">
     <div class="flex-fill min-w-150">
       <div class="stat-mini">
-        <div class="stat-mini-value text-emerald2">0.93</div>
-        <div class="stat-mini-label">AUC-ROC Score</div>
+        <div class="stat-mini-value text-emerald2">{{ metrics.kmer.auc }}</div>
+        <div class="stat-mini-label">AUC-ROC (unseen genomes)</div>
       </div>
     </div>
     <div class="flex-fill min-w-150">
@@ -122,16 +122,17 @@ GCATGCATGCATGCATGCATGCATGCATGCAT
             </div>
           </div>
 
+          {% set thr = form_data.get('threshold') or metrics.kmer.threshold or 0.5 %}
           <div class="mb-4">
-            <label class="form-label-custom">Decision Threshold: <span id="threshVal2">{{ form_data.get('threshold', '0.5') }}</span>
+            <label class="form-label-custom">Decision Threshold: <span id="threshVal2">{{ thr }}</span>
               <i class="bi bi-info-circle text-muted ms-1" data-bs-toggle="tooltip" data-bs-placement="right"
-                 data-bs-title="Probability cutoff for Resistant classification. Default 0.50 gives balanced precision and recall across the 62-antibiotic K-mer model."></i>
+                 data-bs-title="Probability cutoff for Resistant classification. Starts at the threshold the model was evaluated at, {{ metrics.kmer.threshold or 'not measured' }}: {{ metrics.kmer.threshold_rule or 'no rule recorded' }}."></i>
             </label>
-            <input type="range" name="threshold" class="form-range" min="0.1" max="0.9" step="0.05"
-                   value="{{ form_data.get('threshold', '0.5') }}" id="threshSlider2"
+            <input type="range" name="threshold" class="form-range" min="0.1" max="0.9" step="0.01"
+                   value="{{ thr }}" id="threshSlider2"
                    aria-label="Decision Threshold"
                    aria-valuemin="0.1" aria-valuemax="0.9"
-                   aria-valuenow="{{ form_data.get('threshold', '0.5') }}">
+                   aria-valuenow="{{ thr }}">
             <div class="d-flex justify-content-between"><small class="text-muted">0.1 (Sensitive)</small><small class="text-muted">0.9 (Specific)</small></div>
           </div>
 
@@ -187,6 +188,20 @@ GCATGCATGCATGCATGCATGCATGCATGCAT
       {% if result.error %}
       <div class="alert alert-danger-custom"><i class="bi bi-exclamation-circle me-2"></i>{{ result.error }}</div>
       {% else %}
+
+      {% if result.model_used and result.model_used.startswith('Heuristic') %}
+      <div class="alert alert-warning-custom mb-3" role="status">
+        <i class="bi bi-exclamation-triangle me-2"></i><strong>This is not a model prediction.</strong>
+        {% if result.model_used == 'Heuristic fallback' %}The trained model failed on this input{% else %}No trained model is loaded{% endif %},
+        so the result comes from a GC-content rule of thumb. Do not rely on it.
+      </div>
+      {% endif %}
+      {% if result.antibiotic_known is sameas false %}
+      <div class="alert alert-warning-custom mb-3" role="status">
+        <i class="bi bi-exclamation-triangle me-2"></i><strong>The model never saw {{ result.antibiotic }} in training.</strong>
+        The call reflects the genome alone, not this drug.
+      </div>
+      {% endif %}
 
       <!-- Result Badge -->
       <div class="result-hero {% if result.prediction == 'Resistant' %}result-resistant{% else %}result-susceptible{% endif %} mb-4">
@@ -341,7 +356,7 @@ GCATGCATGCATGCATGCATGCATGCATGCAT
           <div class="crisis-icon"><i class="bi bi-tree text-amber2"></i></div>
           <div class="crisis-val">RandomForest</div>
           <div class="fw-600 mb-2 text-amber2">Ensemble Decision Tree Classifier</div>
-          <div class="crisis-desc">RandomForest builds 100 independent decision trees on random subsets of features and training data, then votes for the majority class. <code>class_weight='balanced'</code> corrects for class imbalance. This ensemble approach achieves AUC-ROC 0.9290 with robustness to outlier genomes.</div>
+          <div class="crisis-desc">RandomForest builds 100 independent decision trees on random subsets of features and training data, then votes for the majority class. <code>class_weight='balanced'</code> corrects for class imbalance. On genomes outside its training files it scores AUC-ROC {{ metrics.kmer.auc_ci }}, no better than predicting from the antibiotic alone, because 4-mer frequencies mostly identify the species rather than the resistance mechanism.</div>
         </div>
       </div>
       <div class="col-md-4">

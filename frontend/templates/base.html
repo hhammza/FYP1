@@ -137,19 +137,19 @@
         <div class="row g-2">
           <div class="col-6">
             <div class="footer-stat-box">
-              <div class="footer-stat-val">0.93</div>
-              <div class="footer-stat-lbl">AUC-ROC</div>
+              <div class="footer-stat-val">{{ metrics.lgbm.auc }}</div>
+              <div class="footer-stat-lbl">Forecaster AUC (unseen genomes)</div>
             </div>
           </div>
           <div class="col-6">
             <div class="footer-stat-box">
-              <div class="footer-stat-val">90K+</div>
-              <div class="footer-stat-lbl">Records</div>
+              <div class="footer-stat-val">{{ metrics.lgbm.train_rows_short }}</div>
+              <div class="footer-stat-lbl">Training rows</div>
             </div>
           </div>
           <div class="col-6">
             <div class="footer-stat-box">
-              <div class="footer-stat-val">62</div>
+              <div class="footer-stat-val">{{ metrics.lgbm.antibiotics }}</div>
               <div class="footer-stat-lbl">Antibiotics</div>
             </div>
           </div>

@@ -36,8 +36,8 @@
         </div>
         <!-- Model badges row -->
         <div class="d-flex gap-2 flex-wrap mt-4">
-          <span class="status-badge trained"><i class="bi bi-check-circle-fill"></i> LightGBM  AUC 0.93</span>
-          <span class="status-badge trained"><i class="bi bi-check-circle-fill"></i> K-mer RF  AUC 0.93</span>
+          <span class="status-badge trained"><i class="bi bi-check-circle-fill"></i> LightGBM  AUC {{ metrics.lgbm.auc }}</span>
+          <span class="status-badge trained"><i class="bi bi-check-circle-fill"></i> K-mer RF  AUC {{ metrics.kmer.auc }}</span>
           <span class="status-badge simulated"><i class="bi bi-diagram-3"></i> Timeline: Bio-Sim</span>
         </div>
       </div>
@@ -54,17 +54,17 @@
               <div class="hpanel-icon lgbm"><i class="bi bi-graph-up-arrow"></i></div>
               <div class="hpanel-info">
                 <div class="hpanel-name">LightGBM Forecasting</div>
-                <div class="hpanel-meta">90,826 samples &middot; 14 features</div>
+                <div class="hpanel-meta">{{ metrics.lgbm.train_rows }} training rows &middot; 14 features</div>
               </div>
-              <div class="hpanel-badge trained">AUC 0.93</div>
+              <div class="hpanel-badge trained">AUC {{ metrics.lgbm.auc }}</div>
             </div>
             <div class="hpanel-row">
               <div class="hpanel-icon kmer"><i class="bi bi-dna"></i></div>
               <div class="hpanel-info">
                 <div class="hpanel-name">K-mer RandomForest</div>
-                <div class="hpanel-meta">6,002 genomes &middot; 256 k-mer features</div>
+                <div class="hpanel-meta">{{ metrics.kmer.train_rows }} training rows &middot; 256 k-mer features</div>
               </div>
-              <div class="hpanel-badge trained">AUC 0.93</div>
+              <div class="hpanel-badge trained">AUC {{ metrics.kmer.auc }}</div>
             </div>
             <div class="hpanel-row">
               <div class="hpanel-icon timeline"><i class="bi bi-activity"></i></div>
@@ -214,8 +214,8 @@
     <div class="col-md-3 col-6 mb-3">
       <div class="crisis-card indigo h-100">
         <div class="crisis-icon"><i class="bi bi-activity"></i></div>
-        <div class="crisis-val">AUC 0.93</div>
-        <div class="crisis-desc">This system's resistance prediction accuracy   validated on held-out BVBRC test data (80/20 stratified split)</div>
+        <div class="crisis-val">AUC {{ metrics.lgbm.auc }}</div>
+        <div class="crisis-desc">The resistance forecaster, tested on genomes it never saw in training ({{ metrics.lgbm.split or 'genome-grouped split' }})</div>
         <div class="mt-2"><a href="https://www.bv-brc.org/" target="_blank" rel="noopener" class="src-link">Training data: BVBRC / PATRIC</a></div>
       </div>
     </div>
@@ -249,10 +249,10 @@
         <p class="body-text mb-14">
           Predicts <strong class="text-1">Resistant vs Susceptible</strong> from genome metadata:
           MIC values, organism taxonomy, drug class, and target encoding of per-antibiotic resistance rates.
-          Trained on <strong class="text-1">90,826 labeled samples</strong> from the BVBRC database.
+          Trained on <strong class="text-1">{{ metrics.lgbm.train_rows }} labeled samples</strong> from the BVBRC database.
         </p>
         <div class="row g-2 mb-3 text-center">
-          <div class="col-4"><div class="stat-mini"><div class="stat-mini-value fs-16">0.93</div><div class="stat-mini-label">AUC-ROC</div></div></div>
+          <div class="col-4"><div class="stat-mini"><div class="stat-mini-value fs-16">{{ metrics.lgbm.auc }}</div><div class="stat-mini-label">AUC-ROC</div></div></div>
           <div class="col-4"><div class="stat-mini"><div class="stat-mini-value fs-16">14</div><div class="stat-mini-label">Features</div></div></div>
           <div class="col-4"><div class="stat-mini"><div class="stat-mini-value fs-16">500</div><div class="stat-mini-label">Estimators</div></div></div>
         </div>
@@ -291,7 +291,7 @@
           Trained on <strong class="text-1">6,002 genome–antibiotic pairs</strong> across 62 antibiotics.
         </p>
         <div class="row g-2 mb-3 text-center">
-          <div class="col-4"><div class="stat-mini"><div class="stat-mini-value fs-16">0.93</div><div class="stat-mini-label">AUC-ROC</div></div></div>
+          <div class="col-4"><div class="stat-mini"><div class="stat-mini-value fs-16">{{ metrics.kmer.auc }}</div><div class="stat-mini-label">AUC-ROC</div></div></div>
           <div class="col-4"><div class="stat-mini"><div class="stat-mini-value fs-16">256</div><div class="stat-mini-label">K-mer Feats</div></div></div>
           <div class="col-4"><div class="stat-mini"><div class="stat-mini-value fs-16">62</div><div class="stat-mini-label">Antibiotics</div></div></div>
         </div>
@@ -429,10 +429,10 @@
         </div>
 
         <div class="row g-3 mt-2">
-          <div class="col-sm-3 col-6"><div class="stat-mini"><div class="stat-mini-value">90K+</div><div class="stat-mini-label">Training samples</div></div></div>
+          <div class="col-sm-3 col-6"><div class="stat-mini"><div class="stat-mini-value">{{ metrics.lgbm.train_rows_short }}</div><div class="stat-mini-label">Training samples</div></div></div>
           <div class="col-sm-3 col-6"><div class="stat-mini"><div class="stat-mini-value">1,685</div><div class="stat-mini-label">FASTA genomes</div></div></div>
-          <div class="col-sm-3 col-6"><div class="stat-mini"><div class="stat-mini-value">62</div><div class="stat-mini-label">Antibiotics</div></div></div>
-          <div class="col-sm-3 col-6"><div class="stat-mini"><div class="stat-mini-value">AUC 0.93</div><div class="stat-mini-label">Both models</div></div></div>
+          <div class="col-sm-3 col-6"><div class="stat-mini"><div class="stat-mini-value">{{ metrics.lgbm.antibiotics }}</div><div class="stat-mini-label">Antibiotics</div></div></div>
+          <div class="col-sm-3 col-6"><div class="stat-mini"><div class="stat-mini-value">{{ metrics.lgbm.auc }}</div><div class="stat-mini-label">Forecaster AUC</div></div></div>
         </div>
       </div>
     </div>
@@ -494,7 +494,7 @@
         <div class="how-num">06</div>
         <div>
           <div class="how-title">Validation: AUC-ROC &amp; F1</div>
-          <div class="how-desc">Both trained models achieve AUC-ROC ≥ 0.93 on held-out test sets. Threshold tuning via precision-recall curves optimises the F1 score for clinical utility by balancing sensitivity (catching true resistance) against specificity.</div>
+          <div class="how-desc">Both models are tested on genomes they never saw in training: the forecaster scores AUC-ROC {{ metrics.lgbm.auc_ci }} and the k-mer model {{ metrics.kmer.auc_ci }}. The forecaster's threshold ({{ metrics.lgbm.threshold }}) is chosen on validation genomes to keep missed resistance (very major error) at or below 10%, because calling a resistant isolate susceptible is the dangerous mistake.</div>
         </div>
       </div>
     </div>
