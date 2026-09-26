@@ -92,7 +92,8 @@ def run_one(amrfinder, env, row, threads):
     out = os.path.join(OUT_DIR, f'{row.genome_id}.tsv')
     tmp = out + '.part'
     cmd = [amrfinder, '-n', row.fna, '--name', row.genome_id, '--threads', str(threads), '-o', tmp]
-    if row.organism:
+    # Missing organism is NaN here, not None (pandas 3 string columns), and NaN is truthy
+    if isinstance(row.organism, str):
         cmd += ['--organism', row.organism]
     start = time.time()
     proc = subprocess.run(cmd, capture_output=True, text=True, env=env)
