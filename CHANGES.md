@@ -33,7 +33,7 @@ Baseline is commit **`52ae361`** *(Add amrpredict library and macOS launcher, 20
 | [experiments/requirements.txt](experiments/requirements.txt) | New. Backend requirements plus `scipy` and `pyarrow` |
 | [backend/train_models.py](backend/train_models.py) | Default output is `trained_models/candidates/<model>/`, like `/api/train/` |
 | [experiments/lib/data_prep.py](experiments/lib/data_prep.py), [backend/train_models.py](backend/train_models.py) | 13 more antibiotic aliases and `sulfa` dropped; cleaned table unchanged, so still cleaning v4 ([HANDBOOK](experiments/HANDBOOK.md) §3) |
-| [backend/ml_models/mutation_timeline.py](backend/ml_models/mutation_timeline.py) | Shares are a partition (exactly 100); one seeded generator; `model_used` always `Biological Simulation`; new `simulation`, `seed`, `calibration` fields |
+| [backend/ml_models/mutation_timeline.py](backend/ml_models/mutation_timeline.py) | Shares are a partition (exactly 100); one seeded generator; drug names go through `normalize_antibiotic()` like the predictors (`rifampin` and `co-trimoxazole` fell to the generic profile); `model_used` always `Biological Simulation`; new `simulation`, `seed`, `calibration` fields |
 
 ### Documents
 - [progress/formats/README.md](progress/formats/README.md): §3 gene matrix agreed with notes, new §4 timeline + RL response and [sample](progress/formats/timeline_response.sample.json).

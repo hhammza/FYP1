@@ -12,6 +12,8 @@ import numpy as np
 import warnings
 from collections import Counter
 from itertools import product
+
+from ml_models.common import normalize_antibiotic
 warnings.filterwarnings('ignore')
 
 NUCLEOTIDES = ['A', 'T', 'C', 'G']
@@ -185,7 +187,8 @@ class MutationTimelinePredictor:
             return {'error': 'FASTA sequence too short (minimum 50 bp)'}
 
         gc = compute_gc_content(sequence)
-        ab = antibiotic.lower().strip()
+        # Same spelling map as the predictors: 'rifampin' gets the rifampicin profile
+        antibiotic = ab = normalize_antibiotic(antibiotic)
         profile = ANTIBIOTIC_MUTATION_PROFILES.get(ab, ANTIBIOTIC_MUTATION_PROFILES['default'])
 
         rng = np.random.default_rng(seed)   # same inputs and seed, same response

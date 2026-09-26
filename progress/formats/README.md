@@ -137,6 +137,7 @@ Today's fields stay. What changes:
 
 | Field | Type | Status | Meaning |
 |---|---|---|---|
+| `antibiotic` | string | existing, **now canonical** | Same spelling map as the predictors: `rifampin` comes back as `rifampicin` and gets its profile (before, it fell to the generic one) |
 | `timeline[].week` | int | existing | 0 to `n_weeks` |
 | `timeline[].susceptible_fraction`, `intermediate_fraction`, `resistant_fraction` | number 0–100 | existing, **now a partition** | Percent of the population. The three add up to 100 every week (±0.01 from rounding). Today they can exceed 100 |
 | `timeline[].cumulative_mutations`, `mic_fold_change`, `treatment_effective` | | existing | Unchanged |
