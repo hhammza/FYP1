@@ -2,7 +2,8 @@
 Bacterial Mutation Timeline Model
 Input: FASTA sequence (raw text) + antibiotic name + weeks
 Output: Week-by-week resistance evolution timeline + mutation hotspots
-Uses: CNN-LSTM model (if trained) OR biologically-informed simulation
+Uses: a biologically-informed simulation, not a trained model. Response format
+in progress/formats/README.md section 4.
 """
 import os
 import re
@@ -68,7 +69,7 @@ def compute_gc_content(sequence):
     return sum(1 for c in sequence if c in 'GC') / len(sequence)
 
 
-def find_mutation_hotspots(sequence, n_sites=15):
+def find_mutation_hotspots(sequence, rng, n_sites=15):
     """Identify putative mutation hotspot positions from sequence."""
     if len(sequence) < 100:
         return []
@@ -93,7 +94,7 @@ def find_mutation_hotspots(sequence, n_sites=15):
         if orig_nuc not in NUCLEOTIDE_TRANSITIONS:
             orig_nuc = 'A'
         mut_nuc = NUCLEOTIDE_TRANSITIONS[orig_nuc][0]
-        mut_type = np.random.choice(MUTATION_TYPES[:4])
+        mut_type = str(rng.choice(MUTATION_TYPES[:4]))
         result.append({
             'position': pos + 5,
             'original_nucleotide': orig_nuc,
@@ -106,7 +107,7 @@ def find_mutation_hotspots(sequence, n_sites=15):
     return sorted(result, key=lambda x: x['position'])
 
 
-def generate_timeline(profile, n_weeks, gc_content, sequence_len):
+def generate_timeline(profile, n_weeks, gc_content, sequence_len, rng):
     """Generate biologically plausible resistance evolution timeline."""
     speed = profile['speed']
     peak = profile['peak']
@@ -129,24 +130,25 @@ def generate_timeline(profile, n_weeks, gc_content, sequence_len):
 
         # Mutation accumulation (roughly Poisson)
         if week > 0:
-            new_muts = max(0, int(np.random.poisson(speed * 15)))
+            new_muts = max(0, int(rng.poisson(speed * 15)))
             cumulative_mutations += new_muts
 
         # MIC fold-change (resistance correlates with MIC increase)
         mic_fold = 1.0 + resistant_fraction * 32 * (peak / 0.9)
 
-        # Susceptible fraction
-        susceptible = max(0, 1.0 - resistant_fraction)
-
-        # Intermediate/partial resistance zone
-        intermediate = max(0, min(0.25, resistant_fraction * (1 - resistant_fraction) * 2))
-        susceptible = max(0, 1.0 - resistant_fraction - intermediate)
+        # Intermediate/partial resistance zone, never more than the
+        # non-resistant share, so the three compartments partition the
+        # population. Susceptible takes the rounding remainder: exactly 100.
+        intermediate = min(0.25, resistant_fraction * (1 - resistant_fraction) * 2,
+                           1.0 - resistant_fraction)
+        resistant_pct = round(resistant_fraction * 100, 2)
+        intermediate_pct = round(intermediate * 100, 2)
 
         timeline.append({
             'week': week,
-            'resistant_fraction': round(resistant_fraction * 100, 2),
-            'susceptible_fraction': round(susceptible * 100, 2),
-            'intermediate_fraction': round(intermediate * 100, 2),
+            'resistant_fraction': resistant_pct,
+            'susceptible_fraction': round(100.0 - resistant_pct - intermediate_pct, 2),
+            'intermediate_fraction': intermediate_pct,
             'cumulative_mutations': cumulative_mutations,
             'mic_fold_change': round(mic_fold, 2),
             'treatment_effective': resistant_fraction < 0.50,
@@ -176,7 +178,7 @@ class MutationTimelinePredictor:
         else:
             print("[Timeline] No trained model. Using biological simulation.")
 
-    def predict(self, fasta_text, antibiotic, n_weeks=8):
+    def predict(self, fasta_text, antibiotic, n_weeks=8, seed=42):
         sequence = read_fasta_sequence(fasta_text)
 
         if len(sequence) < 50:
@@ -186,8 +188,9 @@ class MutationTimelinePredictor:
         ab = antibiotic.lower().strip()
         profile = ANTIBIOTIC_MUTATION_PROFILES.get(ab, ANTIBIOTIC_MUTATION_PROFILES['default'])
 
-        timeline = generate_timeline(profile, n_weeks, gc, len(sequence))
-        hotspots = find_mutation_hotspots(sequence, n_sites=12)
+        rng = np.random.default_rng(seed)   # same inputs and seed, same response
+        timeline = generate_timeline(profile, n_weeks, gc, len(sequence), rng)
+        hotspots = find_mutation_hotspots(sequence, rng, n_sites=12)
 
         final_week = timeline[-1]
         failure_week = None
@@ -222,7 +225,11 @@ class MutationTimelinePredictor:
             'failure_week': failure_week,
             'final_resistant_percent': final_week['resistant_fraction'],
             'peak_resistance': profile['peak'] * 100,
-            'model_used': 'CNN-LSTM (trained)' if self.is_trained else 'Biological Simulation',
+            # No trained model exists; a pickle on disk is loaded but never used
+            'model_used': 'Biological Simulation',
+            'simulation': True,
+            'seed': seed,
+            'calibration': None,   # fitted to published curves in T3.1
             'summary': self._generate_summary(antibiotic, timeline, failure_week, profile),
         }
 
@@ -238,7 +245,8 @@ class MutationTimelinePredictor:
     @property
     def status(self):
         return {
-            'trained': self.is_trained,
-            'model_type': 'CNN-LSTM Mutation Forecaster' if self.is_trained else 'Biological Simulation',
+            'trained': False,
+            'simulation': True,
+            'model_type': 'Biological Simulation',
             'description': 'Simulates week-by-week resistance evolution under antibiotic pressure',
         }
