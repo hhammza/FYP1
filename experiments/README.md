@@ -14,6 +14,9 @@ the runs so far have shown. This file is the short usage card, and
 ## Quick start
 
 ```bash
+# once: the backend stack plus scipy and pyarrow (for the gene matrix)
+pip install -r experiments/requirements.txt
+
 # one experiment
 python experiments/run.py experiments/configs/A2_oof_grouped.json
 
@@ -61,6 +64,8 @@ experiments/
 ├── evaluate_shipped.py re-test the deployed models on genomes they never saw
 ├── build_taxonomy.py   Taxon ID → species via NCBI → backend/taxon_species.csv
 ├── export_report.py    everything above → backend/trained_models/model_report.json
+├── genome/             AMRFinderPlus on complete assemblies → gene matrix (genome/README.md)
+├── requirements.txt    what the experiments need beyond backend/requirements.txt
 ├── backfill_bundles.py adds bundles to runs made before the exporter existed
 ├── cache/              cleaned-data cache (safe to delete)
 └── results/

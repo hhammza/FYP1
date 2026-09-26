@@ -204,7 +204,7 @@ resistant(t) = r₀ + (peak − r₀) / (1 + e^(−k(t − midpoint)))
 
 It also reports "mutation hotspots" (windows scored by GC content and nucleotide repetitiveness), resistance-gene activation weeks (`gyrA`, `blaTEM`, `mcr-1` …), MIC fold-change, and the **failure week**, the first week resistance crosses 50%.
 
-Two caveats to state plainly if you present it: the resistance curve is deterministic, but `cumulative_mutations` (Poisson draw) and the hotspot mutation types (`np.random.choice`) are random, so those columns differ between identical runs. And the three population shares can exceed 100% in later weeks (§11.3).
+Since 2026-09-26 the random parts (`cumulative_mutations`, a Poisson draw, and the hotspot mutation types) come from one seeded generator, so identical inputs give an identical response (`seed`, default 42). The three population shares are a partition and add up to exactly 100 every week (§11.3). The response says `model_used: "Biological Simulation"` and `simulation: true`; its format is in [progress/formats/README.md](progress/formats/README.md) §4.
 
 ---
 
@@ -303,7 +303,7 @@ behind it in [EXPERIMENT_PLAN.md](EXPERIMENT_PLAN.md).
 Two things follow from this table:
 
 - **The notebooks and the backend are different lineages.** The notebook LightGBM was trained on one `BVBRC_genome_amr.csv` (121,589 raw → 90,826 clean rows, global resistance rate 0.3081). The artifacts actually shipped in `backend/trained_models/` have a global mean of **0.1662** and 76 antibiotic rates, which means they came from a `train_models.py` run over the per-species `amr_output/` CSVs, not from the notebook. Both are legitimate; just don't quote a notebook number for a backend artifact.
-- **The deep-learning models were never deployed.** `mutation_timeline.py` looks for `mutation_timeline_model.pkl` and would use a CNN-LSTM if present; it is not present, so the simulation always runs. Similarly the Keras MLP became a RandomForest. The code paths for the neural versions still exist, which is why the UI says "CNN-LSTM available for training", accurate but easy to misread.
+- **The deep-learning models were never deployed.** `mutation_timeline.py` looks for `mutation_timeline_model.pkl` but never uses it: the simulation always runs, and since 2026-09-26 the response and `/api/health/` say so whether or not the file exists. Similarly the Keras MLP became a RandomForest. The code paths for the neural versions still exist, which is why the UI says "CNN-LSTM available for training", accurate but easy to misread.
 
 ---
 
@@ -530,9 +530,11 @@ The trainer looked for `amr_output/`, `mapped_output/` and `fasta_output/` direc
 
 Now `resolve_data_dir()` in `train_models.py` accepts the project root or the data folder and finds `Data/` (or `data/`) itself, so both the command line and `/api/train/` work. `/api/train/` returns HTTP 503 with a message when no data is found, instead of starting a thread. The trainer also reads every file by default instead of the first 500 (LightGBM) and 200 (K-mer) of an unsorted listing, which is how the shipped LightGBM missed *Klebsiella*. The committed models in `trained_models/` still date from 10 July; §10 shows which files they were trained on.
 
-### 11.3 Timeline population shares exceed 100%
+### 11.3 Timeline population shares exceeded 100% (fixed in the backend 2026-09-26)
 
-Once the susceptible pool empties (~week 7 at default settings), `susceptible` clamps at 0, `intermediate` pins at 25.0, and `resistant` keeps growing, so the three sum to 106% by week 8. Documented as a deliberate `xfail` in the library's test suite (`test_timeline_compartments_partition_the_population_throughout`) so that fixing it can't happen silently. Don't present late weeks as population percentages.
+Once the susceptible pool emptied (~week 7 at default settings), `susceptible` clamped at 0, `intermediate` pinned at 25.0, and `resistant` kept growing, so the three summed to 106% by week 8. Now `intermediate` can never exceed the non-resistant share and `susceptible` takes the rest, so the three add up to exactly 100 (checked on every drug profile at 1 to 52 weeks). The resistant curve and `failure_week` are unchanged; only late-week `intermediate` and `susceptible` values move.
+
+The library keeps its own copy (`amrpredict-lib/src/amrpredict/timeline.py`), which still has the bug. Its strict `xfail` (`test_timeline_compartments_partition_the_population_throughout`) stays until that copy is synced, so the fix can't land there silently.
 
 ### 11.4 Security posture is demo-grade
 

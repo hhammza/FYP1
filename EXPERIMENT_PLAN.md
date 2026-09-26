@@ -289,7 +289,7 @@ It has no ground truth, so it cannot be "trained" in the current setup. Three ho
 |---|---|---|---|
 | **C1** | Sensitivity analysis | 3h | Sweep `speed` and `peak` ±30%, plot how `failure_week` moves. Turns a black box into a characterised model |
 | **C2** | Literature calibration | 6h | Fit the logistic curve to published resistance-evolution series (e.g. serial-passage MIC data) and report fit error. Upgrades it from "hand-set constants" to "calibrated against N published curves" |
-| **C3** | Fix the >100% compartment bug and re-run | 2h | Currently an `xfail` in the library; fixing it changes published numbers, so do it as a versioned change with before/after |
+| **C3** | Fix the >100% compartment bug and re-run | 2h | **Done in the backend 2026-09-26** (before: up to 106% by week 8; after: exactly 100, resistant curve and failure week unchanged; see [CHANGES.md](CHANGES.md)). The library copy and its `xfail` wait for the library sync |
 
 Do **C1 at minimum**, it costs an afternoon and pre-empts the obvious viva question *"where did 0.18 come from and what if it's wrong?"*
 

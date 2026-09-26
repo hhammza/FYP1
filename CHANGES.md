@@ -13,7 +13,35 @@ Baseline is commit **`52ae361`** *(Add amrpredict library and macOS launcher, 20
 | [experiments/HANDBOOK.md](experiments/HANDBOOK.md) | Full reference for the training setup | Created, then revised |
 | [experiments/README.md](experiments/README.md) | Usage card for the harness | Created, then revised |
 | [experiments/RESULTS.md](experiments/RESULTS.md) | Generated comparison table | Regenerated after every run |
+| [progress/formats/README.md](progress/formats/README.md) | Data handed between Ali, Hamza and Suleman | Created 2026-09-25, extended 2026-09-26 |
 | [PROJECT_DOCUMENTATION.md](PROJECT_DOCUMENTATION.md) | The original long reference | **Unchanged**. Superseding facts are recorded in [README.md](README.md) instead |
+
+---
+
+## Handover formats, gene matrix, trainer default and timeline fix (2026-09-26)
+
+### Findings
+- The command-line trainer wrote straight into `backend/trained_models/`, replacing the promoted model without its threshold, calibration or `metrics.json`, so the UI would have shown the old model's numbers for a new model.
+- The timeline's three population shares reached 106% by week 8, and `model_used` could say `CNN-LSTM (trained)` although no trained model is ever used.
+- AMRFinderPlus core scope also reports a few stress and biocide genes, so the gene matrix filters on `Type = AMR` as well as `Scope = core`. The run did not use `--plus`, so there is no plus-scope matrix.
+
+### Code
+| File | Change |
+|---|---|
+| [experiments/genome/features/build_gene_matrix.py](experiments/genome/features/build_gene_matrix.py) | New. AMRFinderPlus output → `gene_matrix.parquet` + `gene_info.csv`; `--sample N` writes a fixed sample to `sample/` |
+| [experiments/genome/features/sample/](experiments/genome/features/sample/) | New. 20 genomes, 7 genera, 7 with no core AMR hit, all joining to their labels |
+| [experiments/requirements.txt](experiments/requirements.txt) | New. Backend requirements plus `scipy` and `pyarrow` |
+| [backend/train_models.py](backend/train_models.py) | Default output is `trained_models/candidates/<model>/`, like `/api/train/` |
+| [backend/ml_models/mutation_timeline.py](backend/ml_models/mutation_timeline.py) | Shares are a partition (exactly 100); one seeded generator; `model_used` always `Biological Simulation`; new `simulation`, `seed`, `calibration` fields |
+
+### Documents
+- [progress/formats/README.md](progress/formats/README.md): §3 gene matrix agreed with notes, new §4 timeline + RL response and [sample](progress/formats/timeline_response.sample.json).
+- [README.md](README.md): §4.3 timeline caveats, the deep-learning note, §11.3 marked fixed in the backend, training section.
+- [experiments/README.md](experiments/README.md): install line, `genome/` and `requirements.txt` in the layout.
+- [experiments/genome/README.md](experiments/genome/README.md): step 3 builds the matrix; committed outputs listed.
+- [EXPERIMENT_PLAN.md](EXPERIMENT_PLAN.md): C3 marked done in the backend.
+
+Not yet changed: the library's copy of the timeline and its `xfail`; three templates that still mention CNN-LSTM (`mutation_timeline.html`, `train.html`, `datasets.html`).
 
 ---
 
