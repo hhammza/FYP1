@@ -32,6 +32,9 @@ caffeinate -i python experiments/genome/features/run_amrfinder.py --jobs 4 --thr
 # 3. Gene matrix from the AMRFinderPlus output: seconds (needs pyarrow)
 python experiments/genome/features/build_gene_matrix.py             # every searched genome
 python experiments/genome/features/build_gene_matrix.py --sample 20 # into sample/
+
+# 4. Summary for the /genes web page: seconds
+python experiments/genome/features/export_gene_report.py
 ```
 
 Test on a few genomes first with `--limit 5` on either script.
@@ -49,6 +52,7 @@ Test on a few genomes first with `--limit 5` on either script.
 | `experiments/genome/features/gene_matrix.parquet` | genome x gene 0/1 matrix, format in `progress/formats/README.md` section 3 |
 | `experiments/genome/features/gene_info.csv` | symbol, type, class, subclass and genome count for each column |
 | `experiments/genome/features/sample/` | the same two files for a fixed 20-genome sample |
+| `backend/trained_models/gene_report.json`, `gene_hits.json` | run summary and per-genome genes for the `/genes` page |
 
 A download is kept only when its length is within 1% of the length BV-BRC reports.
 

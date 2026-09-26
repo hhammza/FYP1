@@ -1,0 +1,226 @@
+{% extends "base.html" %}
+{% block title %}Resistance Genes{% endblock %}
+
+{% block page_header %}
+<div class="page-header">
+  <div class="container-xl">
+    <nav aria-label="breadcrumb"><ol class="breadcrumb breadcrumb-custom">
+      <li class="breadcrumb-item"><a href="/">Dashboard</a></li>
+      <li class="breadcrumb-item active">Resistance Genes</li>
+    </ol></nav>
+    <div class="d-flex align-items-center gap-3">
+      <div class="page-header-icon kmer-icon"><i class="bi bi-bacteria"></i></div>
+      <div>
+        <h1 class="page-title">Resistance Genes</h1>
+        <p class="page-subtitle">Resistance genes and mutations NCBI AMRFinderPlus found in the complete genome of every isolate, and how well they match the lab results</p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="container-xl py-4">
+
+{% if error %}
+  <div class="empty-state">
+    <div class="empty-state-icon"><i class="bi bi-bacteria"></i></div>
+    <h5 class="fw-700">Gene report not available</h5>
+    <p class="text-muted mb-0">{{ error }}</p>
+  </div>
+{% else %}
+{% set run = report.run %}
+{% set s = report.summary %}
+
+  {% if not run.complete %}
+  <div class="alert-warning-custom mb-4">
+    <i class="bi bi-hourglass-split me-2"></i>
+    Partial results: {{ '{:,}'.format(run.genomes_searched) }} of {{ '{:,}'.format(run.genomes_downloaded) }}
+    genomes searched so far. The numbers below cover those genomes only.
+  </div>
+  {% endif %}
+
+  <!-- ── Headline numbers ─────────────────────────────────────── -->
+  <div class="d-flex gap-3 flex-wrap mb-4">
+    <div class="flex-fill min-w-130"><div class="stat-mini">
+      <div class="stat-mini-value stat-mini-static text-indigo2">{{ '{:,}'.format(run.genomes_searched) }}</div>
+      <div class="stat-mini-label">Complete genomes searched{% if not run.complete %} (of {{ '{:,}'.format(run.genomes_downloaded) }}){% endif %}</div>
+    </div></div>
+    <div class="flex-fill min-w-130"><div class="stat-mini">
+      <div class="stat-mini-value stat-mini-static">{{ '%.1f' | format(100 * s.with_gene / s.genomes) }}%</div>
+      <div class="stat-mini-label">Carry at least one resistance gene</div>
+    </div></div>
+    <div class="flex-fill min-w-130"><div class="stat-mini">
+      <div class="stat-mini-value stat-mini-static">{{ s.genes }}</div>
+      <div class="stat-mini-label">Different resistance genes</div>
+    </div></div>
+    <div class="flex-fill min-w-130"><div class="stat-mini">
+      <div class="stat-mini-value stat-mini-static">{{ s.point_mutations }}</div>
+      <div class="stat-mini-label">Different point mutations</div>
+    </div></div>
+    <div class="flex-fill min-w-130"><div class="stat-mini">
+      <div class="stat-mini-value stat-mini-static">{{ '%g' | format(s.median_genes) }}</div>
+      <div class="stat-mini-label">Median per genome (max {{ s.max_genes }})</div>
+    </div></div>
+  </div>
+
+  <div class="glass-card mb-5">
+    <h5 class="fw-700 mb-2"><i class="bi bi-search me-2 text-indigo2"></i>What this page shows</h5>
+    <p class="body-text mb-0">
+      Our K-mer model counts DNA letter patterns; it does not know which gene causes resistance.
+      AMRFinderPlus {{ run.amrfinder_version or '' }} (database {{ run.database_version or 'unknown' }}), NCBI's
+      own tool, searched each complete assembly for known resistance genes and resistance mutations
+      (only <em>core</em> AMR elements: {{ run.filter }}). These results become gene features for the next
+      models, and they can explain a prediction: <em>resistant because <code>blaCTX-M-15</code> is present</em>.
+    </p>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════
+       SECTION 1: WHAT WAS FOUND
+       ════════════════════════════════════════════════════════════ -->
+  <div class="mb-5" id="found">
+    <div class="sec-eyebrow">Section 1</div>
+    <h2 class="sec-title">What was found</h2>
+    <p class="sec-sub mb-4">The most common genes and mutations, how many each genome carries, and which drug classes they affect.</p>
+
+    <div class="glass-card mb-4">
+      <h6 class="card-section-title mb-1"><i class="bi bi-bar-chart text-accent me-2"></i>Top {{ report.top_genes | length }} genes and mutations</h6>
+      <p class="small text-muted mb-2">Share of searched genomes that carry each one.</p>
+      <div id="topChart" class="report-chart" style="height:{{ 90 + 24 * (report.top_genes | length) }}px"></div>
+    </div>
+
+    <div class="row g-4 mb-4">
+      <div class="col-lg-5">
+        <div class="glass-card h-100">
+          <h6 class="card-section-title mb-1"><i class="bi bi-bar-chart-line text-accent me-2"></i>Resistance genes per genome</h6>
+          <p class="small text-muted mb-2">{{ '{:,}'.format(s.genomes - s.with_gene) }} genomes had none: searched, and nothing was found.</p>
+          <div id="perGenomeChart" class="report-chart" style="height:300px"></div>
+        </div>
+      </div>
+      <div class="col-lg-7">
+        <div class="glass-card h-100">
+          <h6 class="card-section-title mb-1"><i class="bi bi-capsule text-accent me-2"></i>Genomes with a gene for each drug class</h6>
+          <p class="small text-muted mb-2">A genome counts once per class, however many genes of that class it carries.</p>
+          <div id="classChart" class="report-chart" style="height:{{ 90 + 22 * ([report.classes | length, 14] | min) }}px"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════
+       SECTION 2: BY SPECIES
+       ════════════════════════════════════════════════════════════ -->
+  <div class="mb-5" id="species">
+    <div class="sec-eyebrow">Section 2</div>
+    <h2 class="sec-title">Genes by species</h2>
+    <p class="sec-sub mb-4">Each species has its own resistance genes. Darker means more of that genus's genomes carry the gene.</p>
+
+    <div class="glass-card mb-4">
+      <h6 class="card-section-title mb-1"><i class="bi bi-grid-3x3 text-accent me-2"></i>Share of genomes carrying each gene, by genus</h6>
+      <p class="small text-muted mb-2">Genera with at least {{ report.heatmap.min_genomes }} searched genomes; the {{ report.heatmap.genes | length }} most common genes overall.</p>
+      <div id="heatChart" class="report-chart" style="height:{{ 150 + 34 * (report.heatmap.genera | length) }}px"></div>
+    </div>
+
+    <div class="glass-card">
+      <h6 class="card-section-title"><i class="bi bi-table text-accent me-2"></i>Every genus</h6>
+      <div class="table-responsive">
+        <table class="table table-custom table-sm mb-0">
+          <thead><tr><th>Genus</th><th class="text-end">Genomes</th><th class="text-end">With a gene</th><th class="text-end">Median genes</th><th>Most common</th></tr></thead>
+          <tbody>
+          {% for g in report.genera %}
+            <tr>
+              <td><em>{{ g.genus }}</em></td>
+              <td class="text-end">{{ '{:,}'.format(g.genomes) }}</td>
+              <td class="text-end">{{ '%.1f' | format(100 * g.with_gene) }}%</td>
+              <td class="text-end">{{ '%g' | format(g.median_genes) }}</td>
+              <td class="small">{% for t in g.top %}<code>{{ t.gene }}</code> {{ '%.0f' | format(100 * t.share) }}%{% if not loop.last %} · {% endif %}{% else %}<span class="text-muted">none found</span>{% endfor %}</td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════
+       SECTION 3: GENE VS LAB RESULT
+       ════════════════════════════════════════════════════════════ -->
+  {% set lab = report.gene_vs_lab.lab %}
+  {% set comp = report.gene_vs_lab.all %}
+  <div class="mb-5" id="lab">
+    <div class="sec-eyebrow">Section 3</div>
+    <h2 class="sec-title">Do the genes match the lab results?</h2>
+    <p class="sec-sub mb-3">
+      For a gene and an antibiotic AMRFinderPlus says it acts on: how often were genomes <strong>with</strong>
+      the gene resistant, compared with genomes <strong>without</strong> it?
+    </p>
+
+    <div class="d-flex flex-wrap gap-2 mb-3 label-toggle" role="group" aria-label="Which labels to compare with">
+      <button type="button" class="btn btn-sm btn-model active" data-labels="lab" aria-pressed="true">
+        Lab results only ({{ lab.genomes_labelled }} genomes)</button>
+      <button type="button" class="btn btn-sm btn-model" data-labels="all" aria-pressed="false">
+        Include BV-BRC predictions ({{ '{:,}'.format(comp.genomes_labelled) }} genomes)</button>
+    </div>
+
+    <div class="alert-warning-custom mb-3 d-none" id="compNote">
+      <i class="bi bi-exclamation-triangle me-2"></i>
+      Most of these labels were <strong>predicted</strong> by BV-BRC's own models from the genome, not measured
+      in a lab. Comparing genes with them is partly circular, so treat this view as a rough check only.
+    </div>
+
+    <div class="glass-card">
+      <div class="table-responsive">
+        <table class="table table-custom table-sm mb-0" id="labTable">
+          <thead><tr>
+            <th>Gene</th><th>Antibiotic</th>
+            <th class="text-end">With gene</th><th style="min-width:180px">Resistant with gene</th>
+            <th class="text-end">Without</th><th style="min-width:180px">Resistant without</th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="d-flex flex-wrap align-items-center gap-3 mt-2">
+        <button type="button" class="btn btn-sm btn-model d-none" id="labMore" style="width:auto"></button>
+        <p class="caption-text mb-0" id="labCaption"></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════
+       SECTION 4: LOOKUP
+       ════════════════════════════════════════════════════════════ -->
+  <div class="mb-5" id="lookup">
+    <div class="sec-eyebrow">Section 4</div>
+    <h2 class="sec-title">Look up a genome</h2>
+    <p class="sec-sub mb-3">Every core resistance gene and mutation AMRFinderPlus found in one genome.</p>
+
+    <div class="glass-card">
+      <form class="d-flex flex-wrap gap-2 mb-3" id="lookupForm">
+        <label for="genomeId" class="visually-hidden">Genome ID</label>
+        <input id="genomeId" class="form-control form-control-custom" style="max-width:260px"
+               placeholder="Genome ID, e.g. 1000561.3" autocomplete="off" required>
+        <button class="btn btn-model" type="submit"><i class="bi bi-search me-2"></i>Look up</button>
+        <span class="small text-muted align-self-center">Try
+          <a href="#lookup" class="lookup-example" data-id="1000561.3">1000561.3</a>
+          (<em>P. aeruginosa</em>)</span>
+      </form>
+      <div id="lookupResult" aria-live="polite"></div>
+    </div>
+  </div>
+
+  <div class="glass-card">
+    <h6 class="card-section-title"><i class="bi bi-arrow-repeat text-accent me-2"></i>Where these numbers come from</h6>
+    <p class="small text-muted">This page reads <code>backend/trained_models/gene_report.json</code> and <code>gene_hits.json</code>, generated {{ run.generated_at[:10] }}{% if run.git_commit %} at <code>{{ run.git_commit }}</code>{% endif %}. After AMRFinderPlus finishes, rebuild them:</p>
+    <div class="code-block"><pre class="code-content"><code>python experiments/genome/features/run_amrfinder.py --jobs 4 --threads 2
+python experiments/genome/features/export_gene_report.py</code></pre></div>
+  </div>
+
+  <script type="application/json" id="report-data">{{ report | tojson }}</script>
+{% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/report-charts.js') }}"></script>
+<script src="{{ url_for('static', filename='js/genes.js') }}"></script>
+{% endblock %}

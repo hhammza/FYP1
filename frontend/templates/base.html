@@ -44,7 +44,7 @@
           </a>
         </li>
         <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle {% if '/forecast' in request.path or '/predict' in request.path or '/models' in request.path or '/compare' in request.path %}active{% endif %}"
+          <a class="nav-link dropdown-toggle {% if '/forecast' in request.path or '/predict' in request.path or '/models' in request.path or '/genes' in request.path or '/compare' in request.path %}active{% endif %}"
              href="#" role="button" data-bs-toggle="dropdown">
             <i class="bi bi-cpu me-1"></i>ML Models
           </a>
@@ -55,6 +55,7 @@
             <li><hr class="dropdown-divider"></li>
             <li><a class="dropdown-item" href="/models"><i class="bi bi-clipboard-data me-2 text-accent"></i>Model Report <span class="badge bg-secondary ms-1 badge-xs">All models</span></a></li>
             <li><a class="dropdown-item" href="/compare"><i class="bi bi-layout-split me-2 text-accent"></i>Deployed vs Experimental</a></li>
+            <li><a class="dropdown-item" href="/genes"><i class="bi bi-bacteria me-2 text-emerald2"></i>Resistance Genes <span class="badge bg-secondary ms-1 badge-xs">AMRFinderPlus</span></a></li>
           </ul>
         </li>
         <li class="nav-item">

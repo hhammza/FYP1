@@ -18,6 +18,25 @@ Baseline is commit **`52ae361`** *(Add amrpredict library and macOS launcher, 20
 
 ---
 
+## Resistance genes page (2026-09-26)
+
+A new `/genes` page (ML Models menu) shows the AMRFinderPlus results: run summary, top genes and mutations, genes per genome, drug classes, a genus × gene heatmap, gene vs lab result, and a genome lookup.
+
+### Findings
+- Only 118 of the searched genomes have laboratory results; the other labels on them are BV-BRC predictions made from the genome, so the gene vs lab table uses laboratory results by default and shows the predictions behind a labelled toggle.
+- Matching genes to antibiotics by drug class paired genes with drugs they do not act on (`aph(6)-Id`, a streptomycin gene, with gentamicin). Pairs now follow the AMRFinderPlus subclass.
+- A gene is not a verdict: `sul2` carriers were 10% resistant to co-trimoxazole (trimethoprim resistance needs a second gene), `blaTEM-1` carriers 6% to cefoxitin.
+
+### Code
+| File | Change |
+|---|---|
+| [experiments/genome/features/export_gene_report.py](experiments/genome/features/export_gene_report.py) | New. Builds `gene_report.json` and `gene_hits.json` |
+| [backend/api/views.py](backend/api/views.py), [urls.py](backend/api/urls.py) | `GET /api/genes/` and `GET /api/genes/<genome_id>/` |
+| [frontend/app.py](frontend/app.py), [templates/genes.html](frontend/templates/genes.html), [static/js/genes.js](frontend/static/js/genes.js) | The page, a lookup proxy, the menu entry; toggle and meter styles in `charts.css` |
+| [.gitignore](.gitignore) | The two JSON files are committed so the deployed backend can serve them |
+
+---
+
 ## Antibiotic names and label maps in one file (2026-09-26)
 
 ### Findings

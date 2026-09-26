@@ -209,6 +209,45 @@ class VocabularyView(View):
         })
 
 
+class GeneReportView(View):
+    """AMRFinderPlus run summary, built by experiments/genome/features/export_gene_report.py."""
+    def get(self, request):
+        path = os.path.join(str(settings.TRAINED_MODELS_DIR), 'gene_report.json')
+        if not os.path.exists(path):
+            return json_error('gene_report.json not found. Run: '
+                              'python experiments/genome/features/export_gene_report.py', status=404)
+        with open(path) as fh:
+            return JsonResponse(json.load(fh))
+
+
+_gene_hits = {}
+
+
+class GeneLookupView(View):
+    """Every core AMR gene and mutation AMRFinderPlus found in one genome."""
+    def get(self, request, genome_id):
+        if 'data' not in _gene_hits:
+            path = os.path.join(str(settings.TRAINED_MODELS_DIR), 'gene_hits.json')
+            if not os.path.exists(path):
+                return json_error('gene_hits.json not found. Run: '
+                                  'python experiments/genome/features/export_gene_report.py', status=404)
+            with open(path) as fh:
+                _gene_hits['data'] = json.load(fh)
+        data = _gene_hits['data']
+        genome_id = genome_id.strip()
+        entry = data['genomes'].get(genome_id)
+        if entry is None:
+            # Not searched: no complete assembly, or the run has not reached it
+            return JsonResponse({'genome_id': genome_id, 'searched': False, 'genes': []})
+        genes = []
+        for symbol, identity, coverage, method in entry['hits']:
+            kind, cls, subclass, name = data['symbols'].get(symbol, [None, None, None, None])
+            genes.append({'gene': symbol, 'name': name, 'type': kind, 'class': cls, 'subclass': subclass,
+                          'identity': identity, 'coverage': coverage, 'method': method})
+        return JsonResponse({'genome_id': genome_id, 'searched': True, 'species': entry['species'],
+                             'genes': genes})
+
+
 @method_decorator(csrf_exempt, name='dispatch')
 class ReloadModelsView(View):
     """Force reload all models from disk without restarting server."""

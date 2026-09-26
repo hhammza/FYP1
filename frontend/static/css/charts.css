@@ -210,3 +210,18 @@
   .flow-arrow { transform: rotate(90deg); }
   .flow-targets { grid-template-columns: 1fr; }
 }
+
+
+/* ── /genes: label toggle and in-table meters ───────────────── */
+.label-toggle .btn-model { width: auto; }
+.label-toggle .btn-model.active {
+  border-color: var(--primary); color: var(--primary); background: rgba(79,70,229,0.08);
+}
+.lab-meter { display: flex; align-items: center; gap: 8px; }
+.lab-meter-track {
+  flex: 1; height: 8px; border-radius: 4px; background: var(--border); overflow: hidden; min-width: 80px;
+}
+.lab-meter-fill { display: block; height: 100%; border-radius: 4px; }
+.lab-meter-fill.with    { background: var(--viz-1); }
+.lab-meter-fill.without { background: var(--viz-other); }
+.lab-meter-val { font-variant-numeric: tabular-nums; font-size: 12px; color: var(--text-2); min-width: 44px; text-align: right; }

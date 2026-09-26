@@ -361,6 +361,8 @@ The bundled artifacts are **byte-identical** to `backend/trained_models/` (verif
 | `/library` | GET | n/a | `library.html` - `amrpredict` docs |
 | `/models` | GET | `models/` | `models.html`, every model, the split, charts (§8.1) |
 | `/compare` | GET | `models/` | `compare.html`, deployed vs experimental models and their data (§8.1) |
+| `/genes` | GET | `genes/` | `genes.html`, AMRFinderPlus resistance genes (§8.2) |
+| `/api/genes/<genome_id>` | GET | `genes/<genome_id>/` | JSON, one genome's genes for the lookup |
 | `/reload` | POST | `reload/` | JSON, re-reads artifacts without a restart |
 | `/api/health` | GET | `health/` | JSON passthrough |
 | `/api/antibiotics` | GET | n/a | JSON, 48 names (hardcoded list) |
@@ -390,6 +392,25 @@ experiment outputs. Rebuild it with the two scripts in §5.4.
 Chart colours are CSS tokens (`--viz-1` to `--viz-5`, `--viz-other`) defined in
 `tokens.css` and stepped for the dark surface in `dark.css`, checked for
 colour-blind separation. Shared chart code lives in `static/js/report-charts.js`.
+
+### 8.2 The resistance genes page: `/genes`
+
+Also under **ML Models**. It shows what NCBI AMRFinderPlus found in the complete
+genome of every isolate (core AMR genes and point mutations only), from two
+committed files that `experiments/genome/features/export_gene_report.py` builds:
+`backend/trained_models/gene_report.json` (served by `GET /api/genes/`) and
+`gene_hits.json` (one genome at a time, `GET /api/genes/<genome_id>/`).
+
+| Section | What it shows |
+|---|---|
+| Headline | Genomes searched (with a banner while the run is incomplete), share with at least one gene, distinct genes and mutations |
+| What was found | Top 20 genes and mutations, genes per genome, genomes with a gene for each drug class |
+| Genes by species | Genus × gene heatmap and a table of every genus |
+| Gene vs lab result | For a gene and an antibiotic its AMRFinderPlus subclass says it acts on, resistance with and without the gene. Laboratory results by default; BV-BRC's predicted labels behind a toggle, because they come from models that read the genome |
+| Look up a genome | Every gene and mutation in one genome; `/genes#genome=<id>` opens with it looked up |
+
+After AMRFinderPlus finishes, rebuild with
+`python experiments/genome/features/export_gene_report.py`.
 Tiles whose value is not a single number (for example "9 vs 37") carry the
 `stat-mini-static` class so the count-up animation in `main.js` skips them.
 

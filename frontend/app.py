@@ -365,6 +365,22 @@ def model_report():
     return render_template('models.html', report=report, error=None)
 
 
+@app.route('/genes')
+def gene_report():
+    """AMRFinderPlus resistance genes, served by the Django API."""
+    report, status = backend_get('genes/')
+    if status != 200 or 'error' in report:
+        return render_template('genes.html', report=None,
+                               error=report.get('error', f'Backend returned HTTP {status}'))
+    return render_template('genes.html', report=report, error=None)
+
+
+@app.route('/api/genes/<genome_id>')
+def gene_lookup_api(genome_id):
+    data, status = backend_get(f'genes/{genome_id}/')
+    return jsonify(data), status
+
+
 @app.route('/compare')
 def model_compare():
     """Deployed vs experimental models and the data each trained on."""

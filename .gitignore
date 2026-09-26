@@ -203,6 +203,10 @@ backend/trained_models/*
 !backend/trained_models/model_report.json
 # Measured numbers for each served model; the UI reads them, so they ship
 !backend/trained_models/*_metrics.json
+# AMRFinderPlus summary and per-genome genes for /genes, built by
+# experiments/genome/features/export_gene_report.py (Data/ is not deployed)
+!backend/trained_models/gene_report.json
+!backend/trained_models/gene_hits.json
 
 
 # ------------------------------------------------------------
