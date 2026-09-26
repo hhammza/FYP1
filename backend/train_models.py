@@ -17,6 +17,9 @@ warnings.filterwarnings('ignore')
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 ROOT_DIR = os.path.dirname(BASE_DIR)
 MODEL_DIR = os.path.join(BASE_DIR, 'trained_models')
+# Default output, the same place /api/train/ uses. The served model changes
+# only through experiments/promote.py, which also writes its metrics.json.
+CANDIDATE_DIR = os.path.join(MODEL_DIR, 'candidates')
 
 sys.path.insert(0, BASE_DIR)
 
@@ -581,8 +584,9 @@ if __name__ == '__main__':
     parser.add_argument('--model', default='all', choices=['lgbm', 'kmer', 'all'])
     parser.add_argument('--max-files', type=int, default=None,
                         help='use a seeded random subset of this many CSV files (default: all)')
-    parser.add_argument('--model-dir', default=MODEL_DIR,
-                        help='where to write the artifacts (default: backend/trained_models)')
+    parser.add_argument('--model-dir', default=None,
+                        help='where to write the artifacts (default: '
+                             'backend/trained_models/candidates/<model>, never the served model)')
     args = parser.parse_args()
 
     data_dir = resolve_data_dir(ROOT_DIR)
@@ -590,10 +594,10 @@ if __name__ == '__main__':
         sys.exit('[Data] Training data not found. Expected Data/amr_output/ in the project root.')
     print(f"[Data] Using {data_dir}")
 
-    if args.model in ('lgbm', 'all'):
-        train_lgbm(data_dir, args.model_dir, args.max_files)
-
-    if args.model in ('kmer', 'all'):
-        train_kmer(data_dir, args.model_dir, args.max_files)
+    for name, train in (('lgbm', train_lgbm), ('kmer', train_kmer)):
+        if args.model in (name, 'all'):
+            model_dir = args.model_dir or os.path.join(CANDIDATE_DIR, name)
+            os.makedirs(model_dir, exist_ok=True)
+            train(data_dir, model_dir, args.max_files)
 
     print("\n[Training] Complete!")

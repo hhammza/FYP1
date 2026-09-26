@@ -411,9 +411,9 @@ Windows: `start.bat` (ports 8000 + 5000, two `cmd` windows).
 ```bash
 cd backend && python train_models.py --model all     # or lgbm / kmer
 python train_models.py --model lgbm --max-files 500  # seeded random subset of files
-python train_models.py --model lgbm --model-dir /tmp/out   # write somewhere other than trained_models/
+python train_models.py --model lgbm --model-dir /tmp/out   # write somewhere else
 ```
-Windows: `train_all.bat`. The trainer finds the data in `Data/` itself. With all files, the LightGBM trains in about 4 minutes on 1.52 M rows; the K-mer model takes about an hour, because it computes GC content row by row. **Training overwrites the deployed models in `backend/trained_models/`** unless `--model-dir` is given.
+Windows: `train_all.bat`. The trainer finds the data in `Data/` itself. With all files, the LightGBM trains in about 4 minutes on 1.52 M rows; the K-mer model takes about an hour, because it computes GC content row by row. Training writes to `backend/trained_models/candidates/<model>/` (the same place `/api/train/` uses) and never touches the deployed models; a model is served only after `experiments/promote.py`, which also writes its `metrics.json`.
 
 ### Deployment (Railway, two services)
 
