@@ -11,6 +11,9 @@ import pickle
 import warnings
 from itertools import product
 from collections import Counter
+
+from ml_models.common import load_metrics, normalize_antibiotic
+
 warnings.filterwarnings('ignore')
 
 NUCLEOTIDES = ['A', 'T', 'C', 'G']
@@ -94,12 +97,17 @@ def extract_features(sequence, antibiotic, ab_list):
 
 
 class KmerResistancePredictor:
+    METRICS_FILE = 'kmer_metrics.json'
+
     def __init__(self, model_dir):
         self.model_dir = model_dir
         self.model = None
         self.scaler = None
         self.ab_list = []
+        self._ab_raw = {}
+        self._ab_set = set()
         self.is_trained = False
+        self.metrics = load_metrics(os.path.join(model_dir, self.METRICS_FILE))
         self._load()
 
     def _load(self):
@@ -111,6 +119,10 @@ class KmerResistancePredictor:
                 self.model = artifacts['model']
                 self.scaler = artifacts.get('scaler')
                 self.ab_list = artifacts.get('ab_list', [])
+                # Canonical name -> the spelling the model was trained on, so
+                # 'rifampin' and 'rifampicin' reach the same one-hot column.
+                self._ab_raw = {normalize_antibiotic(a): a for a in self.ab_list}
+                self._ab_set = set(self._ab_raw)
                 self.is_trained = True
                 print(f"[K-mer] Model loaded. Antibiotics: {len(self.ab_list)}")
             except Exception as e:
@@ -140,7 +152,10 @@ class KmerResistancePredictor:
         prob = float(np.clip(base + adjustment + noise, 0.03, 0.97))
         return prob
 
-    def predict(self, fasta_text, antibiotic, threshold=0.5):
+    def predict(self, fasta_text, antibiotic, threshold=None):
+        if threshold is None:
+            threshold = self.default_threshold
+        antibiotic = normalize_antibiotic(antibiotic)
         sequence = read_fasta_sequence(fasta_text)
 
         if len(sequence) < 100:
@@ -149,17 +164,26 @@ class KmerResistancePredictor:
                 'sequence_length': len(sequence),
             }
 
-        if not self.is_trained:
-            prob = self._heuristic_predict(sequence, antibiotic)
-        else:
+        # Which path produced the number. Set from what actually ran, not from
+        # whether the model loaded: a loaded model that fails at prediction
+        # time must never be reported as the trained model.
+        model_used = 'Heuristic (untrained)'
+        if self.is_trained:
             try:
-                feat = extract_features(sequence, antibiotic, self.ab_list)
+                feat = extract_features(sequence, self._ab_raw.get(antibiotic, antibiotic),
+                                        self.ab_list)
                 if self.scaler:
-                    feat = self.scaler.transform(feat.reshape(1, -1))[0]
+                    # The scaler was fitted on the k-mer block only
+                    # (train_models.py), so only those columns are scaled.
+                    feat[:N_KMERS] = self.scaler.transform(feat[:N_KMERS].reshape(1, -1))[0]
                 prob = float(self.model.predict_proba(feat.reshape(1, -1))[0][1])
+                model_used = 'RandomForest K-mer (trained)'
             except Exception as e:
                 print(f"[K-mer] Prediction error: {e}")
                 prob = self._heuristic_predict(sequence, antibiotic)
+                model_used = 'Heuristic fallback'
+        else:
+            prob = self._heuristic_predict(sequence, antibiotic)
 
         label = 'Resistant' if prob >= threshold else 'Susceptible'
         confidence = prob if prob >= threshold else 1 - prob
@@ -180,9 +204,15 @@ class KmerResistancePredictor:
             'sequence_length': len(sequence),
             'gc_content': round(gc * 100, 2),
             'top_kmers': top_kmers,
-            'model_used': 'RandomForest K-mer (trained)' if self.is_trained else 'Heuristic (untrained)',
+            'model_used': model_used,
+            'antibiotic_known': antibiotic in self._ab_set,
             'threshold': threshold,
         }
+
+    @property
+    def default_threshold(self):
+        """The threshold the model was evaluated at, from metrics.json."""
+        return float((self.metrics or {}).get('threshold', 0.5))
 
     @property
     def status(self):
@@ -192,4 +222,8 @@ class KmerResistancePredictor:
             'antibiotics_known': len(self.ab_list),
             'feature_dim': N_KMERS,
             'description': 'Predicts resistance from bacterial genome FASTA using k-mer composition analysis',
+            'default_threshold': self.default_threshold,
+            # Measured numbers, read from metrics.json beside the artifact;
+            # None when the file is missing, so the UI never shows a stale guess.
+            'metrics': self.metrics,
         }
