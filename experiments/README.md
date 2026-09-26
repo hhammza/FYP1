@@ -203,5 +203,7 @@ features, and a run not evaluated on a grouped split.
 package loader applies calibration and species-level taxa (T2.6); until then
 it would score the promoted model differently from the web app.
 
-Currently served: **`D1_forecaster_deploy`** (A10 + species taxa + isotonic
-calibration + threshold 0.24 for VME ≤ 10%), promoted 2026-09-25.
+Currently served: **`D2_forecaster_deploy`** (A10 + species taxa + isotonic
+calibration + threshold 0.25 for VME ≤ 10%, cleaning v4 drug classes), promoted
+2026-09-26. It replaced `D1_forecaster_deploy`, identical except that 54 drugs
+were still in drug class `other`.

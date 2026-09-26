@@ -7,8 +7,8 @@
   "algorithm": "RandomForest, 100 trees",
   "trained_at": null,
   "promoted_at": null,
-  "evaluated_at": "2026-09-26T01:33:34+00:00",
-  "git_commit": "163373d",
+  "evaluated_at": "2026-09-26T06:17:24+00:00",
+  "git_commit": "376f952",
   "git_dirty": true,
   "evaluation": {
     "split": "reconstructed: trained on the first 200 mapped_output files; tested on every other genome",
