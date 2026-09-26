@@ -14,8 +14,8 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done · `[!]` blocke
 
 | Week | Dates (planned) | Focus | Status |
 | --- | --- | --- | --- |
-| 1 | 28 Sep to 2 Oct | Clean names, data path, taxon grouping, start AMRFinderPlus | In progress: names, data path and taxon grouping done; AMRFinderPlus full run going (restarted 2026-09-26) |
-| 2 | 5 Oct to 9 Oct | Gene matrix | Started early: builder and 20-genome sample done 2026-09-26 |
+| 1 | 28 Sep to 2 Oct | Clean names, data path, taxon grouping, start AMRFinderPlus | Done: names, data path, taxon grouping; AMRFinderPlus full run finished 2026-09-26 (2,587 genomes, 0 failures) |
+| 2 | 5 Oct to 9 Oct | Gene matrix | Done early 2026-09-26: sample and full gene matrix, join check, summary; two notices open for Hamza (v5 retrain, `mapped_output` IDs) |
 | 3 | 12 Oct to 16 Oct | Evolution: fix, sensitivity, calibration | Not started |
 | 4 | 19 Oct to 23 Oct | RL agent, CTGAN experiment | Not started |
 | 5 | 26 Oct to 30 Oct | Report chapters | Not started |
@@ -100,7 +100,7 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done · `[!]` blocke
 
 - **Done when:** taxon 562 (*E. coli*) matches a rate on `/forecast`. **Met for a retrained model;** live once Hamza promotes one
 
-### Start AMRFinderPlus (longest job, start by Wednesday) `[~]` started 2026-09-25
+### Start AMRFinderPlus (longest job, start by Wednesday) `[x]` done 2026-09-26
 
 - [x] Found the local FASTAs are truncated (E. coli about 0.8 of 5 MB; 1000561.3 is 74 KB of 6.3 MB). `download_genomes.py` fetches complete assemblies from the BV-BRC API into `Data/genomes_full/` (gitignored), keeping a file only if its length matches BV-BRC within 1%
 
@@ -210,8 +210,8 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done · `[!]` blocke
 | Hamza | Trainer data path fix (T1.2) | Week 1 | [x] merged 2026-09-25 (`8f47f45`), noted in Hamza's tracker |
 | Hamza | Species-level taxon grouping | Week 1 | [x] 2026-09-25, in Hamza's tracker |
 | Hamza | 20-genome sample gene matrix | Week 2, day 2 | [x] 2026-09-26, `experiments/genome/features/sample/` |
-| Hamza | **Cleaning v5**: `Genome ID` is now read as text (it was a float, which merged 3,312 genomes and dropped 36,850 rows, 2.4%). Retrain and promote the forecaster on v5, rerun `evaluate_shipped.py`, and re-run registry configs you quote. Also `promote.py:150` reads `genome_id` without `dtype=str`, so its test-genome count merges IDs the same way | Week 2 | [ ] |
-| Hamza | `Data/mapped_output/` Genome IDs fixed (68 genomes had lost a trailing zero, e.g. `1055537.10` → `1055537.1`; `1038927.40` had merged with `1038927.4`). Rerun `experiments/evaluate_shipped.py` for `kmer_metrics.json`, since it groups by these IDs | Week 2 | [ ] |
+| Hamza | **Cleaning v5**: `Genome ID` is now read as text (it was a float, which merged 3,312 genomes and dropped 36,850 rows, 2.4%). Retrain and promote the forecaster on v5, rerun `evaluate_shipped.py`, and re-run registry configs you quote. Also `promote.py:150` reads `genome_id` without `dtype=str`, so its test-genome count merges IDs the same way | Week 2 | [~] noted in Hamza's tracker 2026-09-26; retrain is his |
+| Hamza | `Data/mapped_output/` Genome IDs fixed (68 genomes had lost a trailing zero, e.g. `1055537.10` → `1055537.1`; `1038927.40` had merged with `1038927.4`). Rerun `experiments/evaluate_shipped.py` for `kmer_metrics.json`, since it groups by these IDs | Week 2 | [~] noted in Hamza's tracker 2026-09-26; rerun is his |
 | Hamza | Full gene matrix | End of week 2 | [x] 2026-09-26, `experiments/genome/features/gene_matrix.parquet` + `gene_info.csv` |
 | Suleman | Canonical antibiotic list for dropdowns | Week 1 | [x] in `SULEMAN_PROGRESS.md` week 1 |
 | Hamza, Suleman | `train_models.py` from the command line no longer writes to the served models: default is `trained_models/candidates/<model>/`, like `/api/train/` | Week 1 | [x] 2026-09-26; checked the served files are byte-identical after a run |
@@ -240,6 +240,7 @@ Newest first. One line per work session: date, what I did, what is next, anythin
 
 | Date | Done | Next | Blockers |
 | --- | --- | --- | --- |
+| 2026-09-26 | Checked all three trackers after Suleman's T2.4 pull: every week 1 and 2 handover from me is delivered. Marked AMRFinderPlus done; brought Hamza's "From Ali" rows up to date (format agreed, download finished, sample and full matrix) and added the v5 and `mapped_output` notices there | Sensitivity analysis (T3.1) | Hamza to retrain on v5 and rerun `evaluate_shipped.py` |
 | 2026-09-26 | Week 2 join check (2,567 of 2,567) and `gene_summary.md`. Found that `data_prep.py` and `train_models.py` read Genome ID as a number: 3,312 genomes merged into others and 36,850 labelled rows (2.4%) dropped | Fixed: cleaning v5 reads Genome ID as text (1,558,494 rows, 131,385 genomes); 888 misattributed rows of 20 genomes corrected in `mapped_output` | Hamza to retrain on v5 | None on my side |
 | 2026-09-26 | AMRFinderPlus complete (2,587 genomes, 0 failures); full gene matrix committed; `/genes` rebuilt on every genome. Fixed 68 genomes in `mapped_output` whose Genome ID lost a trailing zero (3,271 rows, 26 files; one had merged with a different genome) and the cause in `fasta_amr_map.py`; every mapped genome now joins the matrix | Sensitivity analysis (T3.1) | None |
 | 2026-09-26 | `/genes` page: AMRFinderPlus summary, genes by species, gene vs lab result (lab labels by default), genome lookup; `export_gene_report.py` | Rerun the export when AMRFinderPlus finishes | None |
