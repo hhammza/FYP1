@@ -26,13 +26,13 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done · `[!]` blocke
 
 ## Day 1: agree the handover formats
 
-- [x] **Gene matrix format** agreed with Hamza: parquet, one row per `Genome ID`, one 0/1 column per gene symbol. *Agreed 2026-09-26 with notes: filter* `core` *+* `Type = AMR`*, no plus file (run had no* `--plus`*)*
+- [x] **Gene matrix format** agreed with Hamza: parquet, one row per `Genome ID`, one 0/1 column per gene symbol. *Agreed 2026-09-26 with notes: filter `core` + `Type = AMR`, no plus file (run had no `--plus`)*
 
-- [x] **Timeline + RL response** agreed with Suleman: weekly susceptible, intermediate and resistant fractions, plus a `policy` list (drug used each week). *Agreed 2026-09-26; his three questions answered in formats §4 (tie rule for* `rl.best`*, requested drug always in* `rl.drugs`*,* `calibration` *types)*
+- [x] **Timeline + RL response** agreed with Suleman: weekly susceptible, intermediate and resistant fractions, plus a `policy` list (drug used each week). *Agreed 2026-09-26; his three questions answered in formats §4 (tie rule for `rl.best`, requested drug always in `rl.drugs`, `calibration` types)*
 
 - [x] Both formats written down in the team channel or in this file (below)
 
-> Agreed formats: **progress/formats/README.md** §3 gene matrix (with my notes) and §4 timeline + RL (sample: `timeline_response.sample.json`)
+> Agreed formats: **[progress/formats/README.md](formats/README.md)** §3 gene matrix (with my notes) and §4 timeline + RL (sample: [`timeline_response.sample.json`](formats/timeline_response.sample.json))
 
 ---
 
@@ -110,7 +110,7 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done · `[!]` blocke
 
 - [x] Species mapped to `--organism` from `backend/taxon_species.csv`, in `run_amrfinder.py`: 2,533 genomes get a flag, 54 run without one (M. tuberculosis, K. michiganensis and 3 small ones). Table in `experiments/genome/README.md`
 
-- \[\~\] Full run over all 2,587 genomes: download (12 workers, about 3 hours) and AMRFinderPlus running together in the background
+- [x] Full run over all 2,587 genomes: all downloaded and searched, 0 failures (2026-09-26). The 54 genomes without `--organism` crashed the runner on pandas 3 (NaN organism); fixed in `39b3c11`
 
 - [x] `Data/genomes_full/` and `Data/amrfinder_output/` added to `.gitignore`
 
@@ -120,11 +120,11 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done · `[!]` blocke
 
 ## Week 2: gene matrix (T2.1, data side)
 
-- [x] **Day 2 of the week: commit a 20-genome sample matrix** so Hamza can write model code. *Done early, 2026-09-26:* `experiments/genome/features/sample/` *(20 genomes, 7 genera, 7 with no core AMR hit; all 20 join to their labels)*
+- [x] **Day 2 of the week: commit a 20-genome sample matrix** so Hamza can write model code. *Done early, 2026-09-26: `experiments/genome/features/sample/` (20 genomes, 7 genera, 7 with no core AMR hit; all 20 join to their labels)*
 
-- [ ] Full run finished, failures logged and re-run
+- [x] Full run finished, failures logged and re-run: 0 failures
 
-- \[\~\] Build the genome × gene 0/1 matrix, include point mutations (for example `gyrA_S83L`). `build_gene_matrix.py` *written; run it again when AMRFinderPlus finishes*
+- [x] Build the genome × gene 0/1 matrix, include point mutations (for example `gyrA_S83L`): 2,587 genomes × 536 symbols (227 point mutations), 914 with no core AMR hit (`53ee20a`)
 
 - [x] Save as parquet under `experiments/genome/features/` (`pyarrow` in the new `experiments/requirements.txt`)
 
@@ -140,11 +140,11 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done · `[!]` blocke
 
 ## Week 3: evolution component (T3.1)
 
-- [x] **Fix &gt;100% bug** in `mutation_timeline.py`: susceptible + intermediate + resistant = 100 every week. *Done early, 2026-09-26, in the backend: checked on every drug profile at 1 to 52 weeks (20,020 weeks, all exactly 100). Also* `simulation`*,* `seed`*,* `calibration` *fields and* `model_used` *always* `Biological Simulation`*, per format §4*
+- [x] **Fix >100% bug** in `mutation_timeline.py`: susceptible + intermediate + resistant = 100 every week. *Done early, 2026-09-26, in the backend: checked on every drug profile at 1 to 52 weeks (20,020 weeks, all exactly 100). Also `simulation`, `seed`, `calibration` fields and `model_used` always `Biological Simulation`, per format §4*
 
 - [x] Seed the random parts, so the same inputs give the same output (`predict(..., seed=42)`, one `numpy` generator)
 
-- [ ] Remove the strict `xfail` in `amrpredict-lib/tests/test_fasta.py:122` so the test must pass. *Waits for Hamza: the library has its own copy in* `amrpredict-lib/src/amrpredict/timeline.py`*; remove the xfail when he syncs the fix (T2.6)*
+- [ ] Remove the strict `xfail` in `amrpredict-lib/tests/test_fasta.py:122` so the test must pass. *Waits for Hamza: the library has its own copy in `amrpredict-lib/src/amrpredict/timeline.py`; remove the xfail when he syncs the fix (T2.6)*
 
 - [ ] **Sensitivity analysis:** sweep `speed` and `peak` ±30%, plot how `failure_week` moves
 
@@ -206,17 +206,17 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done · `[!]` blocke
 
 | To | What | Needed by | Status |
 | --- | --- | --- | --- |
-| Hamza | Clean antibiotic names merged | Week 1, day 2 | \[x\] merged 2026-09-25 (`0ba94cd`) |
-| Hamza | Trainer data path fix (T1.2) | Week 1 | \[x\] merged 2026-09-25 (`8f47f45`), noted in Hamza's tracker |
-| Hamza | Species-level taxon grouping | Week 1 | \[x\] 2026-09-25, in Hamza's tracker |
-| Hamza | 20-genome sample gene matrix | Week 2, day 2 | \[x\] 2026-09-26, `experiments/genome/features/sample/` |
-| Hamza | Full gene matrix | End of week 2 | \[ \] |
-| Suleman | Canonical antibiotic list for dropdowns | Week 1 | \[x\] in `SULEMAN_PROGRESS.md` week 1 |
-| Hamza, Suleman | `train_models.py` from the command line no longer writes to the served models: default is `trained_models/candidates/<model>/`, like `/api/train/` | Week 1 | \[x\] 2026-09-26; checked the served files are byte-identical after a run |
-| Hamza | Timeline fix is in the backend only; the library copy (`amrpredict/timeline.py`) still has the &gt;100% bug. Sync it in T2.6, then remove the strict xfail | Week 4 | \[ \] |
-| Suleman | Templates still mention CNN-LSTM for the timeline (`mutation_timeline.html:164`, `train.html:132-137`, `datasets.html:468`); the API now says `Biological Simulation` only | Week 2 | \[ \] |
-| Suleman | Timeline + RL response format | Day 1 | \[x\] agreed 2026-09-26, `progress/formats/README.md` §4 |
-| Suleman | Working RL output | Week 4 | \[ \] |
+| Hamza | Clean antibiotic names merged | Week 1, day 2 | [x] merged 2026-09-25 (`0ba94cd`) |
+| Hamza | Trainer data path fix (T1.2) | Week 1 | [x] merged 2026-09-25 (`8f47f45`), noted in Hamza's tracker |
+| Hamza | Species-level taxon grouping | Week 1 | [x] 2026-09-25, in Hamza's tracker |
+| Hamza | 20-genome sample gene matrix | Week 2, day 2 | [x] 2026-09-26, `experiments/genome/features/sample/` |
+| Hamza | Full gene matrix | End of week 2 | [x] 2026-09-26, `experiments/genome/features/gene_matrix.parquet` + `gene_info.csv` |
+| Suleman | Canonical antibiotic list for dropdowns | Week 1 | [x] in `SULEMAN_PROGRESS.md` week 1 |
+| Hamza, Suleman | `train_models.py` from the command line no longer writes to the served models: default is `trained_models/candidates/<model>/`, like `/api/train/` | Week 1 | [x] 2026-09-26; checked the served files are byte-identical after a run |
+| Hamza | Timeline fix is in the backend only; the library copy (`amrpredict/timeline.py`) still has the >100% bug. Sync it in T2.6, then remove the strict xfail | Week 4 | [ ] |
+| Suleman | Templates still mention CNN-LSTM for the timeline (`mutation_timeline.html:164`, `train.html:132-137`, `datasets.html:468`); the API now says `Biological Simulation` only | Week 2 | [ ] |
+| Suleman | Timeline + RL response format | Day 1 | [x] agreed 2026-09-26, `progress/formats/README.md` §4 |
+| Suleman | Working RL output | Week 4 | [ ] |
 
 ---
 
@@ -238,6 +238,7 @@ Newest first. One line per work session: date, what I did, what is next, anythin
 
 | Date | Done | Next | Blockers |
 | --- | --- | --- | --- |
+| 2026-09-26 | AMRFinderPlus complete (2,587 genomes, 0 failures); full gene matrix committed; `/genes` rebuilt on every genome. Found 68 genomes in `mapped_output` whose Genome ID lost a trailing zero | Fix those IDs and `fasta_amr_map.py` | None |
 | 2026-09-26 | `/genes` page: AMRFinderPlus summary, genes by species, gene vs lab result (lab labels by default), genome lookup; `export_gene_report.py` | Rerun the export when AMRFinderPlus finishes | None |
 | 2026-09-26 | Names and label maps centralised in `backend/amr_constants.py` (all files, values unchanged, frontend copy generated and tested); timeline applies the aliases | Full gene matrix; sensitivity analysis | None |
 | 2026-09-26 | 13 more antibiotic aliases and `sulfa` dropped (still v4: cleaned table unchanged); dropdown item ticked | Full gene matrix; sensitivity analysis | None |
