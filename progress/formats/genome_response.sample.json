@@ -1,0 +1,21 @@
+{
+  "prediction": "Resistant",
+  "probability": 0.8569,
+  "confidence": 85.7,
+  "antibiotic": "ciprofloxacin",
+  "antibiotic_known": true,
+  "sequence_length": 500000,
+  "gc_content": 50.61,
+  "top_kmers": [
+    {"kmer": "CTGG", "frequency": 0.00893},
+    {"kmer": "CCAG", "frequency": 0.00889}
+  ],
+  "model_used": "RandomForest K-mer (trained)",
+  "threshold": 0.5,
+  "genes_found": [
+    {"gene": "gyrA_S83L", "drug_class": "quinolone", "type": "point_mutation", "relevant": true},
+    {"gene": "parC_S80I", "drug_class": "quinolone", "type": "point_mutation", "relevant": true},
+    {"gene": "blaCTX-M-15", "drug_class": "beta-lactam", "type": "gene", "relevant": false}
+  ],
+  "_comment": "genes_found arrives in Week 3 with the gene-feature model; until then the field is absent. Values above are illustrative."
+}
