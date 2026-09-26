@@ -1,0 +1,31 @@
+{
+  "description": "Deploy candidate: A10s + isotonic calibration + threshold for VME <= 10% with the lowest ME",
+  "data": {
+    "taxon_level": "species"
+  },
+  "split": {
+    "strategy": "grouped",
+    "test_size": 0.2,
+    "seed": 42
+  },
+  "features": {
+    "target_encoding": "oof"
+  },
+  "model": {
+    "type": "lightgbm",
+    "monotone_on": [
+      "mic_value",
+      "mic_log"
+    ]
+  },
+  "calibration": {
+    "method": "isotonic"
+  },
+  "threshold": {
+    "strategy": "vme_constrained",
+    "vme_budget": 0.10
+  },
+  "evaluation": {
+    "n_boot": 200
+  }
+}

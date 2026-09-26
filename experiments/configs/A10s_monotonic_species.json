@@ -1,0 +1,25 @@
+{
+  "description": "A10 with species-level Taxon IDs, so a taxon a user types can match",
+  "data": {
+    "taxon_level": "species"
+  },
+  "split": {
+    "strategy": "grouped",
+    "test_size": 0.2,
+    "seed": 42
+  },
+  "features": {
+    "target_encoding": "oof"
+  },
+  "model": {
+    "type": "lightgbm",
+    "monotone_on": [
+      "mic_value",
+      "mic_log"
+    ]
+  },
+  "threshold": {
+    "strategy": "fixed",
+    "fixed": 0.4
+  }
+}
