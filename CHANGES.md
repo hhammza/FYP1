@@ -18,6 +18,35 @@ Baseline is commit **`52ae361`** *(Add amrpredict library and macOS launcher, 20
 
 ---
 
+## Security hardening, honest UI numbers and a safe Train button (2026-09-26)
+
+Suleman's platform work (T1.3, T2.4), plus two fixes found on the way.
+
+### Security (T2.4)
+| File | Change |
+|---|---|
+| [backend/backend/settings.py](backend/backend/settings.py) | `SECRET_KEY` and `ALLOWED_HOSTS` from the environment only, required when `DEBUG` is off (a random key per process when it is on); no CORS origins; `DATABASES = {}`; 20 MB FASTA limit; rate limits; `ADMIN_TOKEN` |
+| [backend/api/views.py](backend/api/views.py) | `X-Admin-Token` on `/api/train/` and `/api/reload/` (401, or 503 when no token is set); 413 for oversized FASTA; 429 per visitor IP on forecast, predict, timeline; `/api/train/` takes only `lgbm` or `kmer`; the 8 no-op `csrf_exempt` decorators removed, with the reason at the top |
+| [frontend/app.py](frontend/app.py), [train.html](frontend/templates/train.html), [train.js](frontend/static/js/train.js) | Admin password on `/train`, sent with Train and Reload; the browser's IP forwarded for the rate limit; 20 MB upload limit with a message on the page; no hardcoded `secret_key`; debug server on 127.0.0.1 only |
+| [start.sh](start.sh), [start.bat](start.bat), [run_project.md](run_project.md) | Start the backend with `DEBUG=True`; say how to set `ADMIN_TOKEN`; no `migrate` |
+| [backend/Procfile](backend/Procfile), [requirements.txt](backend/requirements.txt) | `release: migrate` removed; `django-ratelimit` added |
+| [backend/tests/test_security.py](backend/tests/test_security.py) | New: 13 tests, one per rule above |
+
+**For everyone:** `pip install -r backend/requirements.txt` after pulling. Starting the backend by hand needs `DEBUG=True`. Railway now needs `SECRET_KEY`, `ALLOWED_HOSTS` and `ADMIN_TOKEN` on the backend or it will not start.
+
+### UI numbers read from the metrics files (T1.3)
+- Every AUC, interval, threshold, recall and training size on the pages comes from `lgbm_metrics.json` and `kmer_metrics.json` via `/api/health/` (cached in `frontend/app.py`), or reads "not measured". The 22 hardcoded `0.93` / `0.9255` / `0.929` are gone; `/about` explains why the old figure was inflated.
+- The `/forecast` and `/predict` sliders start at each model's validated threshold instead of 0.40 and 0.5, and the API no longer forces those values. The forecast chart, `/datasets` and the `/models` error chart use the same threshold.
+- Warnings for `model_used: Heuristic fallback` and for an antibiotic the k-mer model never saw.
+
+### Train button writes a candidate
+- `/api/train/` writes to `backend/trained_models/candidates/<model>/` and no longer reloads the served model, which it used to replace without its threshold, calibration or `metrics.json` (Ali made the command-line trainer do the same).
+
+### Documents
+- [README.md](README.md): update banner, repository map (`tests/`, no `db.sqlite3`), "Training from the web UI", §9 local run and Railway variables, §11.4 rewritten as what the code now does, the `db.sqlite3` item removed from §11.5.
+
+---
+
 ## Genome IDs read as numbers: cleaning v5 (2026-09-26)
 
 Found by the week 2 join check. `data_prep.py` and `train_models.py` loaded the AMR CSVs without a type, so `Genome ID` became a float and IDs that differ only by trailing zeros merged: `195.304` and `195.3040` are different genomes but the same number.
@@ -148,7 +177,7 @@ Not yet changed: the library's copy of the timeline and its `xfail`; three templ
 - [experiments/HANDBOOK.md](experiments/HANDBOOK.md): §10 now lists all 22 runs (the XGBoost and CatBoost rows were missing), §11 gained the re-test and the five-algorithm table, §12 and §13 list the new files.
 - [EXPERIMENT_PLAN.md](EXPERIMENT_PLAN.md): status banner.
 
-Not yet changed: the "AUC 0.93" badges on the dashboard, `/predict`, `/about`, `/datasets` and in the footer still quote the original figures.
+Not yet changed: the "AUC 0.93" badges on the dashboard, `/predict`, `/about`, `/datasets` and in the footer still quote the original figures. *(Replaced on 2026-09-26: every page now reads these from the metrics files; see the entry above.)*
 
 ---
 

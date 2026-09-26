@@ -1,6 +1,13 @@
 #!/usr/bin/env bash
 # AMRPredict — Antibiotic Resistance System
 # macOS / Linux launcher (the counterpart to start.bat on Windows)
+#
+#   ./start.sh                          everything except Train/Reload
+#   ADMIN_TOKEN=some-password ./start.sh   also Train/Reload: type the same
+#                                          password on the Train page
+#
+# Runs the backend in local development mode (DEBUG=True), so no SECRET_KEY
+# or ALLOWED_HOSTS is needed; those are for the Railway deployment only.
 
 set -euo pipefail
 
@@ -148,6 +155,13 @@ echo " ============================================"
 echo
 echo "   Frontend (UI):  http://127.0.0.1:$FRONTEND_PORT"
 echo "   Backend  (API): http://127.0.0.1:$BACKEND_PORT/api"
+echo
+if [ -n "${ADMIN_TOKEN:-}" ]; then
+    echo "   Train/Reload:   on; use your ADMIN_TOKEN as the password on the Train page."
+else
+    echo "   Train/Reload:   off. To use them, restart with:"
+    echo "                   ADMIN_TOKEN=some-password ./start.sh"
+fi
 echo
 echo "   Press Ctrl+C to stop both servers."
 echo

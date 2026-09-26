@@ -11,6 +11,10 @@
 > never trained on (§10), and the web app has two new pages, `/models` and
 > `/compare`, that show every model, how the data is split, and what each model
 > trained on (§8.1).
+>
+> **Updated 2026-09-26.** The backend has been hardened (§11.4): no default
+> secrets, a password on Train and Reload, upload and rate limits, and no
+> database. Local runs need `DEBUG=True`, which `start.sh` and `start.bat` set (§9).
 
 This is a companion to `PROJECT_DOCUMENTATION.md`, not a replacement. That file is the long reference (datasets, hyperparameters, CSS classes). This one covers what the system is, what its parts are, how a click becomes a prediction, and what is true about it today. Every claim was checked against the code or reproduced by running it. Where the two documents disagree, sections 10 and 11 say why.
 
@@ -72,7 +76,7 @@ FYP1/
 │   ├── train_models.py          Production trainer: raw CSV/FASTA → artifacts
 │   ├── trained_models/          6 committed artifacts (~7 MB) + model_report.json
 │   ├── Procfile / railway.toml  Gunicorn deploy config
-│   └── db.sqlite3               Exists but unused, there are no Django models
+│   └── tests/                   unittest: antibiotic names, security (§11.4)
 │
 ├── frontend/                    Flask app (port 5001 by default)
 │   ├── app.py                   14 routes; a thin proxy over the Django API
@@ -244,7 +248,7 @@ That "256 columns only" decision is correct in training and is exactly what infe
 
 ### Training from the web UI
 
-`/train` → Flask → `POST /api/train/` → Django spawns a **daemon thread** running the trainer, returns `{"status": "Training started"}` immediately, and reloads the model into the registry when it finishes. Progress is only visible through `/api/health/`. There is no authentication on this endpoint.
+`/train` → Flask → `POST /api/train/` → Django spawns a **daemon thread** running the trainer and returns `{"status": "Training started"}` immediately. The page asks for the admin password, which Flask sends as the `X-Admin-Token` header; without the backend's `ADMIN_TOKEN` the request gets 401 (503 when no token is configured). The new model is written to `backend/trained_models/candidates/<model>/`, never over the served model, and the served model is not reloaded: a candidate goes live only through `experiments/promote.py`. Progress shows only in the backend's console.
 
 ### 5.4 The experiment harness - `experiments/`
 
@@ -430,6 +434,23 @@ Creates `.venv` if missing, installs both requirement sets, checks for **libomp*
 
 Windows: `start.bat` (ports 8000 + 5000, two `cmd` windows).
 
+Both launchers start the backend with `DEBUG=True`, local development mode, so no `SECRET_KEY` or `ALLOWED_HOSTS` is needed (Django makes a random key per process). Starting the backend by hand needs the same: `DEBUG=True python manage.py runserver`, or `set DEBUG=True` first on Windows. There is no `migrate` step: the API uses no database.
+
+Train and Reload on `/train` need a password you choose when you start:
+
+```bash
+ADMIN_TOKEN=some-password ./start.sh          # macOS / Linux
+```
+
+```bat
+set ADMIN_TOKEN=some-password
+start.bat
+```
+
+(Windows: both lines in the same Command Prompt window; in PowerShell the first is `$env:ADMIN_TOKEN="some-password"`)
+
+then type the same password on the Train page. Without `ADMIN_TOKEN` every other page works and those two buttons are switched off.
+
 ### Training
 
 ```bash
@@ -445,9 +466,12 @@ Windows: `train_all.bat`. The trainer finds the data in `Data/` itself. With all
 |---|---|---|
 | Start | `gunicorn backend.wsgi:application --workers 2 --timeout 120` | `gunicorn app:app --workers 2 --timeout 120` |
 | Health check | `/api/health/` | `/` |
-| Key env vars | `SECRET_KEY`, `DEBUG`, `ALLOWED_HOSTS` | `BACKEND_URL`, `PORT`, `LIB_VERSION` |
+| Required env vars | `SECRET_KEY`, `ALLOWED_HOSTS` (its Railway domain, plus `healthcheck.railway.app` for the health check), `ADMIN_TOKEN` | `BACKEND_URL` |
+| Optional env vars | `CORS_ALLOWED_ORIGINS` (not needed: the browser never calls the API), `RATELIMIT_ENABLE=False` | `PORT` (Railway sets it), `LIB_VERSION`, `SECRET_KEY` (unused: no sessions) |
 
-`frontend/app.py` infers its mode from `PORT`: if Railway sets it, `debug=False`; locally with no `PORT`, debug is on.
+Leave `DEBUG` unset in production. Without `SECRET_KEY` or `ALLOWED_HOSTS` the backend refuses to start and says which is missing. Generate a key with `python -c "import secrets; print(secrets.token_urlsafe(50))"`.
+
+`frontend/app.py` infers its mode from `PORT`: if Railway sets it, `debug=False`; locally with no `PORT`, debug is on and the server listens on 127.0.0.1 only, since the debugger can run code.
 
 ---
 
@@ -560,13 +584,27 @@ Once the susceptible pool emptied (~week 7 at default settings), `susceptible` c
 
 The library keeps its own copy (`amrpredict-lib/src/amrpredict/timeline.py`), which still has the bug. Its strict `xfail` (`test_timeline_compartments_partition_the_population_throughout`) stays until that copy is synced, so the fix can't land there silently.
 
-### 11.4 Security posture is demo-grade
+### 11.4 Security (hardened 2026-09-26)
 
-Fine for an FYP, worth naming before someone else does: `SECRET_KEY` has a hardcoded fallback; `ALLOWED_HOSTS` defaults to `*`; `CORS_ALLOW_ALL_ORIGINS = True`; `csrf_exempt` on every POST view; and `/api/train/` and `/api/reload/` are unauthenticated, anyone who can reach the deployed backend can kick off training or force a model reload.
+Until 2026-09-26: `SECRET_KEY` had a hardcoded fallback, `ALLOWED_HOSTS` defaulted to `*`, `CORS_ALLOW_ALL_ORIGINS = True`, `csrf_exempt` on every POST view, and `/api/train/` and `/api/reload/` were open to anyone who could reach the backend. Now:
+
+| Area | What the code does | Where |
+|---|---|---|
+| Secrets | `SECRET_KEY` from the environment only; the backend refuses to start without it when `DEBUG` is off. Flask has no secret (it uses no sessions) | `settings.py`, `frontend/app.py` |
+| Hosts | `ALLOWED_HOSTS` from the environment, no `*`; required when `DEBUG` is off | `settings.py` |
+| CORS | No origins allowed. Browsers never call the API; Flask calls it from its server | `settings.py` |
+| CSRF | Not installed, and the no-op `csrf_exempt` decorators removed. CSRF abuses credentials a browser sends by itself (cookies); the API uses none, and the admin token is a header a browser never adds on its own | top of `api/views.py` |
+| Train / Reload | `X-Admin-Token` must equal `ADMIN_TOKEN` (constant-time compare), else 401; no `ADMIN_TOKEN` = both off (503). `/api/train/` accepts only `lgbm` or `kmer`, since the name is part of a folder path | `api/views.py` |
+| Uploads | FASTA over 20 MB gets 413, whether uploaded, pasted, or an oversized body; Flask refuses it first and shows a message | `settings.py`, `api/views.py`, `frontend/app.py` |
+| Rate limits | Per visitor IP: forecast 60 a minute, predict and timeline 10 a minute, then 429 (`django-ratelimit`). Flask forwards the browser's IP in `X-Forwarded-For` | `settings.py`, `api/views.py` |
+| Database | None (`DATABASES = {}`), and no `migrate` step: the API stores no user data | `settings.py`, `Procfile` |
+
+`backend/tests/test_security.py` checks each row (`python -m unittest discover -s backend/tests`).
+
+Limits worth saying out loud: rate-limit counts are per worker process, and a direct caller can set `X-Forwarded-For` itself, so the limit stops casual abuse, not a determined attacker. Error responses still include the exception text, which a production service would hide.
 
 ### 11.5 Smaller things
 
-- `db.sqlite3` and the `migrate` release command exist, but there are no Django models, no `django.contrib.auth`, no sessions. The database is vestigial.
 - `forecasting_formulation.ipynb` is a 0-byte file.
 - `*_fraction` fields in the timeline are on a **0 to 100** scale despite the name; renaming would break the templates, so the name stands.
 - `kmer_resistance_model.pkl` was pickled with scikit-learn 1.6.1; loading under a different 1.x warns and is not guaranteed identical. The library pins `<2.0` so a 2.x install fails loudly instead of being quietly wrong. The backend has no such pin (`scikit-learn>=1.3`).
