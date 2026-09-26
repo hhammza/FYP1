@@ -379,7 +379,7 @@ The bundled artifacts are **byte-identical** to `backend/trained_models/` (verif
 
 ### 8.1 The report pages: `/models` and `/compare`
 
-Both pages are listed under **Insights** in the navbar, the menu for pages that explain results (ML Models holds only the two predictors). They read one file,
+Both pages are listed under **Insights** in the navbar, the menu for pages that explain results, after Bio-Simulator: Model Report and Deployed vs Experimental under *Model results*, Datasets and Resistance Genes under *Data*. ML Models holds only the two predictors. They read one file,
 `backend/trained_models/model_report.json`, which the Django endpoint
 `GET /api/models/` serves with a live "is the model loaded" flag added. The file
 is committed so the deployed backend can serve it without the data or the
