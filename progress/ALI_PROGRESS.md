@@ -54,7 +54,9 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done · `[!]` blocke
 
 - [x] Apply the same map in `backend/train_models.py` (`normalize_antibiotics()`, used by both the LightGBM and K-mer trainers; maps checked identical)
 
-- [~] Update the dropdown list in `frontend/app.py:ANTIBIOTICS` (Suleman's file): note below, also in Suleman's tracker
+- [x] Update the dropdown list in `frontend/app.py:ANTIBIOTICS` (Suleman's file): done by Suleman, 47 → 82 drugs
+
+- [x] Suleman's spelling variants, 2026-09-26: 13 aliases (his 6 plus 7 more found in `amr_output/`: hyphen and underscore variants, `cefotaxime/clavulanic acidâ`, `benzylpenicillin`) and `sulfa` dropped, in both maps (checked identical). Their rows all lack a phenotype, so the cleaned table is unchanged: still v4, no retrain needed
 
 - [x] Rebuild the cache: `python experiments/lib/data_prep.py` → 130 names, 1,521,644 rows (was 152 and 1,525,796)
 
@@ -236,6 +238,7 @@ Newest first. One line per work session: date, what I did, what is next, anythin
 
 | Date | Done | Next | Blockers |
 | --- | --- | --- | --- |
+| 2026-09-26 | 13 more antibiotic aliases and `sulfa` dropped (still v4: cleaned table unchanged); dropdown item ticked | Full gene matrix; sensitivity analysis | None |
 | 2026-09-26 | Gene-matrix format agreed (§3, with notes) and timeline + RL format proposed (§4). `build_gene_matrix.py` and the 20-genome sample; `pyarrow` in `experiments/requirements.txt`. Trainer defaults to `candidates/`. Timeline partition, seed and honest label. Download and AMRFinderPlus restarted. Seen Hamza's cleaning v4 in `data_prep.py` (54 drug classes) | Full matrix once AMRFinderPlus finishes; Suleman to confirm §4 | None |
 | 2026-09-25 | AMRFinderPlus: found truncated FASTAs, download script for full assemblies, installed natively, tested 5 genomes, organism mapping, full run started | Finish the full run, then the 20-genome sample matrix | None (download takes about 3 hours) |
 | 2026-09-25 | Species-level taxon grouping: NCBI lookup table, species IDs in trainer and cleaning v3, quote fix, docs | Start AMRFinderPlus | None |

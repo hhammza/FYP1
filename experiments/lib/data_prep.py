@@ -22,6 +22,8 @@ import numpy as np
 import pandas as pd
 
 CLEAN_VERSION = 'v4'  # v2: extended ANTIBIOTIC_ALIASES; v3: species_taxon_id (2026-09-25); v4: 54 drugs added to DRUG_CLASS_MAP (2026-09-26)
+# Still v4 after 13 more aliases and 'sulfa' (2026-09-26): every row they touch
+# has no usable phenotype, so the cleaned table is unchanged.
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 CACHE_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'cache')
@@ -122,11 +124,22 @@ ANTIBIOTIC_ALIASES = {
     'cefpodoxime_clavulanic_acid': 'cefpodoxime/clavulanic acid',
     'trimethoprim_sulfobactam': 'trimethoprim/sulfobactam',
     'para_aminosalicylic_acid': 'para-aminosalicylic acid',
+    'cefepime_taniborbactam': 'cefepime/taniborbactam',
+    'amoxicillin_clavulanat': 'amoxicillin/clavulanic acid',
+    'polymyxin_b': 'polymyxin b',
+    'ceftazidime-avibactam': 'ceftazidime/avibactam',
+    'ceftolozane-tazobactam': 'ceftolozane/tazobactam',
+    'imipenem-relebactam': 'imipenem/relebactam',
     # Typos and a broken character encoding
     'amipicillin_sulbactam': 'ampicillin/sulbactam',
     'tgecycline': 'tigecycline',
     'cefuroxim\u00e2': 'cefuroxime',
     'pristimycin': 'pristinamycin',
+    'cefotaxime/clavulanic acid\u00e2': 'cefotaxime/clavulanic acid',
+    # Other-language spellings, found by Suleman in BVBRC_genome_amr.csv
+    'tigecyklin': 'tigecycline',
+    'tetracyklin': 'tetracycline',
+    'cefpirom': 'cefpirome',
     # Shigella panel; never on the same genome as nitrofurantoin
     'strofurantoin': 'nitrofurantoin',
     # Alternative names for the same drug
@@ -134,6 +147,8 @@ ANTIBIOTIC_ALIASES = {
     'cefalotin': 'cephalothin',
     'cefalexin': 'cephalexin',
     'synercid': 'quinupristin/dalfopristin',
+    'phosphomycin': 'fosfomycin',
+    'benzylpenicillin': 'penicillin',
     # Not a single drug: drug classes, a phenotype, and a lost drug name
     # ('instrument' is 593 C. difficile lab rows with the drug name missing)
     'carbapenem': None,
@@ -143,6 +158,7 @@ ANTIBIOTIC_ALIASES = {
     'aminogycosides': None,
     'macrolides': None,
     'sulfonamides': None,
+    'sulfa': None,
     'extended spectrum beta lactamase': None,
     'instrument': None,
 }

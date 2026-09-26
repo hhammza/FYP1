@@ -32,6 +32,7 @@ Baseline is commit **`52ae361`** *(Add amrpredict library and macOS launcher, 20
 | [experiments/genome/features/sample/](experiments/genome/features/sample/) | New. 20 genomes, 7 genera, 7 with no core AMR hit, all joining to their labels |
 | [experiments/requirements.txt](experiments/requirements.txt) | New. Backend requirements plus `scipy` and `pyarrow` |
 | [backend/train_models.py](backend/train_models.py) | Default output is `trained_models/candidates/<model>/`, like `/api/train/` |
+| [experiments/lib/data_prep.py](experiments/lib/data_prep.py), [backend/train_models.py](backend/train_models.py) | 13 more antibiotic aliases and `sulfa` dropped; cleaned table unchanged, so still cleaning v4 ([HANDBOOK](experiments/HANDBOOK.md) §3) |
 | [backend/ml_models/mutation_timeline.py](backend/ml_models/mutation_timeline.py) | Shares are a partition (exactly 100); one seeded generator; `model_used` always `Biological Simulation`; new `simulation`, `seed`, `calibration` fields |
 
 ### Documents
