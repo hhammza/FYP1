@@ -54,7 +54,7 @@ Every value checked identical before and after; the cleaned table is unchanged (
 | [backend/ml_models/mutation_timeline.py](backend/ml_models/mutation_timeline.py) | Shares are a partition (exactly 100); one seeded generator; drug names go through `normalize_antibiotic()` like the predictors (`rifampin` and `co-trimoxazole` fell to the generic profile); `model_used` always `Biological Simulation`; new `simulation`, `seed`, `calibration` fields |
 
 ### Documents
-- [progress/formats/README.md](progress/formats/README.md): §3 gene matrix agreed with notes, new §4 timeline + RL response and [sample](progress/formats/timeline_response.sample.json).
+- [progress/formats/README.md](progress/formats/README.md): §3 gene matrix agreed with notes, new §4 timeline + RL response and [sample](progress/formats/timeline_response.sample.json). §4 agreed with Suleman the same day, with his three questions answered: the tie rule for `rl.best`, the requested drug always first in `rl.drugs`, and the `calibration` field types.
 - [README.md](README.md): §4.3 timeline caveats, the deep-learning note, §11.3 marked fixed in the backend, training section.
 - [experiments/README.md](experiments/README.md): install line, `genome/` and `requirements.txt` in the layout.
 - [experiments/genome/README.md](experiments/genome/README.md): step 3 builds the matrix; committed outputs listed.

@@ -205,7 +205,7 @@ resistant(t) = r₀ + (peak − r₀) / (1 + e^(−k(t − midpoint)))
 
 It also reports "mutation hotspots" (windows scored by GC content and nucleotide repetitiveness), resistance-gene activation weeks (`gyrA`, `blaTEM`, `mcr-1` …), MIC fold-change, and the **failure week**, the first week resistance crosses 50%.
 
-Since 2026-09-26 the random parts (`cumulative_mutations`, a Poisson draw, and the hotspot mutation types) come from one seeded generator, so identical inputs give an identical response (`seed`, default 42). The three population shares are a partition and add up to exactly 100 every week (§11.3). The response says `model_used: "Biological Simulation"` and `simulation: true`; its format is in [progress/formats/README.md](progress/formats/README.md) §4.
+Since 2026-09-26 the random parts (`cumulative_mutations`, a Poisson draw, and the hotspot mutation types) come from one seeded generator, so identical inputs give an identical response (`seed`, default 42). The three population shares are a partition and add up to exactly 100 every week (§11.3). The response says `model_used: "Biological Simulation"` and `simulation: true`; its format, agreed between Ali and Suleman, is in [progress/formats/README.md](progress/formats/README.md) §4. That format also fixes what the week 4 RL agent returns (`rl`: the agent's weekly drug plan against "always the same drug" and cycling, with a set rule for `rl.best`) and what `calibration` holds once the curve fitting is done; until then `calibration` is `null` and `rl` is absent.
 
 ---
 

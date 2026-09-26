@@ -28,13 +28,13 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done · `[!]` blocke
 
 - [x] **Genome prediction response** agreed with Hamza: today's response plus `genes_found: [{gene, drug_class}]`
 
-- [ ] **Timeline + RL response** agreed with Ali: weekly susceptible, intermediate and resistant fractions, plus a `policy` list. *Not yet: Ali's tracker still shows it open*
+- [x] **Timeline + RL response** agreed with Ali: weekly susceptible, intermediate and resistant fractions, plus a `policy` list. *Agreed 2026-09-26 after checking it against the live response; my three questions (tie rule for `rl.best`, requested drug always in `rl.drugs`, `calibration` types) answered by Ali in formats §4*
 
 - [x] **Batch CSV template and response** defined by me: columns `antibiotic, genus, species, taxon_id, mic_value, mic_sign`; one result row per input row with an `error` column
 
 - [x] Formats written down in the team channel or below
 
-> Agreed formats: **[progress/formats/README.md](formats/README.md)** (Hamza: metrics files, genome response). Timeline + RL with Ali and my batch CSV format still to be added there.
+> Agreed formats: **[progress/formats/README.md](formats/README.md)** (Hamza: metrics files, genome response; Ali: gene matrix, timeline + RL in §4 with [`timeline_response.sample.json`](formats/timeline_response.sample.json)). My batch CSV format still to be added there.
 
 ---
 
@@ -48,7 +48,8 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done · `[!]` blocke
 
   - All 15 added to `frontend/app.py:ANTIBIOTICS` and the matching list in `backend/api/views.py:AntibioticListView` (47 → 62), grouped by drug class
   - 2026-09-26: 20 more from `BVBRC_genome_amr.csv` (171,000 rows) that the list lacked (62 → 82): cefotetan, fosfomycin, cefpodoxime, cefoperazone/sulbactam, cefmetazole, cefozopran, ceftazidime/clavulanic acid, cefotaxime/clavulanic acid, ceftobiprole, lincomycin, oxytetracycline, cefpodoxime/clavulanic acid, ceftaroline, ticarcillin/clavulanic acid, apramycin, carbenicillin, imipenem/relebactam, delafloxacin, ceftibuten, cefepime/taniborbactam
-  - Not added, because they are spellings of drugs already listed (for Ali's `ANTIBIOTIC_ALIASES`): phosphomycin → fosfomycin, tigecyklin → tigecycline, tetracyklin → tetracycline, amoxicillin_clavulanat → amoxicillin/clavulanic acid, cefpirom → cefpirome, cefepime_taniborbactam → cefepime/taniborbactam; `sulfa` is a drug group, drop it like `carbapenem`
+  - Not added, because they are spellings of drugs already listed (for Ali's `ANTIBIOTIC_ALIASES`): phosphomycin → fosfomycin, tigecyklin → tigecycline, tetracyklin → tetracycline, amoxicillin_clavulanat → amoxicillin/clavulanic acid, cefpirom → cefpirome, cefepime_taniborbactam → cefepime/taniborbactam; `sulfa` is a drug group, drop it like `carbapenem`. *Added by Ali 2026-09-26 (`75f7cb0`), plus 7 more variants; `sulfa` dropped*
+  - 2026-09-26 (Ali, `b1b1e67`): the list now lives in `backend/amr_constants.py:UI_ANTIBIOTICS`; `frontend/app.py` reads the generated `frontend/antibiotic_names.json` and `views.py` imports it. `VOCAB_EXCLUDE` is replaced by the alias map. To add a drug: edit `amr_constants.py`, run `python backend/amr_constants.py`, commit both
   - The `/forecast`, `/predict` and `/timeline` dropdowns still show only the names the loaded model knows (`?model=lgbm|kmer`); this static list is the fallback when the backend is down
   - Not in either shipped model yet: cefixime, clarithromycin, temocillin, cefpirome, florfenicol. They appear once Hamza's retrained model lands
 
@@ -76,9 +77,9 @@ Built against the real files (`backend/trained_models/lgbm_metrics.json`, `kmer_
 
 - [x] Also: `/datasets` threshold note and the deployed-model points on the `/models` VME/ME chart read the real threshold (0.24), not 0.40
 
-- [!] **Flag for Hamza/Ali:** `train_models.py` (via `/train`) overwrites the served model in `backend/trained_models/` but does not rewrite `lgbm_metrics.json`, and its `lgbm_meta.joblib` drops the threshold and calibration. After a retrain from the web page, every page would show D1's 0.804 for a different model. Until fixed, don't use `/train` on the served models (T2.4 will put it behind a token)
+- [x] **Flag for Hamza/Ali:** `train_models.py` (via `/train`) overwrites the served model in `backend/trained_models/` but does not rewrite `lgbm_metrics.json`, and its `lgbm_meta.joblib` drops the threshold and calibration. After a retrain from the web page, every page would show D1's 0.804 for a different model. Until fixed, don't use `/train` on the served models (T2.4 will put it behind a token)
   - [x] My part, 2026-09-26: `/api/train/` now trains into `backend/trained_models/candidates/<model>/` (`CANDIDATE_MODELS_DIR` in `settings.py`) and no longer reloads the served model; tested: served files byte-identical after a train, D1 still loaded
-  - [ ] Ali: `train_models.py` run from the command line still defaults to `trained_models/`
+  - [x] Ali, 2026-09-26 (`63a2c99`): `train_models.py` from the command line now defaults to `trained_models/candidates/<model>/`; served files checked byte-identical after a run
 
 - **Met 2026-09-26:** the grep finds only `/about` and `/models`; all 10 pages render 0.804 / 0.695 from the files, and "not measured" when the backend is down
 
@@ -191,7 +192,8 @@ Built against the real files (`backend/trained_models/lgbm_metrics.json`, `kmer_
 | From Hamza | Sample `metrics.json` | Day 1 | \[x\] `progress/formats/lgbm_metrics.sample.json` |
 | From Hamza | Real `metrics.json` for both models | End of week 1 | \[x\] used by T1.3 |
 | From Hamza | Genome response with `genes_found` | Week 3 | \[ \] |
-| From Ali | Timeline + RL response format | Day 1 | \[ \] |
+| From Ali | Timeline + RL response format | Day 1 | \[x\] agreed 2026-09-26, formats §4; `/api/timeline/` already returns the §4 timeline fields (`simulation`, `seed`, `calibration: null`, fractions sum to 100) |
+| From Ali | FYI, your files touched 2026-09-26: `views.py` and `app.py` read antibiotic names from `amr_constants.py`; `components.css` draws the missing `bi-dna` / `bi-bacteria` icons; favicon in `static/` with a `/favicon.ico` route in `app.py`. Still yours: three templates mention CNN-LSTM (`mutation_timeline.html:164`, `train.html:132-137`, `datasets.html:468`) | Week 2 | \[ \] CNN-LSTM wording |
 | From Ali | Working RL output | Week 4 | \[ \] |
 | To Hamza | Agreement on the backend switch to the `amrpredict` library (`backend/api/`) | Week 4 | \[ \] |
 
