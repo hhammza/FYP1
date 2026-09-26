@@ -1,6 +1,6 @@
 """Helpers shared by the prediction engines.
 
-The antibiotic aliases and the species map live in train_models.py, which is
+The antibiotic aliases, drug classes and species map live in train_models.py, which is
 what the served models were trained with; reading them from there keeps a
 user's input spelled the way the training rows were.
 """
@@ -9,8 +9,10 @@ import os
 
 try:
     from train_models import ANTIBIOTIC_ALIASES, load_species_map
+    from train_models import DRUG_CLASS_MAP as TRAINING_DRUG_CLASS_MAP
 except ImportError:  # backend/ not on sys.path, e.g. a bare `python -c`
     ANTIBIOTIC_ALIASES = {'rifampin': 'rifampicin'}
+    TRAINING_DRUG_CLASS_MAP = {}
 
     def load_species_map():
         return {}

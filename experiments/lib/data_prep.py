@@ -21,7 +21,7 @@ import time
 import numpy as np
 import pandas as pd
 
-CLEAN_VERSION = 'v3'  # v2: extended ANTIBIOTIC_ALIASES; v3: species_taxon_id (2026-09-25)
+CLEAN_VERSION = 'v4'  # v2: extended ANTIBIOTIC_ALIASES; v3: species_taxon_id (2026-09-25); v4: 54 drugs added to DRUG_CLASS_MAP (2026-09-26)
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 CACHE_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'cache')
@@ -70,6 +70,32 @@ DRUG_CLASS_MAP = {
     'prothionamide': 'antitubercular', 'cycloserine': 'antitubercular',
     'para-aminosalicylic acid': 'antitubercular', 'clofazimine': 'antitubercular',
     'delamanid': 'antitubercular', 'bedaquiline': 'antitubercular',
+    # v4: drugs in the export (or the UI list) that fell into 'other'.
+    # Only azidothymidine (an antiviral) is left there on purpose.
+    'cefixime': 'beta_lactam', 'cefpirome': 'beta_lactam', 'cefoperazone': 'beta_lactam',
+    'cefotetan': 'beta_lactam', 'cefiderocol': 'beta_lactam', 'ceftaroline': 'beta_lactam',
+    'cefovecin': 'beta_lactam', 'cefamandole': 'beta_lactam', 'cefaclor': 'beta_lactam',
+    'cefmetazole': 'beta_lactam', 'ceftizoxime': 'beta_lactam', 'cefdinir': 'beta_lactam',
+    'cefozopran': 'beta_lactam', 'ceftobiprole': 'beta_lactam', 'ceftibuten': 'beta_lactam',
+    'ceftriaxone/cefpodoxime': 'beta_lactam', 'cefotaxime/clavulanic acid': 'beta_lactam',
+    'ceftazidime/clavulanic acid': 'beta_lactam', 'cefoperazone/sulbactam': 'beta_lactam',
+    'cefepime/taniborbactam': 'beta_lactam', 'temocillin': 'beta_lactam',
+    'ticarcillin': 'beta_lactam', 'mecillinam': 'beta_lactam', 'sulbactam': 'beta_lactam',
+    'imipenem/relebactam': 'carbapenem',
+    'netilmicin': 'aminoglycoside', 'plazomicin': 'aminoglycoside', 'apramycin': 'aminoglycoside',
+    'gatifloxacin': 'fluoroquinolone', 'enrofloxacin': 'fluoroquinolone',
+    'danofloxacin': 'fluoroquinolone', 'sparfloxacin': 'fluoroquinolone',
+    'pradofloxacin': 'fluoroquinolone', 'delafloxacin': 'fluoroquinolone',
+    'chlortetracycline': 'tetracycline', 'oxytetracycline': 'tetracycline',
+    'eravacycline': 'tetracycline', 'omadacycline': 'tetracycline',
+    'sulfathiazole': 'sulfonamide', 'sulfamethazine': 'sulfonamide',
+    'trimethoprim/sulfobactam': 'sulfonamide',
+    'tylosin': 'macrolide', 'tulathromycin': 'macrolide', 'spiramycin': 'macrolide',
+    'florfenicol': 'phenicol', 'lincomycin': 'lincosamide', 'virginiamycin': 'streptogramin',
+    'furazolidone': 'nitrofuran', 'metronidazole': 'nitroimidazole',
+    'fosfomycin': 'phosphonic_acid', 'mupirocin': 'pseudomonic_acid',
+    'zoliflodacin': 'spiropyrimidinetrione', 'avilamycin': 'orthosomycin',
+    'nicotinamide': 'antitubercular',   # all 229 rows are Mycobacterium
 }
 
 # Spelling variants, typos and non-drugs found in the raw Antibiotic column.

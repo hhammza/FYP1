@@ -10,35 +10,14 @@ import pandas as pd
 import joblib
 import warnings
 
-from ml_models.common import load_metrics, load_species_map, normalize_antibiotic
+from ml_models.common import (TRAINING_DRUG_CLASS_MAP, load_metrics, load_species_map,
+                              normalize_antibiotic)
 
 warnings.filterwarnings('ignore')
 
-DRUG_CLASS_MAP = {
-    'ampicillin': 'beta_lactam', 'amoxicillin': 'beta_lactam',
-    'amoxicillin/clavulanic acid': 'beta_lactam', 'piperacillin': 'beta_lactam',
-    'piperacillin/tazobactam': 'beta_lactam', 'oxacillin': 'beta_lactam',
-    'cefazolin': 'beta_lactam', 'cefoxitin': 'beta_lactam', 'cefotaxime': 'beta_lactam',
-    'ceftazidime': 'beta_lactam', 'ceftriaxone': 'beta_lactam', 'cefepime': 'beta_lactam',
-    'cefuroxime': 'beta_lactam', 'cephalothin': 'beta_lactam',
-    'imipenem': 'carbapenem', 'meropenem': 'carbapenem', 'ertapenem': 'carbapenem',
-    'doripenem': 'carbapenem', 'aztreonam': 'monobactam',
-    'ciprofloxacin': 'fluoroquinolone', 'levofloxacin': 'fluoroquinolone',
-    'norfloxacin': 'fluoroquinolone', 'nalidixic acid': 'fluoroquinolone',
-    'ofloxacin': 'fluoroquinolone',
-    'gentamicin': 'aminoglycoside', 'tobramycin': 'aminoglycoside',
-    'amikacin': 'aminoglycoside', 'streptomycin': 'aminoglycoside',
-    'neomycin': 'aminoglycoside', 'kanamycin': 'aminoglycoside',
-    'tetracycline': 'tetracycline', 'doxycycline': 'tetracycline',
-    'minocycline': 'tetracycline', 'tigecycline': 'tetracycline',
-    'sulfamethoxazole': 'sulfonamide', 'trimethoprim': 'sulfonamide',
-    'trimethoprim/sulfamethoxazole': 'sulfonamide', 'chloramphenicol': 'phenicol',
-    'azithromycin': 'macrolide', 'erythromycin': 'macrolide',
-    'colistin': 'polymyxin', 'polymyxin b': 'polymyxin',
-    'vancomycin': 'glycopeptide', 'teicoplanin': 'glycopeptide',
-    'clindamycin': 'lincosamide', 'nitrofurantoin': 'nitrofuran',
-    'rifampicin': 'rifamycin',
-}
+# Drug classes as training assigned them (train_models.py). A promoted model
+# carries its own copy in lgbm_meta.joblib, which takes precedence.
+DRUG_CLASS_MAP = TRAINING_DRUG_CLASS_MAP
 
 # Known resistance rates per antibiotic (from training data statistics)
 RESISTANCE_RATES = {
