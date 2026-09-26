@@ -57,6 +57,10 @@ REST_FRAMEWORK = {
 
 # ML Model paths
 TRAINED_MODELS_DIR = BASE_DIR / 'trained_models'
+# /api/train/ writes here, never over the served model. A candidate reaches
+# TRAINED_MODELS_DIR only through experiments/promote.py, which also writes
+# its threshold, calibration and metrics.json.
+CANDIDATE_MODELS_DIR = TRAINED_MODELS_DIR / 'candidates'
 DATA_DIR = BASE_DIR.parent  # FYP1 root
 
 AMR_OUTPUT_DIR   = DATA_DIR / 'amr_output'

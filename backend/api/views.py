@@ -281,31 +281,41 @@ class TrainModelView(View):
                 return json_error('Training data not found. Expected Data/amr_output/ '
                                   'and Data/mapped_output/ in the project root.', 503)
 
+            # Train into a separate folder and leave the served model loaded.
+            # The trainer writes neither the promoted model's threshold and
+            # calibration nor its metrics.json, so training over the served
+            # files would swap the model while the UI kept its old numbers.
+            candidate_dir = settings.CANDIDATE_MODELS_DIR / model_name
+            os.makedirs(candidate_dir, exist_ok=True)
+
             def train_in_background(model_name, model_dir, data_dir):
                 try:
                     sys.path.insert(0, str(settings.BASE_DIR))
                     from train_models import train_lgbm, train_kmer
                     if model_name == 'lgbm':
                         train_lgbm(data_dir, model_dir)
-                        model_registry.get_lgbm()._load()
                     elif model_name == 'kmer':
                         train_kmer(data_dir, model_dir)
-                        model_registry.get_kmer()._load()
+                    print(f"[Training] {model_name} candidate saved to {model_dir}")
                 except Exception as e:
                     print(f"[Training] Error: {e}")
                     traceback.print_exc()
 
             thread = threading.Thread(
                 target=train_in_background,
-                args=(model_name, str(settings.TRAINED_MODELS_DIR), str(settings.DATA_DIR)),
+                args=(model_name, str(candidate_dir), str(settings.DATA_DIR)),
                 daemon=True,
             )
             thread.start()
 
+            rel = os.path.relpath(candidate_dir, settings.BASE_DIR).replace(os.sep, '/')
             return JsonResponse({
                 'status': 'Training started',
                 'model': model_name,
-                'message': f'Training {model_name} model in background. Check /api/health/ for status.',
+                'candidate_dir': rel,
+                'message': (f'Training a {model_name} candidate in the background, saved to '
+                            f'backend/{rel}/. The served model is not changed; to serve the '
+                            f'candidate it must be evaluated and promoted with experiments/promote.py.'),
             })
 
         except Exception as e:

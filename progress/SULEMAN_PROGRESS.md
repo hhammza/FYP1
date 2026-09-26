@@ -77,6 +77,8 @@ Built against the real files (`backend/trained_models/lgbm_metrics.json`, `kmer_
 - [x] Also: `/datasets` threshold note and the deployed-model points on the `/models` VME/ME chart read the real threshold (0.24), not 0.40
 
 - [!] **Flag for Hamza/Ali:** `train_models.py` (via `/train`) overwrites the served model in `backend/trained_models/` but does not rewrite `lgbm_metrics.json`, and its `lgbm_meta.joblib` drops the threshold and calibration. After a retrain from the web page, every page would show D1's 0.804 for a different model. Until fixed, don't use `/train` on the served models (T2.4 will put it behind a token)
+  - [x] My part, 2026-09-26: `/api/train/` now trains into `backend/trained_models/candidates/<model>/` (`CANDIDATE_MODELS_DIR` in `settings.py`) and no longer reloads the served model; tested: served files byte-identical after a train, D1 still loaded
+  - [ ] Ali: `train_models.py` run from the command line still defaults to `trained_models/`
 
 - **Met 2026-09-26:** the grep finds only `/about` and `/models`; all 10 pages render 0.804 / 0.695 from the files, and "not measured" when the backend is down
 

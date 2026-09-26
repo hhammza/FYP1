@@ -61,7 +61,7 @@
             <div class="method-step"><span class="step-num">2</span>Clean: parse MIC values, extract genus/species</div>
             <div class="method-step"><span class="step-num">3</span>Target encoding: per-antibiotic resistance rates</div>
             <div class="method-step"><span class="step-num">4</span>Train LightGBM with early stopping</div>
-            <div class="method-step"><span class="step-num">5</span>Save model to trained_models/</div>
+            <div class="method-step"><span class="step-num">5</span>Save a candidate to trained_models/candidates/ (the served model is not replaced)</div>
           </div>
         </div>
 
@@ -103,7 +103,7 @@
             <div class="method-step"><span class="step-num">2</span>Read FASTA files, extract 4-mer frequencies (256 features)</div>
             <div class="method-step"><span class="step-num">3</span>Combine with antibiotic one-hot encoding</div>
             <div class="method-step"><span class="step-num">4</span>Train RandomForest (100 trees, balanced weights)</div>
-            <div class="method-step"><span class="step-num">5</span>Save model to trained_models/</div>
+            <div class="method-step"><span class="step-num">5</span>Save a candidate to trained_models/candidates/ (the served model is not replaced)</div>
           </div>
         </div>
 
