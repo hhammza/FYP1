@@ -437,7 +437,7 @@ cd backend && python train_models.py --model all     # or lgbm / kmer
 python train_models.py --model lgbm --max-files 500  # seeded random subset of files
 python train_models.py --model lgbm --model-dir /tmp/out   # write somewhere else
 ```
-Windows: `train_all.bat`. The trainer finds the data in `Data/` itself. With all files, the LightGBM trains in about 4 minutes on 1.52 M rows; the K-mer model takes about an hour, because it computes GC content row by row. Training writes to `backend/trained_models/candidates/<model>/` (the same place `/api/train/` uses) and never touches the deployed models; a model is served only after `experiments/promote.py`, which also writes its `metrics.json`.
+Windows: `train_all.bat`. The trainer finds the data in `Data/` itself. With all files, the LightGBM trains in about 4 minutes on 1.56 M rows (cleaning v5); the K-mer model takes about an hour, because it computes GC content row by row. Training writes to `backend/trained_models/candidates/<model>/` (the same place `/api/train/` uses) and never touches the deployed models; a model is served only after `experiments/promote.py`, which also writes its `metrics.json`.
 
 ### Deployment (Railway, two services)
 

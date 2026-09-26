@@ -18,6 +18,24 @@ Baseline is commit **`52ae361`** *(Add amrpredict library and macOS launcher, 20
 
 ---
 
+## Genome IDs read as numbers: cleaning v5 (2026-09-26)
+
+Found by the week 2 join check. `data_prep.py` and `train_models.py` loaded the AMR CSVs without a type, so `Genome ID` became a float and IDs that differ only by trailing zeros merged: `195.304` and `195.3040` are different genomes but the same number.
+
+| | Before (v4) | After (v5) |
+|---|---|---|
+| Genomes in the cleaned table | 128,286 | 131,385 |
+| Rows after cleaning | 1,521,644 | 1,558,494 (+36,850, 2.4%) |
+| Laboratory-measured rows | 199,763 | 201,042 |
+| Genomes merged into another | 3,312 | 0 |
+
+- [experiments/lib/data_prep.py](experiments/lib/data_prep.py), [backend/train_models.py](backend/train_models.py): `Genome ID` read as text; `CLEAN_VERSION` is `v5`.
+- `Data/mapped_output/`: the same bug in `fasta_amr_map.py` had put 888 rows of 20 genomes (e.g. `1055537.30`) under another genome's ID **and FASTA file** (`1055537.3`), which the earlier trailing-zero fix could not see because ID and file name agreed. Corrected from a rerun of the fixed mapper, changing only those rows. All 2,587 genomes now have their own rows.
+- Rebuilt: `gene_report.json` (136 genomes with laboratory results, was 125), and the Datasets page, README and handbook figures.
+- **Not yet redone:** every model and experiment run used the merged IDs. D2 and the K-mer re-test need a re-run on v5 (Hamza).
+
+---
+
 ## Datasets page: four source datasets, counted once (2026-09-26)
 
 The page said "Five datasets" in its subtitle and stat strip, "All Four Datasets" in its table, and counted the test samples as Dataset 4, although they are small copies of the other data. It now lists **four source datasets** (AMR phenotype records, the partial FASTA genomes, the complete assemblies, and the single `BVBRC_genome_amr.csv` export used by the notebooks) and, separately, the data the project built from them (mapped records, gene matrix, test samples).

@@ -22,9 +22,12 @@ import time
 import numpy as np
 import pandas as pd
 
-CLEAN_VERSION = 'v4'  # v2: extended ANTIBIOTIC_ALIASES; v3: species_taxon_id (2026-09-25); v4: 54 drugs added to DRUG_CLASS_MAP (2026-09-26)
-# Still v4 after 13 more aliases and 'sulfa' (2026-09-26): every row they touch
-# has no usable phenotype, so the cleaned table is unchanged.
+CLEAN_VERSION = 'v5'  # v2: extended ANTIBIOTIC_ALIASES; v3: species_taxon_id (2026-09-25); v4: 54 drugs added to DRUG_CLASS_MAP (2026-09-26); v5: Genome ID read as text (2026-09-26)
+# v5: read as a number, Genome IDs that differ only by trailing zeros
+# (195.304, 195.3040) became one genome; 3,312 genomes merged and the
+# per-genome dedup dropped 36,850 of their rows. The 13 aliases and 'sulfa'
+# added in v4 change nothing: every row they touch has no usable phenotype.
+GENOME_ID_TEXT = {'Genome ID': str}
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 CACHE_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'cache')
@@ -89,7 +92,8 @@ def load_raw(source='amr_output', max_files=None, verbose=True):
     frames = []
     for f in files:
         try:
-            frames.append(pd.read_csv(f, low_memory=False))
+            # Genome ID as text: as a number, 195.3040 and 195.304 are one genome
+            frames.append(pd.read_csv(f, low_memory=False, dtype=GENOME_ID_TEXT))
         except Exception:
             continue
     df = pd.concat(frames, ignore_index=True)

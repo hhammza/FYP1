@@ -112,7 +112,8 @@ def load_amr_data(data_dir, max_files=None):
     frames = []
     for i, f in enumerate(csv_files):
         try:
-            df = pd.read_csv(f, low_memory=False)
+            # Genome ID as text: as a number, 195.3040 and 195.304 are one genome
+            df = pd.read_csv(f, low_memory=False, dtype={'Genome ID': str})
             frames.append(df)
         except Exception:
             continue
@@ -350,7 +351,7 @@ def train_kmer(data_dir, model_dir, max_files=None):
     frames = []
     for f in csv_files:
         try:
-            frames.append(pd.read_csv(f, low_memory=False))
+            frames.append(pd.read_csv(f, low_memory=False, dtype={'Genome ID': str}))
         except Exception:
             continue
 
