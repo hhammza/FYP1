@@ -2,9 +2,19 @@
 
 **Role:** models
 **Plan:** the split by skill (Ali: data + evolution, Hamza: models, Suleman: platform), based on [FYP_Completion_Roadmap.md](../FYP_Completion_Roadmap.md)
-**Started:** 2026-09-25 · **Last updated:** 2026-09-26 (Day 1 + Week 1 closed on cleaning v5, D3 served)
+**Started:** 2026-09-25 · **Last updated:** 2026-09-27 (Week 2 and the lineage check done; to-dos for Weeks 3–5 updated)
 
 Status key: `[ ]` not started · `[~]` in progress · `[x]` done · `[!]` blocked (say why in the log)
+
+**Before each work session (all three of us)**
+1. `git pull` first. Commit small and often, and push the same day, so nobody works on stale files.
+2. After a pull: `pip install -r experiments/requirements.txt` (it includes the backend requirements).
+3. Edit these trackers in a plain text editor (VS Code's normal editor). A visual Markdown editor re-saved them twice and broke them: merged header lines, `[~]` turned into `\[\~\]`, links lost.
+4. Someone else's file: add a row to their **Handovers** table only, and say so in the channel.
+5. `Data/` and `experiments/cache/` are not in git. Share big files on Drive, not in commits, and keep `Data/` out of OneDrive sync.
+6. Read Genome IDs as text (`dtype=str`). As a number, `195.304` and `195.3040` become one genome (the cleaning v5 bug).
+7. Backend by hand: `set DEBUG=True` first; Train and Reload need `ADMIN_TOKEN`. `train_models.py` writes to `trained_models/candidates/`; only `experiments/promote.py` changes the model the website serves.
+8. Genome-model numbers: quote the **lab** AUC (`Lab AUC` in `RESULTS.md`). BV-BRC's computational labels were predicted from the genome, so all-row scores are partly circular.
 
 ---
 
@@ -14,7 +24,7 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done · `[!]` blocke
 |---|---|---|---|
 | 1 | 28 Sep to 2 Oct | K-mer fix, promote the best model, threshold, calibration, `metrics.json` | Done 2026-09-25 (UI side waits on Suleman) |
 | 2 | 5 Oct to 9 Oct | Genome experiments B0 to B4 (k-mers) | Done 2026-09-27 (plus a first B6) |
-| 3 | 12 Oct to 16 Oct | Gene-feature models B6/B7, deploy the best genome model | Not started |
+| 3 | 12 Oct to 16 Oct | Gene-feature models B6/B7, deploy the best genome model | Prep started: lineage split built; waiting on Ali's lab-tested genomes (early batch first) |
 | 4 | 19 Oct to 23 Oct | Library v0.2.0, statistics and seeds | Not started |
 | 5 | 26 Oct to 30 Oct | Results chapters | Not started |
 
@@ -117,21 +127,42 @@ New folder `experiments/genome/`, reusing `lib/splits.py` and `lib/metrics.py`.
 
 ## Week 3: gene-feature models and deployment
 
-- [ ] **Rework `lineage.py` for ~25,000 genomes:** the full distance matrix would be ~5 GB, too much for 8 GB RAM. Cluster within each species instead (between-species distances are all ≥ 0.0068, far above every cut)
-- [ ] Re-run the Track B and lineage runs on Ali's lab-tested genomes; quote lab AUCs only from these
-- [ ] **B6** AMR-gene presence features (Ali's full gene matrix) + antibiotic + drug class + genus
+Order matters: A can start now, B needs Ali's files, C needs B's winner.
+
+### A. Before the lab-tested genomes arrive (can start now)
+- [ ] **Rework `lineage.py` for ~25,000 genomes:** the full distance matrix would be ~5 GB, too much for 8 GB RAM. Cluster within each species (every between-species distance is ≥ 0.0068, far above all four cuts), then number the clusters globally
+- [ ] **Decide which genome model `/predict` will serve** and tell Suleman, because it decides his Docker work:
+  - k-mers (B4, LightGBM): pure Python at prediction time, no extra install
+  - genes (B6): needs AMRFinderPlus on every uploaded genome, so a Docker image with conda (Suleman, Week 3). Better science (mechanism, `genes_found`), heavier deployment
+- [ ] **Remove the 500 kb cap in `backend/ml_models/resistance_predictor.py` (`read_fasta_sequence(max_bp=500_000)`):** complete genomes are 2–7 Mb and the new models were trained on whole genomes. Count k-mers per contig exactly as `experiments/genome/kmers.py` does (reuse `count_6mers`), or the served features won't match training
+- [ ] **A promotion path for genome models:** `promote.py` handles the tabular forecaster only. Add a genome mode that copies the run's model and writes `kmer_metrics.json` from the run (lab AUC as the headline)
+
+### B. When Ali's files arrive (early batch, then the full set)
+- [ ] Put `kmer6_counts.npz` in `experiments/cache/` and pull the new `gene_matrix.parquet` / `gene_info.csv`; check how many lab-tested genomes join (`[genome] ... rows have an assembly` in the run log)
+- [ ] Re-run the baselines, B1, B4, B6 and the `L_*` lineage runs on the lab-tested genomes. **Quote lab AUCs only from these runs**
+- [ ] **B6** AMR-gene presence features (Ali's full gene matrix) + antibiotic + drug class + genus, judged on lab rows
 - [ ] **B7** B6 + k-mers + genus (the "multimodal" model)
-- [ ] **B8** species hold-out
-- [ ] Per-antibiotic AUC table for the winning run
-- [ ] Deploy the winner on `/predict` with its own `metrics.json`, returning `genes_found`
-- **Done when:** `/predict` names the genes it found, and its AUC comes from a grouped split
+- [ ] **B8** species hold-out, done properly: hold out each large genus in turn (not one cluster), with confidence intervals. The lineage run already showed k-mers collapse on unseen *E. coli* (0.545) while genes hold 0.708
+- [ ] Per-antibiotic AUC table for the winning run (lab rows)
+
+### C. Deploy the winner
+- [ ] Deploy on `/predict` with its own `kmer_metrics.json`, returning `genes_found` (format §2: `gene`, `drug_class`, optional `type`, `relevant`), using `gene_info.csv` for the classes
+- [ ] Re-run `evaluate_shipped.py` and `export_report.py`; check `/predict` against 5 genomes with known lab results
+- **Done when:** `/predict` names the genes it found, and its AUC comes from a lineage- or genome-grouped split on lab rows
+
+### D. Optional improvements (the suggestions; each is marked in the code)
+- [ ] Canonical k-mers (B3): `TODO(Hamza, B3)` in `kmer_matrix()`, `experiments/genome/kmers.py`
+- [ ] More key determinants, carbapenem subclasses and the co-trimoxazole "`sul` and `dfr`" rule: `KEY_DETERMINANTS` / `CLASS_TO_AMRFINDER` in `experiments/genome/genes.py`
+- [ ] MIC ÷ clinical breakpoint (EUCAST/CLSI) as a forecaster feature: `experiments/lib/encoders.py`, then an A-track config
 
 ---
 
 ## Week 4: library and statistics
 
 ### T2.6 Library v0.2.0
-- [ ] New models and `metrics.json` in `amrpredict-lib/src/amrpredict/models/`
+- [ ] New models and `metrics.json` in `amrpredict-lib/src/amrpredict/models/`: run `promote.py --library` once the package loader applies calibration and species-level taxa (it doesn't yet)
+- [ ] Library copy of the antibiotic names: read from `backend/amr_constants.py` (or ship a generated copy), like the backend (Ali, `b1b1e67`)
+- [ ] Sync the timeline fix into `amrpredict/timeline.py` (fractions sum to 100, seeded), then remove the strict `xfail` at `amrpredict-lib/tests/test_fasta.py:122` (Ali's handover)
 - [ ] Backend imports `amrpredict` instead of its own copies in `backend/ml_models/` (agree the switch-over with Suleman, who owns `backend/api/`)
 - [ ] `amrpredict.status()` returns the metrics
 - [ ] Version `0.1.0` → `0.2.0` in `amrpredict-lib/pyproject.toml`; update `docs/` and `known-issues.md`
@@ -140,7 +171,7 @@ New folder `experiments/genome/`, reusing `lib/splits.py` and `lib/metrics.py`.
 - **Done when:** `pip install` from TestPyPI works in a clean venv
 
 ### T2.5 Evaluation completeness
-- [ ] Accuracy, recall and specificity columns in `experiments/lib/metrics.py` and `RESULTS.md`
+- [~] Accuracy, recall and specificity columns in `experiments/lib/metrics.py` and `RESULTS.md`. *`metrics.py` computes all three since 2026-09-25; still to add as columns in `report.py` / `RESULTS.md`*
 - [ ] Calibration plot for the deployed model
 - [ ] DeLong test between A2/A10 and alternatives; McNemar at the chosen threshold
 - [ ] 3 seeds for A2, A10 and the best genome run; mean ± sd
@@ -174,6 +205,7 @@ New folder `experiments/genome/`, reusing `lib/splits.py` and `lib/metrics.py`.
 | To Suleman | **Threshold default: the slider and API must start at `default_threshold` (now 0.25), not 0.40.** Hardcoded in `resistance_forecast.html:137-145`, `frontend/app.py:109`, `backend/api/views.py:53`. At 0.40 the calibrated model misses 30.2% of resistant isolates instead of 9.0%. `/predict` likewise: `default_threshold` from `kmer_metrics.json`, 0.5 | Week 1 | [x] 2026-09-26 (`d5044a7`): the slider starts at `metrics.lgbm.threshold` and the API uses the model's own when none is sent, so it follows each promotion (0.25 for D2) |
 | To Suleman | New response fields: `/forecast` has `model_run`, `calibrated`; both pages can return `model_used: "Heuristic fallback"` (show a warning); `/predict` has `antibiotic_known` | Week 1 | [x] 2026-09-26: Suleman's T1.3 shows warnings for `Heuristic fallback` and for an antibiotic the k-mer model never saw (CHANGES.md) |
 | To Suleman | Genome response with `genes_found` | Week 3 | [ ] |
+| To Suleman | **Which genome model `/predict` will serve** (k-mers: no extra install; genes: AMRFinderPlus in his Docker image). Decide early in Week 3 so the Dockerfile is only built if needed | Week 3, day 1 | [ ] |
 | To Suleman | A genome-models section on `/models`: B-track runs are excluded from `model_report.json` for now (`export_report.py`), because their dataset and labels differ from the tabular runs. Show them separately, with lab AUC and its n | Week 3 | [ ] |
 | To Ali | **Download + AMRFinderPlus for lab-tested genomes.** Only 30 lab-tested genomes are in the test set today; the export has 22,475 lab-tested genomes (201,042 rows, 107 drugs, 49.5% resistant). A stratified sample of ~5,000 would make the lab AUCs quotable. `kmers.py` and `genes.py` pick new genomes up with no code change | Week 3 | [~] 2026-09-27: Ali is downloading **all 22,475** (about 90 GB, 2–3 days with AMRFinderPlus; 291 lab-tested so far, was 136). Asked him to send `kmer6_counts.npz` (run `kmers.py` on his Mac) + the new `gene_matrix.parquet`/`gene_info.csv` instead of the genomes (this laptop has ~27 GB free), and an early batch to test at scale |
 | To Ali | Proposed gene-matrix format in `progress/formats/README.md` §3 (string `Genome ID` index, zero rows for searched genomes, `gene_info.csv`); `pyarrow` needed | Day 1 | [x] agreed by Ali 2026-09-26, formats §3; `pyarrow` in `experiments/requirements.txt` |
@@ -198,6 +230,7 @@ Newest first. One line per work session: date, what I did, what is next, anythin
 
 | Date | Done | Next | Blockers |
 |---|---|---|---|
+| 2026-09-27 | Updated all three trackers: a shared "before each work session" checklist; my Week 3 split into A (now) / B (needs Ali's files) / C (deploy) / D (suggestions), with the model-choice decision and the 500 kb cap on `/predict`; Week 4 library items for the names and the timeline sync; Ali's lab-genome steps; Suleman's genome section, Docker dependency and batch-format note | Week 3 part A | None |
 | 2026-09-27 | Answered Ali: labels come from `Data/amr_output/` (joined by Genome ID), not `mapped_output/`, so the lab-tested genomes join once they are in the k-mer cache and gene matrix. Asked for the k-mer cache + gene matrix instead of 90 GB of genomes, and an early batch | Rework `lineage.py` for ~25k genomes; test on the early batch | Disk: ~27 GB free. The project is inside OneDrive: keep `Data/` out of OneDrive sync |
 | 2026-09-27 | Lineage check: `lineage.py` clusters the 2,587 genomes by 6-mer cosine distance at 4 cuts; `lineage` split in `splits.py`/`run.py` (inner folds and CIs grouped by lineage too); 16 runs. K-mer and gene gains survive held-out lineages; with *E. coli* held out k-mers collapse (0.545), genes hold 0.708 | B7, B8 proper (several held-out species with CIs) | Species cut gives a single test cluster, so no CI |
 | 2026-09-27 | Week 2: k-mer cache from complete genomes, genome/gene support and lab-only metrics in the harness, 12 B-track runs (baselines, B0, B1, B2 ×3, B4, B6 + its baseline). K-mers on complete genomes beat taxonomy (B4 0.956 vs 0.823), genes more so (B6 0.981), but lab evidence is 30 genomes | Ask Ali for lab genomes; lineage-grouped split; B7, B8 | Lab test set too small to quote; possible lineage leakage |

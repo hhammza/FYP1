@@ -2,9 +2,19 @@
 
 **Role:** platform (web app, API, security, testing, deployment)
 **Plan:** the split by skill (Ali: data + evolution, Hamza: models, Suleman: platform), based on [FYP_Completion_Roadmap.md](../FYP_Completion_Roadmap.md)
-**Started:** 2026-09-25 · **Last updated:** 2026-09-26
+**Started:** 2026-09-25 · **Last updated:** 2026-09-27 (to-dos updated by Hamza: Week 3 genome section and Docker dependency)
 
 Status key: `[ ]` not started · `[~]` in progress · `[x]` done · `[!]` blocked (say why in the log)
+
+**Before each work session (all three of us)**
+1. `git pull` first. Commit small and often, and push the same day, so nobody works on stale files.
+2. After a pull: `pip install -r experiments/requirements.txt` (it includes the backend requirements).
+3. Edit these trackers in a plain text editor (VS Code's normal editor). A visual Markdown editor re-saved them twice and broke them: merged header lines, `[~]` turned into `\[\~\]`, links lost.
+4. Someone else's file: add a row to their **Handovers** table only, and say so in the channel.
+5. `Data/` and `experiments/cache/` are not in git. Share big files on Drive, not in commits, and keep `Data/` out of OneDrive sync.
+6. Read Genome IDs as text (`dtype=str`). As a number, `195.304` and `195.3040` become one genome (the cleaning v5 bug).
+7. Backend by hand: `set DEBUG=True` first; Train and Reload need `ADMIN_TOKEN`. `train_models.py` writes to `trained_models/candidates/`; only `experiments/promote.py` changes the model the website serves.
+8. Genome-model numbers: quote the **lab** AUC (`Lab AUC` in `RESULTS.md`). BV-BRC's computational labels were predicted from the genome, so all-row scores are partly circular.
 
 ---
 
@@ -14,7 +24,7 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done · `[!]` blocke
 | --- | --- | --- | --- |
 | 1 | 28 Sep to 2 Oct | Remove hardcoded AUCs, UI reads `metrics.json`, security | Done (T1.3, T2.4) |
 | 2 | 5 Oct to 9 Oct | Exports (CSV, PDF, PNG), batch CSV upload | Not started |
-| 3 | 12 Oct to 16 Oct | Genome result UI, Dockerfile with AMRFinderPlus | Not started |
+| 3 | 12 Oct to 16 Oct | Genome result UI, genome-models section on `/models`, Dockerfile with AMRFinderPlus | Not started; the Dockerfile depends on Hamza's model choice (Week 3, day 1) |
 | 4 | 19 Oct to 23 Oct | RL panel on `/timeline`, automated tests | Not started |
 | 5 | 26 Oct to 30 Oct | Deploy, tag, demo video, system-design chapter | Not started |
 
@@ -51,7 +61,7 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done · `[!]` blocke
   - Not added, because they are spellings of drugs already listed (for Ali's `ANTIBIOTIC_ALIASES`): phosphomycin → fosfomycin, tigecyklin → tigecycline, tetracyklin → tetracycline, amoxicillin_clavulanat → amoxicillin/clavulanic acid, cefpirom → cefpirome, cefepime_taniborbactam → cefepime/taniborbactam; `sulfa` is a drug group, drop it like `carbapenem`. *Added by Ali 2026-09-26 (`75f7cb0`), plus 7 more variants; `sulfa` dropped*
   - 2026-09-26 (Ali, `b1b1e67`): the list now lives in `backend/amr_constants.py:UI_ANTIBIOTICS`; `frontend/app.py` reads the generated `frontend/antibiotic_names.json` and `views.py` imports it. `VOCAB_EXCLUDE` is replaced by the alias map. To add a drug: edit `amr_constants.py`, run `python backend/amr_constants.py`, commit both
   - The `/forecast`, `/predict` and `/timeline` dropdowns still show only the names the loaded model knows (`?model=lgbm|kmer`); this static list is the fallback when the backend is down
-  - Not in either shipped model yet: cefixime, clarithromycin, temocillin, cefpirome, florfenicol. They appear once Hamza's retrained model lands
+  - Not in either shipped model yet: cefixime, clarithromycin, temocillin, cefpirome, florfenicol. They appear once Hamza's retrained model lands. *Checked 2026-09-27: the served D3 knows all five (126 drugs)*
 
 ### T1.3 Replace every hardcoded AUC (22 places)
 
@@ -71,7 +81,7 @@ Built against the real files (`backend/trained_models/lgbm_metrics.json`, `kmer_
 
 - [x] One sentence on `/about` explaining that the earlier 0.93 was inflated and the honest figure is about 0.82. *The served model (D1, species taxa) scores 0.804, so the page says that*
 
-- [x] Also: sliders on `/forecast` and `/predict` start at the model's `default_threshold` (0.24, 0.5) instead of 0.40 and 0.5, with step 0.01 so 0.24 doesn't snap to 0.25; the API no longer forces 0.40 / 0.5 when no threshold is sent; the `/forecast` chart line sits at the model's threshold, not 50%
+- [x] Also: sliders on `/forecast` and `/predict` start at the model's `default_threshold` (0.24, 0.5) instead of 0.40 and 0.5, with step 0.01 so 0.24 doesn't snap to 0.25; the API no longer forces 0.40 / 0.5 when no threshold is sent; the `/forecast` chart line sits at the model's threshold, not 50%. *Checked 2026-09-27: it follows each promotion; the served D3 starts at 0.23*
 
 - [x] Also: warnings for `model_used: Heuristic fallback` (both pages) and `antibiotic_known: false` (`/predict`), per Hamza's format
 
@@ -133,17 +143,19 @@ Built against the real files (`backend/trained_models/lgbm_metrics.json`, `kmer_
 
 - [ ] Limits: 10,000 rows and a maximum file size, checked on the server
 
+- [ ] Add the batch CSV format (template columns, response, `error` column) to `progress/formats/README.md` as a new section, like the others, so Hamza can check it against `LGBMResistancePredictor.features_frame()`
+
 - **Done when:** a 1,000-row file returns a results CSV with errors marked per row
 
 ---
 
 ## Week 3: genome result UI and container
 
-- [ ] `/predict` shows `genes_found` (gene, drug class) next to the prediction; works against a sample response before Hamza's model lands
-
-- [ ] Dockerfile for the backend with AMRFinderPlus installed (conda), so Railway can run it
-
-- **Done when:** `/predict` explains a prediction by the genes it found, in the deployed container
+- [ ] **Genome-models section on `/models`** (from Hamza): Track B runs (`B*`, `L_*`) are kept out of `model_report.json`, because their dataset (2,505 genomes, mostly computational labels) differs from the tabular runs. Show them separately with each run's **lab AUC and its row count** (`auc_roc_lab`, `n_lab` in `experiments/results/registry.csv`; table in `experiments/RESULTS.md`), and say that computational-label scores are partly circular. The numbers will change when Hamza re-runs on Ali's lab-tested genomes, so read them from the file, don't type them
+- [ ] `/predict` shows `genes_found` (gene, drug class) next to the prediction; build against `progress/formats/genome_response.sample.json` before Hamza's model lands
+- [ ] Dockerfile for the backend with AMRFinderPlus installed (conda), so Railway can run it. **Only if Hamza serves the gene model (B6):** he decides on Week 3 day 1 (k-mer model = no extra install). Ask him before starting
+- [ ] Upload limit check: complete genomes are 2–7 MB, under your 20 MB limit, so no change is needed; Hamza is removing the backend's 500 kb cut so the whole genome is used
+- **Done when:** `/predict` explains a prediction by the genes it found, in the deployed container, and `/models` shows the genome runs separately
 
 ---
 

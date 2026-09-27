@@ -4,9 +4,19 @@
 
 **Plan:** the split by skill (Ali: data + evolution, Hamza: models, Suleman: platform), based on [FYP_Completion_Roadmap.md](../FYP_Completion_Roadmap.md)
 
-**Started:** 2026-09-25 · **Last updated:** 2026-09-26
+**Started:** 2026-09-25 · **Last updated:** 2026-09-27 (to-dos updated by Hamza: lab-tested genome steps)
 
 Status key: `[ ]` not started · `[~]` in progress · `[x]` done · `[!]` blocked (say why in the log)
+
+**Before each work session (all three of us)**
+1. `git pull` first. Commit small and often, and push the same day, so nobody works on stale files.
+2. After a pull: `pip install -r experiments/requirements.txt` (it includes the backend requirements).
+3. Edit these trackers in a plain text editor (VS Code's normal editor). A visual Markdown editor re-saved them twice and broke them: merged header lines, `[~]` turned into `\[\~\]`, links lost.
+4. Someone else's file: add a row to their **Handovers** table only, and say so in the channel.
+5. `Data/` and `experiments/cache/` are not in git. Share big files on Drive, not in commits, and keep `Data/` out of OneDrive sync.
+6. Read Genome IDs as text (`dtype=str`). As a number, `195.304` and `195.3040` become one genome (the cleaning v5 bug).
+7. Backend by hand: `set DEBUG=True` first; Train and Reload need `ADMIN_TOKEN`. `train_models.py` writes to `trained_models/candidates/`; only `experiments/promote.py` changes the model the website serves.
+8. Genome-model numbers: quote the **lab** AUC (`Lab AUC` in `RESULTS.md`). BV-BRC's computational labels were predicted from the genome, so all-row scores are partly circular.
 
 ---
 
@@ -16,7 +26,7 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done · `[!]` blocke
 | --- | --- | --- | --- |
 | 1 | 28 Sep to 2 Oct | Clean names, data path, taxon grouping, start AMRFinderPlus | Done: names, data path, taxon grouping; AMRFinderPlus full run finished 2026-09-26 (2,587 genomes, 0 failures) |
 | 2 | 5 Oct to 9 Oct | Gene matrix | Done early 2026-09-26: sample and full gene matrix, join check, summary; two notices open for Hamza (v5 retrain, `mapped_output` IDs) |
-| 3 | 12 Oct to 16 Oct | Evolution: fix, sensitivity, calibration | Not started |
+| 3 | 12 Oct to 16 Oct | Evolution: fix, sensitivity, calibration; lab-tested genomes for Hamza | Timeline fix done early; lab-tested genome download running (started 2026-09-27) |
 | 4 | 19 Oct to 23 Oct | RL agent, CTGAN experiment | Not started |
 | 5 | 26 Oct to 30 Oct | Report chapters | Not started |
 
@@ -135,6 +145,21 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done · `[!]` blocke
 - [x] Do **not** commit the per-genome TSVs (add them to `.gitignore`): done in week 1
 
 - **Done when:** Hamza can load the matrix and join it to labels without help
+
+---
+
+## Week 3: lab-tested genomes for Hamza (added by Hamza 2026-09-27)
+
+Hamza's genome models (k-mers 0.956, genes 0.981) are tested on only 30 lab-tested genomes, too few to quote. These steps give him ~22,475. The evolution work below does not depend on them, so do it while the download runs.
+
+- [~] Download all 22,475 lab-tested genomes: `select_lab_genomes.py` → `download_genomes.py --genome-list experiments/genome/features/lab_genomes.csv`. *Started 2026-09-27, about 90 GB; 291 lab-tested genomes so far (was 136)*
+- [ ] AMRFinderPlus on the new genomes (`run_amrfinder.py`, as last time)
+- [ ] Rebuild `gene_matrix.parquet` + `gene_info.csv` (+ `gene_summary.md`) with `build_gene_matrix.py` and commit them (small files)
+- [ ] Join check against `Data/amr_output/` (the lab rows), not only `mapped_output/`: the new genomes are not in `mapped_output/`, so the current check reports them as missing even though Hamza's code joins them
+- [ ] Run `python experiments/genome/kmers.py` on the Mac and share `experiments/cache/kmer6_counts.npz` on Drive. **Not the genomes:** Hamza's laptop has ~27 GB free. Same for `lineage_clusters.csv` only if Hamza asks (he is reworking `lineage.py` to scale)
+- [ ] **Early batch:** send the matrix + `kmer6_counts.npz` for whatever is finished, so Hamza can test at scale before the full set
+- [ ] Rebuild `/genes` on the new matrix (`export_gene_report.py`)
+- **Done when:** Hamza's runs report a lab AUC on thousands of lab-tested genomes instead of 30
 
 ---
 
