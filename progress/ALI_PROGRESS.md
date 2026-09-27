@@ -212,11 +212,12 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done · `[!]` blocke
 | Hamza | 20-genome sample gene matrix | Week 2, day 2 | [x] 2026-09-26, `experiments/genome/features/sample/` |
 | Hamza | **Cleaning v5**: `Genome ID` is now read as text (it was a float, which merged 3,312 genomes and dropped 36,850 rows, 2.4%). Retrain and promote the forecaster on v5, rerun `evaluate_shipped.py`, and re-run registry configs you quote. Also `promote.py:150` reads `genome_id` without `dtype=str`, so its test-genome count merges IDs the same way | Week 2 | [~] noted in Hamza's tracker 2026-09-26; retrain is his |
 | Hamza | `Data/mapped_output/` Genome IDs fixed (68 genomes had lost a trailing zero, e.g. `1055537.10` → `1055537.1`; `1038927.40` had merged with `1038927.4`). Rerun `experiments/evaluate_shipped.py` for `kmer_metrics.json`, since it groups by these IDs | Week 2 | [~] noted in Hamza's tracker 2026-09-26; rerun is his |
+| Hamza | Complete genomes for the k-mer runs (B0 to B4, k-mer part of B7): `genomes_full.zip` (`Data/genomes_full/`, 11 GB, 2,587 `.fna` files) in the team Drive folder; extract inside `Data/`. Not needed for B6, which uses the committed gene matrix | Week 2 | [~] zip to upload |
 | Hamza | Full gene matrix | End of week 2 | [x] 2026-09-26, `experiments/genome/features/gene_matrix.parquet` + `gene_info.csv` |
 | Suleman | Canonical antibiotic list for dropdowns | Week 1 | [x] in `SULEMAN_PROGRESS.md` week 1 |
 | Hamza, Suleman | `train_models.py` from the command line no longer writes to the served models: default is `trained_models/candidates/<model>/`, like `/api/train/` | Week 1 | [x] 2026-09-26; checked the served files are byte-identical after a run |
 | Hamza | Timeline fix is in the backend only; the library copy (`amrpredict/timeline.py`) still has the >100% bug. Sync it in T2.6, then remove the strict xfail | Week 4 | [ ] |
-| Suleman | Templates still mention CNN-LSTM for the timeline (`mutation_timeline.html:164`, `train.html:132-137`, `datasets.html:468`); the API now says `Biological Simulation` only | Week 2 | [ ] |
+| Suleman | Templates still mention CNN-LSTM for the timeline (`mutation_timeline.html:164`, `train.html:142, 147, 154`; `datasets.html` already fixed); the API now says `Biological Simulation` only | Week 2 | [x] in Suleman's tracker 2026-09-26, line numbers updated 2026-09-27; the edit is his |
 | Suleman | Timeline + RL response format | Day 1 | [x] agreed 2026-09-26, `progress/formats/README.md` §4 |
 | Suleman | Working RL output | Week 4 | [ ] |
 

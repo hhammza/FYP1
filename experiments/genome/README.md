@@ -6,6 +6,12 @@ Resistance genes and point mutations for every genome, found with NCBI AMRFinder
 
 The FASTA files in `Data/fasta_output/` are truncated. An *E. coli* file holds about 0.8 MB of a 5 MB genome (1090929.3 has 25 of its 120 contigs), and 1000561.3 (*P. aeruginosa*) is 74 KB of 6.3 MB. Most *S. aureus* files are whole. A gene outside the saved part cannot be found, so AMRFinderPlus runs on complete assemblies downloaded from the BV-BRC API. The K-mer model was trained on the truncated files, which is worth a sentence in the report.
 
+## Getting the genomes without downloading
+
+`Data/genomes_full/` is also shared as `genomes_full.zip` in the team Drive folder (link in `Data_Drive`). Extract it inside `Data/` so the files land at `Data/genomes_full/<genome_id>.fna`, next to `manifest.csv` and `failures.csv`. The folder is gitignored. Downloading it again with step 1 below gives the same files and takes about 3 hours.
+
+The `.fna` files are ordinary FASTA: a `>` header line, then sequence lines. The extension is NCBI's name for nucleotide FASTA (`.faa` is protein, `.ffn` is coding genes only). Any FASTA reader takes them as they are; code that looks only for `.fasta` files needs to accept `.fna` too; no rename needed.
+
 ## Setup (once)
 
 AMRFinderPlus has a native Apple Silicon build on bioconda. Keep it in its own conda environment, apart from the project's `.venv`:

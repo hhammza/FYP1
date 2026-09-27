@@ -151,7 +151,7 @@ Built against the real files (`backend/trained_models/lgbm_metrics.json`, `kmer_
 
 ### RL panel on `/timeline`
 
-- [ ] Remove the "CNN-LSTM deep-learning model is available for training" claim (`mutation_timeline.html:164`, `train.html:132-144`): `/train` only trains `lgbm` and `kmer`, and the format drops the CNN-LSTM label
+- [ ] Remove the "CNN-LSTM deep-learning model is available for training" claim (`mutation_timeline.html:164`, `train.html:142, 147, 154`): `/train` only trains `lgbm` and `kmer`, and the format drops the CNN-LSTM label
 
 - [ ] Panel labelled **"Simulation + RL policy (not trained on patient data)"**, built against Ali's agreed response format
 
@@ -197,7 +197,7 @@ Built against the real files (`backend/trained_models/lgbm_metrics.json`, `kmer_
 | From Hamza | Real `metrics.json` for both models | End of week 1 | \[x\] used by T1.3 |
 | From Hamza | Genome response with `genes_found` | Week 3 | \[ \] |
 | From Ali | Timeline + RL response format | Day 1 | \[x\] agreed 2026-09-26, formats §4; `/api/timeline/` already returns the §4 timeline fields (`simulation`, `seed`, `calibration: null`, fractions sum to 100) |
-| From Ali | FYI, your files touched 2026-09-26: `views.py` and `app.py` read antibiotic names from `amr_constants.py`; `components.css` draws the missing `bi-dna` / `bi-bacteria` icons; favicon in `static/` with a `/favicon.ico` route in `app.py`. Still yours: three templates mention CNN-LSTM (`mutation_timeline.html:164`, `train.html:132-137`, `datasets.html:468`) | Week 2 | \[ \] CNN-LSTM wording |
+| From Ali | FYI, your files touched 2026-09-26: `views.py` and `app.py` read antibiotic names from `amr_constants.py`; `components.css` draws the missing `bi-dna` / `bi-bacteria` icons; favicon in `static/` with a `/favicon.ico` route in `app.py`. Still yours: two templates mention CNN-LSTM (`mutation_timeline.html:164`, `train.html:142, 147, 154`; `datasets.html` no longer does, checked 2026-09-27) | Week 2 | \[ \] CNN-LSTM wording |
 | From Ali | Working RL output | Week 4 | \[ \] |
 | To Hamza | Agreement on the backend switch to the `amrpredict` library (`backend/api/`) | Week 4 | \[ \] |
 
