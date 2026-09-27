@@ -5,7 +5,9 @@
 #     bash experiments/genome/features/progress.sh
 
 cd "$(dirname "$0")/../../.." || exit 1
-TOTAL=$(find Data/fasta_output -name '*.fasta' | wc -l | tr -d ' ')
+# Every genome known to the manifest or on the lab list (select_lab_genomes.py)
+TOTAL=$(cut -d, -f1 Data/genomes_full/manifest.csv experiments/genome/features/lab_genomes.csv 2>/dev/null \
+        | grep -v '^genome_id$' | sort -u | wc -l | tr -d ' ')
 START=$(date +%s)
 D0=$(ls Data/genomes_full/*.fna 2>/dev/null | wc -l | tr -d ' ')
 A0=$(ls Data/amrfinder_output/*.tsv 2>/dev/null | wc -l | tr -d ' ')

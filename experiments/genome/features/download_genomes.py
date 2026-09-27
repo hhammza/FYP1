@@ -9,6 +9,11 @@ genome misses genes, so AMRFinderPlus runs on these full copies instead.
     python experiments/genome/features/download_genomes.py            # all
     python experiments/genome/features/download_genomes.py --limit 5  # test
 
+    # any list of genomes instead, e.g. the lab-tested ones from
+    # select_lab_genomes.py (a CSV with genome_id and taxon_id columns)
+    python experiments/genome/features/download_genomes.py \
+        --genome-list experiments/genome/features/lab_genomes.csv --workers 12
+
 Writes Data/genomes_full/<genome_id>.fna (gitignored, about 12 GB) and
 Data/genomes_full/manifest.csv (expected and downloaded length per genome).
 Safe to stop and re-run: finished genomes are skipped. A file is only kept
@@ -63,6 +68,12 @@ def local_genomes():
     return pd.DataFrame(rows)
 
 
+def listed_genomes(path):
+    """Genome ID and taxon ID from a CSV list, in its order."""
+    listed = pd.read_csv(path, dtype={'genome_id': str})
+    return listed[['genome_id', 'taxon_id']].drop_duplicates('genome_id').reset_index(drop=True)
+
+
 RETRY_WAITS = [10, 20, 40, 60, 90, 120]   # seconds; rides out a few minutes of lost connection
 
 
@@ -115,13 +126,15 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument('--limit', type=int, help='only the first N genomes (for testing)')
     ap.add_argument('--workers', type=int, default=4, help='parallel downloads (default 4)')
+    ap.add_argument('--genome-list', help='CSV with genome_id and taxon_id; default: every genome in fasta_output/')
     args = ap.parse_args()
     os.makedirs(OUT_DIR, exist_ok=True)
 
-    genomes = local_genomes()
+    genomes = listed_genomes(args.genome_list) if args.genome_list else local_genomes()
     if args.limit:
         genomes = genomes.head(args.limit)
-    print(f'[download] {len(genomes):,} genomes in {os.path.relpath(FASTA_DIR)}')
+    source = os.path.relpath(args.genome_list or FASTA_DIR)
+    print(f'[download] {len(genomes):,} genomes in {source}')
 
     if os.path.exists(MANIFEST):
         manifest = pd.read_csv(MANIFEST, dtype={'genome_id': str})
@@ -135,7 +148,7 @@ def main():
         manifest = pd.concat([manifest, extra], ignore_index=True)
     manifest.to_csv(MANIFEST, index=False)
 
-    todo = manifest[manifest['genome_id'].isin(genomes['genome_id'])]
+    todo = genomes[['genome_id']].merge(manifest, on='genome_id', how='left')  # in list order
     unknown = todo[todo['genome_length'].isna()]
     todo = todo[todo['genome_length'].notna()]
     done = todo['genome_id'].map(lambda g: os.path.exists(os.path.join(OUT_DIR, f'{g}.fna')))
