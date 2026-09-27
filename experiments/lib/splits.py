@@ -18,7 +18,12 @@ def make_split(df, strategy='grouped', test_size=0.2, seed=42,
         idx = np.arange(len(df))
         tr, te = train_test_split(idx, test_size=test_size, stratify=y, random_state=seed)
 
-    elif strategy == 'grouped':
+    elif strategy in ('grouped', 'lineage'):
+        # 'lineage' is 'grouped' on lineage clusters instead of genomes, so
+        # near-identical isolates never straddle the split (run.py adds the
+        # lineage_group column; see experiments/genome/lineage.py)
+        if strategy == 'lineage':
+            group_col = 'lineage_group'
         n_splits = max(2, int(round(1 / test_size)))
         splitter = StratifiedGroupKFold(n_splits=n_splits, shuffle=True, random_state=seed)
         tr, te = next(splitter.split(df, y, groups=df[group_col].to_numpy()))
@@ -42,8 +47,11 @@ def make_split(df, strategy='grouped', test_size=0.2, seed=42,
 
     if verbose:
         shared = len(set(df.loc[train_mask, group_col]) & set(df.loc[test_mask, group_col]))
+        genomes = len(set(df.loc[train_mask, 'Genome ID']) & set(df.loc[test_mask, 'Genome ID']))
+        what = 'lineages' if group_col == 'lineage_group' else 'groups'
+        extra = f' | {what} in both sides: {shared:,}' if group_col != 'Genome ID' else ''
         print(f'[split] {strategy}: train={train_mask.sum():,} test={test_mask.sum():,} '
-              f'| genomes in both sides: {shared:,}')
+              f'| genomes in both sides: {genomes:,}{extra}')
     return train_mask, test_mask
 
 
