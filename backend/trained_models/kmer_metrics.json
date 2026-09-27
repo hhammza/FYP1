@@ -7,14 +7,14 @@
   "algorithm": "RandomForest, 100 trees",
   "trained_at": null,
   "promoted_at": null,
-  "evaluated_at": "2026-09-26T06:17:24+00:00",
-  "git_commit": "376f952",
+  "evaluated_at": "2026-09-27T04:02:35+00:00",
+  "git_commit": "c328066",
   "git_dirty": true,
   "evaluation": {
     "split": "reconstructed: trained on the first 200 mapped_output files; tested on every other genome",
     "test_genomes_unseen": true,
     "drug_only_baseline_auc": 0.7025,
-    "within_antibiotic_auc": 0.6215,
+    "within_antibiotic_auc": 0.6216,
     "served_fallback_rate": 0.0
   },
   "threshold": 0.5,
@@ -23,12 +23,12 @@
   "test": {
     "n": 49881,
     "prevalence": 0.1721,
-    "auc_roc": 0.6951,
+    "auc_roc": 0.6949,
     "auc_roc_ci": [
-      0.679,
-      0.7141
+      0.6778,
+      0.7135
     ],
-    "auc_pr": 0.4352,
+    "auc_pr": 0.4347,
     "f1": 0.3977,
     "accuracy": 0.8461,
     "recall": 0.2952,
@@ -37,8 +37,8 @@
     "major_error": 0.0394,
     "brier": 0.1278,
     "tp": 2535,
-    "fp": 1625,
-    "tn": 39669,
+    "fp": 1626,
+    "tn": 39668,
     "fn": 6052
   },
   "data": {
@@ -46,7 +46,7 @@
     "train_rows": 6002,
     "test_rows": 49881,
     "train_genomes": 218,
-    "test_genomes": 2266,
+    "test_genomes": 2287,
     "prevalence": 0.0978,
     "antibiotics": 62,
     "genera": [
