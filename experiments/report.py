@@ -29,17 +29,23 @@ def comparison_table():
     if 'clean_version' not in df:
         df['clean_version'] = None
 
+    if 'auc_roc_lab' not in df:
+        df['auc_roc_lab'] = float('nan')
+        df['n_lab'] = 0
+
     lines = [
-        '| Run | Data | Split | Encoding | Model | AUC-ROC [95% CI] | AUPRC | F1 | VME | ME | Brier | Thr |',
-        '|---|---|---|---|---|---|---|---|---|---|---|---|',
+        '| Run | Data | Split | Encoding | Model | AUC-ROC [95% CI] | Lab AUC (n) | AUPRC | F1 | VME | ME | Brier | Thr |',
+        '|---|---|---|---|---|---|---|---|---|---|---|---|---|',
     ]
     for _, r in df.iterrows():
         version = r['clean_version']
         if pd.isna(version):
             version = PRE_COLUMN_VERSIONS.get(r['id'], '?')
+        lab = ('n/a' if pd.isna(r['auc_roc_lab'])
+               else f"{r['auc_roc_lab']:.4f} ({int(r['n_lab']):,})")
         lines.append(
             f"| `{r['id']}` | {version} | {r['split']} | {r['encoding']} | {r['model']} "
-            f"| {r['auc_roc']:.4f} [{r['auc_ci_low']:.4f}-{r['auc_ci_high']:.4f}] "
+            f"| {r['auc_roc']:.4f} [{r['auc_ci_low']:.4f}-{r['auc_ci_high']:.4f}] | {lab} "
             f"| {r['auc_pr']:.4f} | {r['f1']:.4f} "
             f"| {r['very_major_error']:.1%} | {r['major_error']:.1%} "
             f"| {r['brier']:.4f} | {r['threshold']:.2f} |")

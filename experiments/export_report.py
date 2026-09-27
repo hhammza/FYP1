@@ -62,6 +62,11 @@ def roc_points(y, s, n=101):
 def runs_table():
     reg = pd.read_csv(os.path.join(RESULTS, 'registry.csv'))
     reg = reg.sort_values('finished_at').drop_duplicates('id', keep='last')
+    # Track B (genome) runs use a different, much smaller dataset (2,505
+    # genomes, mostly computational labels), so their AUCs are not comparable
+    # with the tabular runs on this page. They stay in RESULTS.md until the
+    # page has a genome section of its own.
+    reg = reg[~reg['id'].str.startswith('B')]
     out = []
     for r in reg.itertuples():
         cfg = load_json(RESULTS, r.id, 'config.snapshot.json')
