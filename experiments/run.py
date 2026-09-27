@@ -84,6 +84,7 @@ def run(cfg, verbose=True):
         verbose=verbose)
     df = select_rows(df, dcfg, verbose)
     df = apply_taxon_level(df, dcfg.get('taxon_level', 'strain'), verbose)
+    df, genome_features = attach_genome_features(df, dcfg, cfg['features'], verbose)
 
     # ── Split ────────────────────────────────────────────────────────────
     scfg = cfg['split']
@@ -104,7 +105,7 @@ def run(cfg, verbose=True):
                                    seed=scfg.get('seed', 42))
     df, rate_features = encoders.add_rate_features(df, train_mask, enc_mode, folds, verbose)
 
-    features = list(fcfg.get('base', BASE_FEATURES)) + rate_features
+    features = list(fcfg.get('base', BASE_FEATURES)) + rate_features + genome_features
     for drop in fcfg.get('drop', []):
         if drop in features:
             features.remove(drop)
@@ -185,8 +186,13 @@ def run(cfg, verbose=True):
     by_drug = metrics.per_group(y_test, test_score, test_rows['Antibiotic'].to_numpy(),
                                 threshold, min_n=ecfg.get('min_n_per_group', 50))
 
+    by_source = metrics_by_label_source(y_test, test_score, test_rows, threshold, ecfg)
+
     print(f'\n[result] AUC {result["auc_roc"]:.4f} [{lo:.4f}-{hi:.4f}]  '
           f'AUPRC {result["auc_pr"]:.4f}  F1 {result["f1"]:.4f}')
+    for src, r in by_source.items():
+        print(f'[result] {src:13s} rows: AUC {r["auc_roc"]:.4f} '
+              f'[{r["auc_roc_ci"][0]:.4f}-{r["auc_roc_ci"][1]:.4f}]  n={r["n"]:,}')
     print(f'[result] threshold {threshold:.3f} | VME {result["very_major_error"]:.1%} '
           f'| ME {result["major_error"]:.1%} | Brier {result["brier"]:.4f}')
     if by_drug:
@@ -214,6 +220,10 @@ def run(cfg, verbose=True):
         'features': features,
         'model_info': model.info,
         'test': result,
+        # Lab labels are measured; computational ones were predicted by
+        # BV-BRC from the genome, so genome-derived features can score well
+        # on them by reproducing that predictor. Judge genome models on 'lab'.
+        'test_by_label_source': by_source,
         'validation': val_result,
         'calibration': calibration,
         'per_antibiotic': by_drug,
@@ -226,6 +236,7 @@ def run(cfg, verbose=True):
         'genome_id': test_rows['Genome ID'].to_numpy(),
         'antibiotic': test_rows['Antibiotic'].to_numpy(),
         'genus': test_rows['genus'].to_numpy(),
+        'label_source': test_rows['label_source'].to_numpy(),
         'y_true': y_test,
         'y_score': test_score,
     })
@@ -243,6 +254,67 @@ def run(cfg, verbose=True):
     print(f'[saved] {os.path.relpath(run_dir, os.path.dirname(HERE))}  '
           f'({payload["runtime_seconds"]:.0f}s)')
     return payload
+
+
+def attach_genome_features(df, data_cfg, feat_cfg, verbose=True):
+    """Restrict to genomes with an assembly and add their k-mer columns (Track B).
+
+    data.genomes = "genomes_full" keeps only rows whose genome has a k-mer
+    vector (built by experiments/genome/kmers.py from Data/genomes_full/).
+    features.kmers = {"k": 4, "canonical": false, "extras": true} adds the
+    4**k k-mer frequencies of each row's genome, plus GC content and length
+    when extras is on (what the shipped K-mer model used).
+    """
+    kcfg = feat_cfg.get('kmers')
+    gcfg = feat_cfg.get('genes')
+    if not data_cfg.get('genomes') and not kcfg and not gcfg:
+        return df, []
+    sys.path.insert(0, os.path.join(HERE, 'genome'))
+    import kmers
+
+    ids, counts, length, gc = kmers.load_counts()
+    pos = pd.Index(ids).get_indexer(df['Genome ID'])
+    keep = pos >= 0
+    if verbose:
+        print(f'[genome] {int(keep.sum()):,} of {len(df):,} rows have an assembly '
+              f'({df.loc[keep, "Genome ID"].nunique():,} genomes)')
+    df, pos = df.loc[keep].reset_index(drop=True), pos[keep]
+
+    added = []
+    if kcfg:
+        freq, names = kmers.kmer_matrix(counts, k=kcfg.get('k', 4),
+                                        canonical=kcfg.get('canonical', False))
+        cols = {n: freq[pos, i] for i, n in enumerate(names)}
+        if kcfg.get('extras', True):
+            cols['genome_gc'] = gc[pos].astype(np.float32)
+            cols['genome_length_mb'] = (length[pos] / 1e6).astype(np.float32)
+        extra = pd.DataFrame(cols, index=df.index)
+        if verbose:
+            print(f'[genome] k={kcfg.get("k", 4)}: {extra.shape[1]:,} genome columns')
+        df = pd.concat([df, extra], axis=1)
+        added += list(extra.columns)
+    if gcfg:
+        import genes
+        df, gene_cols = genes.attach(df, gcfg, verbose)
+        added += gene_cols
+    return df, added
+
+
+def metrics_by_label_source(y, score, rows, threshold, ecfg):
+    """Test metrics for lab and computational labels separately, with CIs."""
+    out = {}
+    src = rows['label_source'].to_numpy()
+    groups = rows['Genome ID'].to_numpy()
+    for name in ('lab', 'computational'):
+        m = src == name
+        if m.sum() < 50 or len(np.unique(y[m])) < 2:
+            continue
+        r = metrics.evaluate(y[m], score[m], threshold)
+        r['auc_roc_ci'] = list(metrics.bootstrap_ci(y[m], score[m], groups[m],
+                                                     n_boot=ecfg.get('n_boot', 200)))
+        r['genomes'] = int(len(np.unique(groups[m])))
+        out[name] = r
+    return out
 
 
 def apply_taxon_level(df, level='strain', verbose=True):
@@ -342,6 +414,8 @@ def append_registry(payload):
         'major_error': round(payload['test']['major_error'], 4),
         'threshold': round(payload['test']['threshold'], 3),
         'runtime_seconds': payload['runtime_seconds'],
+        'auc_roc_lab': round(payload['test_by_label_source'].get('lab', {}).get('auc_roc', float('nan')), 4),
+        'n_lab': payload['test_by_label_source'].get('lab', {}).get('n', 0),
     }
     os.makedirs(RESULTS_DIR, exist_ok=True)
     df = pd.DataFrame([row])
