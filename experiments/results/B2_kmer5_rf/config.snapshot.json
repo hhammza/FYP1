@@ -1,0 +1,36 @@
+{
+  "description": "B1 with k=5 (1024 k-mer columns)",
+  "data": {
+    "genomes": "genomes_full"
+  },
+  "split": {
+    "strategy": "grouped",
+    "test_size": 0.2,
+    "seed": 42
+  },
+  "features": {
+    "target_encoding": "none",
+    "base": [
+      "Antibiotic"
+    ],
+    "kmers": {
+      "k": 5,
+      "extras": true
+    }
+  },
+  "model": {
+    "type": "random_forest",
+    "params": {
+      "n_estimators": 100,
+      "max_depth": 15
+    }
+  },
+  "threshold": {
+    "strategy": "fixed",
+    "fixed": 0.5
+  },
+  "evaluation": {
+    "n_boot": 200
+  },
+  "id": "B2_kmer5_rf"
+}
