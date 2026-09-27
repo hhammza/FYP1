@@ -1,0 +1,32 @@
+{
+  "description": "B_base_drug with the random forest used by B0-B2",
+  "data": {
+    "genomes": "genomes_full"
+  },
+  "split": {
+    "strategy": "grouped",
+    "test_size": 0.2,
+    "seed": 42
+  },
+  "features": {
+    "target_encoding": "none",
+    "base": [
+      "Antibiotic"
+    ]
+  },
+  "model": {
+    "type": "random_forest",
+    "params": {
+      "n_estimators": 100,
+      "max_depth": 15
+    }
+  },
+  "threshold": {
+    "strategy": "fixed",
+    "fixed": 0.5
+  },
+  "evaluation": {
+    "n_boot": 200
+  },
+  "id": "B_base_drug_rf"
+}
