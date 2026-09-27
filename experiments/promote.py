@@ -147,7 +147,8 @@ def build_metrics(run_id, run_dir, metrics, meta, promoted_at):
     rule = rule.format(fixed=tcfg.get('fixed', 0.5), vme_budget=tcfg.get('vme_budget', 0.03))
 
     pred_path = os.path.join(run_dir, 'predictions.csv')
-    test_genomes = (int(pd.read_csv(pred_path, usecols=['genome_id'])['genome_id'].nunique())
+    test_genomes = (int(pd.read_csv(pred_path, usecols=['genome_id'],
+                                       dtype={'genome_id': str})['genome_id'].nunique())
                     if os.path.exists(pred_path) else None)
     split = cfg.get('split', {})
     ds = metrics['dataset']
@@ -182,7 +183,7 @@ def build_metrics(run_id, run_dir, metrics, meta, promoted_at):
         'test': test_block(t, t.get('auc_roc_ci')),
         'data': {
             'source': 'BV-BRC AMR phenotypes, Data/amr_output (all files), cleaning '
-                      + data_prep.CLEAN_VERSION,
+                      + ds.get('clean_version', 'unrecorded'),
             'train_rows': int(ds['train_rows']),
             'test_rows': int(ds['test_rows']),
             'train_genomes': int(meta['trained_on']['genomes']),
