@@ -1,0 +1,35 @@
+{
+  "description": "B6_genes_lgbm with a lineage-grouped split: near-identical isolates (cut 0.00005)",
+  "data": {
+    "genomes": "genomes_full"
+  },
+  "split": {
+    "strategy": "lineage",
+    "lineage_cut": "clone",
+    "test_size": 0.2,
+    "seed": 42
+  },
+  "features": {
+    "target_encoding": "none",
+    "base": [
+      "Antibiotic",
+      "drug_class",
+      "genus"
+    ],
+    "genes": {
+      "raw": true,
+      "min_genomes": 10,
+      "drug_aware": true
+    }
+  },
+  "model": {
+    "type": "lightgbm"
+  },
+  "threshold": {
+    "strategy": "fixed",
+    "fixed": 0.5
+  },
+  "evaluation": {
+    "n_boot": 200
+  }
+}
