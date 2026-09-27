@@ -17,19 +17,28 @@ import pandas as pd
 HERE = os.path.dirname(os.path.abspath(__file__))
 REGISTRY = os.path.join(HERE, 'results', 'registry.csv')
 
+# Cleaning version of runs made before the registry recorded one. Only the
+# two past deployments are kept on older data, as a record of what was served.
+PRE_COLUMN_VERSIONS = {'D1_forecaster_deploy': 'v3', 'D2_forecaster_deploy': 'v4'}
+
 
 def comparison_table():
     if not os.path.exists(REGISTRY):
         return '_No runs yet._'
     df = pd.read_csv(REGISTRY).sort_values('auc_pr', ascending=False)
+    if 'clean_version' not in df:
+        df['clean_version'] = None
 
     lines = [
-        '| Run | Split | Encoding | Model | AUC-ROC [95% CI] | AUPRC | F1 | VME | ME | Brier | Thr |',
-        '|---|---|---|---|---|---|---|---|---|---|---|',
+        '| Run | Data | Split | Encoding | Model | AUC-ROC [95% CI] | AUPRC | F1 | VME | ME | Brier | Thr |',
+        '|---|---|---|---|---|---|---|---|---|---|---|---|',
     ]
     for _, r in df.iterrows():
+        version = r['clean_version']
+        if pd.isna(version):
+            version = PRE_COLUMN_VERSIONS.get(r['id'], '?')
         lines.append(
-            f"| `{r['id']}` | {r['split']} | {r['encoding']} | {r['model']} "
+            f"| `{r['id']}` | {version} | {r['split']} | {r['encoding']} | {r['model']} "
             f"| {r['auc_roc']:.4f} [{r['auc_ci_low']:.4f}-{r['auc_ci_high']:.4f}] "
             f"| {r['auc_pr']:.4f} | {r['f1']:.4f} "
             f"| {r['very_major_error']:.1%} | {r['major_error']:.1%} "
