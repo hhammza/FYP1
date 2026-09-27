@@ -88,6 +88,12 @@ def run(cfg, verbose=True):
 
     # ── Split ────────────────────────────────────────────────────────────
     scfg = cfg['split']
+    # Rows are grouped by genome, or by lineage cluster under the 'lineage'
+    # split, everywhere a split is made: test, encoding folds and validation.
+    group_col = 'Genome ID'
+    if scfg.get('strategy') == 'lineage':
+        df = attach_lineage(df, scfg.get('lineage_cut', 'clone'), verbose)
+        group_col = 'lineage_group'
     train_mask, test_mask = splits.make_split(
         df,
         strategy=scfg.get('strategy', 'grouped'),
@@ -102,7 +108,7 @@ def run(cfg, verbose=True):
     folds = None
     if enc_mode == 'oof':
         folds = splits.inner_folds(df.loc[train_mask], n_splits=fcfg.get('encoding_folds', 5),
-                                   seed=scfg.get('seed', 42))
+                                   seed=scfg.get('seed', 42), group_col=group_col)
     df, rate_features = encoders.add_rate_features(df, train_mask, enc_mode, folds, verbose)
 
     features = list(fcfg.get('base', BASE_FEATURES)) + rate_features + genome_features
@@ -121,7 +127,7 @@ def run(cfg, verbose=True):
     # Validation slice for early stopping and threshold choice, grouped so the
     # same genome cannot sit in both halves of the training data either.
     train_df = df.loc[train_mask].reset_index(drop=True)
-    inner = splits.inner_folds(train_df, n_splits=6, seed=scfg.get('seed', 42))
+    inner = splits.inner_folds(train_df, n_splits=6, seed=scfg.get('seed', 42), group_col=group_col)
     fit_pos, val_pos = inner[0]
     X_fit, X_val = X_train_all.iloc[fit_pos], X_train_all.iloc[val_pos]
     y_fit, y_val = y_train_all[fit_pos], y_train_all[val_pos]
@@ -145,7 +151,8 @@ def run(cfg, verbose=True):
     thr_pos = np.arange(len(y_val))
     if ccfg:
         val_df = train_df.iloc[val_pos].reset_index(drop=True)
-        cal_pos, thr_pos = splits.inner_folds(val_df, n_splits=2, seed=scfg.get('seed', 42))[0]
+        cal_pos, thr_pos = splits.inner_folds(val_df, n_splits=2, seed=scfg.get('seed', 42),
+                                              group_col=group_col)[0]
         calibrator = metrics.fit_calibrator(y_val[cal_pos], val_raw[cal_pos],
                                             ccfg.get('method', 'isotonic'))
     val_score = metrics.apply_calibrator(calibrator, val_raw)
@@ -180,13 +187,14 @@ def run(cfg, verbose=True):
 
     ecfg = cfg['evaluation']
     test_rows = df.loc[test_mask]
-    lo, hi = metrics.bootstrap_ci(y_test, test_score, test_rows['Genome ID'].to_numpy(),
+    # Resample the same unit the split grouped on: genomes, or lineages
+    lo, hi = metrics.bootstrap_ci(y_test, test_score, test_rows[group_col].to_numpy(),
                                   n_boot=ecfg.get('n_boot', 200))
     result['auc_roc_ci'] = [lo, hi]
     by_drug = metrics.per_group(y_test, test_score, test_rows['Antibiotic'].to_numpy(),
                                 threshold, min_n=ecfg.get('min_n_per_group', 50))
 
-    by_source = metrics_by_label_source(y_test, test_score, test_rows, threshold, ecfg)
+    by_source = metrics_by_label_source(y_test, test_score, test_rows, threshold, ecfg, group_col)
 
     print(f'\n[result] AUC {result["auc_roc"]:.4f} [{lo:.4f}-{hi:.4f}]  '
           f'AUPRC {result["auc_pr"]:.4f}  F1 {result["f1"]:.4f}')
@@ -300,11 +308,12 @@ def attach_genome_features(df, data_cfg, feat_cfg, verbose=True):
     return df, added
 
 
-def metrics_by_label_source(y, score, rows, threshold, ecfg):
+def metrics_by_label_source(y, score, rows, threshold, ecfg, group_col='Genome ID'):
     """Test metrics for lab and computational labels separately, with CIs."""
     out = {}
     src = rows['label_source'].to_numpy()
-    groups = rows['Genome ID'].to_numpy()
+    groups = rows[group_col].to_numpy()
+    genome_ids = rows['Genome ID'].to_numpy()
     for name in ('lab', 'computational'):
         m = src == name
         if m.sum() < 50 or len(np.unique(y[m])) < 2:
@@ -312,8 +321,29 @@ def metrics_by_label_source(y, score, rows, threshold, ecfg):
         r = metrics.evaluate(y[m], score[m], threshold)
         r['auc_roc_ci'] = list(metrics.bootstrap_ci(y[m], score[m], groups[m],
                                                      n_boot=ecfg.get('n_boot', 200)))
-        r['genomes'] = int(len(np.unique(groups[m])))
+        r['genomes'] = int(len(np.unique(genome_ids[m])))
         out[name] = r
+    return out
+
+
+def attach_lineage(df, cut='clone', verbose=True):
+    """Add lineage_group: the genome's lineage cluster at one of lineage.CUTS."""
+    sys.path.insert(0, os.path.join(HERE, 'genome'))
+    import lineage
+
+    table = lineage.load()
+    col = f'lineage_{cut}'
+    if col not in table:
+        raise ValueError(f'unknown lineage_cut {cut!r}; choose from {list(lineage.CUTS)}')
+    groups = df['Genome ID'].map(dict(zip(table['genome_id'], table[col])))
+    if groups.isna().any():
+        raise ValueError(f'{int(groups.isna().sum()):,} rows have no lineage cluster; '
+                         'use data.genomes = "genomes_full" with the lineage split')
+    out = df.copy()
+    out['lineage_group'] = groups.astype(int)
+    if verbose:
+        print(f'[lineage] cut {cut} ({lineage.CUTS[cut]}): '
+              f'{out["lineage_group"].nunique():,} clusters over {out["Genome ID"].nunique():,} genomes')
     return out
 
 
