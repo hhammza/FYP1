@@ -117,6 +117,8 @@ New folder `experiments/genome/`, reusing `lib/splits.py` and `lib/metrics.py`.
 
 ## Week 3: gene-feature models and deployment
 
+- [ ] **Rework `lineage.py` for ~25,000 genomes:** the full distance matrix would be ~5 GB, too much for 8 GB RAM. Cluster within each species instead (between-species distances are all ≥ 0.0068, far above every cut)
+- [ ] Re-run the Track B and lineage runs on Ali's lab-tested genomes; quote lab AUCs only from these
 - [ ] **B6** AMR-gene presence features (Ali's full gene matrix) + antibiotic + drug class + genus
 - [ ] **B7** B6 + k-mers + genus (the "multimodal" model)
 - [ ] **B8** species hold-out
@@ -173,7 +175,7 @@ New folder `experiments/genome/`, reusing `lib/splits.py` and `lib/metrics.py`.
 | To Suleman | New response fields: `/forecast` has `model_run`, `calibrated`; both pages can return `model_used: "Heuristic fallback"` (show a warning); `/predict` has `antibiotic_known` | Week 1 | [x] 2026-09-26: Suleman's T1.3 shows warnings for `Heuristic fallback` and for an antibiotic the k-mer model never saw (CHANGES.md) |
 | To Suleman | Genome response with `genes_found` | Week 3 | [ ] |
 | To Suleman | A genome-models section on `/models`: B-track runs are excluded from `model_report.json` for now (`export_report.py`), because their dataset and labels differ from the tabular runs. Show them separately, with lab AUC and its n | Week 3 | [ ] |
-| To Ali | **Download + AMRFinderPlus for lab-tested genomes.** Only 30 lab-tested genomes are in the test set today; the export has 22,475 lab-tested genomes (201,042 rows, 107 drugs, 49.5% resistant). A stratified sample of ~5,000 would make the lab AUCs quotable. `kmers.py` and `genes.py` pick new genomes up with no code change | Week 3 | [ ] |
+| To Ali | **Download + AMRFinderPlus for lab-tested genomes.** Only 30 lab-tested genomes are in the test set today; the export has 22,475 lab-tested genomes (201,042 rows, 107 drugs, 49.5% resistant). A stratified sample of ~5,000 would make the lab AUCs quotable. `kmers.py` and `genes.py` pick new genomes up with no code change | Week 3 | [~] 2026-09-27: Ali is downloading **all 22,475** (about 90 GB, 2–3 days with AMRFinderPlus; 291 lab-tested so far, was 136). Asked him to send `kmer6_counts.npz` (run `kmers.py` on his Mac) + the new `gene_matrix.parquet`/`gene_info.csv` instead of the genomes (this laptop has ~27 GB free), and an early batch to test at scale |
 | To Ali | Proposed gene-matrix format in `progress/formats/README.md` §3 (string `Genome ID` index, zero rows for searched genomes, `gene_info.csv`); `pyarrow` needed | Day 1 | [x] agreed by Ali 2026-09-26, formats §3; `pyarrow` in `experiments/requirements.txt` |
 | To supervisor | Scope email | Day 1 | [x] sent 2026-09-25; reply pending |
 
@@ -196,6 +198,7 @@ Newest first. One line per work session: date, what I did, what is next, anythin
 
 | Date | Done | Next | Blockers |
 |---|---|---|---|
+| 2026-09-27 | Answered Ali: labels come from `Data/amr_output/` (joined by Genome ID), not `mapped_output/`, so the lab-tested genomes join once they are in the k-mer cache and gene matrix. Asked for the k-mer cache + gene matrix instead of 90 GB of genomes, and an early batch | Rework `lineage.py` for ~25k genomes; test on the early batch | Disk: ~27 GB free. The project is inside OneDrive: keep `Data/` out of OneDrive sync |
 | 2026-09-27 | Lineage check: `lineage.py` clusters the 2,587 genomes by 6-mer cosine distance at 4 cuts; `lineage` split in `splits.py`/`run.py` (inner folds and CIs grouped by lineage too); 16 runs. K-mer and gene gains survive held-out lineages; with *E. coli* held out k-mers collapse (0.545), genes hold 0.708 | B7, B8 proper (several held-out species with CIs) | Species cut gives a single test cluster, so no CI |
 | 2026-09-27 | Week 2: k-mer cache from complete genomes, genome/gene support and lab-only metrics in the harness, 12 B-track runs (baselines, B0, B1, B2 ×3, B4, B6 + its baseline). K-mers on complete genomes beat taxonomy (B4 0.956 vs 0.823), genes more so (B6 0.981), but lab evidence is 30 genomes | Ask Ali for lab genomes; lineage-grouped split; B7, B8 | Lab test set too small to quote; possible lineage leakage |
 | 2026-09-26 | Registry re-run on v5 finished: 23 runs, no failures. Two conclusions changed: the learning curve flattens after ~100 k rows, not 50 k (`LC_50k` 0.8157 → 0.8038); `A12_species_holdout` error rates swapped at 0.40 (VME 11% → 52%), so quote only its AUC (0.6041). Docs and CHANGES.md updated | Week 2: B0–B4 on `Data/genomes_full/`, B6 on the gene matrix | None |
