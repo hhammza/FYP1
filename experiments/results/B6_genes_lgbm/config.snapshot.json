@@ -1,0 +1,35 @@
+{
+  "description": "Gene features (raw 0/1 + drug-aware) + antibiotic, drug class, genus: first B6, judge on lab rows",
+  "data": {
+    "genomes": "genomes_full"
+  },
+  "split": {
+    "strategy": "grouped",
+    "test_size": 0.2,
+    "seed": 42
+  },
+  "features": {
+    "target_encoding": "none",
+    "base": [
+      "Antibiotic",
+      "drug_class",
+      "genus"
+    ],
+    "genes": {
+      "raw": true,
+      "min_genomes": 10,
+      "drug_aware": true
+    }
+  },
+  "model": {
+    "type": "lightgbm"
+  },
+  "threshold": {
+    "strategy": "fixed",
+    "fixed": 0.5
+  },
+  "evaluation": {
+    "n_boot": 200
+  },
+  "id": "B6_genes_lgbm"
+}
