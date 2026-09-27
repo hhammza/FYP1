@@ -1,0 +1,32 @@
+{
+  "description": "B4_kmer4_lgbm with a lineage-grouped split: about species level (0.005)",
+  "data": {
+    "genomes": "genomes_full"
+  },
+  "split": {
+    "strategy": "lineage",
+    "lineage_cut": "species",
+    "test_size": 0.2,
+    "seed": 42
+  },
+  "features": {
+    "target_encoding": "none",
+    "base": [
+      "Antibiotic"
+    ],
+    "kmers": {
+      "k": 4,
+      "extras": true
+    }
+  },
+  "model": {
+    "type": "lightgbm"
+  },
+  "threshold": {
+    "strategy": "fixed",
+    "fixed": 0.5
+  },
+  "evaluation": {
+    "n_boot": 200
+  }
+}
