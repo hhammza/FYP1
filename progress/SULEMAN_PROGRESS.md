@@ -23,7 +23,7 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done · `[!]` blocke
 | Week | Dates (planned) | Focus | Status |
 | --- | --- | --- | --- |
 | 1 | 28 Sep to 2 Oct | Remove hardcoded AUCs, UI reads `metrics.json`, security | Done (T1.3, T2.4) |
-| 2 | 5 Oct to 9 Oct | Exports (CSV, PDF, PNG), batch CSV upload | Not started |
+| 2 | 5 Oct to 9 Oct | Exports (CSV, PDF, PNG), batch CSV upload | Done 2026-09-27 (T2.2, T2.3) |
 | 3 | 12 Oct to 16 Oct | Genome result UI, genome-models section on `/models`, Dockerfile with AMRFinderPlus | Not started; the Dockerfile depends on Hamza's model choice (Week 3, day 1) |
 | 4 | 19 Oct to 23 Oct | RL panel on `/timeline`, automated tests | Not started |
 | 5 | 26 Oct to 30 Oct | Deploy, tag, demo video, system-design chapter | Not started |
@@ -44,7 +44,7 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done · `[!]` blocke
 
 - [x] Formats written down in the team channel or below
 
-> Agreed formats: **[progress/formats/README.md](formats/README.md)** (Hamza: metrics files, genome response; Ali: gene matrix, timeline + RL in §4 with [`timeline_response.sample.json`](formats/timeline_response.sample.json)). My batch CSV format still to be added there.
+> Agreed formats: **[progress/formats/README.md](formats/README.md)** (Hamza: metrics files, genome response; Ali: gene matrix, timeline + RL in §4 with [`timeline_response.sample.json`](formats/timeline_response.sample.json)). My batch CSV format is section 5.
 
 ---
 
@@ -123,29 +123,29 @@ Built against the real files (`backend/trained_models/lgbm_metrics.json`, `kmer_
 
 ### T2.2 Exports on `/forecast`, `/predict`, `/timeline`
 
-- [ ] **CSV:** routes such as `/export/forecast.csv`; timeline gives one row per week
+- [x] **CSV:** routes such as `/export/forecast.csv`; timeline gives one row per week. *`POST /export/<page>.csv`: the page posts back the result it showed; formulas in cells are neutralised*
 
-- [ ] **PNG:** "Download chart" button using `Plotly.downloadImage`
+- [x] **PNG:** "Download chart" button using `Plotly.downloadImage`. *`Plotly.toImage` on a light copy of the chart, so it prints well whatever the page theme (`static/js/export.js`)*
 
-- [ ] **PDF:** ReportLab report with inputs, prediction, probability, model name, version and AUC from `metrics.json`, charts, timestamp, and "research tool, not a clinical diagnostic"
+- [x] **PDF:** ReportLab report with inputs, prediction, probability, model name, version and AUC from `metrics.json`, charts, timestamp, and "research tool, not a clinical diagnostic". *`frontend/exports.py`; model details come from the metrics files on the server, never from the page; only a real PNG is embedded*
 
-- [ ] Timeline exports say **"Simulation, not a trained model"**
+- [x] Timeline exports say **"Simulation, not a trained model"** *(banner and footer of the PDF, every CSV row)*
 
-- **Done when:** each of the three pages downloads all three formats
+- **Done when:** each of the three pages downloads all three formats. **Met 2026-09-27** (CSV and PDF checked end to end with the real backend; the PNG button runs in the browser, so try it once by hand)
 
 ### T2.3 Batch CSV upload on `/forecast`
 
-- [ ] "Upload CSV" tab and a downloadable sample template
+- [x] "Upload CSV" tab and a downloadable sample template (`/forecast/template.csv`)
 
-- [ ] `POST /api/forecast/batch/`: validate each row, predict in one call, per-row result + `error` column
+- [x] `POST /api/forecast/batch/`: validate each row, predict in one call, per-row result + `error` column. *Same probabilities as the single `/forecast`; unknown antibiotics are an error, a MIC sign without a value is ignored as on `/forecast`*
 
-- [ ] Summary table (R/S counts, per-antibiotic chart) and "Download results CSV"
+- [x] Summary table (R/S counts, per-antibiotic chart) and "Download results CSV" (the page lists the first 200 rows; the CSV has all)
 
-- [ ] Limits: 10,000 rows and a maximum file size, checked on the server
+- [x] Limits: 10,000 rows and a maximum file size, checked on the server (2 MB; 5 uploads a minute per visitor)
 
-- [ ] Add the batch CSV format (template columns, response, `error` column) to `progress/formats/README.md` as a new section, like the others, so Hamza can check it against `LGBMResistancePredictor.features_frame()`
+- [x] Add the batch CSV format (template columns, response, `error` column) to `progress/formats/README.md` as a new section, like the others, so Hamza can check it against `LGBMResistancePredictor.features_frame()` *Done 2026-09-27: section 5*
 
-- **Done when:** a 1,000-row file returns a results CSV with errors marked per row
+- **Done when:** a 1,000-row file returns a results CSV with errors marked per row. **Met 2026-09-27:** 1,000 rows in 0.1 s, errors on exactly the 3 bad rows. Tests: `backend/tests/test_batch.py` (7), `frontend/tests/test_exports.py` (9)
 
 ---
 
@@ -163,7 +163,7 @@ Built against the real files (`backend/trained_models/lgbm_metrics.json`, `kmer_
 
 ### RL panel on `/timeline`
 
-- [ ] Remove the "CNN-LSTM deep-learning model is available for training" claim (`mutation_timeline.html:164`, `train.html:142, 147, 154`): `/train` only trains `lgbm` and `kmer`, and the format drops the CNN-LSTM label
+- [x] Remove the "CNN-LSTM deep-learning model is available for training" claim (`mutation_timeline.html:164`, `train.html:142, 147, 154`): `/train` only trains `lgbm` and `kmer`, and the format drops the CNN-LSTM label *Done 2026-09-27, with the "results are accurate" claims on the same cards*
 
 - [ ] Panel labelled **"Simulation + RL policy (not trained on patient data)"**, built against Ali's agreed response format
 
@@ -232,6 +232,8 @@ Newest first. One line per work session: date, what I did, what is next, anythin
 
 | Date | Done | Next | Blockers |
 | --- | --- | --- | --- |
+| 2026-09-27 | Week 2 done: CSV/PDF/PNG downloads on `/forecast`, `/predict`, `/timeline`; batch CSV upload with template, summary, chart and results CSV; CNN-LSTM text removed; 16 new tests | Genome section on `/models`, `genes_found` UI (Week 3) | Genome section waits on Hamza's report export |
+| 2026-09-27 | Pulled Hamza's Week 1 close (D3, threshold 0.23) and Week 2: `/models`, `/compare` show D3, sliders follow 0.23 with no change. Added Hamza's genome-section request | T2.2 exports | Genome section waits on Hamza's report export |
 | 2026-09-26 | T2.4 security: env-only secrets and hosts, no CORS, admin token on train/reload + password on `/train`, 20 MB upload limit, rate limits, no database; 13 tests | T2.2 exports | None |
 | 2026-09-26 | T1.3: every page reads its AUC from `metrics.json` via `/api/health/`; sliders start at the validated threshold (0.24); fallback and unknown-drug warnings | T2.4 security | None |
 | 2026-09-26 | Antibiotic dropdown 47 → 82: Ali's 15 drugs plus 20 more from `BVBRC_genome_amr.csv`; spelling variants listed for Ali | T1.3 hardcoded AUCs | None |

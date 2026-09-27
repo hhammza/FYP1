@@ -85,7 +85,12 @@ FILE_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024                 # larger files spo
 # Requests per client IP (per worker process) on the prediction endpoints.
 # RATELIMIT_ENABLE=False switches them off, e.g. for a load test.
 RATELIMIT_ENABLE = os.environ.get('RATELIMIT_ENABLE', 'True') == 'True'
-RATE_LIMITS = {'forecast': '60/m', 'predict': '10/m', 'timeline': '10/m'}
+RATE_LIMITS = {'forecast': '60/m', 'predict': '10/m', 'timeline': '10/m', 'batch': '5/m'}
+
+# Batch CSV upload on /forecast (POST /api/forecast/batch/).
+BATCH_MAX_ROWS = 10_000
+BATCH_MAX_BYTES = 2 * 1024 * 1024
+BATCH_COLUMNS = ['antibiotic', 'genus', 'species', 'taxon_id', 'mic_value', 'mic_sign']
 
 REST_FRAMEWORK = {
     'DEFAULT_RENDERER_CLASSES': ['rest_framework.renderers.JSONRenderer'],

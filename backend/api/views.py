@@ -157,6 +157,138 @@ class ResistanceForecastView(View):
             return json_error(str(e), 500)
 
 
+MIC_SIGNS = {'=', '==', '<', '<=', '>', '>=', '\u2264', '\u2265', '=<', '=>'}
+
+
+def check_batch_row(row, known_antibiotics, normalize):
+    """(clean record, None) or (None, error message) for one CSV row."""
+    rec = {k: (row.get(k) or '').strip() for k in settings.BATCH_COLUMNS}
+    ab = normalize(rec['antibiotic'])
+    if not ab:
+        return None, 'antibiotic is required'
+    if known_antibiotics and ab not in known_antibiotics:
+        return None, f'unknown antibiotic "{rec["antibiotic"]}" (the model was not trained on it)'
+    out = {'antibiotic': ab, 'genus': rec['genus'] or 'unknown', 'species': rec['species'] or 'unknown',
+           'taxon_id': None, 'mic_value': None, 'mic_sign': rec['mic_sign'] or None}
+    if rec['taxon_id']:
+        try:
+            out['taxon_id'] = int(float(rec['taxon_id']))
+            if out['taxon_id'] < 1:
+                raise ValueError
+        except ValueError:
+            return None, f'taxon_id must be a positive whole number, not "{rec["taxon_id"]}"'
+    if rec['mic_value']:
+        try:
+            out['mic_value'] = float(rec['mic_value'])
+            if not out['mic_value'] > 0:
+                raise ValueError
+        except ValueError:
+            return None, f'mic_value must be a positive number, not "{rec["mic_value"]}"'
+    if out['mic_sign'] and out['mic_sign'] not in MIC_SIGNS:
+        return None, f'mic_sign must be one of = < <= > >=, not "{rec["mic_sign"]}"'
+    if out['mic_value'] is None:
+        out['mic_sign'] = None        # a sign alone says nothing; /forecast ignores it too
+    return out, None
+
+
+class BatchForecastView(View):
+    """Many isolates at once from a CSV upload (field `file`).
+
+    Columns: antibiotic (required), genus, species, taxon_id, mic_value,
+    mic_sign. Each input row gets one result row, with `error` set instead of
+    a prediction when the row is invalid. Valid rows are predicted in one call.
+    """
+
+    def post(self, request):
+        refused = rate_limited(request, 'batch')
+        if refused:
+            return refused
+        mb = settings.BATCH_MAX_BYTES // (1024 * 1024)
+        too_large = json_error(f'CSV is too large: the limit is {mb} MB.', 413)
+        try:
+            size = int(request.META.get('CONTENT_LENGTH') or 0)
+        except ValueError:
+            size = 0
+        if size > settings.BATCH_MAX_BYTES + 64 * 1024:
+            return too_large
+        upload = request.FILES.get('file')
+        if upload is None:
+            return json_error('Upload a CSV file in the field "file".')
+        if upload.size > settings.BATCH_MAX_BYTES:
+            return too_large
+
+        model = model_registry.get_lgbm()
+        if model is None or not model.is_trained:
+            return json_error('The forecasting model is not loaded.', 503)
+
+        try:
+            text = upload.read().decode('utf-8-sig')
+        except UnicodeDecodeError:
+            return json_error('The CSV must be UTF-8 text.')
+        reader = csv.DictReader(io.StringIO(text))
+        if not reader.fieldnames:
+            return json_error('The CSV is empty.')
+        reader.fieldnames = [(f or '').strip().lower() for f in reader.fieldnames]
+        if 'antibiotic' not in reader.fieldnames:
+            return json_error('The CSV needs an "antibiotic" column. Columns: '
+                              + ', '.join(settings.BATCH_COLUMNS))
+        rows = []
+        for row in reader:
+            if not any(isinstance(v, str) and v.strip() for v in row.values()):
+                continue                      # blank line
+            if len(rows) >= settings.BATCH_MAX_ROWS:
+                return json_error(f'Too many rows: the limit is {settings.BATCH_MAX_ROWS:,}.', 413)
+            rows.append(row)
+        if not rows:
+            return json_error('The CSV has a header but no rows.')
+
+        known = set(model.vocabulary['antibiotics'])
+        checked = [check_batch_row(r, known, model._normalize_antibiotic) for r in rows]
+        valid = [(i, rec) for i, (rec, err) in enumerate(checked) if rec]
+        probs = {}
+        if valid:
+            import pandas as pd
+            try:
+                p = model.predict_frame(pd.DataFrame([rec for _, rec in valid]))
+            except Exception:
+                traceback.print_exc()
+                return json_error('The model failed on this file.', 500)
+            probs = {i: float(v) for (i, _), v in zip(valid, p)}
+
+        threshold = model.threshold
+        results = []
+        for i, (row, (rec, err)) in enumerate(zip(rows, checked)):
+            out = {'row': i + 1}
+            out.update({k: (row.get(k) or '').strip() for k in settings.BATCH_COLUMNS})
+            if err:
+                out.update(prediction='', probability=None, error=err)
+            else:
+                out.update(antibiotic=rec['antibiotic'],
+                           prediction='Resistant' if probs[i] >= threshold else 'Susceptible',
+                           probability=round(probs[i], 4), error='')
+            results.append(out)
+
+        by_ab = {}
+        for r in results:
+            if not r['error']:
+                d = by_ab.setdefault(r['antibiotic'], {'antibiotic': r['antibiotic'], 'n': 0, 'resistant': 0})
+                d['n'] += 1
+                d['resistant'] += r['prediction'] == 'Resistant'
+        n_ok = sum(1 for r in results if not r['error'])
+        n_res = sum(d['resistant'] for d in by_ab.values())
+        return JsonResponse({
+            'rows': results,
+            'summary': {
+                'rows': len(results), 'predicted': n_ok, 'errors': len(results) - n_ok,
+                'resistant': n_res, 'susceptible': n_ok - n_res,
+                'by_antibiotic': sorted(by_ab.values(), key=lambda d: (-d['n'], d['antibiotic'])),
+            },
+            'threshold': threshold,
+            'model_run': model.run_id,
+            'calibrated': bool(model.calibration),
+        })
+
+
 class ResistancePredictionView(View):
     """K-mer CNN/MLP resistance prediction from FASTA."""
 

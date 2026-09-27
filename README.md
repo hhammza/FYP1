@@ -15,6 +15,10 @@
 > **Updated 2026-09-26.** The backend has been hardened (§11.4): no default
 > secrets, a password on Train and Reload, upload and rate limits, and no
 > database. Local runs need `DEBUG=True`, which `start.sh` and `start.bat` set (§9).
+>
+> **Updated 2026-09-27.** `/forecast`, `/predict` and `/timeline` download their
+> result as CSV, a PDF report or a PNG chart, and `/forecast` takes a CSV of up
+> to 10,000 isolates (§8, "Downloads and batch upload").
 
 This is a companion to `PROJECT_DOCUMENTATION.md`, not a replacement. That file is the long reference (datasets, hyperparameters, CSS classes). This one covers what the system is, what its parts are, how a click becomes a prediction, and what is true about it today. Every claim was checked against the code or reproduced by running it. Where the two documents disagree, sections 10 and 11 say why.
 
@@ -26,8 +30,8 @@ You built a full-stack antimicrobial-resistance (AMR) prediction system with **f
 
 | # | Deliverable | Where | What it is |
 |---|---|---|---|
-| 1 | **Django REST API** | `backend/` | 8 endpoints, loads 3 prediction engines into memory at startup |
-| 2 | **Flask web app** | `frontend/` | 14 routes, 11 pages, calls the Django API over HTTP |
+| 1 | **Django REST API** | `backend/` | 14 endpoints, loads 3 prediction engines into memory at startup |
+| 2 | **Flask web app** | `frontend/` | 22 routes, 11 pages, calls the Django API over HTTP |
 | 3 | **`amrpredict` Python package** | `amrpredict-lib/` | The same three engines, cleaned up, pip-installable, with a CLI and tests |
 | 4 | **Research notebooks** | `*.ipynb` | Where the models were originally designed and trained (Colab) |
 
@@ -79,7 +83,8 @@ FYP1/
 │   └── tests/                   unittest: antibiotic names, security (§11.4)
 │
 ├── frontend/                    Flask app (port 5001 by default)
-│   ├── app.py                   14 routes; a thin proxy over the Django API
+│   ├── app.py                   22 routes; a thin proxy over the Django API
+│   ├── exports.py               CSV and PDF downloads of a tool page's result
 │   ├── templates/               11 Jinja2 pages, all extending base.html
 │   └── static/
 │       ├── css/                 8 files: tokens → layout → components → … → dark
@@ -356,7 +361,10 @@ The bundled artifacts are **byte-identical** to `backend/trained_models/` (verif
 | Route | Methods | Backend call | Page |
 |---|---|---|---|
 | `/` | GET | `health/` | `index.html`, landing, live model status |
-| `/forecast` | GET, POST | `forecast/` | `resistance_forecast.html` |
+| `/forecast` | GET, POST | `forecast/` | `resistance_forecast.html`, one isolate or an uploaded CSV |
+| `/forecast/batch` | POST | `forecast/batch/` | the same page with a batch summary, chart and row table |
+| `/forecast/template.csv` | GET | n/a | sample file for the batch upload |
+| `/export/<page>.csv`, `.pdf` | POST | n/a | download of the result on `/forecast`, `/predict`, `/timeline` (batch: CSV only) |
 | `/predict` | GET, POST | `predict/` | `resistance_prediction.html` |
 | `/timeline` | GET, POST | `timeline/` | `mutation_timeline.html` |
 | `/train` | GET, POST | `train/` | `train.html` |
@@ -380,6 +388,20 @@ The bundled artifacts are **byte-identical** to `backend/trained_models/` (verif
 - **JS is one file per page** plus `main.js` (the global `window.AMR` helper: Plotly theme fragment, toasts) and `dropdowns.js`.
 - **Dropdowns populate themselves.** Any `<select data-populate="antibiotics">` is filled by `dropdowns.js` from `/api/antibiotics`, cached in `sessionStorage` for the tab, with `data-selected="…"` restoring the choice after a POST. That's why the antibiotic list lives in exactly one place per source.
 - **Charts are server-data → inline JSON → Plotly.** The template writes `<script type="application/json" id="kmer-chart-data">{{ result.top_kmers | tojson }}</script>` and the page script parses it. No API call, no template-inlined JavaScript data.
+
+### Downloads and batch upload
+
+Each tool page has a **Download this result** bar under its result. The page posts back the result it rendered, and `frontend/exports.py` builds the file:
+
+| Format | Contents |
+|---|---|
+| CSV | One row per result (the timeline: one row per week, each labelled "Simulation, not a trained model"). Cells that would start a spreadsheet formula get a leading apostrophe |
+| PDF | ReportLab: inputs, result, the model's name, run, AUC with its interval and threshold rule, the chart, the detail table, a timestamp, and "Research tool, not a clinical diagnostic" |
+| PNG | The chart, redrawn on white by `static/js/export.js` |
+
+The model details come from the metrics files on the server, never from the page, so a download cannot carry numbers the server did not produce. Only a real PNG is embedded in a PDF.
+
+**Batch upload** (`/forecast`, "Upload CSV" tab): columns `antibiotic` (required), `genus`, `species`, `taxon_id`, `mic_value`, `mic_sign`; up to 10,000 rows and 2 MB. `POST /api/forecast/batch/` checks every row, predicts the valid ones in one call (the same probabilities as the single form) and returns one result row per input row, with `error` set on the rows it could not use. The page shows the R/S counts, a chart per antibiotic and the first 200 rows; the results CSV has all of them.
 
 ### 8.1 The report pages: `/models` and `/compare`
 

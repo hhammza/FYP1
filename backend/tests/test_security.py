@@ -11,20 +11,9 @@ import subprocess
 import sys
 import unittest
 
-BACKEND = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, BACKEND)
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-TOKEN = 'test-admin-token'
-os.environ.update({
-    'DJANGO_SETTINGS_MODULE': 'backend.settings',
-    'DEBUG': 'False',
-    'SECRET_KEY': 'test-only-secret-key',
-    'ALLOWED_HOSTS': 'testserver',
-    'ADMIN_TOKEN': TOKEN,
-})
-
-import django  # noqa: E402
-django.setup()
+from django_setup import BACKEND, TOKEN  # noqa: E402  (configures Django)
 
 from django.core.cache import cache  # noqa: E402
 from django.test import Client, override_settings  # noqa: E402

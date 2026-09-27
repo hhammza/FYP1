@@ -6,6 +6,7 @@ import os
 import json
 import time
 import requests
+import exports
 from flask import (Flask, Response, render_template, request, jsonify, redirect, url_for,
                    has_request_context)
 
@@ -172,17 +173,19 @@ def inject_model_numbers():
 
 
 TOOL_TEMPLATES = {'/predict': 'resistance_prediction.html', '/timeline': 'mutation_timeline.html',
-                  '/forecast': 'resistance_forecast.html'}
+                  '/forecast': 'resistance_forecast.html', '/forecast/batch': 'resistance_forecast.html'}
 
 
 @app.errorhandler(413)
 def upload_too_large(_e):
     """An oversized upload returns to its page with a message, not a bare 413."""
-    message = f'The file is too large: the limit is {MAX_FASTA_MB} MB.'
+    limit = 2 if request.path == '/forecast/batch' else MAX_FASTA_MB
+    message = f'The file is too large: the limit is {limit} MB.'
     template = TOOL_TEMPLATES.get(request.path)
     if template is None:
         return jsonify({'error': message}), 413
-    return render_template(template, result=None, error=message, form_data={}), 413
+    mode = 'batch' if request.path == '/forecast/batch' else None
+    return render_template(template, result=None, error=message, form_data={}, mode=mode), 413
 
 
 @app.route('/')
@@ -303,6 +306,84 @@ def mutation_timeline():
         error=error,
         form_data=form_data,
     )
+
+
+# ── Exports ──────────────────────────────────────────────────────────────
+# The page posts back the result it rendered; the model details are added
+# from the metrics files here (exports.py), so they cannot be edited on the way.
+
+EXPORT_MODEL = {'forecast': 'lgbm_forecasting', 'batch': 'lgbm_forecasting',
+                'predict': 'kmer_resistance', 'timeline': None}
+
+
+def _json_field(name):
+    try:
+        value = json.loads(request.form.get(name) or '{}')
+    except ValueError:
+        return None
+    return value if isinstance(value, dict) else None
+
+
+@app.route('/export/<any(forecast, predict, timeline, batch):page>.<any(csv, pdf):fmt>', methods=['POST'])
+def export_result(page, fmt):
+    """Download the result shown on a tool page, as CSV or PDF."""
+    result, inputs = _json_field('result'), _json_field('inputs') or {}
+    if not result:
+        return jsonify({'error': 'Nothing to export: run a prediction first.'}), 400
+    if page == 'batch' and fmt == 'pdf':
+        return jsonify({'error': 'Batch results export as CSV only.'}), 400
+    models = (model_health() or {}).get('models') or {}
+    key = EXPORT_MODEL[page]
+    model = summarize_metrics(models.get(key) if key else None)
+    stamp = time.strftime('%Y%m%d-%H%M')
+    name = f'amr-{page}-{stamp}.{fmt}'
+    try:
+        if fmt == 'csv':
+            body = exports.build_csv(page, result, inputs, model)
+            mimetype = 'text/csv'
+        else:
+            body = exports.build_pdf(page, result, inputs, model,
+                                     exports.decode_chart(request.form.get('chart')))
+            mimetype = 'application/pdf'
+    except (KeyError, TypeError, ValueError, AttributeError) as e:
+        app.logger.warning('export failed: %s', e)
+        return jsonify({'error': 'Could not build the file from this result.'}), 400
+    return Response(body, mimetype=mimetype,
+                    headers={'Content-Disposition': f'attachment; filename="{name}"'})
+
+
+BATCH_TEMPLATE = (
+    'antibiotic,genus,species,taxon_id,mic_value,mic_sign\n'
+    'ciprofloxacin,Escherichia,coli,562,4,>=\n'
+    'ampicillin,Klebsiella,pneumoniae,573,,\n'
+    'meropenem,Pseudomonas,aeruginosa,287,0.5,<=\n'
+    'tetracycline,Salmonella,enterica,28901,,\n'
+)
+
+
+@app.route('/forecast/template.csv')
+def batch_template():
+    """Sample file for the batch upload on /forecast."""
+    return Response(BATCH_TEMPLATE, mimetype='text/csv',
+                    headers={'Content-Disposition': 'attachment; filename="amr-batch-template.csv"'})
+
+
+@app.route('/forecast/batch', methods=['POST'])
+def batch_forecast():
+    """Many isolates at once: the uploaded CSV goes to /api/forecast/batch/."""
+    upload = request.files.get('batch_file')
+    batch, error = None, None
+    if not upload or not upload.filename:
+        error = 'Choose a CSV file to upload.'
+    else:
+        files = {'file': (upload.filename, upload.stream, 'text/csv')}
+        data, status = backend_post('forecast/batch/', files=files, timeout=120)
+        if status == 200:
+            batch = data
+        else:
+            error = data.get('error', 'Batch prediction failed')
+    return render_template('resistance_forecast.html', result=None, batch=batch, error=error,
+                           form_data={}, mode='batch')
 
 
 @app.route('/train', methods=['GET', 'POST'])

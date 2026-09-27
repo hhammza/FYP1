@@ -32,7 +32,7 @@
     </div>
     <div class="flex-fill min-w-160">
       <div class="stat-mini">
-        <div class="stat-mini-value">90K+</div>
+        <div class="stat-mini-value">{{ metrics.lgbm.train_rows_short }}</div>
         <div class="stat-mini-label">Labeled AMR records</div>
       </div>
     </div>
@@ -50,7 +50,7 @@
     </div>
     <div class="flex-fill min-w-160">
       <div class="stat-mini">
-        <div class="stat-mini-value text-amber2">48+</div>
+        <div class="stat-mini-value text-amber2">{{ metrics.lgbm.antibiotics }}</div>
         <div class="stat-mini-label">Antibiotics modeled</div>
       </div>
     </div>
@@ -62,6 +62,22 @@
     <div class="col-lg-4">
       <div class="form-card">
         <h5 class="form-card-title"><i class="bi bi-sliders me-2"></i>Prediction Parameters</h5>
+        <ul class="nav nav-pills nav-custom mb-3" role="tablist">
+          <li class="nav-item" role="presentation">
+            <button class="nav-link {% if mode != 'batch' %}active{% endif %}" type="button" role="tab"
+                    data-bs-toggle="pill" data-bs-target="#singlePane">
+              <i class="bi bi-1-circle me-1"></i>One isolate
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link {% if mode == 'batch' %}active{% endif %}" type="button" role="tab"
+                    data-bs-toggle="pill" data-bs-target="#batchPane">
+              <i class="bi bi-filetype-csv me-1"></i>Upload CSV
+            </button>
+          </li>
+        </ul>
+        <div class="tab-content">
+        <div class="tab-pane fade {% if mode != 'batch' %}show active{% endif %}" id="singlePane" role="tabpanel">
         <form method="POST" action="/forecast" id="forecastForm">
 
           <div class="mb-3">
@@ -176,6 +192,28 @@
             <i class="bi bi-cpu me-2"></i>Predict Resistance
           </button>
         </form>
+        </div>
+
+        <div class="tab-pane fade {% if mode == 'batch' %}show active{% endif %}" id="batchPane" role="tabpanel">
+        <form method="POST" action="/forecast/batch" enctype="multipart/form-data" id="batchForm">
+          <p class="text-muted fs-13">Predict many isolates at once. One row per isolate; only
+            <code>antibiotic</code> is required.</p>
+          <div class="mb-3">
+            <label for="batchFile" class="form-label-custom">CSV file <span class="required">*</span></label>
+            <input type="file" name="batch_file" id="batchFile" class="form-control form-control-custom"
+                   accept=".csv,text/csv" required>
+            <div class="form-hint">Columns: antibiotic, genus, species, taxon_id, mic_value, mic_sign.
+              Up to 10,000 rows and 2 MB. Rows with a problem are marked, not dropped.</div>
+          </div>
+          <a href="/forecast/template.csv" class="btn btn-outline-custom btn-sm w-100 mb-3">
+            <i class="bi bi-download me-1"></i>Download a sample CSV
+          </a>
+          <button type="submit" class="btn btn-primary-custom w-100 btn-lg">
+            <i class="bi bi-cpu me-2"></i>Predict All Rows
+          </button>
+        </form>
+        </div>
+        </div>
       </div>
 
       <!-- MIC Reference Guide -->
@@ -203,7 +241,58 @@
       <div class="alert alert-danger-custom"><i class="bi bi-exclamation-circle me-2"></i>{{ error }}</div>
       {% endif %}
 
-      {% if result %}
+      {% if batch %}
+      {% set s = batch.summary %}
+      <div class="info-card mb-4">
+        <h6 class="card-section-title"><i class="bi bi-table me-2 text-accent"></i>Batch results</h6>
+        <div class="row g-2 text-center mb-2">
+          <div class="col"><div class="stat-mini"><div class="stat-mini-value">{{ "{:,}".format(s.rows) }}</div><div class="stat-mini-label">Rows</div></div></div>
+          <div class="col"><div class="stat-mini"><div class="stat-mini-value text-rose2">{{ "{:,}".format(s.resistant) }}</div><div class="stat-mini-label">Resistant</div></div></div>
+          <div class="col"><div class="stat-mini"><div class="stat-mini-value text-emerald2">{{ "{:,}".format(s.susceptible) }}</div><div class="stat-mini-label">Susceptible</div></div></div>
+          <div class="col"><div class="stat-mini"><div class="stat-mini-value {% if s.errors %}text-amber2{% endif %}">{{ "{:,}".format(s.errors) }}</div><div class="stat-mini-label">Rows with a problem</div></div></div>
+        </div>
+        <div class="text-muted fs-12">Model {{ batch.model_run }}{% if batch.calibrated %}, calibrated{% endif %},
+          threshold {{ batch.threshold }}: a row is called Resistant at or above it.</div>
+      </div>
+
+      {% set page = 'batch' %}{% set chart_id = 'batchChart' if s.by_antibiotic else '' %}{% set export_result = batch %}
+      {% include '_export_bar.html' %}
+
+      {% if s.by_antibiotic %}
+      <div class="info-card mb-4">
+        <h6 class="card-section-title"><i class="bi bi-bar-chart me-2 text-accent"></i>Resistant and susceptible, per antibiotic</h6>
+        <div id="batchChart" class="chart-300"></div>
+      </div>
+      {% endif %}
+
+      <div class="info-card mb-4">
+        <h6 class="card-section-title"><i class="bi bi-list-ul me-2 text-accent"></i>Rows
+          {% if batch.rows | length > 200 %}<span class="text-muted fs-12">(first 200 of {{ "{:,}".format(batch.rows | length) }}; the CSV has all)</span>{% endif %}</h6>
+        <div class="table-responsive">
+          <table class="table table-custom table-sm mb-0">
+            <thead><tr><th>Row</th><th>Antibiotic</th><th>Organism</th><th>Taxon</th><th>MIC</th><th>Prediction</th><th>P(R)</th></tr></thead>
+            <tbody>
+            {% for r in batch.rows[:200] %}
+              <tr>
+                <td class="font-mono">{{ r.row }}</td>
+                <td>{{ r.antibiotic }}</td>
+                <td>{{ r.genus }} {{ r.species }}</td>
+                <td class="font-mono">{{ r.taxon_id }}</td>
+                <td class="font-mono">{{ r.mic_sign }}{{ r.mic_value }}</td>
+                {% if r.error %}
+                <td colspan="2" class="text-amber2 fs-12"><i class="bi bi-exclamation-triangle me-1"></i>{{ r.error }}</td>
+                {% else %}
+                <td class="{% if r.prediction == 'Resistant' %}text-rose2{% else %}text-emerald2{% endif %} fw-500">{{ r.prediction }}</td>
+                <td class="font-mono">{{ "%.1f" | format(r.probability * 100) }}%</td>
+                {% endif %}
+              </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {% elif result %}
       {% if result.model_used and result.model_used.startswith('Heuristic') %}
       <div class="alert alert-warning-custom mb-3" role="status">
         <i class="bi bi-exclamation-triangle me-2"></i><strong>This is not a model prediction.</strong>
@@ -245,6 +334,9 @@
           </div>
         </div>
       </div>
+
+      {% set page = 'forecast' %}{% set chart_id = 'comparisonChart' %}{% set export_result = result %}
+      {% include '_export_bar.html' %}
 
       <!-- What the prediction is actually based on -->
       {% if result.evidence %}
@@ -355,7 +447,7 @@
                 <div>Antibiotic: <strong>ciprofloxacin</strong></div>
                 <div>Organism: <strong>Escherichia coli</strong></div>
                 <div>MIC: <strong>≥ 4 mg/L</strong></div>
-                <div class="mt-1 text-rose2">Expected: Resistant (~82%)</div>
+                <div class="mt-1 text-rose2">Expected: Resistant</div>
               </div>
             </div>
           </div>
@@ -366,7 +458,7 @@
                 <div>Antibiotic: <strong>meropenem</strong></div>
                 <div>Organism: <strong>Klebsiella pneumoniae</strong></div>
                 <div>MIC: <strong>≤ 0.5 mg/L</strong></div>
-                <div class="mt-1 text-emerald2">Expected: Susceptible (~19%)</div>
+                <div class="mt-1 text-emerald2">Expected: Susceptible</div>
               </div>
             </div>
           </div>
@@ -515,6 +607,9 @@
 {% endblock %}
 
 {% block scripts %}
+{% if batch and batch.summary.by_antibiotic %}
+<script type="application/json" id="batch-chart-data">{{ batch.summary.by_antibiotic[:20] | tojson }}</script>
+{% endif %}
 {% if result and result.comparison_chart %}
 <script type="application/json" id="forecast-chart-data" data-threshold="{{ result.threshold }}">{{ result.comparison_chart | tojson }}</script>
 {% endif %}

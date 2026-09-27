@@ -4,6 +4,7 @@ from api import views
 urlpatterns = [
     path('health/', views.HealthView.as_view(), name='health'),
     path('forecast/', views.ResistanceForecastView.as_view(), name='forecast'),
+    path('forecast/batch/', views.BatchForecastView.as_view(), name='forecast-batch'),
     path('predict/', views.ResistancePredictionView.as_view(), name='predict'),
     path('timeline/', views.MutationTimelineView.as_view(), name='timeline'),
     path('antibiotics/', views.AntibioticListView.as_view(), name='antibiotics'),

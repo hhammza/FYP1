@@ -40,6 +40,25 @@ All 23 experiment configs re-run on v5; `D1` and `D2` stay on v3 and v4 as the r
 
 ---
 
+## Downloads and batch upload (2026-09-27)
+
+Suleman's Week 2 (T2.2, T2.3).
+
+| File | Change |
+|---|---|
+| [frontend/exports.py](frontend/exports.py) | New. CSV and PDF (ReportLab) of a tool page's result; model details from the metrics files |
+| [frontend/app.py](frontend/app.py) | `POST /export/<page>.<csv|pdf>`, `GET /forecast/template.csv`, `POST /forecast/batch` |
+| [frontend/templates/_export_bar.html](frontend/templates/_export_bar.html), [static/js/export.js](frontend/static/js/export.js) | New. The download bar on `/forecast`, `/predict`, `/timeline` and the batch results; PNG and the PDF's chart |
+| [resistance_forecast.html](frontend/templates/resistance_forecast.html), [forecast.js](frontend/static/js/forecast.js) | "Upload CSV" tab, batch summary, per-antibiotic chart and row table; the record count and antibiotic count read from the metrics file; the examples no longer quote fixed percentages |
+| [backend/api/views.py](backend/api/views.py), [urls.py](backend/api/urls.py), [settings.py](backend/backend/settings.py) | New `POST /api/forecast/batch/`: 10,000 rows, 2 MB, 5 a minute per visitor |
+| [mutation_timeline.html](frontend/templates/mutation_timeline.html), [train.html](frontend/templates/train.html) | The CNN-LSTM is no longer offered for training, and "results are accurate" is gone: the timeline is a simulation that is not validated |
+| [frontend/requirements.txt](frontend/requirements.txt) | `reportlab` |
+| Tests | New [backend/tests/test_batch.py](backend/tests/test_batch.py) (7) and [frontend/tests/test_exports.py](frontend/tests/test_exports.py) (9); [backend/tests/django_setup.py](backend/tests/django_setup.py) shares the Django settings between test files |
+
+**For everyone:** `python -m pip install -r frontend/requirements.txt` after pulling (new: `reportlab`).
+
+---
+
 ## Security hardening, honest UI numbers and a safe Train button (2026-09-26)
 
 Suleman's platform work (T1.3, T2.4), plus two fixes found on the way.

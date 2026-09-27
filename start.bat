@@ -19,7 +19,7 @@ if errorlevel 1 (
 REM Install backend requirements
 echo [1/4] Installing backend dependencies...
 cd /d "%~dp0backend"
-pip install -r requirements.txt -q
+python -m pip install -r requirements.txt -q
 if errorlevel 1 (
     echo [WARN] Some backend dependencies may not have installed correctly.
 )
@@ -27,7 +27,7 @@ if errorlevel 1 (
 REM Install frontend requirements
 echo [2/4] Installing frontend dependencies...
 cd /d "%~dp0frontend"
-pip install -r requirements.txt -q
+python -m pip install -r requirements.txt -q
 
 REM Start Django backend in a new window. DEBUG=True is local development:
 REM no SECRET_KEY or ALLOWED_HOSTS needed. To use Train/Reload, first run

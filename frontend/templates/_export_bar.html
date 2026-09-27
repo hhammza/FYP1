@@ -1,0 +1,32 @@
+{#
+  Download bar for a tool page. Include it with:
+    {% set page = 'forecast' %}{% set chart_id = 'comparisonChart' %}{% set export_result = result %}
+    {% include '_export_bar.html' %}
+  The result and inputs go back to /export/<page>.<fmt> as JSON; static/js/export.js
+  adds a PNG of the chart for the PDF and handles the "Chart (PNG)" button.
+#}
+<form method="POST" class="info-card export-bar mb-4" data-export-page="{{ page }}" data-chart-id="{{ chart_id or '' }}">
+  <div class="d-flex flex-wrap align-items-center gap-2">
+    <h6 class="card-section-title mb-0 me-auto"><i class="bi bi-download me-2 text-accent"></i>Download this result</h6>
+    <input type="hidden" name="result" value="{{ export_result | tojson | forceescape }}">
+    <input type="hidden" name="inputs" value="{{ (form_data or {}) | tojson | forceescape }}">
+    <input type="hidden" name="chart" value="">
+    <button type="submit" formaction="/export/{{ page }}.csv" class="btn btn-outline-custom btn-sm">
+      <i class="bi bi-filetype-csv me-1"></i>CSV
+    </button>
+    {% if page != 'batch' %}
+    <button type="button" class="btn btn-outline-custom btn-sm" data-export="pdf">
+      <i class="bi bi-filetype-pdf me-1"></i>PDF report
+    </button>
+    {% endif %}
+    {% if chart_id %}
+    <button type="button" class="btn btn-outline-custom btn-sm" data-export="png">
+      <i class="bi bi-image me-1"></i>Chart (PNG)
+    </button>
+    {% endif %}
+  </div>
+  <div class="text-muted fs-11 mt-2">
+    {% if page == 'timeline' %}Every download is labelled "Simulation, not a trained model". {% endif %}
+    Research tool, not a clinical diagnostic.
+  </div>
+</form>

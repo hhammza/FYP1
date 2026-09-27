@@ -8,6 +8,7 @@ The data that passes between our three areas of work. Proposed by Hamza on 2026-
 | [2. Genome prediction response](#2-genome-prediction-response) | Hamza → Suleman | `POST /api/predict/` JSON |
 | [3. Gene matrix](#3-gene-matrix) | Ali → Hamza | `experiments/genome/features/gene_matrix.parquet` + `gene_info.csv` |
 | [4. Timeline + RL response](#4-timeline--rl-response) | Ali → Suleman | `POST /api/timeline/` JSON |
+| [5. Batch forecast CSV](#5-batch-forecast-csv) | user → Suleman → Hamza's model | upload to `POST /api/forecast/batch/`, JSON back |
 
 Samples: [`lgbm_metrics.sample.json`](lgbm_metrics.sample.json), [`genome_response.sample.json`](genome_response.sample.json), [`timeline_response.sample.json`](timeline_response.sample.json).
 
@@ -180,3 +181,41 @@ A new `rl` object. **Field absent = RL not run** (Week 1 to 3, or the agent is n
 | `calibration.rmse` | number | Root mean squared error of the fit, in percentage points on the 0–100 `resistant_fraction` scale, averaged over curves |
 
 Show `rmse` with one decimal ("fit error ±4.2 points against 7 published curves").
+
+---
+
+## 5. Batch forecast CSV
+
+`POST /api/forecast/batch/` (`backend/api/views.py`, `BatchForecastView`). Defined by Suleman on 2026-09-27. The `/forecast` page's "Upload CSV" tab sends the file; a sample is at `/forecast/template.csv`.
+
+### Upload
+
+A UTF-8 CSV (a byte-order mark is fine) in the multipart field `file`, one isolate per row. At most **10,000 rows** and **2 MB**, else 413; 5 uploads a minute per visitor, else 429. Header names are case-insensitive; other columns are ignored; blank lines are skipped.
+
+| Column | Required | Rule | Passed to `features_frame()` as |
+|---|---|---|---|
+| `antibiotic` | yes | Must be in the model's vocabulary after the alias map (`rifampin` → `rifampicin`), else the row gets an error | `antibiotic` |
+| `genus`, `species` | no | Free text; empty = `unknown` | `genus`, `species` |
+| `taxon_id` | no | Positive whole number (`562.0` is accepted as 562) | `taxon_id`, mapped to species level by the model |
+| `mic_value` | no | Number greater than 0, in mg/L | `mic_value` |
+| `mic_sign` | no | One of `=`, `==`, `<`, `<=`, `>`, `>=`, `≤`, `≥`, `=<`, `=>`. Ignored when `mic_value` is empty, as on `/forecast` | `mic_sign`, normalised by the model |
+
+Valid rows are predicted in **one** `predict_frame()` call, so a row gets the same probability as the single `/forecast` form.
+
+### Response
+
+| Field | Type | Meaning |
+|---|---|---|
+| `rows[]` | list, same order and length as the input rows | One result per input row |
+| `rows[].row` | int | 1-based row number, counting data rows only (not the header or blank lines) |
+| `rows[].antibiotic`, `genus`, `species`, `taxon_id`, `mic_value`, `mic_sign` | string | The input as given; `antibiotic` is canonical on rows without an error |
+| `rows[].prediction` | `"Resistant"` / `"Susceptible"` / `""` | At `threshold`; empty on a row with an error |
+| `rows[].probability` | number 0–1 or `null` | Calibrated P(resistant); `null` on a row with an error |
+| `rows[].error` | string | Empty = predicted. Otherwise why the row was not used, e.g. `unknown antibiotic "x" (the model was not trained on it)` |
+| `summary` | object | `rows`, `predicted`, `errors`, `resistant`, `susceptible`, and `by_antibiotic`: `[{antibiotic, n, resistant}]`, most rows first |
+| `threshold` | number | The served model's `default_threshold` |
+| `model_run`, `calibrated` | string, bool | As in the `/api/forecast/` response |
+
+Errors about the whole file (no `antibiotic` column, not UTF-8, no rows, too many rows, too large) come back as `{"error": "..."}` with 400 or 413 instead.
+
+**Results CSV** (`/export/batch.csv`): columns `row, antibiotic, genus, species, taxon_id, mic_value, mic_sign, prediction, probability_resistant, error`; a cell that would start a spreadsheet formula gets a leading apostrophe.

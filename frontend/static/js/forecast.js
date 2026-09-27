@@ -183,6 +183,36 @@
     }, { responsive: true, displayModeBar: false });
   }
 
+  /* ── Batch chart: resistant vs susceptible rows per antibiotic ── */
+  function renderBatchChart(byAb) {
+    if (!byAb || !byAb.length || !document.getElementById('batchChart')) return;
+    const t = AMR.plotLayout();
+    const labels = byAb.map(d => d.antibiotic);
+    const bar = (name, values, color) => ({
+      type: 'bar', name: name, x: labels, y: values,
+      marker: { color: color },
+      hovertemplate: '%{x}<br>' + name + ': %{y}<extra></extra>',
+    });
+    Plotly.newPlot('batchChart', [
+      bar('Resistant', byAb.map(d => d.resistant), 'rgba(239,68,68,0.82)'),
+      bar('Susceptible', byAb.map(d => d.n - d.resistant), 'rgba(34,197,94,0.82)'),
+    ], {
+      barmode: 'stack',
+      paper_bgcolor: t.paper_bgcolor,
+      plot_bgcolor: t.plot_bgcolor,
+      margin: { t: 20, b: 100, l: 50, r: 20 },
+      xaxis: { tickangle: -35, tickfont: { color: t.tickColor, size: 11 }, gridcolor: t.gridColor, linecolor: t.gridColor },
+      yaxis: { title: { text: 'Rows', font: { color: t.tickColor } }, tickfont: { color: t.tickColor }, gridcolor: t.gridColor },
+      legend: { orientation: 'h', y: 1.12, font: { color: t.tickColor } },
+      font: { family: t.fontFamily },
+    }, { responsive: true, displayModeBar: false });
+  }
+
+  const batchEl = document.getElementById('batch-chart-data');
+  if (batchEl) {
+    try { renderBatchChart(JSON.parse(batchEl.textContent)); } catch (_) {}
+  }
+
   /* Auto-init from data island */
   const dataEl = document.getElementById('forecast-chart-data');
   if (dataEl) {

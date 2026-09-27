@@ -147,7 +147,7 @@ ATGCATGCATGCATGCATGC..."></textarea>
       <div class="info-card mt-4">
         <h6 class="card-section-title"><i class="bi bi-cpu text-accent me-2"></i>Simulation Model</h6>
         <div class="alert-success-tok mb-3">
-          <i class="bi bi-check-circle me-1"></i> <strong>Biologically-informed simulation active.</strong> Results are accurate without a trained deep-learning model.
+          <i class="bi bi-check-circle me-1"></i> <strong>Simulation, not a trained model.</strong> A logistic-growth model with hand-set, literature-based constants; it is not validated against patient data.
         </div>
         <div class="arch-box">
           <div class="arch-layer text-accent2">Genome K-mer Analysis</div>
@@ -161,7 +161,7 @@ ATGCATGCATGCATGCATGC..."></textarea>
           <div class="arch-layer">Week-by-Week Timeline Output</div>
         </div>
         <div class="mt-3 pt-2 border-top-subtle fs-11 text-3">
-          CNN-LSTM deep-learning model (TensorFlow) is available for training via the Train Models page.
+          No trained model is used here. A CNN-LSTM was explored in the research notebook (<code>bacterial_mutation_timeline.ipynb</code>) but not deployed.
         </div>
       </div>
 
@@ -235,6 +235,9 @@ ATGCATGCATGCATGCATGC..."></textarea>
         <h6 class="card-section-title"><i class="bi bi-graph-up text-accent me-2"></i>Week-by-Week Resistance Evolution</h6>
         <div id="timelineChart" class="chart-350"></div>
       </div>
+
+      {% set page = 'timeline' %}{% set chart_id = 'timelineChart' %}{% set export_result = result %}
+      {% include '_export_bar.html' %}
 
       <div class="row g-4 mb-4">
         <!-- Mutation Hotspots -->

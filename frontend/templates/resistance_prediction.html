@@ -236,6 +236,9 @@ GCATGCATGCATGCATGCATGCATGCATGCAT
         </div>
       </div>
 
+      {% set page = 'predict' %}{% set chart_id = 'kmerChart' %}{% set export_result = result %}
+      {% include '_export_bar.html' %}
+
       <div class="row g-4 mb-4">
         <!-- Genome Stats -->
         <div class="col-md-6">
