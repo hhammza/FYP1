@@ -8,7 +8,7 @@ The FASTA files in `Data/fasta_output/` are truncated. An *E. coli* file holds a
 
 ## Getting the genomes without downloading
 
-`Data/genomes_full/` is also shared as `genomes_full.zip` in the team Drive folder (link in `Data_Drive`). Extract it inside `Data/` so the files land at `Data/genomes_full/<genome_id>.fna`, next to `manifest.csv` and `failures.csv`. The folder is gitignored. Downloading it again with step 1 below gives the same files and takes about 3 hours.
+`Data/genomes_full/` is also shared as `genomes_full.zip` on Google Drive: [genomes folder](https://drive.google.com/drive/folders/1rmt0JKfObvDBlCAs9nZ4Wh57qdDXmHl3?usp=sharing). Extract it inside `Data/` so the files land at `Data/genomes_full/<genome_id>.fna`, next to `manifest.csv` and `failures.csv`. The folder is gitignored. Downloading it again with step 1 below gives the same files and takes about 3 hours.
 
 The `.fna` files are ordinary FASTA: a `>` header line, then sequence lines. The extension is NCBI's name for nucleotide FASTA (`.faa` is protein, `.ffn` is coding genes only). Any FASTA reader takes them as they are; code that looks only for `.fasta` files needs to accept `.fna` too; no rename needed.
 
