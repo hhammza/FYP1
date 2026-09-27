@@ -78,6 +78,18 @@ main, nav, footer, .page-header, .hero-section {
   transition: color 0.15s, background 0.15s;
   letter-spacing: 0.1px;
 }
+/* Icon and label on one line for every item. Bootstrap stops only dropdown
+   toggles from wrapping, so without this the plain links stacked their icon
+   above the label whenever the bar got crowded. */
+#mainNav .nav-link {
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+}
+/* 992-1199px: the full menu only just fits, so tighten the side padding */
+@media (min-width: 992px) and (max-width: 1199.98px) {
+  #mainNav .nav-link { padding: 6px 9px !important; }
+}
 .nav-link:hover { color: var(--text-1) !important; background: rgba(15,23,42,0.05); }
 .nav-link.active { color: var(--primary) !important; background: var(--primary-dim); }
 
