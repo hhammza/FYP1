@@ -100,7 +100,17 @@ New folder `experiments/genome/`, reusing `lib/splits.py` and `lib/metrics.py`.
 **Read these numbers with care before quoting them:**
 - Only 384 lab test rows from **30 genomes** (84% *Salmonella*). Lab AUCs above 0.95 rest on those 30.
 - 97% of rows carry computational labels that BV-BRC derived from the genome, so all-row AUCs of genome models are partly circular (B6 on computational rows: 0.981).
-- A genome-grouped split can still put near-identical isolates (same lineage or outbreak) on both sides. Check with a lineage-grouped split before claiming the k-mer gain is resistance rather than lineage.
+- ~~A genome-grouped split can still put near-identical isolates on both sides.~~ **Checked 2026-09-27 with a lineage-grouped split** (`experiments/genome/lineage.py`, `split.strategy = "lineage"`; 16 `L_*` runs):
+
+  | Split | Taxonomy | K-mers (B4) | Genes (B6) |
+  |---|---|---|---|
+  | Genome-grouped | 0.823 | 0.956 | 0.981 |
+  | Clones held out (398 test lineages) | 0.819 | 0.957 | 0.977 |
+  | Close lineages held out (225) | 0.788 | 0.908 | 0.960 |
+  | Broad lineages held out (26; 810 lab rows) | 0.724 | 0.950 | 0.990 |
+  | *E. coli* held out (species cut: one test cluster, no CI) | 0.500 | 0.545 | 0.708 |
+
+  The k-mer gain is not clone memorisation; part of it is lineage (close cut 0.908) but most survives. K-mers do not transfer to an unseen species, genes partly do: **genes carry mechanism, k-mers composition**. The species row is a first look at B8.
 - B-track runs are kept off `/models` (different, smaller dataset); they are in `RESULTS.md`.
 
 ---
@@ -186,6 +196,7 @@ Newest first. One line per work session: date, what I did, what is next, anythin
 
 | Date | Done | Next | Blockers |
 |---|---|---|---|
+| 2026-09-27 | Lineage check: `lineage.py` clusters the 2,587 genomes by 6-mer cosine distance at 4 cuts; `lineage` split in `splits.py`/`run.py` (inner folds and CIs grouped by lineage too); 16 runs. K-mer and gene gains survive held-out lineages; with *E. coli* held out k-mers collapse (0.545), genes hold 0.708 | B7, B8 proper (several held-out species with CIs) | Species cut gives a single test cluster, so no CI |
 | 2026-09-27 | Week 2: k-mer cache from complete genomes, genome/gene support and lab-only metrics in the harness, 12 B-track runs (baselines, B0, B1, B2 ×3, B4, B6 + its baseline). K-mers on complete genomes beat taxonomy (B4 0.956 vs 0.823), genes more so (B6 0.981), but lab evidence is 30 genomes | Ask Ali for lab genomes; lineage-grouped split; B7, B8 | Lab test set too small to quote; possible lineage leakage |
 | 2026-09-26 | Registry re-run on v5 finished: 23 runs, no failures. Two conclusions changed: the learning curve flattens after ~100 k rows, not 50 k (`LC_50k` 0.8157 → 0.8038); `A12_species_holdout` error rates swapped at 0.40 (VME 11% → 52%), so quote only its AUC (0.6041). Docs and CHANGES.md updated | Week 2: B0–B4 on `Data/genomes_full/`, B6 on the gene matrix | None |
 | 2026-09-26 | Week 1 closed on cleaning v5 (Ali's `77bc855`, `b05d718`): `dtype=str` for Genome ID in `promote.py` and `evaluate_shipped.py`; runs record `clean_version`; trained, promoted and re-tested `D3_forecaster_deploy` (0.8039, served 0.7997, threshold 0.23); K-mer re-test on fixed IDs (0.6949); all 23 registry configs re-run on v5 (D1, D2 kept as the v3/v4 history of what was served). Installed xgboost and catboost; pyarrow reads the full gene matrix | Week 2: B0–B4 on `Data/genomes_full/`, B6 on the gene matrix | Windows Smart App Control briefly blocked pyarrow and a SciPy DLL right after `pip install`; both import fine a minute later. If it recurs, wait and retry |

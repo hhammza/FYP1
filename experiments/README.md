@@ -115,7 +115,7 @@ comparable result.
 
 | Field | Options |
 |---|---|
-| `split.strategy` | `grouped` (default, no genome on both sides), `random` (reproduces the old pipeline), `species_holdout` (+ `holdout_genus`) |
+| `split.strategy` | `grouped` (default, no genome on both sides), `random` (reproduces the old pipeline), `species_holdout` (+ `holdout_genus`), `lineage` (+ `lineage_cut`: `clone`, `close`, `broad` or `species`; no lineage cluster on both sides, built by `experiments/genome/lineage.py` from 6-mer distances; genome runs only) |
 | `features.target_encoding` | `oof` (correct), `leaky` (reproduces the bug, for comparison), `none` |
 | `features.drop` | feature names to remove, this is how ablations are expressed |
 | `model.type` | `lightgbm`, `logistic`, `random_forest`, `xgboost`*, `catboost`* |
@@ -123,6 +123,9 @@ comparable result.
 | `threshold.strategy` | `fixed`, `maximize_f1`, `vme_constrained` (+ `vme_budget`: highest threshold whose validation VME fits, i.e. the lowest ME within it) |
 | `calibration.method` | `isotonic` or `platt`. The validation genomes are halved: the calibrator is fitted on one half, the threshold chosen on the other. `metrics.json` gets a `calibration` block with Brier and AUC before and after, and reliability points |
 | `data.label_sources` | `["lab"]`, `["computational"]`, or both |
+| `data.genomes` | `genomes_full`: keep only rows whose genome has a complete assembly (Track B) |
+| `features.kmers` | `{"k": 4, "extras": true}`: k-mer frequencies from `experiments/genome/kmers.py`, plus GC and length |
+| `features.genes` | `{"raw": true, "min_genomes": 10, "drug_aware": true}`: gene-matrix features from `experiments/genome/genes.py` |
 | `data.taxon_level` | `strain` (default, the export's own IDs) or `species` (cleaning v3's `species_taxon_id`, which is what a user can type, e.g. 562). Costs about 0.018 AUC (A10 vs A10s) |
 
 \* needs `pip install xgboost` / `catboost`; the run exits with that hint if missing.
