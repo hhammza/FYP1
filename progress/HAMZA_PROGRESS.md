@@ -13,7 +13,7 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done · `[!]` blocke
 | Week | Dates (planned) | Focus | Status |
 |---|---|---|---|
 | 1 | 28 Sep to 2 Oct | K-mer fix, promote the best model, threshold, calibration, `metrics.json` | Done 2026-09-25 (UI side waits on Suleman) |
-| 2 | 5 Oct to 9 Oct | Genome experiments B0 to B4 (k-mers) | Not started |
+| 2 | 5 Oct to 9 Oct | Genome experiments B0 to B4 (k-mers) | Done 2026-09-27 (plus a first B6) |
 | 3 | 12 Oct to 16 Oct | Gene-feature models B6/B7, deploy the best genome model | Not started |
 | 4 | 19 Oct to 23 Oct | Library v0.2.0, statistics and seeds | Not started |
 | 5 | 26 Oct to 30 Oct | Results chapters | Not started |
@@ -87,12 +87,21 @@ Threshold trade-off on D3's test set, for the report (the threshold itself was c
 
 New folder `experiments/genome/`, reusing `lib/splits.py` and `lib/metrics.py`.
 
-- [ ] **B0** fixed k-mer RF, random split (what was shipped)
-- [ ] **B1** same, genome-grouped split (how much was memorisation)
-- [ ] **B2** k = 3, 4, 5, 6
-- [ ] **B4** LightGBM on k-mers
-- [ ] Load Ali's 20-genome sample gene matrix and write the B6 code against it
-- **Done when:** B0 to B4 are in the registry with grouped-split AUCs and confidence intervals
+- [x] **K-mer features from the complete genomes:** `experiments/genome/kmers.py` counts 6-mers once per genome in `Data/genomes_full/` (within contigs, ACGT only; 13 min for 2,587 genomes) and derives k = 3–5 from them. Cached in `experiments/cache/kmer6_counts.npz`
+- [x] **Harness:** `data.genomes`, `features.kmers` and `features.genes` in `run.py`; every run now reports **lab-only** metrics (`test_by_label_source`, `Lab AUC` in `RESULTS.md`), because BV-BRC's computational labels were predicted from the genome
+- [x] **Baselines on the same rows:** antibiotic only 0.752 (lab 0.561); antibiotic + genus + species 0.823 (lab 0.710)
+- [x] **B0** fixed k-mer RF, random split (what was shipped): 0.911 (lab 0.962)
+- [x] **B1** same, genome-grouped split (how much was memorisation): 0.904 [0.883–0.920] (lab 0.977): almost none
+- [x] **B2** k = 3, 4, 5, 6 (RF): 0.902, 0.904, 0.888, 0.883: k = 4 is best for the forest
+- [x] **B4** LightGBM on k-mers: **0.956 [0.942–0.967]** (lab 0.996)
+- [x] Load Ali's gene matrix and write the B6 code against it: `experiments/genome/genes.py` (raw 0/1 genes in ≥ 10 genomes + drug-aware features). First run `B6_genes_lgbm`: **0.981 [0.976–0.987]** (lab 0.993) vs 0.813 (lab 0.696) without genes
+- **Done when:** B0 to B4 are in the registry with grouped-split AUCs and confidence intervals. **Met**
+
+**Read these numbers with care before quoting them:**
+- Only 384 lab test rows from **30 genomes** (84% *Salmonella*). Lab AUCs above 0.95 rest on those 30.
+- 97% of rows carry computational labels that BV-BRC derived from the genome, so all-row AUCs of genome models are partly circular (B6 on computational rows: 0.981).
+- A genome-grouped split can still put near-identical isolates (same lineage or outbreak) on both sides. Check with a lineage-grouped split before claiming the k-mer gain is resistance rather than lineage.
+- B-track runs are kept off `/models` (different, smaller dataset); they are in `RESULTS.md`.
 
 ---
 
@@ -153,6 +162,8 @@ New folder `experiments/genome/`, reusing `lib/splits.py` and `lib/metrics.py`.
 | To Suleman | **Threshold default: the slider and API must start at `default_threshold` (now 0.25), not 0.40.** Hardcoded in `resistance_forecast.html:137-145`, `frontend/app.py:109`, `backend/api/views.py:53`. At 0.40 the calibrated model misses 30.2% of resistant isolates instead of 9.0%. `/predict` likewise: `default_threshold` from `kmer_metrics.json`, 0.5 | Week 1 | [x] 2026-09-26 (`d5044a7`): the slider starts at `metrics.lgbm.threshold` and the API uses the model's own when none is sent, so it follows each promotion (0.25 for D2) |
 | To Suleman | New response fields: `/forecast` has `model_run`, `calibrated`; both pages can return `model_used: "Heuristic fallback"` (show a warning); `/predict` has `antibiotic_known` | Week 1 | [x] 2026-09-26: Suleman's T1.3 shows warnings for `Heuristic fallback` and for an antibiotic the k-mer model never saw (CHANGES.md) |
 | To Suleman | Genome response with `genes_found` | Week 3 | [ ] |
+| To Suleman | A genome-models section on `/models`: B-track runs are excluded from `model_report.json` for now (`export_report.py`), because their dataset and labels differ from the tabular runs. Show them separately, with lab AUC and its n | Week 3 | [ ] |
+| To Ali | **Download + AMRFinderPlus for lab-tested genomes.** Only 30 lab-tested genomes are in the test set today; the export has 22,475 lab-tested genomes (201,042 rows, 107 drugs, 49.5% resistant). A stratified sample of ~5,000 would make the lab AUCs quotable. `kmers.py` and `genes.py` pick new genomes up with no code change | Week 3 | [ ] |
 | To Ali | Proposed gene-matrix format in `progress/formats/README.md` §3 (string `Genome ID` index, zero rows for searched genomes, `gene_info.csv`); `pyarrow` needed | Day 1 | [x] agreed by Ali 2026-09-26, formats §3; `pyarrow` in `experiments/requirements.txt` |
 | To supervisor | Scope email | Day 1 | [x] sent 2026-09-25; reply pending |
 
@@ -175,6 +186,7 @@ Newest first. One line per work session: date, what I did, what is next, anythin
 
 | Date | Done | Next | Blockers |
 |---|---|---|---|
+| 2026-09-27 | Week 2: k-mer cache from complete genomes, genome/gene support and lab-only metrics in the harness, 12 B-track runs (baselines, B0, B1, B2 ×3, B4, B6 + its baseline). K-mers on complete genomes beat taxonomy (B4 0.956 vs 0.823), genes more so (B6 0.981), but lab evidence is 30 genomes | Ask Ali for lab genomes; lineage-grouped split; B7, B8 | Lab test set too small to quote; possible lineage leakage |
 | 2026-09-26 | Registry re-run on v5 finished: 23 runs, no failures. Two conclusions changed: the learning curve flattens after ~100 k rows, not 50 k (`LC_50k` 0.8157 → 0.8038); `A12_species_holdout` error rates swapped at 0.40 (VME 11% → 52%), so quote only its AUC (0.6041). Docs and CHANGES.md updated | Week 2: B0–B4 on `Data/genomes_full/`, B6 on the gene matrix | None |
 | 2026-09-26 | Week 1 closed on cleaning v5 (Ali's `77bc855`, `b05d718`): `dtype=str` for Genome ID in `promote.py` and `evaluate_shipped.py`; runs record `clean_version`; trained, promoted and re-tested `D3_forecaster_deploy` (0.8039, served 0.7997, threshold 0.23); K-mer re-test on fixed IDs (0.6949); all 23 registry configs re-run on v5 (D1, D2 kept as the v3/v4 history of what was served). Installed xgboost and catboost; pyarrow reads the full gene matrix | Week 2: B0–B4 on `Data/genomes_full/`, B6 on the gene matrix | Windows Smart App Control briefly blocked pyarrow and a SciPy DLL right after `pip install`; both import fine a minute later. If it recurs, wait and retry |
 | 2026-09-26 | T1.6 met: Suleman's UI reads every score from the metrics files and the threshold from the model; checked it follows D2 (0.25), not a typed-in 0.24. `/train` now writes to `trained_models/candidates/`; the command-line trainer still defaults to `trained_models/` (Ali to fix) | Don't run `train_models.py` without `--model-dir` | None |
