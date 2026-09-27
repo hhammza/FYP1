@@ -1,0 +1,31 @@
+{
+  "description": "B1 with LightGBM instead of the random forest, same features and split",
+  "data": {
+    "genomes": "genomes_full"
+  },
+  "split": {
+    "strategy": "grouped",
+    "test_size": 0.2,
+    "seed": 42
+  },
+  "features": {
+    "target_encoding": "none",
+    "base": [
+      "Antibiotic"
+    ],
+    "kmers": {
+      "k": 4,
+      "extras": true
+    }
+  },
+  "model": {
+    "type": "lightgbm"
+  },
+  "threshold": {
+    "strategy": "fixed",
+    "fixed": 0.5
+  },
+  "evaluation": {
+    "n_boot": 200
+  }
+}
