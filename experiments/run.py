@@ -204,6 +204,8 @@ def run(cfg, verbose=True):
         'environment': {'python': platform.python_version(),
                         'platform': platform.platform()},
         'dataset': {
+            # Runs on different cleaning versions are not comparable
+            'clean_version': data_prep.CLEAN_VERSION,
             'rows': int(len(df)), 'genomes': int(df['Genome ID'].nunique()),
             'antibiotics': int(df['Antibiotic'].nunique()),
             'prevalence': float(df['target'].mean()),
@@ -326,6 +328,7 @@ def append_registry(payload):
         'split': payload['config']['split'].get('strategy', 'grouped'),
         'encoding': payload['config']['features'].get('target_encoding', 'oof'),
         'model': payload['config']['model'].get('type', 'lightgbm'),
+        'clean_version': payload['dataset'].get('clean_version'),
         'rows': payload['dataset']['rows'],
         'test_rows': payload['dataset']['test_rows'],
         'auc_roc': round(payload['test']['auc_roc'], 4),
