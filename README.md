@@ -489,8 +489,8 @@ There are several AUC figures in circulation in this project. They are not contr
 | **0.93** | UI badges throughout | Rounded, for both models |
 
 **Superseded as of 2026-09-24.** The `experiments/` harness re-measured this on the
-full export (1.53 M rows) under a grouped split with out-of-fold encoding:
-**AUC 0.8232 [0.8200-0.8269]**. The 0.9255 is not directly comparable, it came
+full export (1.56 M rows on cleaning v5) under a grouped split with out-of-fold encoding:
+**AUC 0.8227 [0.8197-0.8264]** (0.8232 on the pre-v5 data). The 0.9255 is not directly comparable, it came
 from a seventh of the data under a protocol that fitted encodings on the test
 rows. Quote 0.823 and explain the difference; see
 [experiments/HANDBOOK.md §11](experiments/HANDBOOK.md).

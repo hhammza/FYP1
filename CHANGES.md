@@ -18,6 +18,28 @@ Baseline is commit **`52ae361`** *(Add amrpredict library and macOS launcher, 20
 
 ---
 
+## Models retrained and every run re-measured on cleaning v5 (2026-09-26)
+
+Hamza's follow-up to Ali's Genome ID fix (`77bc855`, `b05d718`).
+
+### Code
+| File | Change |
+|---|---|
+| [experiments/promote.py](experiments/promote.py) | Reads `genome_id` as text, so its test-genome count no longer merges IDs |
+| [experiments/evaluate_shipped.py](experiments/evaluate_shipped.py) | Reads the AMR CSVs, the mapped CSVs and `predictions.csv` with Genome ID as text. A re-run alone would have merged the corrected IDs again |
+| [experiments/run.py](experiments/run.py), [report.py](experiments/report.py) | Every run records `clean_version` in `metrics.json` and the registry; `RESULTS.md` gains a Data column |
+| [experiments/export_report.py](experiments/export_report.py) | Registers `D3_forecaster_deploy` |
+
+### Served model
+`D3_forecaster_deploy` (D2 on v5) replaces D2: AUC **0.8039 [0.8001-0.8076]** on 311,712 test rows of 26,324 unseen genomes; **0.7997** as `/forecast` scores it; threshold 0.23 (VME 8.2%, ME 54.6%, recall 91.8%). The ID bug had barely affected the model (D2: 0.8044). K-mer re-test on the fixed IDs: 2,505 genomes join (was 2,485), AUC 0.6949 (was 0.6951).
+
+### Registry re-run
+All 23 experiment configs re-run on v5; `D1` and `D2` stay on v3 and v4 as the record of what was served. Every AUC moved by less than 0.012 with overlapping intervals (A2 0.8232 → **0.8227**, A10 0.8223 → 0.8215). Two conclusions changed and are corrected in [HANDBOOK §11](experiments/HANDBOOK.md), [EXPERIMENT_PLAN §8b](EXPERIMENT_PLAN.md), [README §10](README.md) and the roadmap:
+- **Learning curve:** flattens after about 100 k rows, not 50 k (`LC_50k` 0.8157 → 0.8038).
+- **`A12_species_holdout`:** AUC still about 0.60, but its error rates at 0.40 swapped (VME 11% → 52%, ME 83% → 36%). Quote only its AUC.
+
+---
+
 ## Security hardening, honest UI numbers and a safe Train button (2026-09-26)
 
 Suleman's platform work (T1.3, T2.4), plus two fixes found on the way.

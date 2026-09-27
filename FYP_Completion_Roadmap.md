@@ -103,13 +103,13 @@ Verified in the code at `67ed6de`, not just taken from the docs.
 
 | Question | Answer (from `experiments/RESULTS.md`) |
 |---|---|
-| Honest baseline (full data, genome-grouped split, out-of-fold encoding) | **AUC 0.8232 [0.8200–0.8269]**, F1 0.66 |
-| Best overall | `A6_lab_only` **0.9654**: lab-confirmed labels only (but the MIC largely *is* the label here; see A6b = 0.870 without MIC) |
+| Honest baseline (full data, genome-grouped split, out-of-fold encoding) | **AUC 0.8227 [0.8197–0.8264]**, F1 0.66 (cleaning v5) |
+| Best overall | `A6_lab_only` **0.9675**: lab-confirmed labels only (but the MIC largely *is* the label here; see A6b = 0.876 without MIC) |
 | Algorithm comparison (same 400 k sample) | LightGBM 0.820 ≈ XGBoost 0.820 ≈ CatBoost 0.819 ≈ RF 0.817 > Logistic 0.802 |
 | Value of MIC | +0.020 pooled, +0.095 on lab subset |
-| Floor (antibiotic only) | 0.6545 |
-| Unseen genus (*Klebsiella* held out) | **0.597**: does not generalise across genera |
-| More data? | Learning curve flat from 50 k rows: **feature-limited, not data-limited** |
+| Floor (antibiotic only) | 0.6535 |
+| Unseen genus (*Klebsiella* held out) | **0.604**: does not generalise across genera |
+| More data? | Learning curve flattens after about 100 k rows: **feature-limited, not data-limited** |
 | Biggest lever | **The decision threshold.** 0.40 → 0.47 moves major error 46% → 34% |
 
 ---
@@ -404,7 +404,7 @@ Three layers. Do (a) and (b) at minimum; (c) gives you a genuine RL component.
 - Generate synthetic rows **only for under-represented groups** (rare antibiotics, rare genera, or the minority class).
 - Experiment `A13_ctgan`: A2 config + synthetic rows in **train only**; evaluate on the untouched real test set. Also run species hold-out with augmentation.
 - Report the synthetic-data quality metrics (SDV's `evaluate_quality`) and the AUC/AUPRC change with CIs.
-- **Expected:** little or no gain (your learning curve is flat from 50 k rows). That's a *valid, publishable* negative result that directly answers the proposal's hypothesis. Say so.
+- **Expected:** little or no gain (your learning curve flattens after about 100 k rows). That's a *valid, publishable* negative result that directly answers the proposal's hypothesis. Say so.
 
 #### 6.4.3 Generative drug design (C3): optional prototype or descope
 
@@ -577,11 +577,11 @@ This would be the natural FYP-II or paper extension, and it answers the "why is 
 
 | Number | Meaning |
 |---|---|
-| 0.823 [0.820–0.827] | Honest tabular baseline (grouped split, out-of-fold encoding, 1.5 M rows) |
+| 0.823 [0.820–0.826] | Honest tabular baseline (grouped split, out-of-fold encoding, 1.56 M rows, cleaning v5) |
 | 0.644 | The July-shipped LightGBM on unseen genomes (why you re-promoted) |
 | 0.9255 / 0.93 | The old, inflated figure: explain the leakage + tiny-sample cause |
-| 0.6545 | Antibiotic-only floor |
-| 0.597 | Unseen genus (*Klebsiella* hold-out): no cross-genus generalisation |
+| 0.6535 | Antibiotic-only floor |
+| 0.604 | Unseen genus (*Klebsiella* hold-out): no cross-genus generalisation |
 | 0.40 → 0.47 | Threshold change: ME 46% → 34%, VME 10% → 20% |
 | Flat learning curve from 50 k | Feature-limited → why gene features (B6), and why GANs likely won't help |
 | *(new)* B6/B7 genome AUC | Your mechanism-vs-composition result |
