@@ -186,7 +186,9 @@ def evaluate_july_lgbm():
     frames = []
     for i, f in enumerate(files):
         try:
-            d = pd.read_csv(f, low_memory=False)
+            # Genome ID as text (cleaning v5): as a number, 195.3040 and
+            # 195.304 are one genome
+            d = pd.read_csv(f, low_memory=False, dtype=data_prep.GENOME_ID_TEXT)
         except Exception:
             continue
         d['_train_file'] = i < LGBM_TRAIN_FILES
@@ -249,7 +251,7 @@ def evaluate_july_lgbm():
     head = None
     pred_path = os.path.join(HERE, 'results', 'A2_oof_grouped', 'predictions.csv')
     if os.path.exists(pred_path):
-        pred = pd.read_csv(pred_path)
+        pred = pd.read_csv(pred_path, dtype={'genome_id': str})
         h = un.merge(pred[['genome_id', 'antibiotic', 'y_true', 'y_score']],
                      left_on=['Genome ID', 'Antibiotic'], right_on=['genome_id', 'antibiotic'])
         h = h[h.y_true == h.target]
@@ -317,7 +319,7 @@ def evaluate_kmer():
     files = sorted(glob.glob(os.path.join(data_prep.data_root(), 'mapped_output', '*_mapped.csv')))
     frames = []
     for i, f in enumerate(files):
-        d = pd.read_csv(f, low_memory=False)
+        d = pd.read_csv(f, low_memory=False, dtype=data_prep.GENOME_ID_TEXT)
         d['_train_file'] = i < KMER_TRAIN_FILES
         frames.append(d)
     df = pd.concat(frames, ignore_index=True)
