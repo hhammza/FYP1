@@ -41,9 +41,10 @@ GROUPS = {
     'A_ablation_no_mic': 'ablation', 'A_ablation_drug_only': 'ablation',
     'A10s_monotonic_species': 'protocol', 'D1_forecaster_deploy': 'special',
     'D2_forecaster_deploy': 'special',
+    'D3_forecaster_deploy': 'special',
 }
 ROC_RUNS = ['A2_oof_grouped', 'A3_logistic', 'A6_lab_only',
-            'A12_species_holdout', 'A_ablation_drug_only', 'D2_forecaster_deploy']
+            'A12_species_holdout', 'A_ablation_drug_only', 'D3_forecaster_deploy']
 BEST = 'A2_oof_grouped'
 
 
