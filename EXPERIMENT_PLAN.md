@@ -111,7 +111,7 @@ splitter = StratifiedGroupKFold(n_splits=5, shuffle=True, random_state=42)
 train_idx, test_idx = next(splitter.split(X, y, groups=df['Genome ID']))
 ```
 
-**Measured: also near zero for Track A.** `A1_oof_random` (106,815 genomes on both sides) scores 0.8225 and `A2_oof_grouped` (zero overlap) scores 0.8232, the grouped split is, if anything, marginally *higher*. With ~12 rows per genome but 128 k genomes, there is not enough per-genome signal for the model to memorise.
+**Measured: also near zero for Track A.** `A1_oof_random` (109,204 genomes on both sides) scores 0.8225 and `A2_oof_grouped` (zero overlap) scores 0.8227, the grouped split is, if anything, marginally *higher*. With ~12 rows per genome but 131 k genomes, there is not enough per-genome signal for the model to memorise.
 
 Keep the grouped split as the default regardless: it costs nothing, it is the defensible choice, and it matters far more for **Track B**, where one genome's k-mer vector is literally identical across its rows. Re-measure there before assuming the Track A result carries over.
 
@@ -240,9 +240,9 @@ Run in this order. Each row changes **one** thing from the row above unless stat
 |---|---|---|---|---|
 | **A0** | Reproduce current pipeline exactly | Establishes the leaky baseline for comparison | ✅ done | **0.8243** |
 | **A1** | A0 + out-of-fold encoding (§1.2) | Cost of removing leakage | ✅ done | **0.8225**, leakage worth 0.002 |
-| **A2** | A1 + grouped split (§1.3) | Cost of removing genome leakage | ✅ done | **0.8232**, the corrected baseline |
-| **A3** | Logistic regression on the same features | Is gradient boosting earning its complexity? | ✅ done | **0.8024**, boosting worth +0.018 |
-| **A4** | Random forest *(XGBoost still pending install)* | Bagged vs boosted trees | ✅ done | **0.8173**, boosting worth +0.003, not significant |
+| **A2** | A1 + grouped split (§1.3) | Cost of removing genome leakage | ✅ done | **0.8227**, the corrected baseline |
+| **A3** | Logistic regression on the same features | Is gradient boosting earning its complexity? | ✅ done | **0.7979**, boosting worth +0.020 |
+| **A4** | Random forest *(XGBoost still pending install)* | Bagged vs boosted trees | ✅ done | **0.8140**, boosting worth +0.004, not significant |
 | **A5** | CatBoost with native ordered target statistics | Principled alternative to hand-rolled encoding; best-in-class for high-cardinality categoricals | 3h | often +0.01 to 0.02 |
 | **A6** | Class-imbalance sweep: `is_unbalance` vs `scale_pos_weight` vs SMOTE vs focal loss | Which imbalance treatment actually helps AUPRC | 4h | SMOTE usually *hurts* trees. **Note:** `A6_lab_only` in the registry is the label-provenance run, not this |
 | **A7** | Per-drug-class models (one per beta-lactam / carbapenem / …) vs one global model | Does specialisation beat shared structure? | 4h | global usually wins on rare drugs |
@@ -349,23 +349,23 @@ Report every headline number as `0.881 [0.873-0.889]`. It is a small amount of w
 
 ## 8b. What the runs have shown
 
-Measured, not predicted. Full table in [experiments/RESULTS.md](experiments/RESULTS.md),
+Measured, not predicted, on cleaning v5 (re-run 2026-09-26). Full table in [experiments/RESULTS.md](experiments/RESULTS.md),
 interpretation in [experiments/HANDBOOK.md §11](experiments/HANDBOOK.md).
 
 | Question | Answer |
 |---|---|
-| Honest baseline? | **AUC 0.8232 [0.8200-0.8269]**, full data, grouped split, out-of-fold encoding |
+| Honest baseline? | **AUC 0.8227 [0.8197-0.8264]**, full data, grouped split, out-of-fold encoding |
 | Cost of target leakage? | 0.002, not significant at this scale (§1.2) |
 | Cost of genome leakage? | ~0 for the tabular model (§1.3) |
-| Best algorithm? | LightGBM 0.8201 > random forest 0.8173 > logistic 0.8024, on an identical 400 k sample. Only the linear gap is significant |
-| Value of an MIC? | +0.020 pooled; +0.095 on the lab subset where MICs are actually present |
+| Best algorithm? | LightGBM 0.8176 ≈ CatBoost 0.8170 ≈ XGBoost 0.8167 > random forest 0.8140 > logistic 0.7979, on an identical 400 k sample. Only the linear gap is significant |
+| Value of an MIC? | +0.020 pooled; +0.091 on the lab subset where MICs are actually present |
 | Value of the rate encodings? | +0.001, the trees rebuild the same information from `Taxon ID` and `Antibiotic` |
-| Floor with drug only? | **0.6545**, the measured value of the UI's "Population-level estimate" |
-| Generalise to an unseen genus? | **No.** 0.5971 with 82.9% major error |
-| More data? | Curve is flat from 50 k rows. Full data buys precision and tail coverage, not accuracy |
-| Biggest lever? | **The threshold.** 0.40 → 0.47 moves ME 46% → 34% and VME 10% → 20%. No model change moved AUC by more than 0.002 |
+| Floor with drug only? | **0.6535**, the measured value of the UI's "Population-level estimate" |
+| Generalise to an unseen genus? | **No.** AUC 0.6041. Its error rates at 0.40 are unstable across data versions (VME 11% → 52%), so quote only the AUC |
+| More data? | Curve flattens after about 100 k rows (50 k: 0.8038, 100 k: 0.8158, full: 0.8227). Full data buys precision and tail coverage, not accuracy |
+| Biggest lever? | **The threshold.** 0.40 → 0.47 moves ME 47% → 34% and VME 9% → 20%. No model change moved AUC by more than 0.002 |
 
-The flat learning curve is the main finding: the model is **feature-limited,
+The learning curve flattening early is the main finding: the model is **feature-limited,
 not data-limited**, which is the argument for Track B6 (AMR gene presence) over any
 further tuning.
 

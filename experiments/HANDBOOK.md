@@ -479,32 +479,36 @@ VME and ME are the clinically meaningful pair and the reason the production thre
 
 ## 10. Results so far
 
-22 runs, identical protocol unless stated. Sorted by AUC.
+26 runs. Every run except `D1` and `D2` was re-run on cleaning **v5** (Genome ID read as text) on 2026-09-26; those two stay on v3 and v4 as the record of what was served. Identical protocol unless stated. Sorted by AUC.
 
-| Run | Algo | AUC-ROC [95% CI] | AUPRC | F1 | VME | ME | Brier | Thr | Rows |
-|---|---|---|---|---|---|---|---|---|---|
-| `A6_lab_only` | lightgbm | 0.9654 [0.9620-0.9685] | 0.9678 | 0.8829 | 8.2% | 16.1% | 0.0748 | 0.40 | 203,824 |
-| `A6b_lab_only_no_mic` | lightgbm | 0.8703 [0.8644-0.8764] | 0.8642 | 0.7934 | 11.4% | 34.6% | 0.1464 | 0.40 | 203,824 |
-| `A0_baseline_leaky` | lightgbm | 0.8243 [0.8227-0.8264] | 0.7409 | 0.6662 | 10.6% | 45.4% | 0.1711 | 0.40 | 1,525,796 |
-| `A9_threshold_f1` | lightgbm | 0.8232 [0.8200-0.8269] | 0.7394 | 0.6703 | 20.2% | 33.6% | 0.1716 | 0.47 | 1,525,796 |
-| `A2_oof_grouped` | lightgbm | 0.8232 [0.8200-0.8269] | 0.7394 | 0.6645 | 10.1% | 46.4% | 0.1716 | 0.40 | 1,525,796 |
-| `A1_oof_random` | lightgbm | 0.8225 [0.8210-0.8247] | 0.7387 | 0.6648 | 10.9% | 45.4% | 0.1719 | 0.40 | 1,525,796 |
-| `A10_monotonic_mic` | lightgbm | 0.8222 [0.8192-0.8257] | 0.7372 | 0.6640 | 10.1% | 46.5% | 0.1722 | 0.40 | 1,525,796 |
-| `A2b_no_encoding` | lightgbm | 0.8221 [0.8188-0.8255] | 0.7376 | 0.6644 | 10.4% | 46.1% | 0.1720 | 0.40 | 1,525,796 |
-| `A3b_lgbm_same_sample` | lightgbm | 0.8201 [0.8163-0.8245] | 0.7348 | 0.6683 | 20.4% | 33.5% | 0.1733 | 0.47 | 400,000 |
-| `LC_400k` | lightgbm | 0.8201 [0.8163-0.8245] | 0.7348 | 0.6575 | 8.8% | 49.3% | 0.1733 | 0.40 | 400,000 |
-| `LC_800k` | lightgbm | 0.8200 [0.8162-0.8245] | 0.7372 | 0.6599 | 9.8% | 47.7% | 0.1728 | 0.40 | 800,000 |
-| `LC_100k` | lightgbm | 0.8195 [0.8123-0.8263] | 0.7349 | 0.6589 | 10.0% | 47.6% | 0.1735 | 0.40 | 100,000 |
-| `A5_xgboost` | xgboost | 0.8195 [0.8158-0.8238] | 0.7343 | 0.6675 | 20.8% | 33.2% | 0.1737 | 0.49 | 400,000 |
-| `A5b_catboost` | catboost | 0.8191 [0.8154-0.8234] | 0.7329 | 0.6674 | 20.6% | 33.5% | 0.1736 | 0.47 | 400,000 |
-| `A5c_catboost_native` | catboost | 0.8186 [0.8146-0.8226] | 0.7323 | 0.6671 | 20.8% | 33.3% | 0.1739 | 0.47 | 400,000 |
-| `LC_200k` | lightgbm | 0.8174 [0.8115-0.8223] | 0.7307 | 0.6581 | 11.2% | 46.2% | 0.1740 | 0.40 | 200,000 |
-| `A4_random_forest` | random_forest | 0.8173 [0.8136-0.8214] | 0.7282 | 0.6657 | 21.4% | 32.9% | 0.1748 | 0.48 | 400,000 |
-| `LC_50k` | lightgbm | 0.8157 [0.8060-0.8233] | 0.7307 | 0.6595 | 12.5% | 44.9% | 0.1759 | 0.40 | 50,000 |
-| `A_ablation_no_mic` | lightgbm | 0.8033 [0.7999-0.8068] | 0.6974 | 0.6518 | 9.1% | 50.6% | 0.1820 | 0.40 | 1,525,796 |
-| `A3_logistic` | logistic | 0.8024 [0.7985-0.8063] | 0.7083 | 0.6557 | 21.0% | 35.4% | 0.1811 | 0.45 | 400,000 |
-| `A_ablation_drug_only` | lightgbm | 0.6545 [0.6516-0.6570] | 0.4906 | 0.5743 | 9.8% | 71.2% | 0.2277 | 0.40 | 1,525,796 |
-| `A12_species_holdout` | lightgbm | 0.5971 [0.5935-0.6012] | 0.5990 | 0.6045 | 11.4% | 82.9% | 0.2467 | 0.40 | 1,525,796 |
+| Run | Data | Algo | AUC-ROC [95% CI] | AUPRC | F1 | VME | ME | Brier | Thr | Rows |
+|---|---|---|---|---|---|---|---|---|---|---|
+| `A6_lab_only` | v5 | lightgbm | 0.9675 [0.9647-0.9704] | 0.9692 | 0.8858 | 8.4% | 14.9% | 0.0722 | 0.40 | 201,042 |
+| `A6b_lab_only_no_mic` | v5 | lightgbm | 0.8764 [0.8706-0.8819] | 0.8693 | 0.7939 | 9.4% | 36.8% | 0.1428 | 0.40 | 201,042 |
+| `A0_baseline_leaky` | v5 | lightgbm | 0.8244 [0.8226-0.8265] | 0.7402 | 0.6639 | 9.3% | 47.3% | 0.1712 | 0.40 | 1,558,494 |
+| `A9_threshold_f1` | v5 | lightgbm | 0.8227 [0.8197-0.8264] | 0.7373 | 0.6704 | 20.1% | 33.5% | 0.1718 | 0.47 | 1,558,494 |
+| `A2_oof_grouped` | v5 | lightgbm | 0.8227 [0.8197-0.8264] | 0.7373 | 0.6638 | 9.3% | 47.4% | 0.1718 | 0.40 | 1,558,494 |
+| `A1_oof_random` | v5 | lightgbm | 0.8225 [0.8208-0.8246] | 0.7379 | 0.6617 | 8.9% | 48.3% | 0.1720 | 0.40 | 1,558,494 |
+| `A10_monotonic_mic` | v5 | lightgbm | 0.8215 [0.8183-0.8249] | 0.7346 | 0.6652 | 10.7% | 45.4% | 0.1725 | 0.40 | 1,558,494 |
+| `A2b_no_encoding` | v5 | lightgbm | 0.8214 [0.8181-0.8250] | 0.7351 | 0.6626 | 8.9% | 48.1% | 0.1722 | 0.40 | 1,558,494 |
+| `LC_800k` | v5 | lightgbm | 0.8205 [0.8173-0.8240] | 0.7370 | 0.6618 | 9.8% | 47.3% | 0.1726 | 0.40 | 800,000 |
+| `A3b_lgbm_same_sample` | v5 | lightgbm | 0.8176 [0.8132-0.8217] | 0.7310 | 0.6658 | 21.1% | 33.5% | 0.1738 | 0.46 | 400,000 |
+| `LC_400k` | v5 | lightgbm | 0.8176 [0.8132-0.8217] | 0.7310 | 0.6623 | 11.1% | 45.8% | 0.1738 | 0.40 | 400,000 |
+| `LC_200k` | v5 | lightgbm | 0.8174 [0.8112-0.8223] | 0.7325 | 0.6604 | 9.3% | 48.3% | 0.1737 | 0.40 | 200,000 |
+| `A5b_catboost` | v5 | catboost | 0.8170 [0.8125-0.8211] | 0.7303 | 0.6660 | 19.9% | 34.8% | 0.1741 | 0.47 | 400,000 |
+| `A5_xgboost` | v5 | xgboost | 0.8167 [0.8125-0.8207] | 0.7307 | 0.6640 | 21.8% | 33.0% | 0.1744 | 0.47 | 400,000 |
+| `LC_100k` | v5 | lightgbm | 0.8158 [0.8096-0.8217] | 0.7303 | 0.6612 | 11.0% | 46.2% | 0.1754 | 0.40 | 100,000 |
+| `A5c_catboost_native` | v5 | catboost | 0.8155 [0.8111-0.8197] | 0.7282 | 0.6644 | 20.5% | 34.5% | 0.1746 | 0.47 | 400,000 |
+| `A4_random_forest` | v5 | random_forest | 0.8140 [0.8097-0.8183] | 0.7236 | 0.6630 | 21.9% | 33.1% | 0.1754 | 0.47 | 400,000 |
+| `D2_forecaster_deploy` | v4 | lightgbm | 0.8044 [0.8010-0.8080] | 0.7163 | 0.6419 | 9.0% | 53.0% | 0.1678 | 0.25 | 1,521,644 |
+| `D1_forecaster_deploy` | v3 | lightgbm | 0.8043 [0.8010-0.8080] | 0.7161 | 0.6420 | 9.1% | 52.9% | 0.1678 | 0.24 | 1,521,644 |
+| `A10s_monotonic_species` | v5 | lightgbm | 0.8040 [0.8002-0.8077] | 0.7176 | 0.6493 | 13.0% | 46.4% | 0.1795 | 0.40 | 1,558,494 |
+| `D3_forecaster_deploy` | v5 | lightgbm | 0.8039 [0.8001-0.8076] | 0.7135 | 0.6397 | 8.2% | 54.6% | 0.1683 | 0.23 | 1,558,494 |
+| `LC_50k` | v5 | lightgbm | 0.8038 [0.7951-0.8148] | 0.7110 | 0.6525 | 10.1% | 49.6% | 0.1800 | 0.40 | 50,000 |
+| `A_ablation_no_mic` | v5 | lightgbm | 0.8030 [0.8001-0.8069] | 0.6953 | 0.6517 | 9.1% | 50.5% | 0.1822 | 0.40 | 1,558,494 |
+| `A3_logistic` | v5 | logistic | 0.7979 [0.7935-0.8021] | 0.7013 | 0.6542 | 18.4% | 39.0% | 0.1828 | 0.41 | 400,000 |
+| `A_ablation_drug_only` | v5 | lightgbm | 0.6535 [0.6510-0.6566] | 0.4852 | 0.5744 | 10.0% | 70.8% | 0.2308 | 0.40 | 1,558,494 |
+| `A12_species_holdout` | v5 | lightgbm | 0.6041 [0.6012-0.6076] | 0.6070 | 0.4999 | 51.7% | 35.7% | 0.2253 | 0.40 | 1,558,494 |
 
 Regenerate with `python experiments/report.py`.
 
@@ -512,35 +516,37 @@ Regenerate with `python experiments/report.py`.
 
 ## 11. What the results mean
 
-**The corrected baseline is AUC 0.823** (`A2_oof_grouped`): full data, out-of-fold encoding, zero genome overlap, threshold 0.40.
+*Numbers are cleaning v5 (2026-09-26). Against the earlier v1–v3 runs every AUC moved by less than 0.012 with overlapping intervals; the two conclusions that changed are marked below.*
 
-**Target leakage costs 0.002, not the large correction expected.** `A0_baseline_leaky` 0.8243 vs `A1_oof_random` 0.8225, overlapping intervals. At 1.5 M rows each encoded group is estimated from many rows, so one test row's own label barely shifts its group mean. It would matter on the 25 k rows the shipped model used; it does not here. Fix it anyway (it is free), but do not claim a large correction.
+**The corrected baseline is AUC 0.823** (`A2_oof_grouped`, 0.8227 [0.8197-0.8264]): full data, out-of-fold encoding, zero genome overlap, threshold 0.40.
 
-**Genome grouping also costs nothing here.** `A1_oof_random` has 106,815 genomes on both sides and scores 0.8225; `A2_oof_grouped` has zero overlap and scores 0.8232. With 128 k genomes there is not enough per-genome signal to memorise. It is very different for small training sets and for the k-mer model, where one genome's feature vector is *identical* across its rows; see the next paragraph.
+**Target leakage costs 0.002, not the large correction expected.** `A0_baseline_leaky` 0.8244 vs `A1_oof_random` 0.8225, overlapping intervals. At 1.5 M rows each encoded group is estimated from many rows, so one test row's own label barely shifts its group mean. It would matter on the 25 k rows the shipped model used; it does not here. Fix it anyway (it is free), but do not claim a large correction.
 
-**The threshold matters more than any model choice.** Every algorithmic variant sits inside ±0.002 AUC. Meanwhile moving the threshold from 0.40 to 0.47 moves VME from 10.1% to 20.2% and ME from 46.4% to 33.6%. **At the production threshold, 46% of susceptible isolates are called resistant.** That is the single most important number in this table and it is a policy decision, not a modelling one.
+**Genome grouping also costs nothing here.** `A1_oof_random` has 109,204 genomes on both sides and scores 0.8225; `A2_oof_grouped` has zero overlap and scores 0.8227. With 131 k genomes there is not enough per-genome signal to memorise. It is very different for small training sets and for the k-mer model, where one genome's feature vector is *identical* across its rows; see the next paragraph.
+
+**The threshold matters more than any model choice.** Every algorithmic variant sits inside ±0.002 AUC. Meanwhile moving the threshold from 0.40 to 0.47 moves VME from 9.3% to 20.1% and ME from 47.4% to 33.5%. **At 0.40, 47% of susceptible isolates are called resistant.** The served model (`D3_forecaster_deploy`) is calibrated and uses 0.23 for VME ≤ 10%, which puts ME at 54.6%. That is the single most important number in this table and it is a policy decision, not a modelling one.
 
 **Algorithm choice barely matters; model family does.** All five run on the identical 400 k sample, same split, same seed:
 
 | Algorithm | AUC [95% CI] | AUPRC | Brier |
 |---|---|---|---|
-| LightGBM | 0.8201 [0.8163-0.8245] | 0.7348 | 0.1733 |
-| XGBoost | 0.8195 [0.8158-0.8238] | 0.7343 | 0.1737 |
-| CatBoost | 0.8191 [0.8154-0.8234] | 0.7329 | 0.1736 |
-| Random forest | 0.8173 [0.8136-0.8214] | 0.7282 | 0.1748 |
-| Logistic regression | 0.8024 [0.7985-0.8063] | 0.7083 | 0.1811 |
+| LightGBM | 0.8176 [0.8132-0.8217] | 0.7310 | 0.1738 |
+| CatBoost | 0.8170 [0.8125-0.8211] | 0.7303 | 0.1741 |
+| XGBoost | 0.8167 [0.8125-0.8207] | 0.7307 | 0.1744 |
+| Random forest | 0.8140 [0.8097-0.8183] | 0.7236 | 0.1754 |
+| Logistic regression | 0.7979 [0.7935-0.8021] | 0.7013 | 0.1828 |
 
-The three boosting libraries are within 0.001 of each other. Boosting over bagging is 0.003, overlapping intervals, not a real difference. Either tree method over linear is ~0.018 with non-overlapping intervals, so that one is real but modest. Most of the signal is in the features, not in non-linear interactions.
+The three boosting libraries are within 0.001 of each other. Boosting over bagging is 0.004, overlapping intervals, not a real difference. Either tree method over linear is ~0.02 with non-overlapping intervals, so that one is real but modest. Most of the signal is in the features, not in non-linear interactions.
 
-**MIC is worth about 0.02 AUC pooled** (`A_ablation_no_mic` 0.8033 vs 0.8232), smaller than expected because 93% of rows have no MIC. On the lab subset where MIC is present 47% of the time, it is worth **0.095** (`A6` 0.9654 vs `A6b` 0.8703).
+**MIC is worth about 0.02 AUC pooled** (`A_ablation_no_mic` 0.8030 vs 0.8227), smaller than expected because 93% of rows have no MIC. On the lab subset where MIC is present 47% of the time, it is worth **0.091** (`A6` 0.9675 vs `A6b` 0.8764).
 
-**The lab-only result is partly circular.** 0.9654 looks spectacular, but a lab's S/R call *is* the MIC put through clinical breakpoints, and lab rows carry an MIC 78× more often. Remove MIC and it falls to 0.8703, still well above the pooled baseline, so lab labels are cleaner, but 0.9654 is not a number to quote as model performance.
+**The lab-only result is partly circular.** 0.9675 looks spectacular, but a lab's S/R call *is* the MIC put through clinical breakpoints, and lab rows carry an MIC 78× more often. Remove MIC and it falls to 0.8764, still well above the pooled baseline, so lab labels are cleaner, but 0.9675 is not a number to quote as model performance.
 
-**Drug identity alone gives 0.6545.** This is the measured floor that the `/forecast` page labels a "Population-level estimate", what a user gets when they fill in nothing but the antibiotic.
+**Drug identity alone gives 0.6535.** This is the measured floor that the `/forecast` page labels a "Population-level estimate", what a user gets when they fill in nothing but the antibiotic.
 
-**Generalisation across genera collapses.** `A12_species_holdout`, train without *Klebsiella*, test only on it, gives 0.5971 with 82.9% ME, barely above chance. The model substantially encodes "this organism is usually resistant to this drug" rather than resistance mechanism.
+**Generalisation across genera collapses.** `A12_species_holdout`, train without *Klebsiella*, test only on it, gives 0.6041, barely above chance. *Changed on v5:* its error rates at the fixed 0.40 threshold swapped (v3: VME 11%, ME 83%; v5: VME 52%, ME 36%) while AUC stayed near 0.60, so quote only the AUC for this run: the scores on an unseen genus are not calibrated, and which error dominates depends on small shifts. The model substantially encodes "this organism is usually resistant to this drug" rather than resistance mechanism.
 
-**The deployed models score far lower on genomes they never saw.** `evaluate_shipped.py` rebuilt which files each shipped artifact trained on (the first 500 `amr_output` and first 200 `mapped_output` files, confirmed by identical antibiotic sets, genera and stored resistance rate) and scored both on every other genome:
+**The July models scored far lower on genomes they never saw** (measured 2026-09-25, before they were replaced; the served `D3_forecaster_deploy` scores 0.7997 on unseen genomes and 0.8001 on seen ones). `evaluate_shipped.py` rebuilt which files each shipped artifact trained on (the first 500 `amr_output` and first 200 `mapped_output` files, confirmed by identical antibiotic sets, genera and stored resistance rate) and scored both on every other genome:
 
 | Model | Training data | Seen genomes | Unseen genomes |
 |---|---|---|---|
@@ -549,7 +555,7 @@ The three boosting libraries are within 0.001 of each other. Boosting over baggi
 
 On the 297,197 rows neither trained on, the shipped LightGBM scores 0.644 and `A2_oof_grouped` 0.820, with the same algorithm. The gap is the data: 1.6% of the rows, no *Klebsiella*, *Neisseria*, *Campylobacter* or *Shigella*, and half the resistant share of the full export. The K-mer model does no better than the antibiotic's resistance rate alone (0.703), and within a single antibiotic its AUC averages 0.62. At the shipped thresholds the two models miss 46% and 70% of resistant isolates.
 
-**The learning curve is flat from 50 k rows.** 50 k → 1.5 M moves AUC 0.8157 → 0.8232, all intervals overlapping. What full data does buy is precision (CI width 0.017 → 0.007) and tail coverage (36 → 90 antibiotics with enough test rows to evaluate). **More rows will not help; better features will**, which is the argument for AMR gene presence features (Track B6 in the plan) over further tuning.
+**The learning curve flattens after about 100 k rows.** *Changed on v5:* 50 k now scores 0.8038 (v1: 0.8157), below 100 k's 0.8158; from 100 k to 1.5 M AUC moves 0.8158 → 0.8227 with overlapping intervals. What full data does buy is precision (CI width 0.020 → 0.007) and tail coverage (36 → 72 antibiotics with enough test rows to evaluate). **More rows will not help; better features will**, which is the argument for AMR gene presence features (Track B6 in the plan) over further tuning.
 
 ---
 
