@@ -235,8 +235,8 @@
       </div>
     </div>
 
-    <!-- ── Results ─────────────────────────────────────────────── -->
-    <div class="col-lg-8">
+    <!-- ── Results (first below 992px once there is one) ─────────── -->
+    <div class="col-lg-8 {% if result or batch %}order-first order-lg-0{% endif %}">
       {% if error %}
       <div class="alert alert-danger-custom"><i class="bi bi-exclamation-circle me-2"></i>{{ error }}</div>
       {% endif %}
@@ -246,10 +246,10 @@
       <div class="info-card mb-4">
         <h6 class="card-section-title"><i class="bi bi-table me-2 text-accent"></i>Batch results</h6>
         <div class="row g-2 text-center mb-2">
-          <div class="col"><div class="stat-mini"><div class="stat-mini-value">{{ "{:,}".format(s.rows) }}</div><div class="stat-mini-label">Rows</div></div></div>
-          <div class="col"><div class="stat-mini"><div class="stat-mini-value text-rose2">{{ "{:,}".format(s.resistant) }}</div><div class="stat-mini-label">Resistant</div></div></div>
-          <div class="col"><div class="stat-mini"><div class="stat-mini-value text-emerald2">{{ "{:,}".format(s.susceptible) }}</div><div class="stat-mini-label">Susceptible</div></div></div>
-          <div class="col"><div class="stat-mini"><div class="stat-mini-value {% if s.errors %}text-amber2{% endif %}">{{ "{:,}".format(s.errors) }}</div><div class="stat-mini-label">Rows with a problem</div></div></div>
+          <div class="col-6 col-md-3"><div class="stat-mini"><div class="stat-mini-value">{{ "{:,}".format(s.rows) }}</div><div class="stat-mini-label">Rows</div></div></div>
+          <div class="col-6 col-md-3"><div class="stat-mini"><div class="stat-mini-value text-rose2">{{ "{:,}".format(s.resistant) }}</div><div class="stat-mini-label">Resistant</div></div></div>
+          <div class="col-6 col-md-3"><div class="stat-mini"><div class="stat-mini-value text-emerald2">{{ "{:,}".format(s.susceptible) }}</div><div class="stat-mini-label">Susceptible</div></div></div>
+          <div class="col-6 col-md-3"><div class="stat-mini"><div class="stat-mini-value {% if s.errors %}text-amber2{% endif %}">{{ "{:,}".format(s.errors) }}</div><div class="stat-mini-label">Rows with a problem</div></div></div>
         </div>
         <div class="text-muted fs-12">Model {{ batch.model_run }}{% if batch.calibrated %}, calibrated{% endif %},
           threshold {{ batch.threshold }}: a row is called Resistant at or above it.</div>
@@ -353,7 +353,8 @@
 
         <p class="text-muted fs-13 mb-3">{{ result.evidence.summary }}</p>
 
-        <table class="table table-custom table-sm mb-0">
+        <div class="table-responsive">
+        <table class="table table-custom table-sm mb-0 evidence-table">
           {% for item in result.evidence.inputs %}
           <tr>
             <td class="evidence-state-cell">
@@ -368,13 +369,15 @@
               {% endif %}
             </td>
             <td class="text-muted" style="width: 22%">{{ item.field }}</td>
-            <td class="fw-500 text-capitalize" style="width: 26%">{{ item.value if item.value is not none else '—' }}</td>
+            <td class="fw-500 text-capitalize" style="width: 26%">{#- a break point after "/" so drug pairs can wrap -#}
+              {{ (item.value if item.value is not none else '—') | string | e | replace('/', '/<wbr>' | safe) }}</td>
             <td class="fs-12 {% if item.state == 'used' %}text-2{% elif item.state == 'missing' %}text-muted{% else %}text-amber2{% endif %}">
               {{ item.detail }}
             </td>
           </tr>
           {% endfor %}
         </table>
+        </div>
 
         {% if result.evidence.level == 'drug_only' %}
         <div class="alert alert-warning-custom mt-3 mb-0">
@@ -473,7 +476,7 @@
     <div class="mb-4">
       <div class="sec-eyebrow">Scientific Background</div>
       <div class="sec-title">Understanding LightGBM-Based AMR Forecasting</div>
-      <div class="sec-sub">The model uses gradient boosting on 90,826 labeled genomic records to classify antibiotic resistance.</div>
+      <div class="sec-sub">The model uses gradient boosting on {{ metrics.lgbm.train_rows }} labelled records to classify antibiotic resistance.</div>
     </div>
 
     <div class="row g-4 mb-4">
