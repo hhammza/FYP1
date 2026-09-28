@@ -41,12 +41,12 @@ It does **not** cover the k-mer genome model or the timeline simulation. Those a
 ## 2. The pipeline, end to end
 
 ```
-data/amr_output/*.csv                 3,655 files, 2,986,755 rows
-        │
+data/amr_full/**/*.csv                36 files, 17,585,506 rows (v6; v1 to v5
+        │                             read data/amr_output/, 2,986,755 rows)
         │  lib/data_prep.py, parse MIC, split organism name, normalise drug
         │  names, map phenotype to 0/1, tag provenance, deduplicate
         ▼
-cache/clean_v1_amr_output_norm.pkl    1,525,796 rows × 14 columns
+cache/clean_v6_amr_full_norm.pkl      7,847,110 rows × 15 columns
         │
         │  lib/splits.py, grouped / random / species-holdout
         ▼
@@ -74,7 +74,8 @@ cache/clean_v1_amr_output_norm.pkl    1,525,796 rows × 14 columns
 
 | Path | What it is |
 |---|---|
-| `data/amr_output/*.csv` | 3,655 per-species AMR phenotype exports from **BV-BRC** (formerly PATRIC), one file per taxon, e.g. `amr_taxon_562_Escherichia_coli.csv`. **This is what the harness reads.** |
+| `data/amr_full/` | The complete BV-BRC AMR export (2026-09-29): all 17,585,506 records in 500,000-row parts, lab and computational, with `manifest.json` (counts and dates). Not in git; `scripts/bvbrc_download/download_amr_full.py` fetches it in about 35 minutes. **This is what the harness reads (cleaning v6).** |
+| `data/amr_output/*.csv` | The April 2026 export from **BV-BRC** (formerly PATRIC), one file per taxon, e.g. `amr_taxon_562_Escherichia_coli.csv`. **Incomplete** (§3.4): 2,986,755 of the 17.6 M records. Cleanings v1 to v5 read it; kept so v5 runs rebuild exactly (`data_prep.source_of`). |
 | `data/BVBRC_genome_amr.csv` | A single 30 MB export, the source used by `notebooks/LightGBM_Model_Improved.ipynb`. Not used here. |
 | `data/mapped_output/*.csv` | The same rows joined to FASTA paths by `scripts/fasta_amr_map.py`. For the genome model (Track B). |
 | `data/fasta_output/taxon_*/` | 4 GB of genome assemblies. Track B. |
@@ -82,7 +83,7 @@ cache/clean_v1_amr_output_norm.pkl    1,525,796 rows × 14 columns
 
 ### 3.2 Cleaning, step by step
 
-Implemented in [`lib/data_prep.py`](lib/data_prep.py) `clean()`. Row counts are from the current run:
+Implemented in [`lib/data_prep.py`](lib/data_prep.py) `clean()`. The row counts in this table are from the April export (v1). On the complete export (v6): 17,585,506 raw rows, 8,922,627 with a usable phenotype, 1,030,847 duplicates dropped, **7,847,110 rows**. Since v6 the loader reads only the nine columns `clean()` uses and drops unusable phenotypes file by file, so the 5 GB export fits in memory.
 
 | # | Step | Effect |
 |---|---|---|
@@ -110,6 +111,10 @@ The cleaned frame is cached; later runs load it in under a second. Bump `CLEAN_V
 | `Not defined`, missing | dropped | 1.27 M rows, ~42% of the raw export |
 
 ### 3.3 What the cleaned dataset looks like
+
+**Cleaning v6 (the complete export, current):** 7,847,110 rows over 439,542 genomes; 649,944 lab rows (8.3%) on 87,325 genomes; 126 antibiotics, 40 genera, 247 species; **28.0% resistant** (lab rows 33.7%); 2.8% of rows carry an MIC. Top genera: *Escherichia* 3,562,956 · *Salmonella* 1,083,062 · *Mycobacterium* 979,138 · *Klebsiella* 703,539 · *Staphylococcus* 366,887. Full comparison with v5: [audit/results/v5_vs_v6.md](audit/results/v5_vs_v6.md).
+
+The table below describes the April export (v1, with notes for v2 to v5); every run in §10 used it.
 
 | | |
 |---|---|
@@ -150,6 +155,7 @@ The cleaned frame is cached; later runs load it in under a second. Bump `CLEAN_V
 - **Antibiotic names were messy; fixed in cleaning v2 (2026-09-25).** `CLEAN_VERSION = 'v2'` extends `ANTIBIOTIC_ALIASES`: 16 renames (underscore variants such as `ceftazidime_avibactam`, typos such as `amipicillin_sulbactam`, `tgecycline` and `strofurantoin`, the mis-encoded `cefuroximâ`, and alternative names such as `synercid` and `cefalotin`) and 8 drops (drug classes such as `fluoroquinolones`, the phenotype `extended spectrum beta lactamase`, and `instrument`, 593 *C. difficile* rows whose drug name was lost). Names go from 152 to 130 and rows from 1,525,796 to 1,521,644. `trimethoprim/sulfobactam` is kept as it is: every one of its genomes also has a separate trimethoprim/sulfamethoxazole row, so it is not a duplicate. **All 22 runs in §10 used v1**; re-run a config to get v2 numbers. Since 2026-09-26 the map lives only in `backend/amr_constants.py`, which the cleaning, trainer, predictors and web app all read.
 - **Genome IDs read as numbers; fixed in cleaning v5 (2026-09-26).** Loading the CSVs without a type made `Genome ID` a float, so IDs that differ only by trailing zeros (`195.304` and `195.3040`, `108619.17` and `108619.170`) became one genome: 3,312 genomes merged into others, and the one-row-per-(genome, antibiotic) dedup dropped 36,850 of their rows (2.4%). `data_prep.py` and `train_models.py` now read `Genome ID` as text. v5 has 1,558,494 rows over 131,385 genomes. **Every run so far used the merged IDs**; D2 and the registry need a re-run on v5. The same bug in `fasta_amr_map.py` had attached 888 rows of 20 genomes to other genomes' FASTA files in `mapped_output/`; fixed there too.
 - **13 more aliases and one more drop (2026-09-26), still v4.** Hyphen and underscore variants (`ceftazidime-avibactam`, `imipenem-relebactam`, `polymyxin_b`, `cefepime_taniborbactam`), the mis-encoded `cefotaxime/clavulanic acidâ`, `phosphomycin` → fosfomycin, `benzylpenicillin` → penicillin, other-language spellings Suleman found in `BVBRC_genome_amr.csv` (`tigecyklin`, `tetracyklin`, `cefpirom`, `amoxicillin_clavulanat`), and `sulfa` dropped as a drug group. None of the genomes has both spellings. Every row they touch in `amr_output/` has no usable phenotype, so the cleaned table is unchanged and `CLEAN_VERSION` stays `v4`; the map matters at prediction time and for other exports. `trimethoprim/sulfonamide` (38 rows) is left alone: a sulfonamide is not necessarily sulfamethoxazole.
+- **The April export was incomplete; fixed in cleaning v6 (2026-09-29).** The downloader paged each taxon by offset and stopped at 500,000 rows, so it failed on the largest species: no *E. coli* (taxon 562, 7.2 M records), *S. enterica* (28901) or *S. aureus* (1280) at species level, and *K. pneumoniae* (573) stopped at 500,000 of 1.84 M. 597 taxa ended in an error, 586 of them with no rows. The export held 2,986,755 of BV-BRC's 17,585,506 records and 201,042 of what are now 649,944 cleaned lab rows. Its lab rows were 49.5% resistant against 33.7% in the complete set, so the April sample overstated resistance. `download_amr_full.py` pages by record ID instead (no depth limit) and matched BV-BRC's own counts with no duplicates. Between the two downloads BV-BRC also removed 996 genomes and changed 1,665 labels, so any export needs its date recorded (`Data/amr_full/manifest.json`). **Every run in §10 is v5**; re-run a config to get v6 numbers.
 - **Taxon IDs are strain-level.** 3,549 distinct IDs in a dataset of 41 genera, these are BV-BRC strain identifiers, not the species IDs a user would type (562 for *E. coli*). This is why the `/forecast` page's Taxon ID field never matches a lookup.
 - **`computational_f1` is self-reported** by whichever caller produced the row, parsed out of a free-text field, and forced to 1.0 for lab rows. Treat it as a provenance hint, not a calibrated quality score.
 
