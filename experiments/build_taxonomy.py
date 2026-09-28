@@ -2,9 +2,11 @@
 Map every Taxon ID in the data to its species and genus, using NCBI Taxonomy.
 
 The export's `Taxon ID` is mostly strain level: Escherichia coli alone is
-spread over about 1,200 IDs (244319 is O26:H11, 83334 is O157:H7) and the
-species ID 562 never appears. A user who types 562 therefore never matches a
-resistance rate. This script looks each ID up once and writes a small table
+spread over about 1,200 IDs (244319 is O26:H11, 83334 is O157:H7). In the
+April export the species ID 562 never appeared at all, but only because that
+download failed on it (see scripts/bvbrc_download/README.md); the complete
+export has 7.2 M rows under 562. Grouping at species level still matters:
+a user who types 562 should match every E. coli strain. This script looks each ID up once and writes a small table
 that training and prediction both use to move to species level.
 
     python experiments/build_taxonomy.py
@@ -44,10 +46,11 @@ except ImportError:
 
 
 def taxon_ids():
-    """Every Taxon ID in amr_output/ and mapped_output/."""
+    """Every Taxon ID in amr_full/, amr_output/ and mapped_output/."""
     ids = set()
-    for source in ('amr_output', 'mapped_output'):
-        for f in glob.glob(os.path.join(data_prep.data_root(), source, '*.csv')):
+    for source in ('amr_full', 'amr_output', 'mapped_output'):
+        pattern = os.path.join(data_prep.data_root(), source, '**', '*.csv')
+        for f in glob.glob(pattern, recursive=True):
             try:
                 col = pd.read_csv(f, usecols=['Taxon ID'])['Taxon ID']
             except (ValueError, KeyError):
