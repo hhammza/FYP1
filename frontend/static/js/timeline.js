@@ -86,7 +86,8 @@
   function renderTimelineChart(tlData, failWeek) {
     if (!tlData || !tlData.length) return;
 
-    const weeks        = tlData.map(d => 'Week ' + d.week);
+    const weeks        = tlData.map(d => d.week);
+    const narrow       = window.innerWidth < 576;
     const resistant    = tlData.map(d => d.resistant_fraction);
     const susceptible  = tlData.map(d => d.susceptible_fraction);
     const intermediate = tlData.map(d => d.intermediate_fraction);
@@ -98,26 +99,26 @@
         line: { color: '#ef4444', width: 3 },
         marker: { size: 6 },
         fill: 'tozeroy', fillcolor: 'rgba(239,68,68,0.1)',
-        hovertemplate: '%{x}<br>Resistant: %{y:.1f}%<extra></extra>',
+        hovertemplate: 'Week %{x}<br>Resistant: %{y:.1f}%<extra></extra>',
       },
       {
         name: 'Intermediate', x: weeks, y: intermediate,
         mode: 'lines',
         line: { color: '#f59e0b', width: 2, dash: 'dot' },
-        hovertemplate: '%{x}<br>Intermediate: %{y:.1f}%<extra></extra>',
+        hovertemplate: 'Week %{x}<br>Intermediate: %{y:.1f}%<extra></extra>',
       },
       {
         name: 'Susceptible', x: weeks, y: susceptible,
         mode: 'lines+markers',
         line: { color: '#22c55e', width: 3 },
         marker: { size: 6 },
-        hovertemplate: '%{x}<br>Susceptible: %{y:.1f}%<extra></extra>',
+        hovertemplate: 'Week %{x}<br>Susceptible: %{y:.1f}%<extra></extra>',
       },
     ];
 
     const shapes = [{
       type: 'line',
-      x0: 0, x1: tlData.length - 1, y0: 50, y1: 50,
+      x0: weeks[0], x1: weeks[weeks.length - 1], y0: 50, y1: 50,
       line: { color: 'rgba(239,68,68,0.5)', width: 1.5, dash: 'dash' },
       xref: 'x', yref: 'y',
     }];
@@ -125,7 +126,7 @@
     if (failWeek !== null && failWeek !== undefined) {
       shapes.push({
         type: 'line',
-        x0: 'Week ' + failWeek, x1: 'Week ' + failWeek, y0: 0, y1: 100,
+        x0: failWeek, x1: failWeek, y0: 0, y1: 100,
         line: { color: 'rgba(239,68,68,0.7)', width: 2, dash: 'dash' },
         xref: 'x', yref: 'y',
       });
@@ -136,16 +137,18 @@
     Plotly.newPlot('timelineChart', traces, {
       paper_bgcolor: t.paper_bgcolor,
       plot_bgcolor:  t.plot_bgcolor,
-      margin: { t: 20, b: 60, l: 50, r: 20 },
+      margin: { t: 30, b: 50, l: 50, r: 16 },
       legend: {
         font: { color: t.tickColor },
-        orientation: 'h', x: 0, y: 1.1,
+        orientation: 'h', x: 0, y: 1.02, yanchor: 'bottom',
       },
       xaxis: {
         tickfont: { color: t.tickColor, size: 11 },
         gridcolor: t.gridColor,
         linecolor: t.gridColor,
-        tickangle: -30,
+        title: { text: 'Week', font: { color: t.tickColor, size: 12 } },
+        dtick: narrow && weeks.length > 13 ? 2 : 1,
+        automargin: true,
       },
       yaxis: {
         tickfont: { color: t.tickColor },
@@ -158,7 +161,7 @@
       annotations: [{
         x: weeks[Math.floor(weeks.length / 2)],
         y: 53,
-        text: '50% — Treatment Failure Threshold',
+        text: narrow ? '50% failure' : '50% — Treatment Failure Threshold',
         font: { color: 'rgba(239,68,68,0.8)', size: 10 },
         showarrow: false,
       }],

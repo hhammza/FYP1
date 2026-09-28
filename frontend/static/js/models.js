@@ -116,7 +116,7 @@
     }).filter(t => t.x.length);
 
     Plotly.react('aucChart', traces, layout({
-      xaxis: { range: [0.5, 1.0], title: { text: 'AUC-ROC on held-out genomes (0.5 = guessing)' } },
+      xaxis: { range: [0.5, 1.0], title: { text: window.innerWidth < 576 ? 'AUC-ROC (0.5 = guessing)' : 'AUC-ROC on held-out genomes (0.5 = guessing)' } },
       yaxis: { categoryorder: 'array', categoryarray: order, tickfont: { family: "'JetBrains Mono',monospace", size: 11, color: AMR.plotLayout().tickColor } },
       margin: { t: 10, r: 16, b: 90, l: 170 },
       legend: { orientation: 'h', x: 0, xanchor: 'left', y: -60 / (140 + 24 * rows.length) - 0.06, font: { color: p.text2, size: 11 } },
@@ -196,7 +196,7 @@
     const traces = Object.keys(GROUPS).map(key => {
       const g = pts.filter(r => r.group === key);
       return {
-        type: 'scatter', mode: 'markers+text', name: legendName(GROUPS[key].label),
+        type: 'scatter', mode: window.innerWidth < 576 ? 'markers' : 'markers+text', name: legendName(GROUPS[key].label),
         x: g.map(r => r.me), y: g.map(r => r.vme),
         text: g.map(r => (LABELLED.has(r.label) ? r.label.replace(/_.*/, '').replace('Deployed ', '') : '')),
         textposition: 'top center', textfont: { color: p.text2, size: 10.5 },

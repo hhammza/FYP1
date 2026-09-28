@@ -160,6 +160,7 @@
         tickfont: { color: t.tickColor, size: 11 },
         gridcolor: t.gridColor,
         linecolor: t.gridColor,
+        automargin: true,
       },
       yaxis: {
         tickfont: { color: t.tickColor },

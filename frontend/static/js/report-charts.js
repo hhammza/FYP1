@@ -24,7 +24,7 @@
     const p = palette();
     const axis = {
       tickfont: { color: t.tickColor, size: 11 },
-      gridcolor: t.gridColor, linecolor: t.lineColor, zeroline: false,
+      gridcolor: t.gridColor, linecolor: t.lineColor, zeroline: false, automargin: true,
       title: { font: { color: t.tickColor, size: 12 } },
     };
     const base = {
@@ -43,6 +43,11 @@
       } else {
         base[key] = extra[key];
       }
+    }
+    /* On phones a legend below the plot collides with the (angled) axis
+       labels, so any chart's bottom legend moves above the plot instead. */
+    if (window.innerWidth < 576 && base.legend && base.legend.y < 0) {
+      base.legend = Object.assign({}, base.legend, { y: 1.02, yanchor: 'bottom' });
     }
     return base;
   }
