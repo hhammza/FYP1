@@ -400,7 +400,7 @@ ATGCATGCATGCATGCATGC..."></textarea>
           <div class="crisis-icon"><i class="bi bi-activity text-rose2"></i></div>
           <div class="crisis-val">Logistic</div>
           <div class="fw-600 mb-2 text-rose2">Population Growth Model</div>
-          <div class="crisis-desc">Resistance fraction follows a logistic S-curve: slow initial spread, exponential acceleration, then plateau. The model is parameterised per antibiotic using mutation speed, peak resistance, and sigmoid growth rate derived from published clinical data.</div>
+          <div class="crisis-desc">Resistance fraction follows a logistic S-curve: slow initial spread, exponential acceleration, then plateau. Each antibiotic has its own mutation speed, peak resistance and growth rate. These are hand-set from the literature, not fitted to data; only the curve's shape has been checked against published resistance curves.</div>
         </div>
       </div>
       <div class="col-md-3">
@@ -437,8 +437,9 @@ ATGCATGCATGCATGCATGC..."></textarea>
         <div class="glass-card h-100">
           <h6 class="card-section-title"><i class="bi bi-clock-history text-accent me-2"></i>Resistance Development Timeline by Drug Class</h6>
           <p class="fs-11 text-3 mb-2">
-            Timescales based on published clinical and experimental data.
-            Source: <a href="https://www.who.int/publications/i/item/9789240062702" target="_blank" rel="noopener" class="src-link">WHO GLASS 2022</a> ·
+            Illustrative speeds used by this simulation, not measured timescales: in published data resistance
+            rises within days in lab evolution and over years in hospital surveillance (Dataset 5).
+            Background on the mechanisms: <a href="https://www.who.int/publications/i/item/9789240062702" target="_blank" rel="noopener" class="src-link">WHO GLASS 2022</a> ·
             <a href="https://www.eucast.org/" target="_blank" rel="noopener" class="src-link">EUCAST</a> ·
             <a href="https://www.thelancet.com/journals/lancet/article/PIIS0140-6736(21)02724-0/fulltext" target="_blank" rel="noopener" class="src-link">Murray et al., Lancet 2022</a>
           </p>

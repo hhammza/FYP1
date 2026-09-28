@@ -72,6 +72,8 @@
   color: var(--text-2);
   font-size: 11px; padding: 3px 9px;
   border-radius: 5px; font-weight: 500;
+  display: inline-block;
+  white-space: nowrap;   /* a tag never breaks across lines */
 }
 .model-features { display: flex; flex-wrap: wrap; gap: 6px; }
 
@@ -235,7 +237,15 @@
 
 /* ── METHOD STEPS & ARCH BOX ────────────────────────────────── */
 .method-steps { display: flex; flex-direction: column; gap: 9px; }
-.method-step  { display: flex; align-items: flex-start; gap: 10px; font-size: 13px; color: var(--text-2); }
+/* The number sits in the left gutter and the rest flows as one paragraph.
+   (As a flex row, every text run, <code> and <a> in a step became its own
+   column, so a long path squeezed the words after it into a thin strip.) */
+.method-step  { position: relative; padding-left: 32px; min-height: 22px; font-size: 13px; color: var(--text-2); }
+.method-step > .step-num { position: absolute; left: 0; top: 0; }
+/* datasets.html sizes some badges inline; keep the same 10px gap to the text */
+.method-step:has(> .step-num[style*="width:24px"]) { padding-left: 34px; min-height: 24px; }
+.method-step:has(> .step-num[style*="width:28px"]) { padding-left: 38px; min-height: 28px; }
+.method-step code { overflow-wrap: anywhere; }
 .step-num {
   width: 22px; height: 22px; border-radius: 50%;
   background: rgba(79,70,229,0.10); border: 1px solid rgba(79,70,229,0.22);
