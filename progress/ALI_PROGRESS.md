@@ -246,6 +246,7 @@ Hamza's genome models (k-mers 0.956, genes 0.981) are tested on only 30 lab-test
 | Hamza | Timeline fix is in the backend only; the library copy (`amrpredict/timeline.py`) still has the >100% bug. Sync it in T2.6, then remove the strict xfail | Week 4 | [ ] |
 | Suleman | Templates still mention CNN-LSTM for the timeline (`mutation_timeline.html:164`, `train.html:142, 147, 154`; `datasets.html` already fixed); the API now says `Biological Simulation` only | Week 2 | [x] in Suleman's tracker 2026-09-26, line numbers updated 2026-09-27; the edit is his |
 | Suleman | Timeline + RL response format | Day 1 | [x] agreed 2026-09-26, `progress/formats/README.md` §4 |
+| Hamza, Suleman | **Retiring Dataset 2 (partial FASTAs).** Keep `Data/fasta_output/` and `Data/mapped_output/`: the served K-mer model was trained on them and the report compares partial vs complete genomes (K-mer 0.70 vs 0.90). Once Hamza's genome model is on `/predict`, Suleman labels Dataset 2 "superseded by Dataset 3" on `/datasets`. Rows added to both trackers 2026-09-28 | Week 3 (at deploy) | [~] noted |
 | Suleman | Working RL output | Week 4 | [ ] |
 
 ---
