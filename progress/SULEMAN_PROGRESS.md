@@ -2,7 +2,7 @@
 
 **Role:** platform (web app, API, security, testing, deployment)
 **Plan:** the split by skill (Ali: data + evolution, Hamza: models, Suleman: platform), based on [FYP_Completion_Roadmap.md](../FYP_Completion_Roadmap.md)
-**Started:** 2026-09-25 · **Last updated:** 2026-09-27 (to-dos updated by Hamza: Week 3 genome section and Docker dependency)
+**Started:** 2026-09-25 · **Last updated:** 2026-09-28 (research track added by Ali)
 
 Status key: `[ ]` not started · `[~]` in progress · `[x]` done · `[!]` blocked (say why in the log)
 
@@ -196,6 +196,20 @@ Built against the real files (`backend/trained_models/lgbm_metrics.json`, `kmer_
 - [ ] **System-design chapter:** architecture diagram, API table, library design, security
 
 - [ ] Update `CHANGES.md` for my work
+
+---
+
+## Research track (added by Ali 2026-09-28)
+
+Alongside weeks 4 and 5, not instead of them. What the papers are and why: [RESEARCH_PLAN.md](RESEARCH_PLAN.md). Paper C is the `amrpredict` library for JOSS, and Paper A quotes numbers that must match the repo.
+
+- [ ] **Making the repo public:** agree with the team and supervisor. *Why:* JOSS needs about 6 months of public history before the library paper
+
+- [ ] **CI green on the main branch** (your T2.7). *Why:* reviewers and JOSS check for it
+
+- [ ] **Stale numbers:** README section 0 and 11.1, endpoint counts, test counts (27 test functions found, not 30). *Why:* nothing we publish should contradict our own repo
+
+- **Done when:** the repo is public with a green CI badge, and the README numbers match `RESULTS.md`
 
 ---
 

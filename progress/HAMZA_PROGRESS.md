@@ -2,7 +2,7 @@
 
 **Role:** models
 **Plan:** the split by skill (Ali: data + evolution, Hamza: models, Suleman: platform), based on [FYP_Completion_Roadmap.md](../FYP_Completion_Roadmap.md)
-**Started:** 2026-09-25 · **Last updated:** 2026-09-27 (Week 2 and the lineage check done; to-dos for Weeks 3–5 updated)
+**Started:** 2026-09-25 · **Last updated:** 2026-09-28 (research track added by Ali)
 
 Status key: `[ ]` not started · `[~]` in progress · `[x]` done · `[!]` blocked (say why in the log)
 
@@ -185,6 +185,28 @@ Order matters: A can start now, B needs Ali's files, C needs B's winner.
 - [ ] **Deployed-system evaluation:** shipped vs new re-test
 - [ ] Update `CHANGES.md` for my work
 - [ ] Final version bump and release of the library once everyone's work is merged
+
+---
+
+## Research track (added by Ali 2026-09-28)
+
+Alongside weeks 3 to 5, not instead of them. What the papers are and why: [RESEARCH_PLAN.md](RESEARCH_PLAN.md). Most items are already in weeks 3 and 4 above; they are listed here because Paper A (BV-BRC data audit and deployed-model evaluation) and Paper B (genes vs k-mers vs a lookup rule) depend on them.
+
+- [ ] **B6, B7, B8 on the 22,475 lab-tested genomes:** lab AUC with CI, per drug and per genus (Paper B). *Why:* the current 0.98 and 0.96 rest on 30 lab genomes
+
+- [ ] **Lineage split scaled to 24,926 genomes**, and the same lineage groups applied to the tabular A2 and D3 configs (Papers A and B). *Why:* "grouped by genome" does not keep related bacteria apart
+
+- [ ] **Three seeds, DeLong and McNemar** for A2, A6, A6b, A10, the drug-only baseline and the best genome run (T2.5). *Why:* without them we cannot say one model beats another
+
+- [ ] **Calibration plot for D3** (T2.5)
+
+- [ ] **Temporal split run:** train on genomes collected up to a cut-off year, test on later ones, once Ali's collection years are in (RESEARCH_PLAN section 8). *Why:* a real forecast, and the honest answer to "why is it called forecasting"
+
+- [ ] Ali's gene-lookup rule baseline goes in `registry.csv` next to B6, on the same rows and split: agree the config with Ali
+
+- **Rules for paper numbers:** cleaning v5 only, lab AUC for genome models, a CI or a significance test on every claim (RESEARCH_PLAN section 6)
+
+- **Done when:** every number Papers A and B quote from the models has a v5 run, a CI and, where it compares, a test
 
 ---
 

@@ -4,7 +4,7 @@
 
 **Plan:** the split by skill (Ali: data + evolution, Hamza: models, Suleman: platform), based on [FYP_Completion_Roadmap.md](../FYP_Completion_Roadmap.md)
 
-**Started:** 2026-09-25 · **Last updated:** 2026-09-28 (research track added)
+**Started:** 2026-09-25 · **Last updated:** 2026-09-28 (research track added by Ali)
 
 Status key: `[ ]` not started · `[~]` in progress · `[x]` done · `[!]` blocked (say why in the log)
 
@@ -216,7 +216,7 @@ Hamza's genome models (k-mers 0.956, genes 0.981) are tested on only 30 lab-test
 
 ---
 
-## Research track (added 2026-09-28)
+## Research track (added by Ali 2026-09-28)
 
 Alongside weeks 4 and 5, not instead of them. Why and how: [RESEARCH_PLAN.md](RESEARCH_PLAN.md) (Paper A: BV-BRC data audit and deployed-model evaluation; Paper B: genes vs k-mers vs a lookup rule).
 
