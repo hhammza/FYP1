@@ -59,11 +59,25 @@ def read_hits(genome_ids):
     return hits[(hits['Scope'] == 'core') & (hits['Type'] == 'AMR')]
 
 
+TAXA = os.path.join(os.path.dirname(EXPERIMENTS), 'backend', 'taxon_species.csv')
+
+
+def species_names(genome_ids):
+    """'Escherichia coli' for each genome. From the manifest folder name
+    taxon_<id>_<Genus>_<species> for the fasta_output/ genomes; genomes
+    downloaded from a list (select_lab_genomes.py) have no folder, so their
+    taxon ID is looked up in backend/taxon_species.csv instead."""
+    manifest = pd.read_csv(MANIFEST, dtype={'genome_id': str}, usecols=['genome_id', 'taxon_id', 'folder'])
+    manifest = manifest.drop_duplicates('genome_id').set_index('genome_id')
+    from_folder = manifest['folder'].str.split('_', n=2).str[2].str.replace('_', ' ')
+    taxa = pd.read_csv(TAXA).drop_duplicates('taxon_id').set_index('taxon_id')['species_name']
+    from_taxon = manifest['taxon_id'].map(taxa)
+    return from_folder.fillna(from_taxon).reindex(genome_ids).fillna('unknown')
+
+
 def genus_of(genome_ids):
-    """Genus of each genome, from the manifest folder name taxon_<id>_<Genus>_<species>."""
-    manifest = pd.read_csv(MANIFEST, dtype={'genome_id': str}, usecols=['genome_id', 'folder'])
-    genus = manifest.set_index('genome_id')['folder'].str.split('_').str[2]
-    return genus.reindex(genome_ids).fillna('unknown')
+    """Genus of each genome: the first word of its species name."""
+    return species_names(genome_ids).str.split().str[0]
 
 
 def pick_sample(genome_ids, hits, n):

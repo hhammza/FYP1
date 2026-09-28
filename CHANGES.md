@@ -18,6 +18,25 @@ Baseline is commit **`52ae361`** *(Add amrpredict library and macOS launcher, 20
 
 ---
 
+## Every lab-tested genome downloaded and searched (2026-09-28)
+
+Ali's answer to Hamza's Week 2 finding that only about 30 test genomes had laboratory results.
+
+| File | Change |
+|---|---|
+| [select_lab_genomes.py](experiments/genome/features/select_lab_genomes.py), [lab_genomes.csv](experiments/genome/features/lab_genomes.csv) | New: the 22,475 genomes with laboratory AST results in cleaning v5, round-robin across genera |
+| [download_genomes.py](experiments/genome/features/download_genomes.py) | `--genome-list` downloads any list; 24,926 genomes on disk, 0 failures |
+| [run_amrfinder.py](experiments/genome/features/run_amrfinder.py) | Saves its summary every 25 genomes and recovers genomes a stopped run finished; 24,926 searched, 0 errors |
+| [build_gene_matrix.py](experiments/genome/features/build_gene_matrix.py), [export_gene_report.py](experiments/genome/features/export_gene_report.py) | Species from `backend/taxon_species.csv` when a genome has no `fasta_output/` folder (22,339 genomes were labelled genus "unknown") |
+| [gene_matrix.parquet](experiments/genome/features/gene_matrix.parquet), [gene_info.csv](experiments/genome/features/gene_info.csv), [gene_summary.md](experiments/genome/features/gene_summary.md) | 2,587 × 536 → **24,926 × 2,733** (1,234 genes, 1,499 point mutations); lab-tested genomes 136 → 22,475 |
+| `backend/trained_models/gene_report.json`, `gene_hits.json` | `/genes` rebuilt on every genome (`gene_hits.json` grows to 9.8 MB) |
+| [progress.sh](experiments/genome/features/progress.sh) | Cores in use, keeps the Mac awake, restarts AMRFinderPlus when it stops |
+| [start.sh](start.sh), [start.bat](start.bat) | Check dependencies offline first (`pip --no-index`), so a start with no internet no longer hangs; `--update` forces a full install |
+
+Not in git: the genomes (about 100 GB) and `experiments/cache/kmer6_counts.npz` (k-mer counts for all 24,926 genomes, built with Hamza's `kmers.py`, shared on Drive).
+
+---
+
 ## Models retrained and every run re-measured on cleaning v5 (2026-09-26)
 
 Hamza's follow-up to Ali's Genome ID fix (`77bc855`, `b05d718`).

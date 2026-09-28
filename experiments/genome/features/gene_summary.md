@@ -6,83 +6,105 @@ Written by `build_gene_matrix.py`; regenerate it with the matrix. AMRFinderPlus 
 
 | | Count |
 |---|---|
-| Genomes searched | 2,587 |
-| Genomes with at least one gene or mutation | 1,673 (64.7%) |
-| Genomes with none (searched, nothing found) | 914 (35.3%) |
-| Different genes and mutations (matrix columns) | 536: 309 genes, 227 point mutations |
-| Hits (cells that are 1) | 12,942 of 1,386,632 (0.9%) |
+| Genomes searched | 24,926 |
+| Genomes with at least one gene or mutation | 22,949 (92.1%) |
+| Genomes with none (searched, nothing found) | 1,977 (7.9%) |
+| Different genes and mutations (matrix columns) | 2,733: 1,234 genes, 1,499 point mutations |
+| Hits (cells that are 1) | 244,825 of 68,122,758 (0.4%) |
 
 ## Genes per genome
 
-Median 2, mean 5.0, maximum 30.
+Median 9, mean 9.8, maximum 37.
 
 | Genes and mutations | Genomes | Share |
 |---|---|---|
-| 0 | 914 | 35.3% |
-| 1 | 374 | 14.5% |
-| 2 | 147 | 5.7% |
-| 3 to 5 | 280 | 10.8% |
-| 6 to 10 | 380 | 14.7% |
-| 11 to 20 | 405 | 15.7% |
-| 21 or more | 87 | 3.4% |
+| 0 | 1,977 | 7.9% |
+| 1 | 1,305 | 5.2% |
+| 2 | 1,041 | 4.2% |
+| 3 to 5 | 3,428 | 13.8% |
+| 6 to 10 | 6,316 | 25.3% |
+| 11 to 20 | 9,560 | 38.4% |
+| 21 or more | 1,299 | 5.2% |
 
 ## Join with the labels
 
-- Every Genome ID in `Data/mapped_output/` has a row: **yes** (2,567 of 2,567).
-- Matrix genomes with no rows in `Data/mapped_output/`: 20 (1055537.30, 1055537.40, 1055537.50, 1055537.60, 108619.170 ...).
+- Every Genome ID in `Data/mapped_output/` has a row: **yes** (2,587 of 2,587).
+- Matrix genomes with no rows in `Data/mapped_output/`: 22,339 (1192839.3, 1192839.4, 1192839.5, 1194162.3, 127906.64 ...).
 
 ## Drug classes
 
 | Class | Genomes with a gene | Genes and mutations |
 |---|---|---|
-| Beta-Lactam | 1,060 (41.0%) | 192 |
-| Aminoglycoside | 1,015 (39.2%) | 61 |
-| Tetracycline | 706 (27.3%) | 13 |
-| Quinolone | 690 (26.7%) | 54 |
-| Fosfomycin | 634 (24.5%) | 23 |
-| Sulfonamide | 502 (19.4%) | 9 |
-| Trimethoprim | 375 (14.5%) | 18 |
-| Macrolide/Streptogramin | 285 (11.0%) | 4 |
-| Phenicol | 267 (10.3%) | 18 |
-| Lincosamide/Macrolide | 200 (7.7%) | 2 |
-| Macrolide | 195 (7.5%) | 11 |
-| Bleomycin | 181 (7.0%) | 2 |
+| Beta-Lactam | 19,959 (80.1%) | 1475 |
+| Sulfonamide | 14,494 (58.1%) | 18 |
+| Quinolone | 12,911 (51.8%) | 134 |
+| Tetracycline | 12,695 (50.9%) | 43 |
+| Aminoglycoside | 12,485 (50.1%) | 136 |
+| Fosfomycin | 8,844 (35.5%) | 38 |
+| Trimethoprim | 7,501 (30.1%) | 48 |
+| Phenicol | 6,494 (26.1%) | 28 |
+| Nitrofuran/Phenicol/Quinolone/Tetracycline | 6,127 (24.6%) | 73 |
+| Macrolide | 5,387 (21.6%) | 30 |
+| Beta-Lactam/Macrolide/Tetracycline | 4,502 (18.1%) | 6 |
+| Rifamycin | 2,922 (11.7%) | 24 |
 
 ## Most common genes and mutations
 
 | Gene | Type | Class | Genomes |
 |---|---|---|---|
-| `aph(6)-Id` | gene | Aminoglycoside | 376 (14.5%) |
-| `aph(3'')-Ib` | gene | Aminoglycoside | 367 (14.2%) |
-| `tet(A)` | gene | Tetracycline | 354 (13.7%) |
-| `sul2` | gene | Sulfonamide | 344 (13.3%) |
-| `blaTEM-1` | gene | Beta-Lactam | 314 (12.1%) |
-| `sul1` | gene | Sulfonamide | 285 (11.0%) |
-| `fosA7` | gene | Fosfomycin | 240 (9.3%) |
-| `fosB` | gene | Fosfomycin | 208 (8.0%) |
-| `mecA` | gene | Beta-Lactam | 206 (8.0%) |
-| `blaI` | gene | Beta-Lactam | 203 (7.8%) |
-| `mecR1` | gene | Beta-Lactam | 200 (7.7%) |
-| `aac(6')-I` | gene | Aminoglycoside | 197 (7.6%) |
-| `blaR1` | gene | Beta-Lactam | 195 (7.5%) |
-| `msr(C)` | gene | Macrolide/Streptogramin | 194 (7.5%) |
-| `gyrA_S83L` | point mutation | Quinolone | 193 (7.5%) |
+| `fosA` | gene | Fosfomycin | 7,566 (30.4%) |
+| `oqxA` | gene | Nitrofuran/Phenicol/Quinolone/Tetracycline | 6,072 (24.4%) |
+| `sul1` | gene | Sulfonamide | 5,843 (23.4%) |
+| `aph(6)-Id` | gene | Aminoglycoside | 5,499 (22.1%) |
+| `aph(3'')-Ib` | gene | Aminoglycoside | 5,481 (22.0%) |
+| `penA_A510V` | point mutation | Beta-Lactam | 5,338 (21.4%) |
+| `penA_F504L` | point mutation | Beta-Lactam | 5,338 (21.4%) |
+| `folP_R228S` | point mutation | Sulfonamide | 5,227 (21.0%) |
+| `sul2` | gene | Sulfonamide | 5,000 (20.1%) |
+| `blaTEM-1` | gene | Beta-Lactam | 4,755 (19.1%) |
+| `rpsJ_V57M` | point mutation | Tetracycline | 4,637 (18.6%) |
+| `penA_D346DD` | point mutation | Beta-Lactam | 4,445 (17.8%) |
+| `penA_A516G` | point mutation | Beta-Lactam | 4,290 (17.2%) |
+| `parC_S80I` | point mutation | Quinolone | 4,114 (16.5%) |
+| `oqxB` | gene | Nitrofuran/Phenicol/Quinolone/Tetracycline | 3,826 (15.3%) |
 
 ## Most common genes per genus
 
 | Genus | Genomes | With a gene | Median | Most common (share of the genus) |
 |---|---|---|---|---|
+| *Klebsiella* | 6,213 | 99.8% | 16 | `fosA` 93%, `oqxA` 91%, `oqxB` 55%, `parC_S80I` 54%, `sul1` 43% |
+| *Neisseria* | 5,823 | 98.6% | 10 | `penA_A510V` 92%, `penA_F504L` 92%, `folP_R228S` 90%, `rpsJ_V57M` 80%, `penA_D346DD` 76% |
+| *Salmonella* | 2,600 | 65.1% | 1 | `sul1` 24%, `tet(A)` 19%, `floR` 16%, `fosA7` 16%, `aph(6)-Id` 16% |
+| *Shigella* | 2,383 | 97.3% | 9 | `dfrA1` 78%, `sat2` 78%, `sul2` 69%, `aph(6)-Id` 67%, `aph(3'')-Ib` 66% |
+| *Acinetobacter* | 1,598 | 98.6% | 12 | `ant(3'')-IIa` 96%, `gyrA_S81L` 86%, `parC_S84L` 74%, `sul1` 54%, `aph(6)-Id` 54% |
+| *Pseudomonas* | 1,428 | 100.0% | 10 | `fosA` 99%, `aph(3')-IIb` 99%, `catB7` 98%, `nalC_G71E` 94%, `nalC_S209R` 68% |
 | *Escherichia* | 987 | 55.8% | 1 | `blaTEM-1` 22%, `aph(6)-Id` 21%, `aph(3'')-Ib` 21%, `sul2` 20%, `gyrA_S83L` 20% |
-| *Salmonella* | 913 | 52.5% | 1 | `fosA7` 26%, `tet(A)` 22%, `aph(3'')-Ib` 14%, `aph(6)-Id` 14%, `floR` 13% |
-| *Staphylococcus* | 227 | 100.0% | 14 | `fosB` 92%, `mecA` 91%, `blaI` 89%, `mecR1` 88%, `blaR1` 86% |
-| *Enterococcus* | 202 | 98.0% | 17 | `aac(6')-I` 98%, `msr(C)` 96%, `pbp5_N496K` 91%, `liaR_E75K` 72%, `vanZ-A` 66% |
-| *Klebsiella* | 78 | 89.7% | 9.5 | `oqxA` 67%, `sul1` 62%, `oqxB` 62%, `aph(3')-Ia` 47%, `blaTEM-1` 40% |
-| *Streptococcus* | 53 | 58.5% | 1 | `pbp2b_T446A` 34%, `pbp2b` 34%, `msr(D)` 32%, `pbp2b_E476G` 32%, `mef(A)` 32% |
-| *Acinetobacter* | 48 | 91.7% | 10.5 | `ant(3'')-IIa` 73%, `gyrA_S81L` 71%, `tet(B)` 52%, `parC_S84L` 52%, `aph(6)-Id` 48% |
-| *Pseudomonas* | 37 | 100.0% | 8 | `fosA` 100%, `catB7` 100%, `aph(3')-IIb` 97%, `nalC_G71E` 92%, `nalC_S209R` 81% |
-| *Mycobacterium* | 22 | 100.0% | 3 | `erm(37)` 100%, `blaC` 100%, `aac(2')-Ic` 100% |
-| *Campylobacter* | 8 | 100.0% | 1.5 | `blaOXA-193` 75%, `gyrA_T86I` 25%, `cmeB` 25%, `blaOXA-61_G-57T` 12%, `blaOXA-460` 12% |
-| *Enterobacter* | 5 | 80.0% | 4 | `oqxB` 80%, `oqxA` 80%, `fosA` 60%, `blaACT` 40%, `blaACT-115` 20% |
-| *Shigella* | 4 | 50.0% | 0.5 | `catA1` 25%, `rpsL_K43R` 25%, `tet(B)` 25%, `aadA1` 25%, `sul1` 25% |
-| *Corynebacterium* | 2 | 0.0% | 0 | none found |
-| *Clostridioides* | 1 | 0.0% | 0 | none found |
+| *Campylobacter* | 868 | 96.9% | 2 | `tet(O)` 71%, `blaOXA-193` 67%, `gyrA_T86I` 25%, `aph(3')-IIIa` 24%, `blaOXA-61_G-57T` 20% |
+| *Streptococcus* | 649 | 52.4% | 1 | `tet(M)` 27%, `erm(A)` 17%, `mef(A)` 16%, `pbp2b` 16%, `pbp2b_E476G` 16% |
+| *Staphylococcus* | 540 | 99.4% | 11 | `blaI` 89%, `blaR1` 78%, `mecA` 74%, `fosB` 74%, `blaZ` 61% |
+| *Enterobacter* | 447 | 98.4% | 13 | `oqxB` 94%, `oqxA` 94%, `fosA` 85%, `blaTEM-1` 47%, `aph(6)-Id` 42% |
+| *Clostridioides* | 375 | 99.5% | 4 | `blaAHM` 98%, `blaCDD` 89%, `mreE_V497L` 45%, `gyrA_T82I` 44%, `PnimB_G` 41% |
+| *Enterococcus* | 342 | 98.8% | 13 | `tet(M)` 68%, `erm(B)` 67%, `vanZ-A` 62%, `vanY-A` 61%, `vanR-A` 61% |
+| *Citrobacter* | 115 | 100.0% | 14 | `gyrA_T83I` 67%, `sul1` 66%, `blaTEM-1` 52%, `mph(A)` 43%, `mrx(A)` 43% |
+| *Corynebacterium* | 97 | 95.9% | 7 | `pbp2m` 90%, `erm(X)` 90%, `aac(3)-XI` 90%, `sul1` 66%, `tet(W)` 61% |
+| *Vibrio* | 92 | 100.0% | 10 | `almF` 100%, `almE` 100%, `almG` 100%, `varG` 82%, `catB9` 71% |
+| *Haemophilus* | 88 | 40.9% | 0 | `folP_G189C` 19%, `ftsI_D350N` 18%, `blaTEM-1` 14%, `rpoB_A1131T` 12%, `ftsI_N526K` 12% |
+| *Burkholderia* | 66 | 98.5% | 2 | `blaPEN-bcc` 83%, `penR_V151E` 80%, `blaPEN-A` 6%, `tet(64)` 5%, `blaPEN-B` 5% |
+| *Helicobacter* | 53 | 60.4% | 1 | `gyrA_N87K` 23%, `gyrA_D91N` 19%, `gyrA_D91G` 9%, `gyrA_D91Y` 9%, `pbp1a_S543R` 8% |
+| *Serratia* | 34 | 82.4% | 3 | `aac(6')` 65%, `blaSRT` 53%, `tet(41)` 38%, `blaSME-4` 24%, `blaSRT-2` 18% |
+| *Mycobacterium* | 33 | 100.0% | 3 | `blaC` 100%, `erm(37)` 100%, `aac(2')-Ic` 100% |
+| *Proteus* | 25 | 96.0% | 20 | `tet(J)` 96%, `sul1` 88%, `catA4` 88%, `dfrA1` 84%, `aadA1` 76% |
+| *Aliarcobacter* | 22 | 63.6% | 1 | `blaOXA` 50%, `blaOXA-464` 9%, `blaOXA-491` 5% |
+| *Stutzerimonas* | 19 | 73.7% | 8 | `tmexC` 63%, `sul1` 63%, `aadA1` 58%, `toprJ1` 47%, `cmlA5` 42% |
+| *Morganella* | 8 | 100.0% | 21 | `sul1` 88%, `mrx(A)` 75%, `dfrA17` 75%, `catA2` 75%, `mph(A)` 75% |
+| *Mycolicibacterium* | 7 | 100.0% | 3 | `blaC` 100%, `erm(37)` 100%, `aac(2')-Ic` 100% |
+| *Providencia* | 3 | 100.0% | 5 | `blaNDM-1` 67%, `tet(B)` 67%, `catA3` 67%, `sul1` 67%, `aadA36` 67% |
+| *Listeria* | 2 | 100.0% | 2 | `vga(G)` 100%, `fosX` 100% |
+| *unknown* | 2 | 100.0% | 8 | `blaC` 50%, `blaVIM-1` 50%, `aph(6)-Id` 50%, `aph(3'')-Ib` 50%, `blaACT` 50% |
+| *Achromobacter* | 1 | 100.0% | 1 | `blaOXA-114w` 100% |
+| *Mycolicibacillus* | 1 | 100.0% | 3 | `blaC` 100%, `erm(37)` 100%, `aac(2')-Ic` 100% |
+| *Yersinia* | 1 | 0.0% | 0 | none found |
+| *Kluyvera* | 1 | 100.0% | 7 | `aac(6')-Ib'` 100%, `aadA1` 100%, `blaOXA` 100%, `qnrB19` 100%, `blaKPC-3` 100% |
+| *Aeromonas* | 1 | 100.0% | 10 | `blaOXA-956` 100%, `aac(6')-Ia` 100%, `cmlA5` 100%, `ant(2'')-Ia` 100%, `cphA` 100% |
+| *Leclercia* | 1 | 100.0% | 2 | `fosA8` 100%, `blaOXA-48` 100% |
+| *Desulfovibrio* | 1 | 0.0% | 0 | none found |

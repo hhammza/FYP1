@@ -85,10 +85,8 @@ def acts_on(subclass, antibiotic):
 
 
 def species_of(genome_ids):
-    """'Escherichia coli' for each genome, from the manifest folder taxon_<id>_<Genus>_<species>."""
-    manifest = pd.read_csv(gm.MANIFEST, dtype={'genome_id': str}, usecols=['genome_id', 'folder'])
-    name = manifest.set_index('genome_id')['folder'].str.split('_', n=2).str[2].str.replace('_', ' ')
-    return name.reindex(genome_ids).fillna('unknown')
+    """'Escherichia coli' for each genome (folder name, else taxon ID lookup)."""
+    return gm.species_names(genome_ids)
 
 
 def run_info(searched):

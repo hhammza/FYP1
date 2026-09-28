@@ -106,6 +106,8 @@ The sections below have the details: what each script does, the numbers, and whe
 
 Only 136 of the original 2,587 genomes have laboratory AST results, so the genome models could barely be tested against real phenotypes (Hamza, week 2). The download of every lab-tested genome started on 2026-09-27. Numbers below are a snapshot from that day; `progress.sh` shows the live count.
 
+**Finished 2026-09-28:** all 24,926 genomes (2,587 original + 22,339 new) downloaded with 0 failures and searched by AMRFinderPlus with 0 errors, including all 22,475 lab-tested genomes. The rebuilt gene matrix is 24,926 × 2,733 (1,234 genes, 1,499 point mutations); 92.1% of genomes carry at least one core AMR gene. Summary in `gene_summary.md`.
+
 | What | Count | Size |
 | --- | --- | --- |
 | Genomes with lab results in the cleaned data (v5) | 22,475 (201,042 lab rows, 107 drugs, 49.5% resistant) | 91.7 GB |
