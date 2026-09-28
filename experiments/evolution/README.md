@@ -69,6 +69,7 @@ Outputs in `results/`:
 | `calibration_summary.md` | the tables and what they mean for the timeline |
 | `figures/calibration_lab.png` | replicates, means and fitted curve per drug |
 | `figures/calibration_surveillance.png` | yearly data and fitted curve per country, with the timeline's imipenem peak |
+| `backend/trained_models/timeline_calibration.json` | the `calibration` object `/api/timeline/` returns and `/timeline` shows (formats §4) |
 
 Findings (numbers in `results/calibration_summary.md`):
 

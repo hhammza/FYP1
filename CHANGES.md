@@ -18,6 +18,22 @@ Baseline is commit **`52ae361`** *(Add amrpredict library and macOS launcher, 20
 
 ---
 
+## Timeline sensitivity analysis and calibration (2026-09-28)
+
+Ali's T3.1. Numbers and figures in [experiments/evolution/](experiments/evolution/README.md).
+
+| File | Change |
+|---|---|
+| [sensitivity.py](experiments/evolution/sensitivity.py) | New: speed and peak scaled 0.7 to 1.3, weeks asked and GC varied, 8,232 combinations run through the served `generate_timeline`. The weeks asked decide the answer (midpoint = 45% of the span: 52 weeks instead of 8 makes failure 2 to 6 times later); peak is a switch at 50%; speed ±30% moves failure by a median 0.6 weeks |
+| [calibrate.py](experiments/evolution/calibrate.py) | New: the same curve fitted to 15 published curves, median R² 0.91. Lab: *E. faecalis* under five drugs (Maltas, Huynh & Wood 2025, PLOS Biology). Hospitals: carbapenem-resistant *K. pneumoniae*, 10 countries (ECDC EARS-Net), plateau 7% to 66% by country, still-rising countries flagged. Writes `backend/trained_models/timeline_calibration.json` |
+| [Data/evolution_curves/](Data/evolution_curves/sources.csv) | New: the source data with `sources.csv` (DOI, licence, use); re-downloadable zips ignored |
+| [mutation_timeline.py](backend/ml_models/mutation_timeline.py) | `calibration` filled from the JSON (15 curves, rmse 2.9 points, `parameters_changed: false`); the hand-set constants are unchanged, since no source is in weeks |
+| [mutation_timeline.html](frontend/templates/mutation_timeline.html) | Calibration shown under the result and in the Simulation Model card, with its limits; three claims that the constants were "calibrated from published clinical data" corrected |
+| [formats §4](progress/formats/README.md) | Optional `calibration` fields documented |
+| `experiments/requirements.txt` | `matplotlib`, `openpyxl` |
+
+---
+
 ## Every lab-tested genome downloaded and searched (2026-09-28)
 
 Ali's answer to Hamza's Week 2 finding that only about 30 test genomes had laboratory results.

@@ -146,7 +146,7 @@ Today's fields stay. What changes:
 | `model_used` | string | existing, **value changed** | Always `Biological Simulation`. The `CNN-LSTM (trained)` label goes, since no trained model exists |
 | `simulation` | bool | **new** | Always `true`. Show "Simulation, not a trained model" next to the chart and in exports |
 | `seed` | int | **new** | Random seed used. Same inputs and seed give the same response |
-| `calibration` | object or `null` | **new, Week 3** | `{curves, drugs, rmse}` once fitted to published curves (T3.1); `null` before that, so show "not calibrated". Types below |
+| `calibration` | object or `null` | **new, Week 3** | `{curves, drugs, rmse}` once fitted to published curves (T3.1); `null` before that, so show "not calibrated". Types below. **Filled since 2026-09-28** from `backend/trained_models/timeline_calibration.json` |
 
 ### RL panel (Week 4)
 
@@ -181,6 +181,18 @@ A new `rl` object. **Field absent = RL not run** (Week 1 to 3, or the agent is n
 | `calibration.rmse` | number | Root mean squared error of the fit, in percentage points on the 0–100 `resistant_fraction` scale, averaged over curves |
 
 Show `rmse` with one decimal ("fit error ±4.2 points against 7 published curves").
+
+Added 2026-09-28 (Ali), optional, so a reader of the three fields above is unaffected:
+
+| Field | Type | Meaning |
+|---|---|---|
+| `calibration.lab_curves`, `calibration.surveillance_curves` | int | The split of `curves`: lab evolution (log2 IC50, days) and hospital surveillance (% resistant, years). `rmse` averages the surveillance curves only, the ones on the 0 to 100 scale |
+| `calibration.median_r2` | number | Median R² of the fits |
+| `calibration.parameters_changed` | bool | `false`: the fit checks the curve's shape; the hand-set constants are not replaced, because no source is in weeks |
+| `calibration.sources` | list of strings | Citations |
+| `calibration.note` | string | One sentence for the page: the weeks are illustrative |
+
+`drugs` holds the five lab drugs and `carbapenems` (a class, from the surveillance data), so most requested drugs are not in it; `/timeline` says so under the result.
 
 ---
 
