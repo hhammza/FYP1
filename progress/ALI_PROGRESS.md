@@ -4,7 +4,7 @@
 
 **Plan:** the split by skill (Ali: data + evolution, Hamza: models, Suleman: platform), based on [FYP_Completion_Roadmap.md](../FYP_Completion_Roadmap.md)
 
-**Started:** 2026-09-25 · **Last updated:** 2026-09-27 (to-dos updated by Hamza: lab-tested genome steps)
+**Started:** 2026-09-25 · **Last updated:** 2026-09-28 (research track added)
 
 Status key: `[ ]` not started · `[~]` in progress · `[x]` done · `[!]` blocked (say why in the log)
 
@@ -29,6 +29,7 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done · `[!]` blocke
 | 3 | 12 Oct to 16 Oct | Evolution: fix, sensitivity, calibration; lab-tested genomes for Hamza | Mostly done 2026-09-28: timeline fix, sensitivity analysis, calibration (15 curves) on the site; Dataset 3 = 24,926 complete genomes (22,475 lab-tested), gene matrix and k-mer cache delivered. Open: library xfail (waits on Hamza) |
 | 4 | 19 Oct to 23 Oct | RL agent, CTGAN experiment | Not started |
 | 5 | 26 Oct to 30 Oct | Report chapters | Not started |
+| Research | alongside weeks 4 to 5 | Paper A data audit, rule baseline, collection years ([RESEARCH_PLAN.md](RESEARCH_PLAN.md)) | Not started |
 
 **Files I own:** `Data/`, `experiments/lib/data_prep.py`, `backend/train_models.py`, `experiments/genome/features/` (new), `backend/ml_models/mutation_timeline.py`, `experiments/evolution/` (new). Other people's files: ask the owner, or comment in their pull request.
 
@@ -215,6 +216,26 @@ Hamza's genome models (k-mers 0.956, genes 0.981) are tested on only 30 lab-test
 
 ---
 
+## Research track (added 2026-09-28)
+
+Alongside weeks 4 and 5, not instead of them. Why and how: [RESEARCH_PLAN.md](RESEARCH_PLAN.md) (Paper A: BV-BRC data audit and deployed-model evaluation; Paper B: genes vs k-mers vs a lookup rule).
+
+- [ ] **Audit script** (`experiments/audit/audit_bvbrc.py`): every data-defect count from one command on a pinned export date (IDs merged as numbers, trailing zeros lost, strain vs species taxon IDs, drug-name duplicates, rows without a phenotype, missing MIC and testing standard, lab vs computational share, truncated FASTAs)
+
+- [ ] **v5 statistics table** for the paper (rows, genomes, species, drugs, drug classes, resistant share, lab share, by genus); reconcile the 94, 124 and 164 species counts
+
+- [ ] **Prior acknowledgement check:** BV-BRC release notes, docs and GitHub issues for the ID and taxon problems
+
+- [ ] **Gene-lookup rule baseline:** resistant when AMRFinderPlus finds a gene or mutation of the drug's class, scored on the same lab rows and split as Hamza's B6
+
+- [ ] **Collection year and country** for every genome from the BV-BRC genome API, with a coverage report (for the temporal test in RESEARCH_PLAN §5)
+
+- [ ] Week 5 data and methods chapters written so they double as Paper A's data section
+
+- **Done when:** the audit script reproduces every defect count in Paper A, and the rule baseline sits in `registry.csv` next to B6
+
+---
+
 ## Week 5: report
 
 - [ ] **Data chapter:** BV-BRC export, cleaning, lab vs computational labels, data-quality issues, name clean-up, gene features
@@ -248,6 +269,7 @@ Hamza's genome models (k-mers 0.956, genes 0.981) are tested on only 30 lab-test
 | Suleman | Timeline + RL response format | Day 1 | [x] agreed 2026-09-26, `progress/formats/README.md` §4 |
 | Hamza, Suleman | **Retiring Dataset 2 (partial FASTAs).** Keep `Data/fasta_output/` and `Data/mapped_output/`: the served K-mer model was trained on them and the report compares partial vs complete genomes (K-mer 0.70 vs 0.90). Once Hamza's genome model is on `/predict`, Suleman labels Dataset 2 "superseded by Dataset 3" on `/datasets`. Rows added to both trackers 2026-09-28 | Week 3 (at deploy) | [~] noted |
 | Suleman | Working RL output | Week 4 | [ ] |
+| Hamza, Suleman | **Research track** ([RESEARCH_PLAN.md](RESEARCH_PLAN.md)): the papers need, from Hamza, B6 to B8 on lab rows, the lineage split scaled and applied to the tabular configs, seeds and significance tests, the D3 calibration plot; from Suleman, the repo-public decision, CI and stale README numbers. Rows added to both trackers 2026-09-28 | Weeks 4 to 5 | [~] noted |
 
 ---
 
@@ -269,6 +291,7 @@ Newest first. One line per work session: date, what I did, what is next, anythin
 
 | Date | Done | Next | Blockers |
 | --- | --- | --- | --- |
+| 2026-09-28 | Research track added from the literature review: `progress/RESEARCH_PLAN.md` (Paper A audit, Paper B genes vs k-mers vs rule, Paper C library), research tasks in this tracker, rows for Hamza and Suleman. Existing weekly plan unchanged | Audit script and v5 statistics table | Supervisor: venue and scope reply |
 | 2026-09-28 | Calibration on the site: `/api/timeline/` fills `calibration` (15 curves, rmse 2.9 points, `parameters_changed: false`) and `/timeline` shows it with its limits; three overstated "calibrated" claims corrected. Constants unchanged, since no source is in weeks. Docs: README §4.3, formats §4, CHANGES.md | RL environment (week 4) | Hamza: library timeline sync before the xfail goes |
 | 2026-09-28 | T3.1: sensitivity analysis (8,232 combinations; the weeks asked set the midpoint, so 52 weeks makes the same drug fail 2 to 6 times later) and literature calibration (15 curves: Maltas et al. 2025 lab evolution, 5 drugs; ECDC carbapenem-resistant K. pneumoniae, 10 countries; median R² 0.91). Data in `Data/evolution_curves/` with `sources.csv` | Make the timeline's midpoint per drug and fill its `calibration` field; RL environment (week 4) | None |
 | 2026-09-28 | Lab-tested genomes done: 24,926 downloaded (0 failures) and searched by AMRFinderPlus (0 errors), all 22,475 lab-tested genomes included. Gene matrix rebuilt: 24,926 × 2,733 (1,234 genes, 1,499 point mutations), 92.1% with a core AMR gene, `/genes` rebuilt. Fixed the build scripts naming 22,339 new genomes' genus "unknown" (species now from `taxon_species.csv` when there is no `fasta_output/` folder). Built `kmer6_counts.npz` with Hamza's `kmers.py` for him. Also: `run_amrfinder.py` saves every 25 genomes, `progress.sh` auto-restarts and keeps the Mac awake, `start.sh`/`start.bat` start offline | Timeline sensitivity analysis and calibration (T3.1) | None |
