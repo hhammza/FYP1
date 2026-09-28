@@ -112,7 +112,8 @@ FYP1/
 │   └── HANDBOOK.md              Full documentation of the training setup
 │
 ├── Data/                        The BV-BRC export (committed, 5 GB)
-│   ├── amr_output/              3,655 per-species AMR CSVs
+│   ├── amr_full/                The complete BV-BRC AMR export, 17.6 M records (not in git; cleaning v6)
+│   ├── amr_output/              3,655 per-species AMR CSVs from April (incomplete; v1 to v5)
 │   ├── mapped_output/           The same rows joined to FASTA paths
 │   └── fasta_output/            Genome assemblies (4 GB)
 │
@@ -125,7 +126,7 @@ FYP1/
 ├── README.md / CHANGES.md       This file and the change log
 ```
 
-**The data is committed.** `Data/` holds 2.99 M raw AMR rows and 4 GB of FASTA, so the project runs from a clone alone; the 101 MB *Klebsiella* CSV is stored with Git LFS. `.gitignore` still excludes the experiment cache, saved experiment models and raw predictions. The artifacts in `backend/trained_models/` are committed binaries dated 10 July, trained before this data layout existed, see §11.2.
+**The data is committed, except the complete export.** `Data/` holds the April export (2.99 M raw AMR rows) and 4 GB of FASTA, so the project runs from a clone alone. The complete export in `Data/amr_full/` (17.6 M records, 5.3 GB, what the experiments read since cleaning v6) is not in git: fetch it with `scripts/bvbrc_download/download_amr_full.py`, or take the cleaned table from Drive (`docs/DATA_LINKS.md`). The April export turned out to hold 2.99 M of BV-BRC's 17.6 M records (see `scripts/bvbrc_download/README.md`); the 101 MB *Klebsiella* CSV is stored with Git LFS. `.gitignore` still excludes the experiment cache, saved experiment models and raw predictions. The artifacts in `backend/trained_models/` are committed binaries dated 10 July, trained before this data layout existed, see §11.2.
 
 ---
 
