@@ -85,10 +85,21 @@ def runs_table():
     return sorted(out, key=lambda x: -x['auc_roc'])
 
 
+_FRAMES = {}
+
+
+def run_frame(metrics):
+    """The cleaned data a run read, from the clean_version in its metrics."""
+    source = data_prep.source_of(metrics.get('dataset', {}).get('clean_version'))
+    if source not in _FRAMES:
+        _FRAMES[source] = data_prep.get_clean(source=source, verbose=False)
+    return _FRAMES[source]
+
+
 def split_summary():
     """Real counts for the default split, and what a random split would leak."""
     m = load_json(RESULTS, BEST, 'metrics.json')
-    df = data_prep.get_clean(verbose=False)
+    df = run_frame(m)
     out = {'strategies': {}}
     for strategy in ('grouped', 'random'):
         tr, te = splits.make_split(df, strategy=strategy, test_size=0.2, seed=42, verbose=False)
@@ -121,13 +132,15 @@ def training_profiles(run_ids):
 
     Runs sharing the same data filters and split share one profile.
     """
-    full = data_prep.get_clean(verbose=False)
-    out = {'full_data': profile(full)}
+    out = {'full_data': profile(run_frame(load_json(RESULTS, BEST, 'metrics.json')))}
     cache = {}
     for run_id in run_ids:
         cfg = load_json(RESULTS, run_id, 'config.snapshot.json')
         data_cfg, split_cfg = cfg.get('data', {}), cfg.get('split', {})
-        key = json.dumps([data_cfg, split_cfg], sort_keys=True)
+        run_metrics = load_json(RESULTS, run_id, 'metrics.json')
+        full = run_frame(run_metrics)
+        source = data_prep.source_of(run_metrics.get('dataset', {}).get('clean_version'))
+        key = json.dumps([source, data_cfg, split_cfg], sort_keys=True)
         if key not in cache:
             df = select_rows(full, data_cfg, verbose=False)
             tr, te = splits.make_split(df, strategy=split_cfg.get('strategy', 'grouped'),

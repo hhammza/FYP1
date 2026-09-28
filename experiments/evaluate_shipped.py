@@ -105,7 +105,10 @@ def evaluate_promoted_lgbm(served, seen_sample_genomes=20000, seed=0):
     print(f'[lgbm] promoted run {run_id}')
     with open(os.path.join(HERE, 'results', run_id, 'config.snapshot.json')) as fh:
         cfg = json.load(fh)
-    df = data_prep.get_clean(verbose=False)
+    with open(os.path.join(HERE, 'results', run_id, 'metrics.json')) as fh:
+        version = json.load(fh).get('dataset', {}).get('clean_version')
+    # The export the run was trained on, not today's default
+    df = data_prep.get_clean(source=data_prep.source_of(version), verbose=False)
     df = select_rows(df, cfg.get('data', {}), verbose=False)
     split_cfg = cfg.get('split', {})
     # Split on the frame the run used (species-level taxa if it used them),
