@@ -207,6 +207,9 @@ backend/trained_models/*
 # experiments/genome/features/export_gene_report.py (Data/ is not deployed)
 !backend/trained_models/gene_report.json
 !backend/trained_models/gene_hits.json
+# Timeline calibration summary served by /api/timeline/, written by
+# experiments/evolution/calibrate.py
+!backend/trained_models/timeline_calibration.json
 
 
 # ------------------------------------------------------------

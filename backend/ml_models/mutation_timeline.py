@@ -5,6 +5,7 @@ Output: Week-by-week resistance evolution timeline + mutation hotspots
 Uses: a biologically-informed simulation, not a trained model. Response format
 in progress/formats/README.md section 4.
 """
+import json
 import os
 import re
 import pickle
@@ -165,6 +166,7 @@ class MutationTimelinePredictor:
         self.model = None
         self.artifacts = None
         self.is_trained = False
+        self.calibration = None
         self._load()
 
     def _load(self):
@@ -179,6 +181,16 @@ class MutationTimelinePredictor:
                 print(f"[Timeline] Could not load: {e}")
         else:
             print("[Timeline] No trained model. Using biological simulation.")
+
+        # Fit against published curves (experiments/evolution/calibrate.py); a check of the
+        # curve's shape, which does not change the constants above. Missing file: null.
+        calib_path = os.path.join(self.model_dir, 'timeline_calibration.json')
+        if os.path.exists(calib_path):
+            try:
+                with open(calib_path) as f:
+                    self.calibration = json.load(f)
+            except Exception as e:
+                print(f"[Timeline] Could not read calibration: {e}")
 
     def predict(self, fasta_text, antibiotic, n_weeks=8, seed=42):
         sequence = read_fasta_sequence(fasta_text)
@@ -232,7 +244,7 @@ class MutationTimelinePredictor:
             'model_used': 'Biological Simulation',
             'simulation': True,
             'seed': seed,
-            'calibration': None,   # fitted to published curves in T3.1
+            'calibration': dict(self.calibration) if self.calibration else None,
             'summary': self._generate_summary(antibiotic, timeline, failure_week, profile),
         }
 
@@ -252,4 +264,5 @@ class MutationTimelinePredictor:
             'simulation': True,
             'model_type': 'Biological Simulation',
             'description': 'Simulates week-by-week resistance evolution under antibiotic pressure',
+            'calibration': self.calibration,
         }

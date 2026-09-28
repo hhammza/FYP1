@@ -1,0 +1,21 @@
+{
+  "curves": 15,
+  "drugs": [
+    "ciprofloxacin",
+    "ceftriaxone",
+    "doxycycline",
+    "daptomycin",
+    "linezolid",
+    "carbapenems"
+  ],
+  "rmse": 2.9,
+  "lab_curves": 5,
+  "surveillance_curves": 10,
+  "median_r2": 0.91,
+  "parameters_changed": false,
+  "sources": [
+    "Maltas, Huynh & Wood 2025, PLOS Biology, doi:10.1371/journal.pbio.3002970",
+    "ECDC Surveillance Atlas, EARS-Net (carbapenem-resistant K. pneumoniae, 2005-2024)"
+  ],
+  "note": "The logistic shape fits published resistance curves, but they run in days (lab) or years (hospitals), so the weeks shown are illustrative. The hand-set constants are unchanged."
+}

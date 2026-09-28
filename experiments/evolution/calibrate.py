@@ -32,6 +32,9 @@ Writes into experiments/evolution/results/:
     figures/calibration_lab.png    replicate data, means and fit per drug
     figures/calibration_surveillance.png   yearly data and fit per country
 
+and backend/trained_models/timeline_calibration.json, the `calibration` object
+/api/timeline/ returns (format in progress/formats/README.md section 4).
+
 ECDC data: "Dataset provided by ECDC based on data provided by public health
 authorities, scientific institutes or health care providers in the relevant
 reporting countries and/or by WHO" (CC BY 4.0; fitted curves are our adaptation).
@@ -67,6 +70,7 @@ MIN_YEARS = 12          # surveillance: fit a country with at least this many ye
 MIN_RISE = 0.10         # ... whose resistant share rose by at least 10 points
 LN81 = math.log(81)     # 10% to 90% of a logistic's rise takes ln(81) / k
 LN9 = math.log(9)       # 90% of the rise is reached ln(9) / k after the midpoint
+SERVED = os.path.join(ROOT, 'backend', 'trained_models', 'timeline_calibration.json')
 
 
 def logistic(t, r0, peak, k, mid):
@@ -311,6 +315,33 @@ def plot_surveillance(ecdc, res, kept, path):
     plt.close(fig)
 
 
+def write_served(res, path):
+    """The calibration object /api/timeline/ returns. rmse is in percentage points on the
+    0-100 resistant_fraction scale (format section 4), so it averages the surveillance
+    curves, the only ones in that unit; the lab curves are log2 IC50 and are counted in
+    `curves` and `lab_curves` only. The simulation's constants are not changed by this."""
+    import json
+    lab = res[res.source == 'lab']
+    sur = res[res.source == 'surveillance']
+    obj = {
+        'curves': int(len(res)),
+        'drugs': list(lab.curve) + ['carbapenems'],
+        'rmse': round(float(sur.rmse.mean() * 100), 1),
+        'lab_curves': int(len(lab)),
+        'surveillance_curves': int(len(sur)),
+        'median_r2': round(float(res.r2.median()), 2),
+        'parameters_changed': False,
+        'sources': ['Maltas, Huynh & Wood 2025, PLOS Biology, doi:10.1371/journal.pbio.3002970',
+                    'ECDC Surveillance Atlas, EARS-Net (carbapenem-resistant K. pneumoniae, 2005-2024)'],
+        'note': ('The logistic shape fits published resistance curves, but they run in days (lab) or '
+                 'years (hospitals), so the weeks shown are illustrative. The hand-set constants are unchanged.'),
+    }
+    with open(path, 'w') as fh:
+        json.dump(obj, fh, indent=2)
+        fh.write('\n')
+    return obj
+
+
 def main():
     os.makedirs(FIGURES, exist_ok=True)
     lab, ecdc = load_lab(), load_ecdc()
@@ -318,6 +349,8 @@ def main():
     res = pd.DataFrame(fit_lab(lab) + sur)
     res.to_csv(os.path.join(RESULTS, 'calibration.csv'), index=False, float_format='%.4f')
     write_summary(res, os.path.join(RESULTS, 'calibration_summary.md'))
+    served = write_served(res, SERVED)
+    print(f'[calibrate] served calibration: {served["curves"]} curves, rmse {served["rmse"]} points')
     cols = ['source', 'curve', 'points', 'peak', 'k', 'midpoint', 'rise_10_90', 'rmse', 'r2']
     print(res[cols].to_string(index=False, float_format=lambda x: f'{x:.2f}'))
 

@@ -68,7 +68,7 @@
           <div class="mb-3">
             <label class="form-label-custom">Antibiotic <span class="required">*</span>
               <i class="bi bi-info-circle text-muted ms-1" data-bs-toggle="tooltip" data-bs-placement="right"
-                 data-bs-title="Select the antibiotic to simulate. Each has calibrated growth rate and peak resistance parameters derived from published clinical data."></i>
+                 data-bs-title="Select the antibiotic to simulate. Each has a hand-set growth rate and peak resistance; the curve shape has been checked against published lab and hospital data."></i>
             </label>
             <select name="antibiotic" class="form-select form-select-custom" required
                     data-populate="antibiotics-kmer" data-selected="{{ form_data.antibiotic }}">
@@ -162,6 +162,14 @@ ATGCATGCATGCATGCATGC..."></textarea>
         </div>
         <div class="mt-3 pt-2 border-top-subtle fs-11 text-3">
           No trained model is used here. A CNN-LSTM was explored in the research notebook (<code>bacterial_mutation_timeline.ipynb</code>) but not deployed.
+        </div>
+        <div class="mt-2 fs-11 text-3">
+          <strong>Checked against published data:</strong> the logistic shape fits 15 published resistance curves
+          (median R&sup2; 0.91): lab evolution of <em>E. faecalis</em> under five drugs (Maltas et al. 2025, <em>PLOS Biology</em>)
+          and carbapenem-resistant <em>K. pneumoniae</em> in 10 European countries (ECDC EARS-Net, 2005&ndash;2024).
+          Lab resistance rises within days and hospital resistance over years, so the weeks shown here are illustrative
+          and the constants are unchanged. Two limits found: the midpoint is set at 0.45 &times; the weeks you choose, so a
+          longer chart moves the failure week later, and the plateau varies by country (7% to 66% for carbapenems).
         </div>
       </div>
 
@@ -286,6 +294,16 @@ ATGCATGCATGCATGCATGC..."></textarea>
                 <span>GC: <span class="text-white">{{ result.gc_content }}%</span></span>
               </div>
               <div class="text-muted small mt-1">Model: <span class="text-white">{{ result.model_used }}</span></div>
+              <div class="text-muted small mt-1">
+                {% if result.calibration %}
+                Checked against <span class="text-white">{{ result.calibration.curves }} published curves</span>
+                (fit error &plusmn;{{ "%.1f" | format(result.calibration.rmse) }} points on {{ result.calibration.surveillance_curves }} hospital series).
+                {% if result.antibiotic not in result.calibration.drugs %}{{ result.antibiotic | title }} was not among the drugs fitted.{% endif %}
+                Weeks are illustrative.
+                {% else %}
+                Not calibrated against published data.
+                {% endif %}
+              </div>
             </div>
           </div>
         </div>
@@ -337,7 +355,7 @@ ATGCATGCATGCATGCATGC..."></textarea>
       <div class="empty-state">
         <div class="empty-state-icon timeline-icon"><i class="bi bi-activity"></i></div>
         <h4>Generate Resistance Timeline</h4>
-        <p>Upload a bacterial FASTA genome and select an antibiotic to simulate week-by-week resistance evolution using our biologically-calibrated model.</p>
+        <p>Upload a bacterial FASTA genome and select an antibiotic to simulate week-by-week resistance evolution with a logistic-growth simulation.</p>
         <div class="row g-3 mt-3 text-start">
           <div class="col-md-6">
             <div class="example-box">
@@ -373,7 +391,7 @@ ATGCATGCATGCATGCATGC..."></textarea>
     <div class="mb-4">
       <div class="sec-eyebrow">Evolutionary Biology</div>
       <div class="sec-title">Understanding Bacterial Resistance Evolution</div>
-      <div class="sec-sub">Antibiotic resistance evolves through mutation, selection, and gene transfer. Our simulation models these population dynamics using logistic growth calibrated per antibiotic class.</div>
+      <div class="sec-sub">Antibiotic resistance evolves through mutation, selection, and gene transfer. Our simulation models these population dynamics with logistic growth, using hand-set constants per antibiotic class whose curve shape has been checked against published data.</div>
     </div>
 
     <div class="row g-4 mb-4">
