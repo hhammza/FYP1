@@ -259,7 +259,11 @@
             {% endif %}
             {% if key == 'kmer' %}
             <li>Within a single antibiotic the AUC averages {{ '%.2f' | format(m.within_antibiotic_auc) }}, so the genome adds little beyond knowing the drug.</li>
-            <li class="text-rose2"><i class="bi bi-bug me-1"></i>The web page never runs this model: {{ '%.0f' | format(100 * m.served_fallback_rate) }}% of <code>/predict</code> calls fall back to a heuristic because of a scaler shape bug.</li>
+            {% if m.served_fallback_rate %}
+            <li class="text-rose2"><i class="bi bi-bug me-1"></i>{{ '%.0f' | format(100 * m.served_fallback_rate) }}% of <code>/predict</code> calls fall back to a heuristic instead of running this model.</li>
+            {% else %}
+            <li>Runs on every <code>/predict</code> call: 0% fall back to the heuristic (the scaler bug that used to force it was fixed in Week 1).</li>
+            {% endif %}
             {% endif %}
           </ul>
         </div>

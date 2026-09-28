@@ -51,11 +51,11 @@
       <div class="stat-mini-label">Carry at least one resistance gene</div>
     </div></div>
     <div class="flex-fill min-w-130"><div class="stat-mini">
-      <div class="stat-mini-value stat-mini-static">{{ s.genes }}</div>
+      <div class="stat-mini-value stat-mini-static">{{ "{:,}".format(s.genes) }}</div>
       <div class="stat-mini-label">Different resistance genes</div>
     </div></div>
     <div class="flex-fill min-w-130"><div class="stat-mini">
-      <div class="stat-mini-value stat-mini-static">{{ s.point_mutations }}</div>
+      <div class="stat-mini-value stat-mini-static">{{ "{:,}".format(s.point_mutations) }}</div>
       <div class="stat-mini-label">Different point mutations</div>
     </div></div>
     <div class="flex-fill min-w-130"><div class="stat-mini">

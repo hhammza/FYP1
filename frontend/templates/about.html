@@ -84,7 +84,7 @@
               <div class="how-num about-obj-num">01</div>
               <div>
                 <div class="how-title">Binary Resistance Classification</div>
-                <div class="how-desc">Train a LightGBM model on 90,826 labeled AMR records to classify antibiotic resistance from genomic metadata with AUC-ROC ≥ 0.90.</div>
+                <div class="how-desc">Train a LightGBM model on {{ metrics.lgbm.train_rows }} labelled AMR records to classify antibiotic resistance from genomic metadata. The target was AUC-ROC 0.90; on genomes it never saw it reaches {{ metrics.lgbm.auc }}.</div>
               </div>
             </div>
           </div>
@@ -102,7 +102,7 @@
               <div class="how-num about-obj-num">03</div>
               <div>
                 <div class="how-title">Temporal Resistance Forecasting</div>
-                <div class="how-desc">Simulate week-by-week resistance evolution using a biologically-calibrated logistic growth model parameterised per antibiotic class.</div>
+                <div class="how-desc">Simulate week-by-week resistance evolution using a logistic growth model with hand-set constants per antibiotic class.</div>
               </div>
             </div>
           </div>
@@ -124,7 +124,7 @@
 
         <h6 class="about-method-h6 mt-3 mb-2">Phase 1: Data Collection and Preprocessing</h6>
         <p class="about-method-text">
-          AMR phenotype data including Resistant, Susceptible, and Intermediate labels, MIC values, and organism metadata was downloaded from the BVBRC database across more than 15 bacterial species. FASTA genome sequences were collected for 1,685 isolates. The data was then cleaned to remove duplicates, parse MIC strings, extract genus and species from genome names, and merge Intermediate labels into Resistant for binary classification.
+          AMR phenotype data including Resistant, Susceptible, and Intermediate labels, MIC values, and organism metadata was downloaded from the BVBRC database across {{ metrics.lgbm.genera }} bacterial genera. FASTA genome sequences were collected for {{ metrics.kmer.genomes_total }} isolates. The data was then cleaned to remove duplicates, parse MIC strings, extract genus and species from genome names, and merge Intermediate labels into Resistant for binary classification.
         </p>
 
         <h6 class="about-method-h6 mt-3 mb-2">Phase 2: Feature Engineering</h6>
@@ -194,7 +194,7 @@
           </div>
           <div class="table-responsive">
             <table class="table table-custom table-sm mb-0">
-              <tr><td class="text-muted about-td-label">Algorithm</td><td>Biologically-calibrated logistic growth model (no neural network training needed)</td></tr>
+              <tr><td class="text-muted about-td-label">Algorithm</td><td>Logistic growth model with hand-set constants (nothing is trained)</td></tr>
               <tr><td class="text-muted">Input</td><td>Raw FASTA sequence + antibiotic name + number of weeks (2–24)</td></tr>
               <tr><td class="text-muted">Growth model</td><td>Sigmoid logistic curve with speed and peak parameterised per antibiotic class</td></tr>
               <tr><td class="text-muted">Hotspot detection</td><td>Sliding GC-content + repeat-density windows → top 12 putative mutation sites</td></tr>
@@ -542,7 +542,7 @@
             <div class="datasrc-icon datasrc-primary"><i class="bi bi-virus2"></i></div>
             <div class="datasrc-body">
               <div class="datasrc-name">BVBRC / PATRIC</div>
-              <div class="datasrc-desc">Primary training data: 90,826 AMR phenotype records and 1,685 FASTA genomes</div>
+              <div class="datasrc-desc">Primary training data: {{ metrics.lgbm.train_rows }} AMR phenotype records and {{ metrics.kmer.genomes_total }} FASTA genomes</div>
             </div>
             <i class="bi bi-arrow-up-right-circle-fill datasrc-arrow"></i>
           </a>

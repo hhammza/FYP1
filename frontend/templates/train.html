@@ -59,13 +59,13 @@
 
         <div class="alert alert-info-custom mb-3">
           <i class="bi bi-database me-2"></i>
-          <strong>Dataset:</strong> <code>amr_output/</code> (4,252 CSV files with AMR phenotype data)
+          <strong>Dataset:</strong> <code>amr_output/</code> (3,655 CSV files with AMR phenotype data)
         </div>
 
         <div class="mb-3">
           <h6 class="text-muted mb-2">Training Pipeline:</h6>
           <div class="method-steps">
-            <div class="method-step"><span class="step-num">1</span>Load &amp; combine amr_output CSVs (up to 500 files)</div>
+            <div class="method-step"><span class="step-num">1</span>Load &amp; combine every amr_output CSV</div>
             <div class="method-step"><span class="step-num">2</span>Clean: parse MIC values, extract genus/species</div>
             <div class="method-step"><span class="step-num">3</span>Target encoding: per-antibiotic resistance rates</div>
             <div class="method-step"><span class="step-num">4</span>Train LightGBM with early stopping</div>
@@ -74,9 +74,9 @@
         </div>
 
         <div class="row g-2 mb-3 text-center">
-          <div class="col-4"><div class="stat-mini"><div class="stat-mini-value">~90K</div><div class="stat-mini-label">Training rows</div></div></div>
+          <div class="col-4"><div class="stat-mini"><div class="stat-mini-value">{{ metrics.lgbm.train_rows_short }}</div><div class="stat-mini-label">Training rows</div></div></div>
           <div class="col-4"><div class="stat-mini"><div class="stat-mini-value">14</div><div class="stat-mini-label">Features</div></div></div>
-          <div class="col-4"><div class="stat-mini"><div class="stat-mini-value">~3 min</div><div class="stat-mini-label">Train time</div></div></div>
+          <div class="col-4"><div class="stat-mini"><div class="stat-mini-value">~4 min</div><div class="stat-mini-label">Train time</div></div></div>
         </div>
 
         <form method="POST" action="/train">
@@ -102,7 +102,7 @@
 
         <div class="alert alert-info-custom mb-3">
           <i class="bi bi-database me-2"></i>
-          <strong>Dataset:</strong> <code>mapped_output/</code> + <code>fasta_output/</code> (1,684 mapped genomes)
+          <strong>Dataset:</strong> <code>mapped_output/</code> + <code>fasta_output/</code> ({{ metrics.kmer.genomes_total }} genomes with a FASTA)
         </div>
 
         <div class="mb-3">
@@ -117,9 +117,9 @@
         </div>
 
         <div class="row g-2 mb-3 text-center">
-          <div class="col-4"><div class="stat-mini"><div class="stat-mini-value">1,684</div><div class="stat-mini-label">Genomes</div></div></div>
+          <div class="col-4"><div class="stat-mini"><div class="stat-mini-value">{{ metrics.kmer.genomes_total }}</div><div class="stat-mini-label">Genomes</div></div></div>
           <div class="col-4"><div class="stat-mini"><div class="stat-mini-value">256+N</div><div class="stat-mini-label">Features</div></div></div>
-          <div class="col-4"><div class="stat-mini"><div class="stat-mini-value">~5 min</div><div class="stat-mini-label">Train time</div></div></div>
+          <div class="col-4"><div class="stat-mini"><div class="stat-mini-value">~1 h</div><div class="stat-mini-label">Train time</div></div></div>
         </div>
 
         <form method="POST" action="/train">
