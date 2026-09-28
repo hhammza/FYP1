@@ -457,9 +457,9 @@ Tiles whose value is not a single number (for example "9 vs 37") carry the
 ./start.sh
 ```
 
-Creates `.venv` if missing, installs both requirement sets, checks for **libomp** (LightGBM's OpenMP dependency, without it `import lightgbm` fails on macOS and the forecaster silently degrades to heuristics), starts Django on 8000, waits for `/api/health/` to answer, starts Flask on **5055** (not 5000, macOS AirPlay Receiver owns that port), opens the browser, and tears down both process groups on Ctrl-C.
+Creates `.venv` if missing, installs both requirement sets, checks for **libomp** (LightGBM's OpenMP dependency, without it `import lightgbm` fails on macOS and the forecaster silently degrades to heuristics), starts Django on 8000, waits for `/api/health/` to answer, starts Flask on **5001** (the recommended port, `app.py`'s default; not 5000, which macOS AirPlay Receiver owns), opens the browser, and tears down both process groups on Ctrl-C.
 
-Windows: `start.bat` (ports 8000 + 5000, two `cmd` windows).
+Windows: `start.bat` (ports 8000 + 5001, two `cmd` windows). It creates `.venv` if missing and runs everything with the venv's Python, so no activation is needed.
 
 Both launchers start the backend with `DEBUG=True`, local development mode, so no `SECRET_KEY` or `ALLOWED_HOSTS` is needed (Django makes a random key per process). Starting the backend by hand needs the same: `DEBUG=True python manage.py runserver`, or `set DEBUG=True` first on Windows. There is no `migrate` step: the API uses no database.
 

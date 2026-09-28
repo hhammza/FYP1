@@ -12,10 +12,11 @@
 
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-VENV="$ROOT/.venv"
-BACKEND_PORT="${BACKEND_PORT:-8000}"
-FRONTEND_PORT="${PORT:-5055}"
+# Every path below is relative to the project folder, so work from there.
+cd "$(dirname "${BASH_SOURCE[0]}")"
+VENV=".venv"
+BACKEND_PORT="${BACKEND_PORT:-8000}"   # recommended; the frontend expects the API here
+FRONTEND_PORT="${PORT:-5001}"          # recommended; app.py's own default (5000 is AirPlay on macOS)
 
 echo
 echo " ============================================"
@@ -58,7 +59,7 @@ echo "[2/5] Checked native dependencies."
 # something is missing does it go online, with a short timeout; if that
 # fails the servers start anyway with a warning.
 #   ./start.sh --update   force a full online install and upgrade pip
-REQS=(-r "$ROOT/backend/requirements.txt" -r "$ROOT/frontend/requirements.txt")
+REQS=(-r backend/requirements.txt -r frontend/requirements.txt)
 PIP=("$PY" -m pip --disable-pip-version-check)
 if [ "${1:-}" = "--update" ]; then
     echo "[3/5] Updating dependencies (--update)..."
@@ -80,8 +81,8 @@ if ! "$PY" -c "import lightgbm" >/dev/null 2>&1; then
 fi
 
 # --- Port helpers ---------------------------------------------------------
-# macOS note: port 5000 is taken by AirPlay Receiver (Control Center), so the
-# frontend defaults to 5055 here rather than the 5000 used on Windows.
+# Recommended ports on every system: 8000 for the backend, 5001 for the
+# frontend (app.py's default). 5000 is avoided: AirPlay Receiver owns it on macOS.
 port_busy() { lsof -iTCP:"$1" -sTCP:LISTEN -P -n >/dev/null 2>&1; }
 
 find_free_port() {
@@ -140,7 +141,7 @@ trap cleanup EXIT INT TERM
 echo "[4/5] Starting Django backend on http://127.0.0.1:$BACKEND_PORT ..."
 # DEBUG=True is local development: no SECRET_KEY or ALLOWED_HOSTS needed.
 # Export ADMIN_TOKEN before running this to use Train/Reload.
-(cd "$ROOT/backend" && DEBUG=True exec "$PY" manage.py runserver "$BACKEND_PORT") &
+(cd backend && DEBUG=True exec "../$PY" manage.py runserver "$BACKEND_PORT") &
 BACKEND_PID=$!
 
 for _ in $(seq 1 30); do
@@ -155,10 +156,10 @@ fi
 
 # --- Frontend -------------------------------------------------------------
 echo "[5/5] Starting Flask frontend on http://127.0.0.1:$FRONTEND_PORT ..."
-(cd "$ROOT/frontend" \
+(cd frontend \
     && PORT="$FRONTEND_PORT" \
        BACKEND_URL="http://127.0.0.1:$BACKEND_PORT/api" \
-       exec "$PY" app.py) &
+       exec "../$PY" app.py) &
 FRONTEND_PID=$!
 
 for _ in $(seq 1 30); do

@@ -24,11 +24,13 @@ Loose files moved out of the repo root into folders; nothing was deleted from gi
 
 | Moved | To |
 |---|---|
-| `FYP_Completion_Roadmap.md`, `EXPERIMENT_PLAN.md`, `PROJECT_DOCUMENTATION.md`, `run_project.md`, `how_to_make_python_library.md` | [docs/](docs/) |
+| `FYP_Completion_Roadmap.md`, `EXPERIMENT_PLAN.md`, `PROJECT_DOCUMENTATION.md`, `how_to_make_python_library.md` | [docs/](docs/) |
 | `Data_Drive` (two Drive links) | [docs/DATA_LINKS.md](docs/DATA_LINKS.md), as a table |
 | The four notebooks | [notebooks/](notebooks/) |
 | `fasta_amr_map.py`, `train_all.bat` | [scripts/](scripts/) (`train_all.bat` now changes to `..\backend`) |
 | New: the April BV-BRC download scripts, until now outside the repo | [scripts/bvbrc_download/](scripts/bvbrc_download/README.md) |
+
+`run_project.md` (manual Windows steps with one person's OneDrive path) was removed: [start.bat](start.bat) now does the same steps, with a `.venv`, relative paths and the frontend on port 5001 (it opened 5000, where nothing was running). [start.sh](start.sh) also moved from 5055 to 5001.
 
 Links updated in README.md (file tree, §6, §11), CHANGES.md, experiments/HANDBOOK.md, experiments/README.md, the three trackers, `datasets.html`, `mutation_timeline.html`, `train.html` and `.gitignore`. Links inside the moved docs now start with `../`.
 
@@ -120,7 +122,7 @@ Suleman's platform work (T1.3, T2.4), plus two fixes found on the way.
 | [backend/backend/settings.py](backend/backend/settings.py) | `SECRET_KEY` and `ALLOWED_HOSTS` from the environment only, required when `DEBUG` is off (a random key per process when it is on); no CORS origins; `DATABASES = {}`; 20 MB FASTA limit; rate limits; `ADMIN_TOKEN` |
 | [backend/api/views.py](backend/api/views.py) | `X-Admin-Token` on `/api/train/` and `/api/reload/` (401, or 503 when no token is set); 413 for oversized FASTA; 429 per visitor IP on forecast, predict, timeline; `/api/train/` takes only `lgbm` or `kmer`; the 8 no-op `csrf_exempt` decorators removed, with the reason at the top |
 | [frontend/app.py](frontend/app.py), [train.html](frontend/templates/train.html), [train.js](frontend/static/js/train.js) | Admin password on `/train`, sent with Train and Reload; the browser's IP forwarded for the rate limit; 20 MB upload limit with a message on the page; no hardcoded `secret_key`; debug server on 127.0.0.1 only |
-| [start.sh](start.sh), [start.bat](start.bat), [run_project.md](docs/run_project.md) | Start the backend with `DEBUG=True`; say how to set `ADMIN_TOKEN`; no `migrate` |
+| [start.sh](start.sh), [start.bat](start.bat), `run_project.md` (removed 2026-09-28) | Start the backend with `DEBUG=True`; say how to set `ADMIN_TOKEN`; no `migrate` |
 | [backend/Procfile](backend/Procfile), [requirements.txt](backend/requirements.txt) | `release: migrate` removed; `django-ratelimit` added |
 | [backend/tests/test_security.py](backend/tests/test_security.py) | New: 13 tests, one per rule above |
 
