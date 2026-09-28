@@ -14,7 +14,7 @@
       </div>
       <div>
         <h1 class="page-title">Datasets &amp; Data Sources</h1>
-        <p class="page-subtitle">Four source datasets from BV-BRC and NCBI GenBank, the data we built from them, and which model uses which</p>
+        <p class="page-subtitle">Five source datasets from BV-BRC, NCBI GenBank and published studies, the data we built from them, and which model uses which</p>
       </div>
     </div>
   </div>
@@ -27,7 +27,7 @@
   <!-- ── Overview Stats Strip ──────────────────────────────────── -->
   <div class="d-flex gap-3 flex-wrap mb-4">
     <div class="flex-fill min-w-130"><div class="stat-mini">
-      <div class="stat-mini-value stat-mini-static text-indigo2">4</div>
+      <div class="stat-mini-value stat-mini-static text-indigo2">5</div>
       <div class="stat-mini-label">Source datasets</div>
     </div></div>
     <div class="flex-fill min-w-130"><div class="stat-mini">
@@ -47,14 +47,14 @@
       <div class="stat-mini-label">Antibiotics</div>
     </div></div>
     <div class="flex-fill min-w-130"><div class="stat-mini">
-      <div class="stat-mini-value stat-mini-static fs-13">BV-BRC +<br>NCBI</div>
+      <div class="stat-mini-value stat-mini-static fs-13">BV-BRC, NCBI<br>ECDC, PLOS</div>
       <div class="stat-mini-label">Data sources</div>
     </div></div>
   </div>
 
   <!-- ── Source datasets ───────────────────────────────────────── -->
   <div class="glass-card mb-4">
-    <h5 class="fw-700 mb-1"><i class="bi bi-table me-2 text-indigo2"></i>The Four Source Datasets</h5>
+    <h5 class="fw-700 mb-1"><i class="bi bi-table me-2 text-indigo2"></i>The Five Source Datasets</h5>
     <p class="fs-13 text-muted mb-3">Downloaded from outside the project. Everything else on this page is built from these.</p>
     <div class="table-responsive">
       <table class="table table-custom mb-0">
@@ -96,6 +96,14 @@
             <td class="small">BV-BRC</td>
             <td><span class="status-badge simulated">Notebooks</span></td>
           </tr>
+          <tr>
+            <td><span class="step-num step-sky">5</span></td>
+            <td class="fw-600 text-white"><a href="#ds-calibration">Published Resistance Curves</a></td>
+            <td class="font-mono text-accent small">evolution_curves/</td>
+            <td>5 lab curves · 31 countries × 20 years</td>
+            <td class="small">PLOS Biology, ECDC</td>
+            <td><span class="status-badge simulated">Timeline check</span></td>
+          </tr>
         </tbody>
       </table>
     </div>
@@ -104,7 +112,7 @@
   <!-- ── Built from the datasets ───────────────────────────────── -->
   <div class="glass-card mb-5">
     <h5 class="fw-700 mb-1"><i class="bi bi-diagram-3 me-2 text-indigo2"></i>Built From Them (not separate datasets)</h5>
-    <p class="fs-13 text-muted mb-3">Made by this project's code from the four datasets above, so they are not counted as datasets of their own.</p>
+    <p class="fs-13 text-muted mb-3">Made by this project's code from Datasets 1 to 3, so they are not counted as datasets of their own.</p>
     <div class="table-responsive">
       <table class="table table-custom mb-0">
         <thead>
@@ -466,12 +474,59 @@ GCGAGTGTTGAAGTTCGGCGGTACATCAGTGGCAAATGCAGAACGTTTT
 
 
   <!-- ════════════════════════════════════════════════════════════
+       DATASET 5: Published Resistance Curves (timeline calibration)
+       ════════════════════════════════════════════════════════════ -->
+  <div class="mb-5" id="ds-calibration">
+    <div class="d-flex align-items-center gap-3 mb-3">
+      <div class="step-num step-sky fs-5 fw-700" style="width:44px;height:44px">5</div>
+      <div>
+        <div class="sec-eyebrow">Dataset 5 · Timeline Calibration</div>
+        <h2 class="sec-title mb-0">Published Resistance Curves</h2>
+      </div>
+    </div>
+
+    <div class="row g-4">
+      <div class="col-lg-8">
+        <div class="info-card h-100">
+          <h6 class="card-section-title"><i class="bi bi-info-circle text-accent me-2"></i>What This Dataset Contains</h6>
+          <p class="body-text lh-17">
+            Resistance measured over time, taken from published work, to check the shape of the <a href="/timeline">Mutation Timeline</a>'s curve. Two kinds, kept apart because they measure different things:
+          </p>
+          <ul class="body-text lh-17 mb-3">
+            <li><strong>Lab evolution</strong> (Maltas, Huynh &amp; Wood 2025, <em>PLOS Biology</em>, doi:10.1371/journal.pbio.3002970): <em>Enterococcus faecalis</em> evolved for 8 days under ciprofloxacin, ceftriaxone, doxycycline, daptomycin or linezolid, 4 populations each, with resistance (IC50) measured every 2 days.</li>
+            <li><strong>Hospital surveillance</strong> (ECDC Surveillance Atlas, EARS-Net): the share of invasive <em>Klebsiella pneumoniae</em> resistant to carbapenems, per country and year.</li>
+          </ul>
+          <p class="body-text lh-17">
+            The timeline's logistic curve fits 15 of these curves with a median R&sup2; of 0.91. <strong>It does not change the timeline's numbers:</strong> the lab curves run in days and the hospital ones in years, so the weeks the timeline shows stay illustrative. <code class="font-mono">experiments/evolution/calibrate.py</code> makes the fit and the summary <code class="font-mono">/api/timeline/</code> returns.
+          </p>
+          <p class="fs-11 text-3 mb-0">
+            ECDC data: &ldquo;Dataset provided by ECDC based on data provided by public health authorities, scientific institutes or health care providers in the relevant reporting countries and/or by WHO&rdquo; (CC BY 4.0); the fitted curves are this project's adaptation. PLOS data: CC BY 4.0.
+          </p>
+        </div>
+      </div>
+      <div class="col-lg-4">
+        <div class="info-card h-100">
+          <h6 class="card-section-title"><i class="bi bi-bar-chart text-accent me-2"></i>Dataset Statistics</h6>
+          <table class="table table-custom table-sm mb-0">
+            <tr><td class="text-muted">Lab curves</td><td class="fw-600 text-white">5 drugs &times; 4 populations</td></tr>
+            <tr><td class="text-muted">Lab time points</td><td class="fw-600 text-white">days 0, 2, 4, 6, 8</td></tr>
+            <tr><td class="text-muted">Hospital series</td><td class="fw-600 text-white">31 countries, 2005&ndash;2024</td></tr>
+            <tr><td class="text-muted">Used in the fit</td><td class="fw-600 text-white">5 lab + 10 countries</td></tr>
+            <tr><td class="text-muted">Median R&sup2;</td><td class="fw-600 text-white">0.91</td></tr>
+            <tr><td class="text-muted">Location</td><td class="fw-600 text-white font-mono small">evolution_curves/</td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════
        BUILT FROM THE DATASETS
        ════════════════════════════════════════════════════════════ -->
   <div class="mb-4">
     <div class="sec-eyebrow"><i class="bi bi-diagram-3 me-2"></i>Built From the Datasets</div>
     <h2 class="sec-title mb-1">Data This Project Made</h2>
-    <p class="sec-sub mb-0">Produced by the project's own code from the four datasets, so they are not separate datasets. The gene matrix has its own page: <a href="/genes">Resistance Genes</a>.</p>
+    <p class="sec-sub mb-0">Produced by the project's own code from Datasets 1 to 3, so they are not separate datasets. The gene matrix has its own page: <a href="/genes">Resistance Genes</a>.</p>
   </div>
 
   <!-- ════════════════════════════════════════════════════════════
