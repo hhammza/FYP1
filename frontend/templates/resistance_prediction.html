@@ -163,23 +163,23 @@ GCATGCATGCATGCATGCATGCATGCATGCAT
         <h6 class="card-section-title"><i class="bi bi-pie-chart text-accent me-2"></i>GC Content & Resistance</h6>
         <div class="method-steps">
           <div class="method-step">
-            <span class="step-num step-sky">~35%</span>
+            <span class="step-num step-num-wide step-sky">~35%</span>
             <div><strong class="text-1">Low GC</strong>: typical of <em>Staphylococcus</em>, <em>Streptococcus</em></div>
           </div>
           <div class="method-step">
-            <span class="step-num step-indigo">~50%</span>
+            <span class="step-num step-num-wide step-indigo">~50%</span>
             <div><strong class="text-1">Mid GC</strong>: typical of <em>E. coli</em>, <em>Salmonella</em></div>
           </div>
           <div class="method-step">
-            <span class="step-num step-success">~65%</span>
+            <span class="step-num step-num-wide step-success">~65%</span>
             <div><strong class="text-1">High GC</strong>: typical of <em>Pseudomonas</em>, <em>Mycobacterium</em></div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- ── Results ─────────────────────────────────────────────── -->
-    <div class="col-lg-7">
+    <!-- ── Results (first below 992px once there is one) ─────────── -->
+    <div class="col-lg-7 {% if result %}order-first order-lg-0{% endif %}">
       {% if error %}
       <div class="alert alert-danger-custom"><i class="bi bi-exclamation-circle me-2"></i>{{ error }}</div>
       {% endif %}
@@ -203,6 +203,12 @@ GCATGCATGCATGCATGCATGCATGCATGCAT
       </div>
       {% endif %}
 
+      {% if sample %}
+      <div class="alert alert-warning-custom mb-3" role="status">
+        <i class="bi bi-eye me-2"></i><strong>Sample response, not a real prediction.</strong>
+        This is <code>progress/formats/genome_response.sample.json</code>, shown to preview the layout.
+      </div>
+      {% endif %}
       <!-- Result Badge -->
       <div class="result-hero {% if result.prediction == 'Resistant' %}result-resistant{% else %}result-susceptible{% endif %} mb-4">
         <div class="result-hero-content">
@@ -214,7 +220,7 @@ GCATGCATGCATGCATGCATGCATGCATGCAT
             {% endif %}
           </div>
           <div>
-            <div class="result-label">K-mer Genome Analysis</div>
+            <div class="result-label">{{ 'K-mer Genome Analysis' if 'K-mer' in (result.model_used or '') else 'Genome Analysis' }}</div>
             <div class="result-main-label">{{ result.prediction }}</div>
             <div class="result-sub">{{ result.antibiotic }} | Confidence: {{ result.confidence }}%</div>
           </div>
@@ -236,7 +242,9 @@ GCATGCATGCATGCATGCATGCATGCATGCAT
         </div>
       </div>
 
-      {% set page = 'predict' %}{% set chart_id = 'kmerChart' %}{% set export_result = result %}
+      {% include '_genes_panel.html' %}
+
+      {% set page = 'predict' %}{% set chart_id = 'kmerChart' if result.top_kmers else '' %}{% set export_result = result %}
       {% include '_export_bar.html' %}
 
       <div class="row g-4 mb-4">
@@ -249,6 +257,9 @@ GCATGCATGCATGCATGCATGCATGCATGCAT
               <tr><td class="text-muted">GC Content</td><td class="fw-500">{{ result.gc_content }}%</td></tr>
               <tr><td class="text-muted">Antibiotic</td><td class="fw-500 text-capitalize">{{ result.antibiotic }}</td></tr>
               <tr><td class="text-muted">Model</td><td class="fw-500 small">{{ result.model_used }}</td></tr>
+              {% if result.genes_found is not defined or result.genes_found is none %}
+              <tr><td class="text-muted">Resistance genes</td><td class="small text-muted">Not searched: this model reads the genome's k-mer composition, not its genes</td></tr>
+              {% endif %}
             </table>
 
             <!-- GC Content Bar -->
@@ -269,6 +280,7 @@ GCATGCATGCATGCATGCATGCATGCATGCAT
         </div>
 
         <!-- Top K-mers -->
+        {% if result.top_kmers %}
         <div class="col-md-6">
           <div class="info-card h-100">
             <h6 class="card-section-title"><i class="bi bi-grid-3x3 text-accent me-2"></i>Top 8 Discriminative 4-mers</h6>
@@ -287,13 +299,16 @@ GCATGCATGCATGCATGCATGCATGCATGCAT
             {% endif %}
           </div>
         </div>
+        {% endif %}
       </div>
 
+      {% if result.top_kmers %}
       <!-- K-mer Distribution Chart -->
       <div class="info-card">
         <h6 class="card-section-title"><i class="bi bi-bar-chart text-accent me-2"></i>4-mer Frequency Spectrum (Top 20)</h6>
         <div id="kmerChart" class="chart-250"></div>
       </div>
+      {% endif %}
 
       {% endif %}
       {% else %}

@@ -1,0 +1,61 @@
+{#
+  Resistance genes behind a /predict result (progress/formats/README.md §2).
+    genes_found absent  -> the model does not search for genes: one quiet line
+    genes_found == []   -> searched, nothing found
+    genes_found == [..] -> genes linked to the drug's class first (`relevant`), then the rest
+#}
+{% macro chip(g, linked) -%}
+  <span class="gene-chip{% if linked %} gene-chip-linked{% endif %}" title="{{ g.drug_class or 'unknown class' }}">
+    <span class="font-mono">{{ g.gene }}</span>
+    <span class="gene-chip-meta">{{ 'mutation' if g.type == 'point_mutation' else 'gene' }}{% if g.drug_class %} · {{ g.drug_class }}{% endif %}</span>
+  </span>
+{%- endmacro %}
+
+{% if result.genes_found is defined and result.genes_found is not none %}
+{% set genes = result.genes_found %}
+{% set scored = genes | selectattr('relevant', 'defined') | list | length > 0 %}
+{% set linked = genes | selectattr('relevant') | sort(attribute='gene') | list %}
+{% set others = genes | rejectattr('relevant') | sort(attribute='gene') | list %}
+{% set drug_class = (linked | first).drug_class if linked else '' %}
+<div class="info-card mb-4">
+  <h6 class="card-section-title">
+    <i class="bi bi-bacteria text-emerald2 me-2"></i>Resistance genes found
+    <span class="feature-tag ms-2">{{ genes | length }}</span>
+  </h6>
+
+  <p class="fs-13 mb-3">
+    {% if not genes %}
+      The genome was searched and no known resistance gene or mutation was found.
+    {% elif linked and result.prediction == 'Resistant' %}
+      The genome carries {{ linked | length }} {{ 'gene or mutation' if linked | length == 1 else 'genes and mutations' }}
+      linked to {{ drug_class }} resistance, which supports the <strong>Resistant</strong> call.
+    {% elif linked %}
+      The model called this <strong>Susceptible</strong>, but the genome carries
+      {{ linked | length }} {{ 'gene or mutation' if linked | length == 1 else 'genes and mutations' }}
+      linked to {{ drug_class }} resistance. Treat this call with care.
+    {% elif scored and result.prediction == 'Resistant' %}
+      No gene or mutation linked to {{ result.antibiotic }}'s drug class was found, so the Resistant call
+      comes from other features of the genome.
+    {% elif scored %}
+      No gene or mutation linked to {{ result.antibiotic }}'s drug class was found, which agrees with the
+      Susceptible call.
+    {% else %}
+      Resistance genes and mutations found in this genome.
+    {% endif %}
+  </p>
+
+  {% if linked %}
+  <div class="gene-group-label">Linked to this drug's class</div>
+  <div class="d-flex flex-wrap gap-2 mb-3">{% for g in linked %}{{ chip(g, true) }}{% endfor %}</div>
+  {% endif %}
+  {% if others %}
+  {% if scored %}<div class="gene-group-label">Other resistance genes in this genome</div>{% endif %}
+  <div class="d-flex flex-wrap gap-2 mb-3">{% for g in others %}{{ chip(g, false) }}{% endfor %}</div>
+  {% endif %}
+
+  <div class="text-muted fs-11">
+    Found with NCBI AMRFinderPlus. A gene being present is evidence, not proof: it may not be expressed,
+    and resistance can also come from mechanisms it does not detect.
+  </div>
+</div>
+{% endif %}
