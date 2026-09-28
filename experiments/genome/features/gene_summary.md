@@ -28,6 +28,14 @@ Median 9, mean 9.8, maximum 37.
 
 ## Join with the labels
 
+The models join the matrix to the cleaned `Data/amr_output/` table by Genome ID:
+
+- Matrix genomes with labels: **24,844** of 24,926; with laboratory results: **22,475**.
+- Laboratory rows covered: **201,042** of 201,042; lab-tested genomes without a row: **0** of 22,475.
+- Matrix genomes with no labels at all: 82 (dropped by the cleaning, e.g. rows without a usable phenotype).
+
+The older check against `Data/mapped_output/`, which only holds the original `fasta_output/` genomes:
+
 - Every Genome ID in `Data/mapped_output/` has a row: **yes** (2,587 of 2,587).
 - Matrix genomes with no rows in `Data/mapped_output/`: 22,339 (1192839.3, 1192839.4, 1192839.5, 1194162.3, 127906.64 ...).
 

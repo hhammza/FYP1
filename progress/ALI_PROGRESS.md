@@ -152,13 +152,13 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done · `[!]` blocke
 
 Hamza's genome models (k-mers 0.956, genes 0.981) are tested on only 30 lab-tested genomes, too few to quote. These steps give him ~22,475. The evolution work below does not depend on them, so do it while the download runs.
 
-- [~] Download all 22,475 lab-tested genomes: `select_lab_genomes.py` → `download_genomes.py --genome-list experiments/genome/features/lab_genomes.csv`. *Started 2026-09-27, about 90 GB; 291 lab-tested genomes so far (was 136)*
-- [ ] AMRFinderPlus on the new genomes (`run_amrfinder.py`, as last time)
-- [ ] Rebuild `gene_matrix.parquet` + `gene_info.csv` (+ `gene_summary.md`) with `build_gene_matrix.py` and commit them (small files)
-- [ ] Join check against `Data/amr_output/` (the lab rows), not only `mapped_output/`: the new genomes are not in `mapped_output/`, so the current check reports them as missing even though Hamza's code joins them
-- [ ] Run `python experiments/genome/kmers.py` on the Mac and share `experiments/cache/kmer6_counts.npz` on Drive. **Not the genomes:** Hamza's laptop has ~27 GB free. Same for `lineage_clusters.csv` only if Hamza asks (he is reworking `lineage.py` to scale)
-- [ ] **Early batch:** send the matrix + `kmer6_counts.npz` for whatever is finished, so Hamza can test at scale before the full set
-- [ ] Rebuild `/genes` on the new matrix (`export_gene_report.py`)
+- [x] Download all 22,475 lab-tested genomes: `select_lab_genomes.py` → `download_genomes.py --genome-list experiments/genome/features/lab_genomes.csv`. *Done 2026-09-28: 24,926 genomes on disk (2,587 original + 22,339 new), 0 failures, about 100 GB*
+- [x] AMRFinderPlus on the new genomes (`run_amrfinder.py`, as last time). *Done 2026-09-28: 24,926 searched, 0 errors; 1,139 without `--organism` (no point mutations for them)*
+- [x] Rebuild `gene_matrix.parquet` + `gene_info.csv` (+ `gene_summary.md`) with `build_gene_matrix.py` and commit them (small files). *Done 2026-09-28 (`842caac`): 24,926 × 2,733 (1,234 genes, 1,499 point mutations), 1.9 MB. Fixed 22,339 new genomes named genus "unknown"*
+- [x] Join check against `Data/amr_output/` (the lab rows), not only `mapped_output/`: the new genomes are not in `mapped_output/`, so the current check reports them as missing even though Hamza's code joins them. *Done 2026-09-28: `build_gene_matrix.py` now checks both and writes it to `gene_summary.md`. 24,844 of 24,926 matrix genomes have labels; all 22,475 lab-tested genomes and all 201,042 lab rows have a matrix row, 0 missing*
+- [~] Run `python experiments/genome/kmers.py` on the Mac and share `experiments/cache/kmer6_counts.npz` on Drive. *Built 2026-09-28: 24,926 genomes × 4,096 6-mers, 189 MB, 6 min with 8 workers; Drive upload pending* **Not the genomes:** Hamza's laptop has ~27 GB free. Same for `lineage_clusters.csv` only if Hamza asks (he is reworking `lineage.py` to scale)
+- [x] **Early batch:** send the matrix + `kmer6_counts.npz` for whatever is finished, so Hamza can test at scale before the full set. *Not needed: the full set finished within a day*
+- [x] Rebuild `/genes` on the new matrix (`export_gene_report.py`). *Done 2026-09-28: 24,926 genomes, gene vs lab result over 22,475 lab-tested genomes; `gene_hits.json` is now 9.8 MB*
 - **Done when:** Hamza's runs report a lab AUC on thousands of lab-tested genomes instead of 30
 
 ---

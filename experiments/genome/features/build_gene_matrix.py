@@ -120,6 +120,26 @@ def mapped_genome_ids():
     return ids
 
 
+def label_join(genome_ids):
+    """How the matrix joins the labels the models train on: the cleaned
+    Data/amr_output/ table, by Genome ID. Genomes downloaded from a list
+    (select_lab_genomes.py) are not in mapped_output/, so that check alone
+    reports them as missing although the models join them here."""
+    labels = data_prep.get_clean(verbose=False)[['Genome ID', 'is_lab_confirmed']]
+    in_matrix = labels['Genome ID'].isin(set(genome_ids))
+    lab = labels['is_lab_confirmed'] == 1
+    lab_genomes = set(labels.loc[lab, 'Genome ID'])
+    return {
+        'with_labels': int(labels.loc[in_matrix, 'Genome ID'].nunique()),
+        'with_lab': int(labels.loc[in_matrix & lab, 'Genome ID'].nunique()),
+        'lab_rows': int((in_matrix & lab).sum()),
+        'lab_rows_total': int(lab.sum()),
+        'lab_genomes_total': len(lab_genomes),
+        'lab_without_row': sorted(lab_genomes - set(genome_ids)),
+        'without_labels': sorted(set(genome_ids) - set(labels['Genome ID'])),
+    }
+
+
 def summary(matrix, info, check_join):
     genus = genus_of(list(matrix.index))
     per_genome = matrix.sum(axis=1)
@@ -134,6 +154,10 @@ def summary(matrix, info, check_join):
     if check_join:
         missing = mapped_genome_ids() - set(matrix.index)
         print(f'[join] {len(missing):,} genomes in Data/mapped_output/ have no row')
+        j = label_join(list(matrix.index))
+        print(f'[join] Data/amr_output/: {j["with_labels"]:,} matrix genomes have labels, '
+              f'{j["with_lab"]:,} have lab results ({j["lab_rows"]:,} of {j["lab_rows_total"]:,} lab rows); '
+              f'{len(j["lab_without_row"]):,} lab-tested genomes have no row')
 
 
 def write_summary(matrix, info, path):
@@ -173,7 +197,16 @@ def write_summary(matrix, info, path):
         k = int(((per_genome >= lo) & (per_genome <= hi)).sum())
         out.append(f'| {label} | {k:,} | {pct(k)} |')
 
+    j = label_join(list(matrix.index))
     out += ['', '## Join with the labels', '',
+            'The models join the matrix to the cleaned `Data/amr_output/` table by Genome ID:', '',
+            f'- Matrix genomes with labels: **{j["with_labels"]:,}** of {n:,}; '
+            f'with laboratory results: **{j["with_lab"]:,}**.',
+            f'- Laboratory rows covered: **{j["lab_rows"]:,}** of {j["lab_rows_total"]:,}; '
+            f'lab-tested genomes without a row: **{len(j["lab_without_row"]):,}** of {j["lab_genomes_total"]:,}.',
+            f'- Matrix genomes with no labels at all: {len(j["without_labels"]):,} (dropped by the cleaning, '
+            f'e.g. rows without a usable phenotype).', '',
+            'The older check against `Data/mapped_output/`, which only holds the original `fasta_output/` genomes:', '',
             f'- Every Genome ID in `Data/mapped_output/` has a row: **{"yes" if not no_row else "no"}** '
             f'({len(mapped) - len(no_row):,} of {len(mapped):,}).']
     if no_row:
