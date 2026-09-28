@@ -164,17 +164,18 @@ function initNumberAnimation() {
 }
 
 function animateCount(el, start, end, originalText, duration) {
-  const suffix  = originalText.replace(/[0-9.,]/g, '').trim();
-  const isFloat = originalText.includes('.');
-  const decimals = isFloat ? (originalText.split('.')[1] || '').replace(/[^0-9]/g, '').length : 0;
+  /* "$100T" -> prefix "$", number "100", suffix "T"; the frame text keeps that shape */
+  const m = originalText.match(/^(\D*?)([\d.,]+)(.*)$/) || ['', '', originalText, ''];
+  const prefix = m[1], suffix = m[3];
+  const isFloat = m[2].includes('.');
+  const decimals = isFloat ? (m[2].split('.')[1] || '').replace(/[^0-9]/g, '').length : 0;
   const startTime = performance.now();
 
   function update(now) {
     const progress = Math.min((now - startTime) / duration, 1);
     const eased = 1 - Math.pow(1 - progress, 3);
     const current = start + (end - start) * eased;
-    el.textContent = (isFloat ? current.toFixed(decimals) : Math.round(current).toLocaleString())
-      + (suffix ? ' ' + suffix : '');
+    el.textContent = prefix + (isFloat ? current.toFixed(decimals) : Math.round(current).toLocaleString()) + suffix;
     if (progress < 1) requestAnimationFrame(update);
     else el.textContent = originalText;
   }
