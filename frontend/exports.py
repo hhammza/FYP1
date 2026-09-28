@@ -56,6 +56,18 @@ def _pct(p):
     return f'{p * 100:.1f}%' if isinstance(p, (int, float)) else ''
 
 
+def genes_text(result):
+    """The genes behind a /predict result as one line; the format's three cases."""
+    genes = result.get('genes_found')
+    if genes is None:
+        return 'not searched'
+    if not genes:
+        return 'none found'
+    ordered = sorted(genes, key=lambda g: (not g.get('relevant'), g.get('gene', '')))
+    return '; '.join(f"{g.get('gene')} ({g.get('drug_class') or 'unknown'}"
+                     f"{', linked' if g.get('relevant') else ''})" for g in ordered)
+
+
 def _csv(header, rows):
     buf = io.StringIO()
     w = csv.writer(buf)
@@ -85,11 +97,11 @@ def build_csv(page, result, inputs, model):
         kmers = ';'.join(f"{k.get('kmer')}:{k.get('frequency')}" for k in (result.get('top_kmers') or [])[:20])
         header = ['exported_at', 'antibiotic', 'antibiotic_known', 'prediction', 'probability_resistant',
                   'confidence_pct', 'threshold', 'sequence_length', 'gc_content_pct', 'model_used',
-                  'model_auc_unseen_genomes', 'top_kmers', 'note']
+                  'model_auc_unseen_genomes', 'resistance_genes', 'top_kmers', 'note']
         row = [stamp, result.get('antibiotic'), result.get('antibiotic_known'), result.get('prediction'),
                result.get('probability'), result.get('confidence'), result.get('threshold'),
                result.get('sequence_length'), result.get('gc_content'), result.get('model_used'),
-               model['auc_ci'], kmers, DISCLAIMER]
+               model['auc_ci'], genes_text(result), kmers, DISCLAIMER]
         return _csv(header, [row])
 
     if page == 'timeline':
@@ -170,7 +182,8 @@ def _result_rows(page, result, inputs):
                 ['Threshold used', result.get('threshold')],
                 ['Sequence length', f"{result.get('sequence_length', 0):,} bp"],
                 ['GC content', f"{result.get('gc_content')}%"],
-                ['Model used', result.get('model_used')]]
+                ['Model used', result.get('model_used')],
+                ['Resistance genes', genes_text(result)]]
     if page == 'timeline':
         fw = result.get('failure_week')
         return [['Antibiotic', result.get('antibiotic')],
@@ -248,6 +261,15 @@ def build_pdf(page, result, inputs, model, chart_png=None):
         scale = min(17 * cm / img.imageWidth, 9 * cm / img.imageHeight)
         img.drawWidth, img.drawHeight = img.imageWidth * scale, img.imageHeight * scale
         story += [Spacer(1, 6), Paragraph('Chart', styles['Heading2']), img]
+
+    genes = result.get('genes_found') if page == 'predict' else None
+    if genes:
+        ordered = sorted(genes, key=lambda g: (not g.get('relevant'), g.get('gene', '')))
+        story += [Spacer(1, 6), Paragraph('Resistance genes found (AMRFinderPlus)', styles['Heading2']),
+                  table([[g.get('gene'), 'mutation' if g.get('type') == 'point_mutation' else 'gene',
+                          g.get('drug_class') or '', 'yes' if g.get('relevant') else '']
+                         for g in ordered],
+                        header=['Gene or mutation', 'Type', 'Drug class', "Linked to this drug's class"])]
 
     extra = _extra_table(page, result)
     if extra:

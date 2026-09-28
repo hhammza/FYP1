@@ -154,6 +154,10 @@ def summarize_metrics(status):
         'train_rows_short': _compact(data.get('train_rows')),
         'train_genomes': f"{data['train_genomes']:,}" if data.get('train_genomes') else 'not measured',
         'antibiotics': data.get('antibiotics') or 'n/a',
+        'genera': len(data['genera']) if isinstance(data.get('genera'), list) else (data.get('genera') or 'n/a'),
+        # every genome the model was trained or tested on (the k-mer model: all genomes with a FASTA)
+        'genomes_total': (f"{data['train_genomes'] + data['test_genomes']:,}"
+                          if data.get('train_genomes') and data.get('test_genomes') else 'n/a'),
     }
     if out['measured']:
         out['auc'] = f'{auc:.3f}'
@@ -266,6 +270,25 @@ def resistance_prediction():
         error=error,
         form_data=form_data,
     )
+
+
+SAMPLE_GENOME_RESPONSE = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                                      'progress', 'formats', 'genome_response.sample.json')
+
+
+@app.route('/predict/sample')
+def predict_sample():
+    """/predict filled with the agreed sample response (progress/formats/), to
+    preview the resistance-genes panel before a model sends genes_found.
+    Local runs only: Railway sets PORT, and the sample is not deployed."""
+    if os.environ.get('PORT') or not os.path.exists(SAMPLE_GENOME_RESPONSE):
+        return render_template('resistance_prediction.html', result=None, form_data={},
+                               error='The sample preview is only available on a local run.'), 404
+    with open(SAMPLE_GENOME_RESPONSE, encoding='utf-8') as fh:
+        result = json.load(fh)
+    result.pop('_comment', None)
+    return render_template('resistance_prediction.html', result=result, error=None, sample=True,
+                           form_data={'antibiotic': result.get('antibiotic', ''), 'threshold': ''})
 
 
 @app.route('/timeline', methods=['GET', 'POST'])
