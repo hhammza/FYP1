@@ -237,3 +237,6 @@ experiments/results/*/model/
 # ------------------------------------------------------------
 
 *.tmp
+
+# Calibration downloads that can be fetched again (links in Data/evolution_curves/sources.csv)
+Data/evolution_curves/*.zip

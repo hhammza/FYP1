@@ -173,13 +173,13 @@ Hamza's genome models (k-mers 0.956, genes 0.981) are tested on only 30 lab-test
 
 - [x] **Sensitivity analysis:** sweep `speed` and `peak` ±30%, plot how `failure_week` moves. *Done 2026-09-28: `experiments/evolution/sensitivity.py`, 8,232 combinations (also weeks asked and GC), checked against the served timeline. Main finding: the midpoint is 0.45 x the weeks asked, so asking for 52 weeks instead of 8 makes the same drug fail 2 to 6 times later; `peak` is a switch at 50% (colistin never fails); speed ±30% moves failure by a median 0.6 weeks. Calibrate a per-drug midpoint and the peak*
 
-- [ ] **Literature calibration:** collect 5 to 10 published serial-passage or lab-evolution curves
+- [x] **Literature calibration:** collect 5 to 10 published serial-passage or lab-evolution curves. *Done 2026-09-28: 15 curves fitted by `experiments/evolution/calibrate.py` (median R² 0.91)*
 
-  - [ ] Curves collected (table: drug, organism, source, data points)
+  - [x] Curves collected (table: drug, organism, source, data points). *Sources in `Data/evolution_curves/sources.csv`: Maltas et al. 2025 PLOS Biology lab evolution (5 drugs, E. faecalis, days 0 to 8, 4 replicates) and ECDC EARS-Net carbapenem-resistant K. pneumoniae (10 countries, 2005 to 2024)*
 
-  - [ ] Fit logistic parameters per drug (`scipy.optimize.curve_fit`), report RMSE
+  - [x] Fit logistic parameters per drug (`scipy.optimize.curve_fit`), report RMSE. *Median R² 0.91; parameters with 95% CIs in `results/calibration.csv`. Lab resistance rises within days; hospital plateaus 7% to 66% by country (Greece 66% vs the hand-set imipenem peak 65%). The time scale does not carry over to weeks, so the timeline's weeks stay illustrative and its midpoint should be per drug*
 
-- [~] Work lives in `experiments/evolution/` *(README, sensitivity done; calibration next)*
+- [x] Work lives in `experiments/evolution/` *(README, `sensitivity.py`, `calibrate.py`, results and figures)*
 
 - **Done when:** the timeline is a partition, repeatable, and "calibrated against N published curves"
 
@@ -268,6 +268,7 @@ Newest first. One line per work session: date, what I did, what is next, anythin
 
 | Date | Done | Next | Blockers |
 | --- | --- | --- | --- |
+| 2026-09-28 | T3.1: sensitivity analysis (8,232 combinations; the weeks asked set the midpoint, so 52 weeks makes the same drug fail 2 to 6 times later) and literature calibration (15 curves: Maltas et al. 2025 lab evolution, 5 drugs; ECDC carbapenem-resistant K. pneumoniae, 10 countries; median R² 0.91). Data in `Data/evolution_curves/` with `sources.csv` | Make the timeline's midpoint per drug and fill its `calibration` field; RL environment (week 4) | None |
 | 2026-09-28 | Lab-tested genomes done: 24,926 downloaded (0 failures) and searched by AMRFinderPlus (0 errors), all 22,475 lab-tested genomes included. Gene matrix rebuilt: 24,926 × 2,733 (1,234 genes, 1,499 point mutations), 92.1% with a core AMR gene, `/genes` rebuilt. Fixed the build scripts naming 22,339 new genomes' genus "unknown" (species now from `taxon_species.csv` when there is no `fasta_output/` folder). Built `kmer6_counts.npz` with Hamza's `kmers.py` for him. Also: `run_amrfinder.py` saves every 25 genomes, `progress.sh` auto-restarts and keeps the Mac awake, `start.sh`/`start.bat` start offline | Timeline sensitivity analysis and calibration (T3.1) | None |
 | 2026-09-27 | Hamza's week 2 showed only about 30 test genomes have lab results. Listed all 22,475 lab-tested genomes (`select_lab_genomes.py`, round-robin across genera), added `--genome-list` to `download_genomes.py` (tested on 5, resumes), `progress.sh` counts the list, plain-words guide in `features/README.md`. Full download running | AMRFinderPlus on the new genomes, then rebuild the gene matrix | None (about a day of downloading) |
 | 2026-09-27 | Uploaded `genomes_full.zip` (complete assemblies, 2,587 genomes) to Google Drive for Hamza's k-mer runs; link in `experiments/genome/README.md`. CNN-LSTM line numbers corrected in my and Suleman's trackers | Sensitivity analysis (T3.1) | None |

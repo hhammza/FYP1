@@ -48,8 +48,35 @@ Findings (details and numbers in `results/sensitivity_summary.md`):
 
 So calibration should fit a per-drug midpoint (instead of 0.45 x the weeks asked) and the peak; speed is second.
 
-## 2. Literature calibration (`calibrate.py`, to do)
+## 2. Literature calibration (`calibrate.py`)
 
-Fit the same curve, with the midpoint as a free per-drug parameter, to 5 to 10 published resistance curves over time, and report RMSE and the fitted values against the hand-set ones. Curves go in `curves/` (one CSV per curve, `time,value`), with their sources in `curves/sources.csv` (drug, organism, paper, DOI, figure, unit, time unit, points).
+```bash
+.venv/bin/python experiments/evolution/calibrate.py      # seconds
+```
 
-Candidate sources: Toprak et al. 2012 morbidostat (Nature Genetics, doi:10.1038/ng.1034), the dynamic collateral-sensitivity paper (PLOS Biology, doi:10.1371/journal.pbio.3002970), and yearly percent-resistant series from ECDC EARS-Net and WHO GLASS. Lab curves are in days and surveillance in years while the app shows weeks, so calibration tests the shape of the curve and the ranking of drugs, not exact weeks.
+Fits the timeline's curve, with the midpoint as a free parameter, to two kinds of published data, kept apart because they measure different things. The data and their sources are in `Data/evolution_curves/` (`sources.csv` lists each file with its DOI, licence and whether it is used).
+
+| Data | What it measures | Curves |
+| --- | --- | --- |
+| Maltas, Huynh & Wood 2025, PLOS Biology (doi:10.1371/journal.pbio.3002970), S1 Data sheet Fig1B | how resistant one lab population of *E. faecalis* becomes to the drug it evolves in (log2 IC50 fold change), days 0 to 8, 4 replicates | 5 drugs: ciprofloxacin, ceftriaxone, doxycycline, daptomycin, linezolid |
+| ECDC Surveillance Atlas, EARS-Net | share of invasive *K. pneumoniae* isolates resistant to carbapenems, per country, 2005 to 2024 | 10 countries where resistance rose |
+
+Outputs in `results/`:
+
+| File | What it holds |
+| --- | --- |
+| `calibration.csv` | one row per curve: plateau, slope, midpoint with 95% CIs, rise time, RMSE, R², and for surveillance whether the plateau is reached |
+| `calibration_summary.md` | the tables and what they mean for the timeline |
+| `figures/calibration_lab.png` | replicates, means and fitted curve per drug |
+| `figures/calibration_surveillance.png` | yearly data and fitted curve per country, with the timeline's imipenem peak |
+
+Findings (numbers in `results/calibration_summary.md`):
+
+1. **The logistic shape fits both kinds of data:** 15 curves, median R² 0.91.
+2. **Lab resistance rises within days.** Ciprofloxacin, ceftriaxone and daptomycin rise mostly before the first measurement (day 2), so their midpoint rests on two time points; doxycycline jumps between days 2 and 4; linezolid rises gradually over the week.
+3. **In hospitals the plateau depends on the setting.** Where carbapenem resistance in *K. pneumoniae* has levelled off it did so at 7% to 66% depending on the country (Greece 66%, close to the timeline's hand-set imipenem peak of 65%; Italy 29%), after a rise of a few years. Cyprus, Bulgaria and Romania are still rising, so their plateau is extrapolated and not counted.
+4. **For the timeline:** the data can set the peak, which varies far more between settings than the ±30% of the sensitivity analysis. The time scale cannot be carried over (lab days, hospital years, timeline weeks), so the timeline's weeks stay an illustration, which the page should say, and its midpoint should be a per-drug value rather than 0.45 x the weeks asked.
+
+ECDC data: "Dataset provided by ECDC based on data provided by public health authorities, scientific institutes or health care providers in the relevant reporting countries and/or by WHO" (CC BY 4.0); the fitted curves are our adaptation.
+
+Not used yet: Maltas & Wood 2019 (mostly endpoints), Zlamal et al. 2021 (check whether its data sets hold resistance over time), and further ECDC series (*E. coli* fluoroquinolones, MRSA), which `calibrate.py` can take once exported.
