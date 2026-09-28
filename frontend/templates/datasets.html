@@ -39,8 +39,8 @@
       <div class="stat-mini-label">Genomes with AMR results</div>
     </div></div>
     <div class="flex-fill min-w-130"><div class="stat-mini">
-      <div class="stat-mini-value stat-mini-static text-amber2">2,587</div>
-      <div class="stat-mini-label">Genomes with DNA sequence</div>
+      <div class="stat-mini-value stat-mini-static text-amber2">24,926</div>
+      <div class="stat-mini-label">Complete genomes</div>
     </div></div>
     <div class="flex-fill min-w-130"><div class="stat-mini">
       <div class="stat-mini-value stat-mini-static text-rose2">130</div>
@@ -84,7 +84,7 @@
             <td><span class="step-num step-amber">3</span></td>
             <td class="fw-600 text-white"><a href="#ds-assemblies">Complete Genome Assemblies</a></td>
             <td class="font-mono text-accent small">genomes_full/</td>
-            <td>2,587 genomes · 11.4 billion bp</td>
+            <td>24,926 genomes · 102.5 billion bp</td>
             <td class="small">BV-BRC</td>
             <td><span class="status-badge trained status-badge-emerald">AMRFinderPlus</span></td>
           </tr>
@@ -400,10 +400,10 @@ GCGAGTGTTGAAGTTCGGCGGTACATCAGTGGCAAATGCAGAACGTTTT
         <div class="info-card h-100">
           <h6 class="card-section-title"><i class="bi bi-info-circle text-accent me-2"></i>What This Dataset Contains</h6>
           <p class="body-text lh-17">
-            The whole genome of the same 2,587 isolates as Dataset 2, downloaded again from the <strong>BV-BRC API</strong> because the local FASTA files are partial. A download is kept only if its length is within 1% of the length BV-BRC reports for that genome, so every file here is complete.
+            Complete genomes downloaded from the <strong>BV-BRC API</strong>: the same 2,587 isolates as Dataset 2 (downloaded again because the local FASTA files are partial), plus every genome with a <strong>laboratory</strong> resistance result in Dataset 1, 22,475 in all (Sept 2026). Before that, only 136 genomes with DNA had a lab result, too few to test the genome models on. A download is kept only if its length is within 1% of the length BV-BRC reports for that genome, so every file here is complete.
           </p>
           <p class="body-text lh-17">
-            NCBI <strong>AMRFinderPlus</strong> searched every assembly for known resistance genes and resistance mutations. The results form the <a href="/genes">gene matrix</a>: one row per genome, one 0/1 column per gene. At 11 GB the assemblies are not stored in git; <code class="font-mono">experiments/genome/features/download_genomes.py</code> downloads them again.
+            NCBI <strong>AMRFinderPlus</strong> searched every assembly for known resistance genes and resistance mutations. The results form the <a href="/genes">gene matrix</a>: one row per genome, one 0/1 column per gene or mutation (2,733 columns). At about 100 GB the assemblies are not stored in git; <code class="font-mono">experiments/genome/features/download_genomes.py</code> downloads them again.
           </p>
         </div>
       </div>
@@ -411,12 +411,13 @@ GCGAGTGTTGAAGTTCGGCGGTACATCAGTGGCAAATGCAGAACGTTTT
         <div class="info-card h-100">
           <h6 class="card-section-title"><i class="bi bi-bar-chart text-accent me-2"></i>Dataset Statistics</h6>
           <table class="table table-custom table-sm mb-0">
-            <tr><td class="text-muted">Genomes</td><td class="fw-600 text-white">2,587</td></tr>
-            <tr><td class="text-muted">Total length</td><td class="fw-600 text-white">11.4 billion bp</td></tr>
-            <tr><td class="text-muted">Median genome</td><td class="fw-600 text-white">4.8 million bp</td></tr>
-            <tr><td class="text-muted">Size on disk</td><td class="fw-600 text-white">11 GB</td></tr>
-            <tr><td class="text-muted">Searched by AMRFinderPlus</td><td class="fw-600 text-white">all 2,587</td></tr>
-            <tr><td class="text-muted">With a resistance gene</td><td class="fw-600 text-white">1,673</td></tr>
+            <tr><td class="text-muted">Genomes</td><td class="fw-600 text-white">24,926</td></tr>
+            <tr><td class="text-muted">With a lab result</td><td class="fw-600 text-white">22,475</td></tr>
+            <tr><td class="text-muted">Total length</td><td class="fw-600 text-white">102.5 billion bp</td></tr>
+            <tr><td class="text-muted">Median genome</td><td class="fw-600 text-white">4.5 million bp</td></tr>
+            <tr><td class="text-muted">Size on disk</td><td class="fw-600 text-white">98 GB</td></tr>
+            <tr><td class="text-muted">Searched by AMRFinderPlus</td><td class="fw-600 text-white">all 24,926</td></tr>
+            <tr><td class="text-muted">With a resistance gene</td><td class="fw-600 text-white">22,949</td></tr>
           </table>
         </div>
       </div>
