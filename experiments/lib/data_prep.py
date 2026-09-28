@@ -22,12 +22,25 @@ import time
 import numpy as np
 import pandas as pd
 
-CLEAN_VERSION = 'v5'  # v2: extended ANTIBIOTIC_ALIASES; v3: species_taxon_id (2026-09-25); v4: 54 drugs added to DRUG_CLASS_MAP (2026-09-26); v5: Genome ID read as text (2026-09-26)
+CLEAN_VERSION = 'v6'  # v2: extended ANTIBIOTIC_ALIASES; v3: species_taxon_id (2026-09-25); v4: 54 drugs added to DRUG_CLASS_MAP (2026-09-26); v5: Genome ID read as text (2026-09-26); v6: the complete BV-BRC export in Data/amr_full/ (2026-09-29)
+# v6: the April export (Data/amr_output/) paged by offset and stopped each
+# taxon at 500,000 rows, so E. coli, S. enterica and S. aureus were missing
+# and K. pneumoniae was cut. Data/amr_full/ holds all 17,585,506 records
+# (scripts/bvbrc_download/download_amr_full.py). The cleaning is unchanged.
 # v5: read as a number, Genome IDs that differ only by trailing zeros
 # (195.304, 195.3040) became one genome; 3,312 genomes merged and the
 # per-genome dedup dropped 36,850 of their rows. The 13 aliases and 'sulfa'
 # added in v4 change nothing: every row they touch has no usable phenotype.
 GENOME_ID_TEXT = {'Genome ID': str}
+
+# Where the raw export lives, under the data root. amr_output/ is the April
+# export, kept so v5 runs can be reproduced.
+DEFAULT_SOURCE = 'amr_full'
+# The only raw columns clean() reads; loading just these keeps the 5 GB
+# export within a laptop's memory.
+RAW_COLUMNS = ['Taxon ID', 'Genome ID', 'Genome Name', 'Antibiotic', 'Resistant Phenotype',
+               'Measurement', 'Measurement Value', 'Evidence',
+               'Computational Method Performance']
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 CACHE_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'cache')
@@ -76,29 +89,48 @@ def data_root():
     return os.path.join(ROOT, 'data')
 
 
-def load_raw(source='amr_output', max_files=None, verbose=True):
-    """Concatenate every AMR CSV under <data root>/<source>/."""
-    pattern = os.path.join(data_root(), source, '*.csv')
-    files = sorted(f for f in glob.glob(pattern) if not f.endswith('.tmp'))
+def load_raw(source=None, max_files=None, verbose=True):
+    """Concatenate every AMR CSV under <data root>/<source>/, subfolders included.
+
+    Only rows with a phenotype clean() can use are kept, file by file, so the
+    full export never sits in memory at once.
+    """
+    source = source or DEFAULT_SOURCE
+    pattern = os.path.join(data_root(), source, '**', '*.csv')
+    files = sorted(f for f in glob.glob(pattern, recursive=True) if not f.endswith('.tmp'))
     if max_files:
         files = files[:max_files]
     if not files:
-        raise FileNotFoundError(f'No CSVs matched {pattern}')
+        hint = (' Download it with: .venv/bin/python -u scripts/bvbrc_download/download_amr_full.py'
+                ' (about 35 minutes, 5.3 GB; see scripts/bvbrc_download/README.md)'
+                if source == 'amr_full' else '')
+        raise FileNotFoundError(f'No CSVs matched {pattern}.{hint}')
 
     if verbose:
         print(f'[data] reading {len(files):,} files from '
               f'{os.path.relpath(data_root(), ROOT)}/{source}/')
     t0 = time.time()
-    frames = []
+    frames, raw_rows, skipped = [], 0, []
     for f in files:
         try:
             # Genome ID as text: as a number, 195.3040 and 195.304 are one genome
-            frames.append(pd.read_csv(f, low_memory=False, dtype=GENOME_ID_TEXT))
-        except Exception:
+            part = pd.read_csv(f, low_memory=False, dtype=GENOME_ID_TEXT,
+                               usecols=lambda c: c in RAW_COLUMNS)
+        except Exception as exc:
+            skipped.append(f'{os.path.relpath(f, ROOT)} ({type(exc).__name__})')
             continue
+        missing = set(RAW_COLUMNS) - set(part.columns)
+        if missing:
+            skipped.append(f'{os.path.relpath(f, ROOT)} (no {", ".join(sorted(missing))})')
+            continue
+        raw_rows += len(part)
+        frames.append(part[part['Resistant Phenotype'].isin(PHENOTYPE_MAP)])
     df = pd.concat(frames, ignore_index=True)
     if verbose:
-        print(f'[data] {len(df):,} raw rows in {time.time() - t0:.0f}s')
+        print(f'[data] {raw_rows:,} raw rows, {len(df):,} with a usable phenotype, '
+              f'in {time.time() - t0:.0f}s')
+        for s in skipped:
+            print(f'[data] skipped {s}')
     return df
 
 
@@ -175,9 +207,10 @@ def clean(df_raw, normalize_antibiotics=True, verbose=True):
     return df
 
 
-def get_clean(source='amr_output', normalize_antibiotics=True, max_files=None,
+def get_clean(source=None, normalize_antibiotics=True, max_files=None,
               refresh=False, verbose=True):
     """Cleaned frame, from cache when possible."""
+    source = source or DEFAULT_SOURCE
     os.makedirs(CACHE_DIR, exist_ok=True)
     path = _cache_path(source, normalize_antibiotics)
     if os.path.exists(path) and not refresh and max_files is None:
