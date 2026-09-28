@@ -4,7 +4,7 @@ A dedicated training ground for new AMR models. Nothing here writes to
 `backend/trained_models/`, so the served models are never disturbed by an
 experiment. Promoting a model is a separate copy step, described at the bottom.
 
-Implements the protocol in [EXPERIMENT_PLAN.md](../EXPERIMENT_PLAN.md).
+Implements the protocol in [EXPERIMENT_PLAN.md](../docs/EXPERIMENT_PLAN.md).
 
 **[HANDBOOK.md](HANDBOOK.md)** is the full account, every data field, every
 cleaning step, what happens during a run, all algorithms and metrics, and what

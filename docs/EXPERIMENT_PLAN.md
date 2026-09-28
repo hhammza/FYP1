@@ -11,10 +11,10 @@ The current pipeline has two measurement faults that make any comparison meaning
 > **Status:** the harness is built (`experiments/`) and **22 runs are done**, across
 > five algorithms. The deployed models have been re-tested on unseen genomes
 > (`experiments/evaluate_shipped.py`: LightGBM 0.644, K-mer 0.695). Every saved model is reloadable via `experiments/predict.py`.
-> Results: [experiments/RESULTS.md](experiments/RESULTS.md); full documentation of
+> Results: [experiments/RESULTS.md](../experiments/RESULTS.md); full documentation of
 > the data, fields, training procedure and findings in
-> [experiments/HANDBOOK.md](experiments/HANDBOOK.md).
-> Document history, including two corrected predictions: [CHANGES.md](CHANGES.md). Two predictions in
+> [experiments/HANDBOOK.md](../experiments/HANDBOOK.md).
+> Document history, including two corrected predictions: [CHANGES.md](../CHANGES.md). Two predictions in
 > §1.2 and §1.3 below were wrong and have been corrected with measurements.
 
 ## 0. Contents
@@ -52,12 +52,12 @@ The export now lives under `data/` and the harness reads it directly. Census of
 | Label provenance | 87% computational caller, 13% wet lab |
 
 That is **17× the ~90,000 rows the shipped model was trained on** - `train_models.py`
-caps itself at 500 files ([line 55](backend/train_models.py#L55)), so it has only ever
+caps itself at 500 files ([line 55](../backend/train_models.py#L55)), so it has only ever
 seen a seventh of the export.
 
 ### 1.2 Target encodings leak into the test set 🔴
 
-In [train_models.py:186-209](backend/train_models.py#L186-L209) the three resistance-rate features are computed on the **whole** dataframe, and only then is the test set split off:
+In [train_models.py:186-209](../backend/train_models.py#L186-L209) the three resistance-rate features are computed on the **whole** dataframe, and only then is the test set split off:
 
 ```python
 ab_rate  = df.groupby('Antibiotic')[TARGET].mean()      # ← sees test labels
@@ -97,7 +97,7 @@ def oof_target_encode(df_tr, df_te, keys, target, global_mean, min_count=3, n_sp
 
 **Measured on the full dataset (2026-09-24): the leakage is worth ~0.002 AUC, not the large gap I expected.** `A0_baseline_leaky` scores 0.8243 [0.8227-0.8264] and `A1_oof_random` scores 0.8225 [0.8210-0.8247], overlapping intervals, i.e. not a significant difference. The reason is scale: with 1.5 M rows and a `min_count >= 3` floor, each encoded group is estimated from many rows, so one test row's own label barely moves its group mean. The leakage would matter on the ~90 k-row subset the shipped model was trained on; it does not at this size.
 
-Fix it anyway, it costs nothing and removes the objection entirely, but do not claim a large correction that the data does not support. See [experiments/RESULTS.md](experiments/RESULTS.md).
+Fix it anyway, it costs nothing and removes the objection entirely, but do not claim a large correction that the data does not support. See [experiments/RESULTS.md](../experiments/RESULTS.md).
 
 ### 1.3 Rows from one genome land on both sides of the split 🟠
 
@@ -228,7 +228,7 @@ threshold:
 
 **Non-negotiables for every run:** fixed seeds, the config snapshotted into the results folder, `predictions.csv` saved (you need raw scores for DeLong tests in §8), and one appended row in `registry.csv`.
 
-**Also fix the metrics gap while you are here.** `train_models.py` currently prints AUC and discards it ([§11.5 of README.md](README.md)). Have the runner write `metrics.json` **next to the model artifact**, and have `LGBMResistancePredictor.status` read it. Then the UI badges stop being hand-transcribed and can never silently go stale.
+**Also fix the metrics gap while you are here.** `train_models.py` currently prints AUC and discards it ([§11.5 of README.md](../README.md)). Have the runner write `metrics.json` **next to the model artifact**, and have `LGBMResistancePredictor.status` read it. Then the UI badges stop being hand-transcribed and can never silently go stale.
 
 ---
 
@@ -261,7 +261,7 @@ Run in this order. Each row changes **one** thing from the row above unless stat
 
 ### B0. Fix the scaler bug first 🔴
 
-The current k-mer model never runs at inference ([README.md §11.1](README.md)); the fix already exists in [amrpredict-lib/src/amrpredict/kmer.py](amrpredict-lib/src/amrpredict/kmer.py). Port it to [backend/ml_models/resistance_predictor.py:158](backend/ml_models/resistance_predictor.py#L158) before measuring anything, or every Track B number describes a random heuristic.
+The current k-mer model never runs at inference ([README.md §11.1](../README.md)); the fix already exists in [amrpredict-lib/src/amrpredict/kmer.py](../amrpredict-lib/src/amrpredict/kmer.py). Port it to [backend/ml_models/resistance_predictor.py:158](../backend/ml_models/resistance_predictor.py#L158) before measuring anything, or every Track B number describes a random heuristic.
 
 | ID | Strategy | What it tests | Effort | Expected |
 |---|---|---|---|---|
@@ -289,7 +289,7 @@ It has no ground truth, so it cannot be "trained" in the current setup. Three ho
 |---|---|---|---|
 | **C1** | Sensitivity analysis | 3h | Sweep `speed` and `peak` ±30%, plot how `failure_week` moves. Turns a black box into a characterised model |
 | **C2** | Literature calibration | 6h | Fit the logistic curve to published resistance-evolution series (e.g. serial-passage MIC data) and report fit error. Upgrades it from "hand-set constants" to "calibrated against N published curves" |
-| **C3** | Fix the >100% compartment bug and re-run | 2h | **Done in the backend 2026-09-26** (before: up to 106% by week 8; after: exactly 100, resistant curve and failure week unchanged; see [CHANGES.md](CHANGES.md)). The library copy and its `xfail` wait for the library sync |
+| **C3** | Fix the >100% compartment bug and re-run | 2h | **Done in the backend 2026-09-26** (before: up to 106% by week 8; after: exactly 100, resistant curve and failure week unchanged; see [CHANGES.md](../CHANGES.md)). The library copy and its `xfail` wait for the library sync |
 
 Do **C1 at minimum**, it costs an afternoon and pre-empts the obvious viva question *"where did 0.18 come from and what if it's wrong?"*
 
@@ -313,7 +313,7 @@ The `drug_only` row is the most useful output of this whole section: it is the n
 
 I already measured the live-model version of this for amoxicillin/clavulanic acid, antibiotic alone p=0.543, adding an MIC of 4 moves it to p=0.103, adding genus/species moves it 1 point. The ablation study generalises that across all drugs with proper metrics.
 
-**Also fix the taxon grouping while you are in there.** `taxon_ab` is grouped on PATRIC strain-level IDs ([train_models.py:187](backend/train_models.py#L187)), which is why species IDs like 562 never match. Re-grouping on species-level taxonomy is a one-line change and its own experiment: does a taxon feature that users can actually supply beat one that silently never matches?
+**Also fix the taxon grouping while you are in there.** `taxon_ab` is grouped on PATRIC strain-level IDs ([train_models.py:187](../backend/train_models.py#L187)), which is why species IDs like 562 never match. Re-grouping on species-level taxonomy is a one-line change and its own experiment: does a taxon feature that users can actually supply beat one that silently never matches?
 
 > **Update 2026-09-25:** the mapping now exists. `experiments/build_taxonomy.py` maps all 3,655 Taxon IDs to 164 NCBI species (`backend/taxon_species.csv`); the cleaned data has a `species_taxon_id` column (cleaning v3) and `backend/train_models.py` trains on species IDs. The grouped-split experiment comparing strain and species taxon features is still to run.
 
@@ -349,8 +349,8 @@ Report every headline number as `0.881 [0.873-0.889]`. It is a small amount of w
 
 ## 8b. What the runs have shown
 
-Measured, not predicted, on cleaning v5 (re-run 2026-09-26). Full table in [experiments/RESULTS.md](experiments/RESULTS.md),
-interpretation in [experiments/HANDBOOK.md §11](experiments/HANDBOOK.md).
+Measured, not predicted, on cleaning v5 (re-run 2026-09-26). Full table in [experiments/RESULTS.md](../experiments/RESULTS.md),
+interpretation in [experiments/HANDBOOK.md §11](../experiments/HANDBOOK.md).
 
 | Question | Answer |
 |---|---|

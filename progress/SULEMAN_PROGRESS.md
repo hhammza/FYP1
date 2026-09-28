@@ -1,7 +1,7 @@
 # Progress: Malik Muhammad Suleman Saleh (SP23-BCS-068)
 
 **Role:** platform (web app, API, security, testing, deployment)
-**Plan:** the split by skill (Ali: data + evolution, Hamza: models, Suleman: platform), based on [FYP_Completion_Roadmap.md](../FYP_Completion_Roadmap.md)
+**Plan:** the split by skill (Ali: data + evolution, Hamza: models, Suleman: platform), based on [FYP_Completion_Roadmap.md](../docs/FYP_Completion_Roadmap.md)
 **Started:** 2026-09-25 · **Last updated:** 2026-09-28 (research track added by Ali)
 
 Status key: `[ ]` not started · `[~]` in progress · `[x]` done · `[!]` blocked (say why in the log)

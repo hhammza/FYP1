@@ -386,7 +386,7 @@ EDA notebooks covering:
 
 ### 6.1 LightGBM Resistance Forecaster
 
-**File:** [backend/ml_models/lgbm_predictor.py](backend/ml_models/lgbm_predictor.py)  
+**File:** [backend/ml_models/lgbm_predictor.py](../backend/ml_models/lgbm_predictor.py)  
 **Class:** `LGBMResistancePredictor`  
 **Algorithm:** LightGBM (gradient boosted decision trees) — `lgb.Booster`  
 **Input:** Structured/tabular features from AMR metadata records  
@@ -649,7 +649,7 @@ This allows the frontend to render a multi-antibiotic bar chart for the same org
 
 ### 6.2 K-mer Resistance Predictor
 
-**File:** [backend/ml_models/resistance_predictor.py](backend/ml_models/resistance_predictor.py)  
+**File:** [backend/ml_models/resistance_predictor.py](../backend/ml_models/resistance_predictor.py)  
 **Class:** `KmerResistancePredictor`  
 **Algorithm:** scikit-learn `RandomForestClassifier` on genomic k-mer features  
 **Input:** Raw FASTA sequence text (whole genome or assembled contigs)  
@@ -828,7 +828,7 @@ def _heuristic_predict(self, sequence, antibiotic):
 
 ### 6.3 Mutation Timeline — Biological Simulation (NOT ML)
 
-**File:** [backend/ml_models/mutation_timeline.py](backend/ml_models/mutation_timeline.py)  
+**File:** [backend/ml_models/mutation_timeline.py](../backend/ml_models/mutation_timeline.py)  
 **Class:** `MutationTimelinePredictor`  
 **Type:** Mathematical biological simulation — **NOT a trained ML model**  
 **Input:** FASTA sequence (optional, adjusts GC modifier) + antibiotic name + number of weeks  
@@ -976,7 +976,7 @@ Pharmacodynamic rationale: when >50% of the bacterial population is resistant, t
 
 ## 7. Training Pipeline — Step by Step
 
-**File:** [backend/train_models.py](backend/train_models.py)  
+**File:** [backend/train_models.py](../backend/train_models.py)  
 **Run:** `python train_models.py --model lgbm|kmer|all`  
 **Location:** Must be run from `backend/` directory
 
@@ -1110,8 +1110,8 @@ K-mer RF:
 
 ## 8. Model Registry & Startup Sequence
 
-**File:** [backend/api/model_registry.py](backend/api/model_registry.py)  
-**File:** [backend/api/apps.py](backend/api/apps.py)
+**File:** [backend/api/model_registry.py](../backend/api/model_registry.py)  
+**File:** [backend/api/apps.py](../backend/api/apps.py)
 
 ### Singleton Pattern
 
@@ -1491,7 +1491,7 @@ Calls `_load()` on each model singleton to pick up newly saved artifacts from di
 ## 10. Frontend Application — Full Reference
 
 **Framework:** Flask 3.x  
-**File:** [frontend/app.py](frontend/app.py)  
+**File:** [frontend/app.py](../frontend/app.py)  
 **Template Engine:** Jinja2  
 **UI Framework:** Bootstrap 5.3.2 (CDN) + Bootstrap Icons 1.11.3 (CDN)  
 **Charts:** Plotly.js 2.26.0 (CDN)

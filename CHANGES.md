@@ -9,12 +9,28 @@ Baseline is commit **`52ae361`** *(Add amrpredict library and macOS launcher, 20
 | File | What it is | Status |
 |---|---|---|
 | [README.md](README.md) | How the whole system fits together | Created, then revised |
-| [EXPERIMENT_PLAN.md](EXPERIMENT_PLAN.md) | Staged plan for model experiments | Created, then corrected against measurements |
+| [EXPERIMENT_PLAN.md](docs/EXPERIMENT_PLAN.md) | Staged plan for model experiments | Created, then corrected against measurements |
 | [experiments/HANDBOOK.md](experiments/HANDBOOK.md) | Full reference for the training setup | Created, then revised |
 | [experiments/README.md](experiments/README.md) | Usage card for the harness | Created, then revised |
 | [experiments/RESULTS.md](experiments/RESULTS.md) | Generated comparison table | Regenerated after every run |
 | [progress/formats/README.md](progress/formats/README.md) | Data handed between Ali, Hamza and Suleman | Created 2026-09-25, extended 2026-09-26 |
-| [PROJECT_DOCUMENTATION.md](PROJECT_DOCUMENTATION.md) | The original long reference | **Unchanged**. Superseding facts are recorded in [README.md](README.md) instead |
+| [PROJECT_DOCUMENTATION.md](docs/PROJECT_DOCUMENTATION.md) | The original long reference | **Unchanged**. Superseding facts are recorded in [README.md](README.md) instead |
+
+---
+
+## Tidier file layout (2026-09-28)
+
+Loose files moved out of the repo root into folders; nothing was deleted from git. Links and paths updated everywhere they are used.
+
+| Moved | To |
+|---|---|
+| `FYP_Completion_Roadmap.md`, `EXPERIMENT_PLAN.md`, `PROJECT_DOCUMENTATION.md`, `run_project.md`, `how_to_make_python_library.md` | [docs/](docs/) |
+| `Data_Drive` (two Drive links) | [docs/DATA_LINKS.md](docs/DATA_LINKS.md), as a table |
+| The four notebooks | [notebooks/](notebooks/) |
+| `fasta_amr_map.py`, `train_all.bat` | [scripts/](scripts/) (`train_all.bat` now changes to `..\backend`) |
+| New: the April BV-BRC download scripts, until now outside the repo | [scripts/bvbrc_download/](scripts/bvbrc_download/README.md) |
+
+Links updated in README.md (file tree, §6, §11), CHANGES.md, experiments/HANDBOOK.md, experiments/README.md, the three trackers, `datasets.html`, `mutation_timeline.html`, `train.html` and `.gitignore`. Links inside the moved docs now start with `../`.
 
 ---
 
@@ -69,7 +85,7 @@ Hamza's follow-up to Ali's Genome ID fix (`77bc855`, `b05d718`).
 `D3_forecaster_deploy` (D2 on v5) replaces D2: AUC **0.8039 [0.8001-0.8076]** on 311,712 test rows of 26,324 unseen genomes; **0.7997** as `/forecast` scores it; threshold 0.23 (VME 8.2%, ME 54.6%, recall 91.8%). The ID bug had barely affected the model (D2: 0.8044). K-mer re-test on the fixed IDs: 2,505 genomes join (was 2,485), AUC 0.6949 (was 0.6951).
 
 ### Registry re-run
-All 23 experiment configs re-run on v5; `D1` and `D2` stay on v3 and v4 as the record of what was served. Every AUC moved by less than 0.012 with overlapping intervals (A2 0.8232 → **0.8227**, A10 0.8223 → 0.8215). Two conclusions changed and are corrected in [HANDBOOK §11](experiments/HANDBOOK.md), [EXPERIMENT_PLAN §8b](EXPERIMENT_PLAN.md), [README §10](README.md) and the roadmap:
+All 23 experiment configs re-run on v5; `D1` and `D2` stay on v3 and v4 as the record of what was served. Every AUC moved by less than 0.012 with overlapping intervals (A2 0.8232 → **0.8227**, A10 0.8223 → 0.8215). Two conclusions changed and are corrected in [HANDBOOK §11](experiments/HANDBOOK.md), [EXPERIMENT_PLAN §8b](docs/EXPERIMENT_PLAN.md), [README §10](README.md) and the roadmap:
 - **Learning curve:** flattens after about 100 k rows, not 50 k (`LC_50k` 0.8157 → 0.8038).
 - **`A12_species_holdout`:** AUC still about 0.60, but its error rates at 0.40 swapped (VME 11% → 52%, ME 83% → 36%). Quote only its AUC.
 
@@ -104,7 +120,7 @@ Suleman's platform work (T1.3, T2.4), plus two fixes found on the way.
 | [backend/backend/settings.py](backend/backend/settings.py) | `SECRET_KEY` and `ALLOWED_HOSTS` from the environment only, required when `DEBUG` is off (a random key per process when it is on); no CORS origins; `DATABASES = {}`; 20 MB FASTA limit; rate limits; `ADMIN_TOKEN` |
 | [backend/api/views.py](backend/api/views.py) | `X-Admin-Token` on `/api/train/` and `/api/reload/` (401, or 503 when no token is set); 413 for oversized FASTA; 429 per visitor IP on forecast, predict, timeline; `/api/train/` takes only `lgbm` or `kmer`; the 8 no-op `csrf_exempt` decorators removed, with the reason at the top |
 | [frontend/app.py](frontend/app.py), [train.html](frontend/templates/train.html), [train.js](frontend/static/js/train.js) | Admin password on `/train`, sent with Train and Reload; the browser's IP forwarded for the rate limit; 20 MB upload limit with a message on the page; no hardcoded `secret_key`; debug server on 127.0.0.1 only |
-| [start.sh](start.sh), [start.bat](start.bat), [run_project.md](run_project.md) | Start the backend with `DEBUG=True`; say how to set `ADMIN_TOKEN`; no `migrate` |
+| [start.sh](start.sh), [start.bat](start.bat), [run_project.md](docs/run_project.md) | Start the backend with `DEBUG=True`; say how to set `ADMIN_TOKEN`; no `migrate` |
 | [backend/Procfile](backend/Procfile), [requirements.txt](backend/requirements.txt) | `release: migrate` removed; `django-ratelimit` added |
 | [backend/tests/test_security.py](backend/tests/test_security.py) | New: 13 tests, one per rule above |
 
@@ -153,7 +169,7 @@ Also corrected: 3,655 AMR CSVs (not 4,252) and 1.52M cleaned rows over 128,286 g
 
 `fasta_amr_map.py` read each CSV with Genome ID as a number, so `1055537.10` became `1055537.1`; its substring search then still found `1055537.10.fasta`, so `fasta_path` was right and the ID wrong. 68 genomes in `Data/mapped_output/` were affected (3,271 rows in 26 files), and `1038927.40` had become `1038927.4`, a different genome, mixing the two genomes' labels.
 
-- [fasta_amr_map.py](fasta_amr_map.py): reads Genome ID as text.
+- [fasta_amr_map.py](scripts/fasta_amr_map.py): reads Genome ID as text.
 - `Data/mapped_output/`: each wrong ID replaced by the one in its own `fasta_path`, changing only that field. Every mapped genome now joins the gene matrix.
 - `Data/amr_output/` was never affected. The K-mer re-test (`evaluate_shipped.py`, `kmer_metrics.json`) groups by these IDs and should be rerun.
 
@@ -220,7 +236,7 @@ Every value checked identical before and after; the cleaned table is unchanged (
 - [README.md](README.md): §4.3 timeline caveats, the deep-learning note, §11.3 marked fixed in the backend, training section.
 - [experiments/README.md](experiments/README.md): install line, `genome/` and `requirements.txt` in the layout.
 - [experiments/genome/README.md](experiments/genome/README.md): step 3 builds the matrix; committed outputs listed.
-- [EXPERIMENT_PLAN.md](EXPERIMENT_PLAN.md): C3 marked done in the backend.
+- [EXPERIMENT_PLAN.md](docs/EXPERIMENT_PLAN.md): C3 marked done in the backend.
 
 Not yet changed: the library's copy of the timeline and its `xfail`; three templates that still mention CNN-LSTM (`mutation_timeline.html`, `train.html`, `datasets.html`).
 
@@ -251,7 +267,7 @@ Not yet changed: the library's copy of the timeline and its `xfail`; three templ
 - [README.md](README.md): update banner, new counts (8 endpoints, 14 routes, 11 pages), repository map (and `Data/` described as committed, which it is), §5.4 report scripts, new §8.1 on the report pages, §10 re-test table, §11.2 corrected (the trainer looks in the project root, the data is in `Data/`), reading order.
 - [experiments/README.md](experiments/README.md): quick start, layout, new "The web report" section.
 - [experiments/HANDBOOK.md](experiments/HANDBOOK.md): §10 now lists all 22 runs (the XGBoost and CatBoost rows were missing), §11 gained the re-test and the five-algorithm table, §12 and §13 list the new files.
-- [EXPERIMENT_PLAN.md](EXPERIMENT_PLAN.md): status banner.
+- [EXPERIMENT_PLAN.md](docs/EXPERIMENT_PLAN.md): status banner.
 
 Not yet changed: the "AUC 0.93" badges on the dashboard, `/predict`, `/about`, `/datasets` and in the footer still quote the original figures. *(Replaced on 2026-09-26: every page now reads these from the metrics files; see the entry above.)*
 
@@ -263,7 +279,7 @@ Em dashes and en dashes removed from every document and from the experiment code
 
 | Area | Files |
 |---|---|
-| Documents | [CHANGES.md](CHANGES.md), [README.md](README.md), [EXPERIMENT_PLAN.md](EXPERIMENT_PLAN.md), [HANDBOOK.md](experiments/HANDBOOK.md), [README.md](experiments/README.md), [RESULTS.md](experiments/RESULTS.md) |
+| Documents | [CHANGES.md](CHANGES.md), [README.md](README.md), [EXPERIMENT_PLAN.md](docs/EXPERIMENT_PLAN.md), [HANDBOOK.md](experiments/HANDBOOK.md), [README.md](experiments/README.md), [RESULTS.md](experiments/RESULTS.md) |
 | Code | all 14 files under [experiments/](experiments/), docstrings and comments |
 | Stored text | 33 JSON files (configs, config snapshots, metrics) plus [registry.csv](experiments/results/registry.csv), since [report.py](experiments/report.py) regenerates `RESULTS.md` from those descriptions |
 
@@ -288,10 +304,10 @@ Two repairs during the pass: collapsing `..` sequences had turned relative links
 - [§10](README.md#10-the-numbers-and-where-each-one-comes-from) carries a correction: the 0.9255 AUC is superseded by a measured **0.8232 [0.8200-0.8269]**.
 - [Reading order](README.md#13-reading-order-for-someone-new-to-the-repo) updated to include the handbook.
 
-### [EXPERIMENT_PLAN.md](EXPERIMENT_PLAN.md)
+### [EXPERIMENT_PLAN.md](docs/EXPERIMENT_PLAN.md)
 - Status banner: 19 runs across three algorithms.
-- [Track A](EXPERIMENT_PLAN.md#4-track-a-tabular-forecaster-experiments) rows **A3**, **A4**, **A10** marked done with measured numbers.
-- New [§8b](EXPERIMENT_PLAN.md#8b-what-19-runs-have-shown), a summary table answering each question the plan posed with a measurement.
+- [Track A](docs/EXPERIMENT_PLAN.md#4-track-a-tabular-forecaster-experiments) rows **A3**, **A4**, **A10** marked done with measured numbers.
+- New [§8b](docs/EXPERIMENT_PLAN.md#8b-what-19-runs-have-shown), a summary table answering each question the plan posed with a measurement.
 - Notes added where registry run ids collide with planned experiment ids. [`A6_lab_only`](experiments/configs/A6_lab_only.json) is the label-provenance run, not the planned imbalance sweep; [`A9_threshold_f1`](experiments/configs/A9_threshold_f1.json) is the threshold run, not the planned calibration one. The registry ids were left alone because their config snapshots are already saved.
 
 ### [experiments/README.md](experiments/README.md)
@@ -378,14 +394,14 @@ That is **17x the ~90,000 rows** the shipped model was trained on. Full field-by
 
 ### Corrections to earlier claims in this work
 
-Two predictions written into [EXPERIMENT_PLAN.md](EXPERIMENT_PLAN.md) were wrong and were replaced with measurements.
+Two predictions written into [EXPERIMENT_PLAN.md](docs/EXPERIMENT_PLAN.md) were wrong and were replaced with measurements.
 
 | Claim | Predicted | Measured | Runs |
 |---|---|---|---|
 | Target leakage inflates the AUC substantially | 0.93 to ~0.88 | **0.002** (0.8243 vs 0.8225), intervals overlap | [`A0_baseline_leaky`](experiments/configs/A0_baseline_leaky.json), [`A1_oof_random`](experiments/configs/A1_oof_random.json) |
 | Grouped splitting will cost accuracy | "small further drop" | **None**. Grouped 0.8232 is marginally *higher* | [`A2_oof_grouped`](experiments/configs/A2_oof_grouped.json) |
 
-Both are explained by scale: with 1.5 M rows and a min-count floor, an encoded group is estimated from many rows, so one test row's own label barely shifts its group mean. The leakage would matter on the 90k subset; it does not here. Both fixes were kept regardless, since they cost nothing and remove the objection. Corrected text is in [§1.2](EXPERIMENT_PLAN.md#12-target-encodings-leak-into-the-test-set-) and [§1.3](EXPERIMENT_PLAN.md#13-rows-from-one-genome-land-on-both-sides-of-the-split-).
+Both are explained by scale: with 1.5 M rows and a min-count floor, an encoded group is estimated from many rows, so one test row's own label barely shifts its group mean. The leakage would matter on the 90k subset; it does not here. Both fixes were kept regardless, since they cost nothing and remove the objection. Corrected text is in [§1.2](docs/EXPERIMENT_PLAN.md#12-target-encodings-leak-into-the-test-set-) and [§1.3](docs/EXPERIMENT_PLAN.md#13-rows-from-one-genome-land-on-both-sides-of-the-split-).
 
 ### Findings recorded
 
@@ -430,7 +446,7 @@ A walkthrough of the whole system, verified against the code instead of summaris
 2. **Two AUC lineages.** The notebook model scores 0.8881 on one BV-BRC CSV; the shipped artifact's 0.9255 came from a [train_models.py](backend/train_models.py) run over the per-species exports. Not interchangeable. Detail in [§10](README.md#10-the-numbers-and-where-each-one-comes-from).
 3. `forecasting_formulation.ipynb` is a 0-byte file, the UI dropdown offered 48 antibiotics while the k-mer model knows 62, and `db.sqlite3` is vestigial. Detail in [§11.5](README.md#115-smaller-things).
 
-[PROJECT_DOCUMENTATION.md](PROJECT_DOCUMENTATION.md) was left untouched. Its line 726 claim that the k-mer scaler "is applied identically at inference time" is contradicted by finding 1, and that contradiction is recorded in [README.md §11.1](README.md#111-the-k-mer-model-never-runs-in-the-web-app-) instead of by editing the original.
+[PROJECT_DOCUMENTATION.md](docs/PROJECT_DOCUMENTATION.md) was left untouched. Its line 726 claim that the k-mer scaler "is applied identically at inference time" is contradicted by finding 1, and that contradiction is recorded in [README.md §11.1](README.md#111-the-k-mer-model-never-runs-in-the-web-app-) instead of by editing the original.
 
 ---
 
@@ -455,4 +471,4 @@ A plain HTML `required` attribute does not work here. One of the two inputs is a
 | No DeLong or McNemar test between runs, no calibration plots, single seed | [HANDBOOK §13](experiments/HANDBOOK.md#13-limitations-of-this-harness) |
 | XGBoost and CatBoost written but not installed | [HANDBOOK §7](experiments/HANDBOOK.md#7-algorithms) |
 | Junk antibiotic names still in the vocabulary (`amipicillin_sulbactam`, `extended spectrum beta lactamase`) | [HANDBOOK §3.4](experiments/HANDBOOK.md#34-known-data-quality-issues), fix in [data_prep.py](experiments/lib/data_prep.py) |
-| Track B (genome model) and Track C (timeline) have no harness | [EXPERIMENT_PLAN.md §5](EXPERIMENT_PLAN.md#5-track-b-genome-model-experiments), [§6](EXPERIMENT_PLAN.md#6-track-c-the-timeline-simulation) |
+| Track B (genome model) and Track C (timeline) have no harness | [EXPERIMENT_PLAN.md §5](docs/EXPERIMENT_PLAN.md#5-track-b-genome-model-experiments), [§6](docs/EXPERIMENT_PLAN.md#6-track-c-the-timeline-simulation) |

@@ -1,7 +1,7 @@
 # Progress: Hamza Afzal (SP23-BCS-086, leader)
 
 **Role:** models
-**Plan:** the split by skill (Ali: data + evolution, Hamza: models, Suleman: platform), based on [FYP_Completion_Roadmap.md](../FYP_Completion_Roadmap.md)
+**Plan:** the split by skill (Ali: data + evolution, Hamza: models, Suleman: platform), based on [FYP_Completion_Roadmap.md](../docs/FYP_Completion_Roadmap.md)
 **Started:** 2026-09-25 · **Last updated:** 2026-09-28 (research track added by Ali)
 
 Status key: `[ ]` not started · `[~]` in progress · `[x]` done · `[!]` blocked (say why in the log)
@@ -244,8 +244,8 @@ From the git history:
 
 - [x] Initial project upload: backend, frontend, notebooks, trained models (May 2026)
 - [x] Project setup documentation (2026-09-23)
-- [x] Google Drive link for the data (`Data_Drive`, 2026-09-24)
-- [x] Completion roadmap (`FYP_Completion_Roadmap.md`, 2026-09-25)
+- [x] Google Drive link for the data (`Data_Drive`, now `docs/DATA_LINKS.md`, 2026-09-24)
+- [x] Completion roadmap (`docs/FYP_Completion_Roadmap.md`, 2026-09-25)
 
 ---
 

@@ -3,7 +3,7 @@
 # ============================================================
 # What IS committed:  all source code, templates, CSS/JS,
 #                     requirements.txt, notebooks, .md docs,
-#                     .bat scripts, fasta_amr_map.py
+#                     .bat scripts, scripts/fasta_amr_map.py
 #
 # What is NOT committed (listed below):
 #   - Raw datasets (too large — thousands of files, GBs of data)

@@ -34,7 +34,7 @@ Three properties it guarantees, none of which the original `backend/train_models
 - **The evaluation protocol is fixed and enforced.** Test data is split once and never used for fitting, early stopping or threshold choice. Encodings are fitted on training folds only. Genomes never straddle the split.
 - **Every run leaves an audit trail.** Metrics, raw predictions, the config that produced them, and the model artifact all land in one folder, plus a row in a registry that forms the comparison table.
 
-It does **not** cover the k-mer genome model or the timeline simulation. Those are Tracks B and C in [EXPERIMENT_PLAN.md](../EXPERIMENT_PLAN.md) and not built yet.
+It does **not** cover the k-mer genome model or the timeline simulation. Those are Tracks B and C in [EXPERIMENT_PLAN.md](../docs/EXPERIMENT_PLAN.md) and not built yet.
 
 ---
 
@@ -75,8 +75,8 @@ cache/clean_v1_amr_output_norm.pkl    1,525,796 rows × 14 columns
 | Path | What it is |
 |---|---|
 | `data/amr_output/*.csv` | 3,655 per-species AMR phenotype exports from **BV-BRC** (formerly PATRIC), one file per taxon, e.g. `amr_taxon_562_Escherichia_coli.csv`. **This is what the harness reads.** |
-| `data/BVBRC_genome_amr.csv` | A single 30 MB export, the source used by `LightGBM_Model_Improved.ipynb`. Not used here. |
-| `data/mapped_output/*.csv` | The same rows joined to FASTA paths by `fasta_amr_map.py`. For the genome model (Track B). |
+| `data/BVBRC_genome_amr.csv` | A single 30 MB export, the source used by `notebooks/LightGBM_Model_Improved.ipynb`. Not used here. |
+| `data/mapped_output/*.csv` | The same rows joined to FASTA paths by `scripts/fasta_amr_map.py`. For the genome model (Track B). |
 | `data/fasta_output/taxon_*/` | 4 GB of genome assemblies. Track B. |
 | `data/sample_*` | Small fixtures for notebook development. **Not a representative sample**, do not train on them. |
 

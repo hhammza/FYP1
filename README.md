@@ -20,7 +20,7 @@
 > result as CSV, a PDF report or a PNG chart, and `/forecast` takes a CSV of up
 > to 10,000 isolates (§8, "Downloads and batch upload").
 
-This is a companion to `PROJECT_DOCUMENTATION.md`, not a replacement. That file is the long reference (datasets, hyperparameters, CSS classes). This one covers what the system is, what its parts are, how a click becomes a prediction, and what is true about it today. Every claim was checked against the code or reproduced by running it. Where the two documents disagree, sections 10 and 11 say why.
+This is a companion to `docs/PROJECT_DOCUMENTATION.md`, not a replacement. That file is the long reference (datasets, hyperparameters, CSS classes). This one covers what the system is, what its parts are, how a click becomes a prediction, and what is true about it today. Every claim was checked against the code or reproduced by running it. Where the two documents disagree, sections 10 and 11 say why.
 
 ---
 
@@ -112,12 +112,13 @@ FYP1/
 │   ├── mapped_output/           The same rows joined to FASTA paths
 │   └── fasta_output/            Genome assemblies (4 GB)
 │
-├── *.ipynb                      Research notebooks (§6)
-├── fasta_amr_map.py             Joins PATRIC CSV rows to GenBank FASTA files
+├── progress/                    Team trackers, research plan, handover formats
+├── notebooks/                   Research notebooks (§6)
+├── docs/                        Roadmap, experiment plan, the long reference doc, data links
+├── scripts/                     fasta_amr_map.py (CSV to FASTA join), train_all.bat,
+│                                bvbrc_download/ (the scripts that built Data/)
 ├── start.sh / start.bat         One-command launchers (macOS/Linux, Windows)
-├── train_all.bat                Windows training launcher
-├── PROJECT_DOCUMENTATION.md     The long reference doc
-└── EXPERIMENT_PLAN.md           Staged plan for model experiments
+├── README.md / CHANGES.md       This file and the change log
 ```
 
 **The data is committed.** `Data/` holds 2.99 M raw AMR rows and 4 GB of FASTA, so the project runs from a clone alone; the 101 MB *Klebsiella* CSV is stored with Git LFS. `.gitignore` still excludes the experiment cache, saved experiment models and raw predictions. The artifacts in `backend/trained_models/` are committed binaries dated 10 July, trained before this data layout existed, see §11.2.
@@ -228,9 +229,9 @@ Since 2026-09-26 the random parts (`cumulative_mutations`, a Poisson draw, and t
 |---|---|---|
 | AMR phenotype CSVs | BV-BRC / PATRIC, one file per species | Labels + MIC + metadata → LightGBM |
 | Genome FASTAs | GenBank, `taxon_<id>_<Genus>_<species>/` folders | Sequences → K-mer model |
-| Mapped CSVs | Produced by `fasta_amr_map.py` | The join of the two |
+| Mapped CSVs | Produced by `scripts/fasta_amr_map.py` | The join of the two |
 
-### `fasta_amr_map.py`: the join
+### `scripts/fasta_amr_map.py`: the join
 
 The two sources share no key directly, so this script builds one. CSV files are named `amr_taxon_108981_Acinetobacter_schindleri.csv` and FASTA folders `taxon_108981_../108981.12345.fasta`. It extracts the **taxon ID** from each filename to pair a CSV with a folder, then matches each row's **Genome ID** to a FASTA filename stem. Output per species: a `_mapped.csv` (original columns + `fasta_path`) and an `_unmatched.csv`, plus a global `mapping_summary.csv` with match percentages. Everything downstream depends on that `fasta_path` column.
 
@@ -299,11 +300,13 @@ python experiments/export_report.py      # write backend/trained_models/model_re
 ```
 
 Full documentation in [experiments/HANDBOOK.md](experiments/HANDBOOK.md); the plan
-behind it in [EXPERIMENT_PLAN.md](EXPERIMENT_PLAN.md).
+behind it in [EXPERIMENT_PLAN.md](docs/EXPERIMENT_PLAN.md).
 
 ---
 
 ## 6. The notebooks, where the models came from
+
+All four are in `notebooks/`.
 
 | Notebook | Cells | State | What it contains |
 |---|---|---|---|
@@ -482,7 +485,7 @@ cd backend && python train_models.py --model all     # or lgbm / kmer
 python train_models.py --model lgbm --max-files 500  # seeded random subset of files
 python train_models.py --model lgbm --model-dir /tmp/out   # write somewhere else
 ```
-Windows: `train_all.bat`. The trainer finds the data in `Data/` itself. With all files, the LightGBM trains in about 4 minutes on 1.56 M rows (cleaning v5); the K-mer model takes about an hour, because it computes GC content row by row. Training writes to `backend/trained_models/candidates/<model>/` (the same place `/api/train/` uses) and never touches the deployed models; a model is served only after `experiments/promote.py`, which also writes its `metrics.json`.
+Windows: `scripts\train_all.bat`. The trainer finds the data in `Data/` itself. With all files, the LightGBM trains in about 4 minutes on 1.56 M rows (cleaning v5); the K-mer model takes about an hour, because it computes GC content row by row. Training writes to `backend/trained_models/candidates/<model>/` (the same place `/api/train/` uses) and never touches the deployed models; a model is served only after `experiments/promote.py`, which also writes its `metrics.json`.
 
 ### Deployment (Railway, two services)
 
@@ -508,8 +511,8 @@ There are several AUC figures in circulation in this project. They are not contr
 | **0.8881** | `LightGBM_Model_Improved.ipynb`, cell 5 output | Test AUC of the notebook model, 18,166 held-out rows from the single BV-BRC CSV |
 | **0.8815 ± 0.0003** | same notebook, 5-fold CV | Stability check, very tight, so no fold-luck |
 | **0.8872** | same notebook, after pseudo-labelling | Final notebook model. Pseudo-labelling added 25,214 rows and *did not* improve test AUC |
-| **0.9255** | `PROJECT_DOCUMENTATION.md:2088`, a `train_models.py` console log | The shipped backend artifact, trained on the per-species `amr_output/` CSVs |
-| **0.9290** | `PROJECT_DOCUMENTATION.md:1928` | Claimed K-mer RF test AUC, see the caveat below |
+| **0.9255** | `docs/PROJECT_DOCUMENTATION.md:2088`, a `train_models.py` console log | The shipped backend artifact, trained on the per-species `amr_output/` CSVs |
+| **0.9290** | `docs/PROJECT_DOCUMENTATION.md:1928` | Claimed K-mer RF test AUC, see the caveat below |
 | **0.93** | UI badges throughout | Rounded, for both models |
 
 **Superseded as of 2026-09-24.** The `experiments/` harness re-measured this on the
@@ -629,10 +632,10 @@ Limits worth saying out loud: rate-limit counts are per worker process, and a di
 
 ### 11.5 Smaller things
 
-- `forecasting_formulation.ipynb` is a 0-byte file.
+- `notebooks/forecasting_formulation.ipynb` is a 0-byte file.
 - `*_fraction` fields in the timeline are on a **0 to 100** scale despite the name; renaming would break the templates, so the name stands.
 - `kmer_resistance_model.pkl` was pickled with scikit-learn 1.6.1; loading under a different 1.x warns and is not guaranteed identical. The library pins `<2.0` so a 2.x install fails loudly instead of being quietly wrong. The backend has no such pin (`scikit-learn>=1.3`).
-- `PROJECT_DOCUMENTATION.md:726` states the scaler "is applied identically at inference time." That was the intent; §11.1 is what the code does.
+- `docs/PROJECT_DOCUMENTATION.md:726` states the scaler "is applied identically at inference time." That was the intent; §11.1 is what the code does.
 
 ---
 
@@ -664,7 +667,7 @@ Limits worth saying out loud: rate-limit counts are per worker process, and a di
 5. `experiments/HANDBOOK.md`: the training setup, data fields and measured results
 6. The `/models` and `/compare` pages in the running app: every model's results and training data, with charts
 7. `amrpredict-lib/docs/known-issues.md`: the account of what is broken
-8. `LightGBM_Model_Improved.ipynb`, the research story, with outputs intact
-9. `PROJECT_DOCUMENTATION.md`: the deep reference, once you know the shape
+8. `notebooks/LightGBM_Model_Improved.ipynb`, the research story, with outputs intact
+9. `docs/PROJECT_DOCUMENTATION.md`: the deep reference, once you know the shape
 
 If you only have ten minutes before a demo: know that engine 3 is a simulation and say so unprompted, and know that `/predict` is currently answering from a fallback heuristic (§11.1).

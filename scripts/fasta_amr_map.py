@@ -33,7 +33,7 @@ Output (per species)
 
 Usage
 -----
-python map_patric_to_fasta.py \\
+python scripts/fasta_amr_map.py \\
     --patric_dir  C:/path/to/patric_csvs \\
     --fasta_dir   C:/path/to/genbank_fasta \\
     --output_dir  C:/path/to/output

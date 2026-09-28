@@ -546,7 +546,7 @@ GCGAGTGTTGAAGTTCGGCGGTACATCAGTGGCAAATGCAGAACGTTTT
         <div class="info-card h-100">
           <h6 class="card-section-title"><i class="bi bi-info-circle text-accent me-2"></i>What This Dataset Contains</h6>
           <p style="font-size:13px;color:var(--text-2);line-height:1.7;">
-            This is a <strong>linking table</strong> made by <code class="font-mono">fasta_amr_map.py</code> that bridges Dataset 1 (AMR phenotype labels) and Dataset 2 (FASTA sequences). Each row from the AMR CSV files is enriched with a <code class="font-mono" style="color:var(--accent2)">fasta_path</code> column pointing to the actual genome FASTA file for that isolate.
+            This is a <strong>linking table</strong> made by <code class="font-mono">scripts/fasta_amr_map.py</code> that bridges Dataset 1 (AMR phenotype labels) and Dataset 2 (FASTA sequences). Each row from the AMR CSV files is enriched with a <code class="font-mono" style="color:var(--accent2)">fasta_path</code> column pointing to the actual genome FASTA file for that isolate.
           </p>
           <p style="font-size:13px;color:var(--text-2);line-height:1.7;">
             This linkage is essential for training the K-mer RandomForest model: the model needs both the <strong style="color:var(--rose2)">resistance label</strong> (from Dataset 1) AND the <strong style="color:var(--emerald2)">genome sequence</strong> (from Dataset 2). The mapped records provide both in one place.

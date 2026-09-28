@@ -14,7 +14,7 @@ echo.
 echo  Press any key to start training, or Ctrl+C to cancel...
 pause >nul
 
-cd /d "%~dp0backend"
+cd /d "%~dp0..\backend"
 
 echo.
 echo [Training] Starting model training...
