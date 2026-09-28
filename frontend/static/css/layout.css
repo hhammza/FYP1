@@ -326,3 +326,18 @@ a:hover { color: #4338ca; }
   .result-prob-val { font-size: 24px; }
   .result-main-label { font-size: 22px; }
 }
+
+/* ── Responsive audit (2026-09-28) ──────────────────────────────
+   Home stats strip: a 2-column grid below 992px instead of a ragged
+   flex wrap; the fifth figure spans the row. */
+@media (max-width: 991.98px) {
+  .stats-strip-row { display: grid !important; grid-template-columns: repeat(2, 1fr); gap: 22px 12px !important; }
+  .stats-strip-row .stat-item { min-width: 0; padding: 0 6px; }
+  .stats-strip-row .stat-item:last-child:nth-child(odd) { grid-column: 1 / -1; }
+}
+/* Architecture diagram: stack the steps and point the arrows down, so no
+   arrow is left at the end of a wrapped row */
+@media (max-width: 767.98px) {
+  .pipeline-diagram { flex-direction: column; align-items: center; }
+  .pipeline-arrow { transform: rotate(90deg); line-height: 1; }
+}
