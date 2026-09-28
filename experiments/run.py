@@ -79,7 +79,7 @@ def run(cfg, verbose=True):
     # ── Data ─────────────────────────────────────────────────────────────
     dcfg = cfg['data']
     df = data_prep.get_clean(
-        source=dcfg.get('source', 'amr_output'),
+        source=dcfg.get('source'),   # None: the current export (data_prep.DEFAULT_SOURCE)
         normalize_antibiotics=dcfg.get('normalize_antibiotics', True),
         verbose=verbose)
     df = select_rows(df, dcfg, verbose)
@@ -219,7 +219,7 @@ def run(cfg, verbose=True):
                         'platform': platform.platform()},
         'dataset': {
             # Runs on different cleaning versions are not comparable
-            'clean_version': data_prep.CLEAN_VERSION,
+            'clean_version': data_prep.version_of(cfg['data'].get('source')),
             'rows': int(len(df)), 'genomes': int(df['Genome ID'].nunique()),
             'antibiotics': int(df['Antibiotic'].nunique()),
             'prevalence': float(df['target'].mean()),

@@ -37,8 +37,12 @@ def backfill(run_id, force=False, verbose=True):
                          ('threshold', {'strategy': 'fixed', 'fixed': 0.5})):
         cfg.setdefault(key, default)
 
+    # The export the run read: from its config, else from its recorded version
+    metrics_path = os.path.join(run_dir, 'metrics.json')
+    version = (json.load(open(metrics_path)).get('dataset', {}).get('clean_version')
+               if os.path.exists(metrics_path) else None)
     df = data_prep.get_clean(
-        source=cfg['data'].get('source', 'amr_output'),
+        source=cfg['data'].get('source') or data_prep.source_of(version),
         normalize_antibiotics=cfg['data'].get('normalize_antibiotics', True),
         verbose=False)
     df = runner.select_rows(df, cfg['data'], verbose=False)
