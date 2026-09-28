@@ -19,6 +19,10 @@
 > **Updated 2026-09-27.** `/forecast`, `/predict` and `/timeline` download their
 > result as CSV, a PDF report or a PNG chart, and `/forecast` takes a CSV of up
 > to 10,000 isolates (§8, "Downloads and batch upload").
+>
+> **Updated 2026-09-28.** `/predict` has a resistance-genes panel, ready for the
+> genome model's `genes_found`; the k-mer model served today does not search for
+> genes, and the page says so (§8, "Resistance genes on /predict").
 
 This is a companion to `docs/PROJECT_DOCUMENTATION.md`, not a replacement. That file is the long reference (datasets, hyperparameters, CSS classes). This one covers what the system is, what its parts are, how a click becomes a prediction, and what is true about it today. Every claim was checked against the code or reproduced by running it. Where the two documents disagree, sections 10 and 11 say why.
 
@@ -370,7 +374,8 @@ The bundled artifacts are **byte-identical** to `backend/trained_models/` (verif
 | `/forecast/batch` | POST | `forecast/batch/` | the same page with a batch summary, chart and row table |
 | `/forecast/template.csv` | GET | n/a | sample file for the batch upload |
 | `/export/<page>.csv`, `.pdf` | POST | n/a | download of the result on `/forecast`, `/predict`, `/timeline` (batch: CSV only) |
-| `/predict` | GET, POST | `predict/` | `resistance_prediction.html` |
+| `/predict` | GET, POST | `predict/` | `resistance_prediction.html`, with the resistance-genes panel |
+| `/predict/sample` | GET | n/a | local runs only: `/predict` filled with `progress/formats/genome_response.sample.json`, to preview the genes panel |
 | `/timeline` | GET, POST | `timeline/` | `mutation_timeline.html` |
 | `/train` | GET, POST | `train/` | `train.html` |
 | `/datasets` | GET | n/a | `datasets.html`, the five datasets explained |
@@ -407,6 +412,18 @@ Each tool page has a **Download this result** bar under its result. The page pos
 The model details come from the metrics files on the server, never from the page, so a download cannot carry numbers the server did not produce. Only a real PNG is embedded in a PDF.
 
 **Batch upload** (`/forecast`, "Upload CSV" tab): columns `antibiotic` (required), `genus`, `species`, `taxon_id`, `mic_value`, `mic_sign`; up to 10,000 rows and 2 MB. `POST /api/forecast/batch/` checks every row, predicts the valid ones in one call (the same probabilities as the single form) and returns one result row per input row, with `error` set on the rows it could not use. The page shows the R/S counts, a chart per antibiotic and the first 200 rows; the results CSV has all of them.
+
+### Resistance genes on /predict
+
+`templates/_genes_panel.html` shows the `genes_found` list of the `/api/predict/` response (format: [progress/formats/README.md §2](progress/formats/README.md#2-genome-prediction-response)) under the result, in its three states:
+
+| `genes_found` | The page shows |
+|---|---|
+| absent | No panel; one line in Genome Statistics: "Not searched", because the model reads k-mer composition, not genes. This is what the served k-mer model returns today |
+| `[]` | The panel says the genome was searched and no known resistance gene or mutation was found |
+| a list | One chip per gene or mutation (type and drug class). Those with `relevant: true` (their class matches the requested drug's) come first and are highlighted, with one sentence on whether they support the call: a Susceptible call with a linked gene is flagged "Treat this call with care" |
+
+The heading ("K-mer Genome Analysis" or "Genome Analysis") and the k-mer cards follow the model that answered, so a gene model that sends no k-mers shows cleanly. The CSV gets a `resistance_genes` column and the PDF a genes table. On a local run, `/predict/sample` shows the panel with the sample response under a "Sample response, not a real prediction" banner; with `PORT` set (Railway) it returns 404.
 
 ### 8.1 The report pages: `/models` and `/compare`
 

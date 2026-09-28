@@ -93,6 +93,23 @@ All 23 experiment configs re-run on v5; `D1` and `D2` stay on v3 and v4 as the r
 
 ---
 
+## Resistance genes on /predict (2026-09-28)
+
+Suleman's Week 3, first part: the UI for the genome model's `genes_found`, built against the agreed sample before the model sends it.
+
+| File | Change |
+|---|---|
+| [frontend/templates/_genes_panel.html](frontend/templates/_genes_panel.html) | New. The panel for the three states of `genes_found` (absent, empty, a list), linked genes first, with a sentence on whether they support the call |
+| [resistance_prediction.html](frontend/templates/resistance_prediction.html) | Includes the panel; "Not searched" line when the model does not look for genes; heading, k-mer cards and chart follow the model instead of assuming the k-mer one |
+| [frontend/static/css/components.css](frontend/static/css/components.css) | Gene chip styles, from the colour tokens so dark mode works |
+| [frontend/exports.py](frontend/exports.py) | `resistance_genes` column in the `/predict` CSV, a genes table in its PDF |
+| [frontend/app.py](frontend/app.py) | `GET /predict/sample`: the page with the sample response, local runs only |
+| [frontend/tests/test_genes_panel.py](frontend/tests/test_genes_panel.py) | New: 7 tests, one per state plus escaping, the k-mer-less layout and the local-only preview |
+
+Nothing changes on the served site until the genome model returns `genes_found`. Documents: [README.md](README.md) (banner, routes, new "Resistance genes on /predict"), [progress/formats/README.md](progress/formats/README.md) §2.
+
+---
+
 ## Downloads and batch upload (2026-09-27)
 
 Suleman's Week 2 (T2.2, T2.3).

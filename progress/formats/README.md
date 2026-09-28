@@ -82,6 +82,8 @@ One file per served model, written **beside the artifact** so the numbers can't 
 | `genes_found[].type` | `"gene"` / `"point_mutation"` | Week 3, optional | For grouping in the panel |
 | `genes_found[].relevant` | bool | Week 3, optional | `true` if its class matches the requested antibiotic's class; show these first |
 
+**How `/predict` shows it** (Suleman, 2026-09-28, `frontend/templates/_genes_panel.html`): absent → one "Not searched" line and no panel; `[]` → "searched, none found"; a list → chips, `relevant` ones first, and a sentence on whether they support the call. If no entry has `relevant`, the genes are one plain list. If the genome model sends no `top_kmers`, the k-mer cards and chart are hidden, so they can be left out. Preview with the sample above at `/predict/sample` on a local run.
+
 The LightGBM `/api/forecast/` response gains `model_run` (run id), `calibrated` (bool), and `model_used` can now also be `Heuristic fallback`.
 
 ---

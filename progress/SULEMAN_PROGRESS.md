@@ -2,7 +2,7 @@
 
 **Role:** platform (web app, API, security, testing, deployment)
 **Plan:** the split by skill (Ali: data + evolution, Hamza: models, Suleman: platform), based on [FYP_Completion_Roadmap.md](../docs/FYP_Completion_Roadmap.md)
-**Started:** 2026-09-25 · **Last updated:** 2026-09-28 (research track added by Ali)
+**Started:** 2026-09-25 · **Last updated:** 2026-09-28 (research track added by Ali; genes panel on `/predict`, UI fixes, Ali's Week 3 handovers)
 
 Status key: `[ ]` not started · `[~]` in progress · `[x]` done · `[!]` blocked (say why in the log)
 
@@ -24,7 +24,7 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done · `[!]` blocke
 | --- | --- | --- | --- |
 | 1 | 28 Sep to 2 Oct | Remove hardcoded AUCs, UI reads `metrics.json`, security | Done (T1.3, T2.4) |
 | 2 | 5 Oct to 9 Oct | Exports (CSV, PDF, PNG), batch CSV upload | Done 2026-09-27 (T2.2, T2.3) |
-| 3 | 12 Oct to 16 Oct | Genome result UI, genome-models section on `/models`, Dockerfile with AMRFinderPlus | Not started; the Dockerfile depends on Hamza's model choice (Week 3, day 1) |
+| 3 | 12 Oct to 16 Oct | Genome result UI, genome-models section on `/models`, Dockerfile with AMRFinderPlus | In progress: genes panel built (waits for real `genes_found`); genome section and AMRFinderPlus wait on Hamza |
 | 4 | 19 Oct to 23 Oct | RL panel on `/timeline`, automated tests | Not started |
 | 5 | 26 Oct to 30 Oct | Deploy, tag, demo video, system-design chapter | Not started |
 | Research | alongside weeks 4 to 5 | Repo public, CI green, stale README numbers ([Research track](#research-track-added-by-ali-2026-09-28), added by Ali) | Not started |
@@ -152,11 +152,21 @@ Built against the real files (`backend/trained_models/lgbm_metrics.json`, `kmer_
 
 ## Week 3: genome result UI and container
 
-- [ ] **Genome-models section on `/models`** (from Hamza): Track B runs (`B*`, `L_*`) are kept out of `model_report.json`, because their dataset (2,505 genomes, mostly computational labels) differs from the tabular runs. Show them separately with each run's **lab AUC and its row count** (`auc_roc_lab`, `n_lab` in `experiments/results/registry.csv`; table in `experiments/RESULTS.md`), and say that computational-label scores are partly circular. The numbers will change when Hamza re-runs on Ali's lab-tested genomes, so read them from the file, don't type them
-- [ ] `/predict` shows `genes_found` (gene, drug class) next to the prediction; build against `progress/formats/genome_response.sample.json` before Hamza's model lands
+- [ ] **Genome-models section on `/models`** (from Hamza): Track B runs (`B*`, `L_*`) are kept out of `model_report.json`, because their dataset (2,505 genomes, mostly computational labels) differs from the tabular runs. Show them separately with each run's **lab AUC and its row count** (`auc_roc_lab`, `n_lab` in `experiments/results/registry.csv`; table in `experiments/RESULTS.md`), and say that computational-label scores are partly circular. The numbers will change when Hamza re-runs on Ali's lab-tested genomes, so read them from the file, don't type them *Note (Ali, 2026-09-28): "2,505 genomes" is out of date. Hamza is re-running on the 22,475 lab-tested genomes (24,926 x 2,733 gene table), so build against his new runs, not the old ones*
+- [~] `/predict` shows `genes_found` (gene, drug class) next to the prediction; build against `progress/formats/genome_response.sample.json` before Hamza's model lands. *Built 2026-09-28 (`templates/_genes_panel.html`): all three states of the format (absent = one "not searched" line; `[]` = searched, none found; a list = genes linked to the drug's class first, with a sentence on whether they support the call), in the CSV and PDF too. Preview at `/predict/sample` on a local run. The heading and k-mer cards follow the model, so a gene model without k-mers shows cleanly. Done once Hamza's model sends real `genes_found`*
 - [ ] Dockerfile for the backend with AMRFinderPlus installed (conda), so Railway can run it. **Only if Hamza serves the gene model (B6):** he decides on Week 3 day 1 (k-mer model = no extra install). Ask him before starting
-- [ ] Upload limit check: complete genomes are 2–7 MB, under your 20 MB limit, so no change is needed; Hamza is removing the backend's 500 kb cut so the whole genome is used
+
+- [ ] Dockerfile groundwork, needed whatever Hamza decides: a `.dockerignore` so `COPY . /app` leaves out `Data/` (about 100 GB with Ali's complete genomes) and the experiment caches, and `gunicorn` instead of `manage.py runserver`
+- [x] Upload limit check: complete genomes are 2–7 MB, under your 20 MB limit, so no change is needed; Hamza is removing the backend's 500 kb cut so the whole genome is used. *Checked 2026-09-28: no change*
 - **Done when:** `/predict` explains a prediction by the genes it found, in the deployed container, and `/models` shows the genome runs separately
+
+---
+
+### From Ali (2026-09-28)
+
+- [~] Test the new `start.bat` once on Windows (Ali could only test on his Mac). *Its offline check works here: with everything installed it skips the online install. Still to do: one full run by hand (both windows open, site loads), and once with Wi-Fi off; then tell Ali*
+
+- [ ] After Hamza's genome model is on `/predict`: on `/datasets`, label Dataset 2 *"Superseded by Dataset 3, kept to reproduce the original K-mer model"*. Don't remove it
 
 ---
 
@@ -252,6 +262,7 @@ Newest first. One line per work session: date, what I did, what is next, anythin
 
 | Date | Done | Next | Blockers |
 | --- | --- | --- | --- |
+| 2026-09-28 | Genes panel on `/predict` (`_genes_panel.html`): the three `genes_found` states, linked genes first, in CSV/PDF, `/predict/sample` preview, 7 tests; the heading and k-mer cards follow the model. UI fixes: navbar items on one line (`424c71a`); numbered steps and tags no longer squeezed or split on `/datasets` (`b0c0a82`); two overclaims on `/timeline` (constants hand-set, speeds illustrative). Checked Ali's pushes: all tests pass, `/genes` lookup under 10 ms after the first, `start.bat` offline check works | Genome section on `/models` (needs Hamza's runs in `model_report.json`), Dockerfile groundwork, full `start.bat` run | Hamza's genome model choice and runs |
 | 2026-09-27 | Week 2 done: CSV/PDF/PNG downloads on `/forecast`, `/predict`, `/timeline`; batch CSV upload with template, summary, chart and results CSV; CNN-LSTM text removed; 16 new tests | Genome section on `/models`, `genes_found` UI (Week 3) | Genome section waits on Hamza's report export |
 | 2026-09-27 | Pulled Hamza's Week 1 close (D3, threshold 0.23) and Week 2: `/models`, `/compare` show D3, sliders follow 0.23 with no change. Added Hamza's genome-section request | T2.2 exports | Genome section waits on Hamza's report export |
 | 2026-09-26 | T2.4 security: env-only secrets and hosts, no CORS, admin token on train/reload + password on `/train`, 20 MB upload limit, rate limits, no database; 13 tests | T2.2 exports | None |
