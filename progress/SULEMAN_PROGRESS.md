@@ -212,6 +212,7 @@ Built against the real files (`backend/trained_models/lgbm_metrics.json`, `kmer_
 | From Ali | Timeline + RL response format | Day 1 | \[x\] agreed 2026-09-26, formats §4; `/api/timeline/` already returns the §4 timeline fields (`simulation`, `seed`, `calibration: null`, fractions sum to 100) |
 | From Ali | FYI, your files touched 2026-09-26: `views.py` and `app.py` read antibiotic names from `amr_constants.py`; `components.css` draws the missing `bi-dna` / `bi-bacteria` icons; favicon in `static/` with a `/favicon.ico` route in `app.py`. Still yours: two templates mention CNN-LSTM (`mutation_timeline.html:164`, `train.html:142, 147, 154`; `datasets.html` no longer does, checked 2026-09-27) | Week 2 | \[ \] CNN-LSTM wording |
 | From Ali | FYI, your file touched 2026-09-28: `mutation_timeline.html` shows the new `calibration` object under the result and in the Simulation Model card, and three claims that the constants were "calibrated from published clinical data" now say they are hand-set and checked against published data. Fields in formats §4 | Week 3 | [x] FYI |
+| From Ali | FYI, your file touched 2026-09-28: `datasets.html` Dataset 3 (complete genomes) now says 24,926 genomes, 22,475 with a lab result, 102.5 billion bp, 98 GB, 22,949 with a resistance gene (was 2,587) | Week 3 | [x] FYI |
 | From Ali | Working RL output | Week 4 | \[ \] |
 | To Hamza | Agreement on the backend switch to the `amrpredict` library (`backend/api/`) | Week 4 | \[ \] |
 
