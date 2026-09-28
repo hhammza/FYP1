@@ -36,6 +36,25 @@ GENOME_ID_TEXT = {'Genome ID': str}
 # Where the raw export lives, under the data root. amr_output/ is the April
 # export, kept so v5 runs can be reproduced.
 DEFAULT_SOURCE = 'amr_full'
+# The cleaning code is the same for both exports; the version names the data.
+# v1 to v5 all read the April export (v1 to v4 also cleaned it differently, so
+# only v5 runs rebuild exactly).
+EXPORT_VERSIONS = {'amr_output': 'v5', 'amr_full': 'v6'}
+
+
+def version_of(source=None):
+    """Cleaning version of the data read from `source` (default: the current export)."""
+    return EXPORT_VERSIONS.get(source or DEFAULT_SOURCE, CLEAN_VERSION)
+
+
+def source_of(version):
+    """The export a run on this cleaning version read. Runs recorded before
+    versions were recorded predate v5 and read the April export."""
+    try:
+        number = int(str(version).lstrip('v'))
+    except ValueError:
+        return 'amr_output'
+    return 'amr_output' if number < 6 else DEFAULT_SOURCE
 # The only raw columns clean() reads; loading just these keeps the 5 GB
 # export within a laptop's memory.
 RAW_COLUMNS = ['Taxon ID', 'Genome ID', 'Genome Name', 'Antibiotic', 'Resistant Phenotype',
@@ -73,7 +92,7 @@ def species_taxon_ids(taxon_ids):
 
 def _cache_path(source, normalize):
     tag = 'norm' if normalize else 'raw'
-    return os.path.join(CACHE_DIR, f'clean_{CLEAN_VERSION}_{source}_{tag}.pkl')
+    return os.path.join(CACHE_DIR, f'clean_{version_of(source)}_{source}_{tag}.pkl')
 
 
 def data_root():
@@ -209,7 +228,10 @@ def clean(df_raw, normalize_antibiotics=True, verbose=True):
 
 def get_clean(source=None, normalize_antibiotics=True, max_files=None,
               refresh=False, verbose=True):
-    """Cleaned frame, from cache when possible."""
+    """Cleaned frame, from cache when possible.
+
+    To rebuild an earlier run, pass source=source_of(<its clean_version>).
+    """
     source = source or DEFAULT_SOURCE
     os.makedirs(CACHE_DIR, exist_ok=True)
     path = _cache_path(source, normalize_antibiotics)
