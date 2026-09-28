@@ -171,7 +171,7 @@ Hamza's genome models (k-mers 0.956, genes 0.981) are tested on only 30 lab-test
 
 - [ ] Remove the strict `xfail` in `amrpredict-lib/tests/test_fasta.py:122` so the test must pass. *Waits for Hamza: the library has its own copy in `amrpredict-lib/src/amrpredict/timeline.py`; remove the xfail when he syncs the fix (T2.6)*
 
-- [ ] **Sensitivity analysis:** sweep `speed` and `peak` ±30%, plot how `failure_week` moves
+- [x] **Sensitivity analysis:** sweep `speed` and `peak` ±30%, plot how `failure_week` moves. *Done 2026-09-28: `experiments/evolution/sensitivity.py`, 8,232 combinations (also weeks asked and GC), checked against the served timeline. Main finding: the midpoint is 0.45 x the weeks asked, so asking for 52 weeks instead of 8 makes the same drug fail 2 to 6 times later; `peak` is a switch at 50% (colistin never fails); speed ±30% moves failure by a median 0.6 weeks. Calibrate a per-drug midpoint and the peak*
 
 - [ ] **Literature calibration:** collect 5 to 10 published serial-passage or lab-evolution curves
 
@@ -179,7 +179,7 @@ Hamza's genome models (k-mers 0.956, genes 0.981) are tested on only 30 lab-test
 
   - [ ] Fit logistic parameters per drug (`scipy.optimize.curve_fit`), report RMSE
 
-- [ ] Work lives in `experiments/evolution/`
+- [~] Work lives in `experiments/evolution/` *(README, sensitivity done; calibration next)*
 
 - **Done when:** the timeline is a partition, repeatable, and "calibrated against N published curves"
 
