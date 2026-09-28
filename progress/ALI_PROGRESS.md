@@ -27,7 +27,7 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done · `[!]` blocke
 | 1 | 28 Sep to 2 Oct | Clean names, data path, taxon grouping, start AMRFinderPlus | Done: names, data path, taxon grouping; AMRFinderPlus full run finished 2026-09-26 (2,587 genomes, 0 failures) |
 | 2 | 5 Oct to 9 Oct | Gene matrix | Done early 2026-09-26: sample and full gene matrix, join check, summary; two notices open for Hamza (v5 retrain, `mapped_output` IDs) |
 | 3 | 12 Oct to 16 Oct | Evolution: fix, sensitivity, calibration; lab-tested genomes for Hamza | Mostly done 2026-09-28: timeline fix, sensitivity analysis, calibration (15 curves) on the site; Dataset 3 = 24,926 complete genomes (22,475 lab-tested), gene matrix and k-mer cache delivered. Open: library xfail (waits on Hamza) |
-| 4 | 19 Oct to 23 Oct | RL agent, CTGAN experiment | Not started |
+| 4 | 19 Oct to 23 Oct | RL agent, CTGAN experiment | Started early 2026-09-29 with data: the April export was incomplete, so the complete BV-BRC export was downloaded and became cleaning v6 (7.85 M rows, 87,325 lab-tested genomes); RL and CTGAN not started |
 | 5 | 26 Oct to 30 Oct | Report chapters | Not started |
 | Research | alongside weeks 4 to 5 | Paper A data audit, rule baseline, collection years ([Research track](#research-track-added-by-ali-2026-09-28); [RESEARCH_PLAN.md](RESEARCH_PLAN.md)) | Not started |
 
@@ -220,6 +220,8 @@ Hamza's genome models (k-mers 0.956, genes 0.981) are tested on only 30 lab-test
 
 Alongside weeks 4 and 5, not instead of them. Why and how: [RESEARCH_PLAN.md](RESEARCH_PLAN.md) (Paper A: BV-BRC data audit and deployed-model evaluation; Paper B: genes vs k-mers vs a lookup rule).
 
+- [x] **Complete export and cleaning v6** (found while checking the 597 unfinished April taxa). *Done 2026-09-29: the April export held 2,986,755 of BV-BRC's 17,585,506 records (offset paging, 500,000-row cap). New `download_amr_full.py` fetched all of them (34 min, matches BV-BRC's counts); cleaning v6 = 7,847,110 rows, 649,944 lab rows on 87,325 genomes; species table rebuilt (463 species); runs rebuild on their own export; first audit output is the v5 vs v6 table in experiments/audit/results*
+
 - [ ] **Audit script** (`experiments/audit/audit_bvbrc.py`): every data-defect count from one command on a pinned export date (IDs merged as numbers, trailing zeros lost, strain vs species taxon IDs, drug-name duplicates, rows without a phenotype, missing MIC and testing standard, lab vs computational share, truncated FASTAs)
 
 - [ ] **v5 statistics table** for the paper (rows, genomes, species, drugs, drug classes, resistant share, lab share, by genus); reconcile the 94, 124 and 164 species counts
@@ -269,6 +271,7 @@ Alongside weeks 4 and 5, not instead of them. Why and how: [RESEARCH_PLAN.md](RE
 | Suleman | Timeline + RL response format | Day 1 | [x] agreed 2026-09-26, `progress/formats/README.md` §4 |
 | Hamza, Suleman | **Retiring Dataset 2 (partial FASTAs).** Keep `Data/fasta_output/` and `Data/mapped_output/`: the served K-mer model was trained on them and the report compares partial vs complete genomes (K-mer 0.70 vs 0.90). Once Hamza's genome model is on `/predict`, Suleman labels Dataset 2 "superseded by Dataset 3" on `/datasets`. Rows added to both trackers 2026-09-28 | Week 3 (at deploy) | [~] noted |
 | Suleman | Working RL output | Week 4 | [ ] |
+| Hamza | **Cleaning v6** (complete BV-BRC export): retrain D3 and rerun the quoted configs on it; cleaned table `clean_v6_amr_full_norm.pkl` on the genomes Drive folder. `run.py` already switched (at the team's request) | Week 4 | [x] handed over 2026-09-29, row in Hamza's tracker |
 | Hamza, Suleman | **Research track** ([RESEARCH_PLAN.md](RESEARCH_PLAN.md)): the papers need, from Hamza, B6 to B8 on lab rows, the lineage split scaled and applied to the tabular configs, seeds and significance tests, the D3 calibration plot; from Suleman, the repo-public decision, CI and stale README numbers. Rows added to both trackers 2026-09-28 | Weeks 4 to 5 | [~] noted |
 
 ---
@@ -291,6 +294,7 @@ Newest first. One line per work session: date, what I did, what is next, anythin
 
 | Date | Done | Next | Blockers |
 | --- | --- | --- | --- |
+| 2026-09-29 | The April AMR export was incomplete (2.99 M of 17.6 M records; no *E. coli*, *S. enterica*, *S. aureus*). Wrote `download_amr_full.py` (record-ID paging, 16 parallel shards, resumable, keeps the Mac awake) and downloaded everything in 34 min. Cleaning v6 on it (7.85 M rows, 87,325 lab-tested genomes), species table for 13,058 taxon IDs, runs rebuild on their own export (D3 split exact), v5 vs v6 comparison, Datasets page, HANDBOOK, README, CHANGES. Cleaned table on Drive for Hamza. Also moved loose root files into `docs/`, `notebooks/`, `scripts/`, and start scripts use relative paths and port 5001 | Audit script and statistics table on v6; collection years | Hamza: retrain on v6. Team: DNA for the 64,850 new lab-tested genomes? |
 | 2026-09-28 | Research track added from the literature review: `progress/RESEARCH_PLAN.md` (Paper A audit, Paper B genes vs k-mers vs rule, Paper C library), research tasks in this tracker, rows for Hamza and Suleman. Existing weekly plan unchanged | Audit script and v5 statistics table | Supervisor: venue and scope reply |
 | 2026-09-28 | Calibration on the site: `/api/timeline/` fills `calibration` (15 curves, rmse 2.9 points, `parameters_changed: false`) and `/timeline` shows it with its limits; three overstated "calibrated" claims corrected. Constants unchanged, since no source is in weeks. Docs: README §4.3, formats §4, CHANGES.md | RL environment (week 4) | Hamza: library timeline sync before the xfail goes |
 | 2026-09-28 | T3.1: sensitivity analysis (8,232 combinations; the weeks asked set the midpoint, so 52 weeks makes the same drug fail 2 to 6 times later) and literature calibration (15 curves: Maltas et al. 2025 lab evolution, 5 drugs; ECDC carbapenem-resistant K. pneumoniae, 10 countries; median R² 0.91). Data in `Data/evolution_curves/` with `sources.csv` | Make the timeline's midpoint per drug and fill its `calibration` field; RL environment (week 4) | None |
