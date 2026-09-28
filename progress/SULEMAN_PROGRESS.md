@@ -216,6 +216,7 @@ Built against the real files (`backend/trained_models/lgbm_metrics.json`, `kmer_
 | From Ali | **Mark Dataset 2 as superseded on `/datasets` once Hamza's genome model is on `/predict`.** Dataset 2 (partial FASTAs, `fasta_output/`) only feeds the old K-mer model; Dataset 3 (complete genomes) replaces it. Then label Dataset 2 "Superseded by Dataset 3; kept to reproduce the original K-mer model" (or fold it into Dataset 3 as a note). Do not remove it: the report compares the two (K-mer 0.70 on partial vs 0.90 on complete genomes). Hamza tells you when he deploys | Week 3 (after Hamza's deploy) | [ ] |
 | From Ali | FYI, your file touched 2026-09-28: `datasets.html` has a new Dataset 5 section (published resistance curves for the timeline calibration: Maltas et al. 2025 lab evolution and ECDC surveillance, with the ECDC attribution), a fifth row in the source table, and "five source datasets" in the counts | Week 3 | [x] FYI |
 | From Ali | Working RL output | Week 4 | \[ \] |
+| From Ali | **Research track** (2026-09-28, [RESEARCH_PLAN.md](RESEARCH_PLAN.md)): three platform items for the papers. (1) Agree with the team and supervisor on making the repo public, which starts the roughly six-month clock JOSS needs for the library paper. (2) CI green on `main` (your T2.7), which reviewers check. (3) Stale numbers in README section 0 and 11.1, endpoint and test counts, so nothing we quote contradicts the repo | Weeks 4 to 5 | [ ] |
 | To Hamza | Agreement on the backend switch to the `amrpredict` library (`backend/api/`) | Week 4 | \[ \] |
 
 ---
