@@ -18,6 +18,24 @@ Baseline is commit **`52ae361`** *(Add amrpredict library and macOS launcher, 20
 
 ---
 
+## Complete BV-BRC export and cleaning v6 (2026-09-29)
+
+Ali, while checking 597 taxa the April download never finished. The April export (`Data/amr_output/`) held 2,986,755 of the 17,585,506 AMR records BV-BRC has: its downloader paged each taxon by offset and stopped at 500,000 rows, so *E. coli*, *S. enterica* and *S. aureus* were missing at species level and *K. pneumoniae* was cut.
+
+| File | Change |
+|---|---|
+| [download_amr_full.py](scripts/bvbrc_download/download_amr_full.py) | New: every record, paged by record ID in 16 parallel shards, resumable, keeps the Mac awake, retries without internet, `--watch` live view. Run 2026-09-29: 17,585,506 rows (1,285,111 lab) in 34 minutes, equal to BV-BRC's counts, 0 duplicates |
+| [data_prep.py](experiments/lib/data_prep.py) | Cleaning v6 reads `Data/amr_full/` by default: 7,847,110 rows, 439,542 genomes, 649,944 lab rows on 87,325 genomes (v5: 1,558,494 / 131,385 / 201,042 / 22,475). Loads nine columns only; lists unreadable files instead of skipping them. `version_of` / `source_of` map versions to exports |
+| [build_taxonomy.py](experiments/build_taxonomy.py), [taxon_species.csv](backend/taxon_species.csv) | 13,058 taxon IDs, 463 species (was 3,655 IDs); without it v6 had 9,114 "species" |
+| [run.py](experiments/run.py), [backfill_bundles.py](experiments/backfill_bundles.py) | New runs read v6 and record the version they read |
+| [evaluate_shipped.py](experiments/evaluate_shipped.py), [export_report.py](experiments/export_report.py) | Rebuild each run on the export its `clean_version` names; D3's split still rebuilds exactly (311,712 test rows) |
+| [compare_clean_versions.py](experiments/audit/compare_clean_versions.py) | New: [v5_vs_v6.md](experiments/audit/results/v5_vs_v6.md). No lab pair lost; BV-BRC removed 996 genomes and changed 1,665 labels since April; the April lab rows were 49.5% resistant, the complete set 33.7% |
+| [datasets.html](frontend/templates/datasets.html) | Dataset 1 shows the complete export beside the April one |
+
+Every registry run and the served D3 are still v5; Hamza retrains on v6 (his tracker). Documents: [HANDBOOK §2, §3](experiments/HANDBOOK.md), [README](README.md), [scripts/bvbrc_download/README.md](scripts/bvbrc_download/README.md), [docs/DATA_LINKS.md](docs/DATA_LINKS.md).
+
+---
+
 ## Tidier file layout (2026-09-28)
 
 Loose files moved out of the repo root into folders; nothing was deleted from git. Links and paths updated everywhere they are used.
