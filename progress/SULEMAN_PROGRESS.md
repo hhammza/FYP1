@@ -27,6 +27,7 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done · `[!]` blocke
 | 3 | 12 Oct to 16 Oct | Genome result UI, genome-models section on `/models`, Dockerfile with AMRFinderPlus | Not started; the Dockerfile depends on Hamza's model choice (Week 3, day 1) |
 | 4 | 19 Oct to 23 Oct | RL panel on `/timeline`, automated tests | Not started |
 | 5 | 26 Oct to 30 Oct | Deploy, tag, demo video, system-design chapter | Not started |
+| Research | alongside weeks 4 to 5 | Repo public, CI green, stale README numbers ([Research track](#research-track-added-by-ali-2026-09-28), added by Ali) | Not started |
 
 **Files I own:** `frontend/`, `backend/api/`, `backend/backend/settings.py`, backend and frontend tests, Dockerfile and Railway config. Other people's files: ask the owner, or comment in their pull request.
 

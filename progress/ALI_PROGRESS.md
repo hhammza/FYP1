@@ -29,7 +29,7 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done · `[!]` blocke
 | 3 | 12 Oct to 16 Oct | Evolution: fix, sensitivity, calibration; lab-tested genomes for Hamza | Mostly done 2026-09-28: timeline fix, sensitivity analysis, calibration (15 curves) on the site; Dataset 3 = 24,926 complete genomes (22,475 lab-tested), gene matrix and k-mer cache delivered. Open: library xfail (waits on Hamza) |
 | 4 | 19 Oct to 23 Oct | RL agent, CTGAN experiment | Not started |
 | 5 | 26 Oct to 30 Oct | Report chapters | Not started |
-| Research | alongside weeks 4 to 5 | Paper A data audit, rule baseline, collection years ([RESEARCH_PLAN.md](RESEARCH_PLAN.md)) | Not started |
+| Research | alongside weeks 4 to 5 | Paper A data audit, rule baseline, collection years ([Research track](#research-track-added-by-ali-2026-09-28); [RESEARCH_PLAN.md](RESEARCH_PLAN.md)) | Not started |
 
 **Files I own:** `Data/`, `experiments/lib/data_prep.py`, `backend/train_models.py`, `experiments/genome/features/` (new), `backend/ml_models/mutation_timeline.py`, `experiments/evolution/` (new). Other people's files: ask the owner, or comment in their pull request.
 

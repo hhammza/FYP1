@@ -27,6 +27,7 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done · `[!]` blocke
 | 3 | 12 Oct to 16 Oct | Gene-feature models B6/B7, deploy the best genome model | Prep started: lineage split built; waiting on Ali's lab-tested genomes (early batch first) |
 | 4 | 19 Oct to 23 Oct | Library v0.2.0, statistics and seeds | Not started |
 | 5 | 26 Oct to 30 Oct | Results chapters | Not started |
+| Research | alongside weeks 3 to 5 | Lab-genome runs B6 to B8, lineage split for all models, seeds and tests, calibration plot, temporal split ([Research track](#research-track-added-by-ali-2026-09-28), added by Ali) | Not started |
 
 **Files I own:** `experiments/` (except `lib/data_prep.py`, `genome/features/`, `evolution/`), `backend/ml_models/lgbm_predictor.py`, `backend/ml_models/resistance_predictor.py`, `backend/trained_models/`, `amrpredict-lib/`.
 Other people's files: ask the owner, or comment in their pull request.
