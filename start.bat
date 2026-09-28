@@ -8,6 +8,9 @@ echo   AMRPredict — Antibiotic Resistance System
 echo  ============================================
 echo.
 
+REM   start.bat            start both servers (installs only what is missing)
+REM   start.bat --update   also reinstall/upgrade dependencies (needs internet)
+
 REM Check Python
 python --version >nul 2>&1
 if errorlevel 1 (
@@ -16,18 +19,39 @@ if errorlevel 1 (
     exit /b 1
 )
 
-REM Install backend requirements
-echo [1/4] Installing backend dependencies...
-cd /d "%~dp0backend"
-python -m pip install -r requirements.txt -q
-if errorlevel 1 (
-    echo [WARN] Some backend dependencies may not have installed correctly.
+REM Dependencies, checked offline first: "pip install --no-index" succeeds
+REM only when every requirement is already installed at a matching version,
+REM and never touches the network, so a start with no internet does not
+REM hang on pip. Only when something is missing does it go online, with a
+REM short timeout; if that fails the servers start anyway with a warning.
+REM   start.bat --update   force a full online install and upgrade pip
+set "REQS=-r "%~dp0backend\requirements.txt" -r "%~dp0frontend\requirements.txt""
+set "PIP=python -m pip --disable-pip-version-check"
+
+if /i "%~1"=="--update" goto update_deps
+
+%PIP% install --no-index %REQS% -q >nul 2>&1
+if not errorlevel 1 (
+    echo [1/4] Dependencies already installed; skipping, no internet needed.
+    goto deps_done
 )
 
-REM Install frontend requirements
-echo [2/4] Installing frontend dependencies...
-cd /d "%~dp0frontend"
-python -m pip install -r requirements.txt -q
+echo [1/4] Installing missing dependencies...
+%PIP% install --timeout 15 --retries 1 %REQS% -q
+if errorlevel 1 (
+    echo [WARN] Could not install every dependency, no internet?
+    echo        Starting anyway; run "start.bat --update" once you are online.
+)
+goto deps_done
+
+:update_deps
+echo [1/4] Updating dependencies (--update)...
+%PIP% install --upgrade pip -q
+%PIP% install %REQS% -q
+if errorlevel 1 echo [WARN] Some dependencies failed to install.
+
+:deps_done
+echo [2/4] Dependencies checked.
 
 REM Start Django backend in a new window. DEBUG=True is local development:
 REM no SECRET_KEY or ALLOWED_HOSTS needed. To use Train/Reload, first run

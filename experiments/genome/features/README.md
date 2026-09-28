@@ -205,6 +205,14 @@ It refreshes every 5 seconds and shows, for the download and for AMRFinderPlus:
 - speed and time left, measured since you opened the view
 - disk used by `Data/genomes_full/`
 - the number of failures and the last lines of each log
+- cores in use by each job, and the `--jobs` / `--threads` AMRFinderPlus was started with
+
+While it is open it also keeps the Mac awake, and restarts AMRFinderPlus when it has stopped and downloaded genomes are still waiting (at most once every 10 minutes). Restarts use 8 jobs x 1 thread; change that, or switch it off:
+
+```bash
+AMR_JOBS=10 bash experiments/genome/features/progress.sh      # restart with 10 jobs
+bash experiments/genome/features/progress.sh --no-restart     # watch only
+```
 
 Ctrl+C closes the view only; the jobs keep running.
 

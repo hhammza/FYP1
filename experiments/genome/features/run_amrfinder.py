@@ -133,6 +133,26 @@ def main():
           f'{len(todo):,} to run; {genomes["organism"].isna().sum()} without --organism')
 
     previous = pd.read_csv(SUMMARY, dtype={'genome_id': str}) if os.path.exists(SUMMARY) else pd.DataFrame()
+    # Genomes finished by a run that was stopped before it saved the summary
+    # have a .tsv but no summary row; recover their organism and hit count.
+    known = set(previous['genome_id']) if len(previous) else set()
+    orphans = genomes[done & ~genomes['genome_id'].isin(known)]
+    recovered = [{'genome_id': r.genome_id, 'organism': r.organism,
+                  'hits': sum(1 for _ in open(os.path.join(OUT_DIR, f'{r.genome_id}.tsv'))) - 1,
+                  'seconds': None, 'error': None} for r in orphans.itertuples()]
+    if recovered:
+        print(f'[amrfinder] {len(recovered):,} finished genomes had no summary row; recovered')
+
+    def save_summary(results):
+        summary = pd.concat([previous, pd.DataFrame(recovered + results)], ignore_index=True)
+        if len(summary):
+            summary = summary.drop_duplicates('genome_id', keep='last')
+            summary['amrfinder_version'] = version
+            summary['database_version'] = db_version
+            summary.to_csv(SUMMARY, index=False)
+        return summary
+
+    # Saved every 25 genomes, so stopping the run loses nothing
     results = []
     with ThreadPoolExecutor(args.jobs) as pool:
         jobs = [pool.submit(run_one, amrfinder, env, row, args.threads) for row in todo.itertuples()]
@@ -143,13 +163,9 @@ def main():
                 print(f'  FAILED {r["genome_id"]}: {r["error"]}')
             if n % 25 == 0 or n == len(jobs):
                 print(f'  {n:,} / {len(jobs):,}')
+                save_summary(results)
 
-    summary = pd.concat([previous, pd.DataFrame(results)], ignore_index=True)
-    if len(summary):
-        summary = summary.drop_duplicates('genome_id', keep='last')
-        summary['amrfinder_version'] = version
-        summary['database_version'] = db_version
-        summary.to_csv(SUMMARY, index=False)
+    summary = save_summary(results)
     failed = summary['error'].notna().sum() if len(summary) else 0
     print(f'[amrfinder] {len(summary):,} genomes in {os.path.relpath(SUMMARY)}; {failed} failed '
           f'(re-run to retry)')

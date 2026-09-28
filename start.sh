@@ -3,6 +3,7 @@
 # macOS / Linux launcher (the counterpart to start.bat on Windows)
 #
 #   ./start.sh                          everything except Train/Reload
+#   ./start.sh --update                 also reinstall/upgrade dependencies (needs internet)
 #   ADMIN_TOKEN=some-password ./start.sh   also Train/Reload: type the same
 #                                          password on the Train page
 #
@@ -44,17 +45,34 @@ if [[ "$(uname -s)" == "Darwin" ]]; then
     if ! "$PY" -c "import lightgbm" >/dev/null 2>&1; then
         if command -v brew >/dev/null 2>&1 && [ ! -d "$(brew --prefix)/opt/libomp" ]; then
             echo "[2/5] Installing libomp (LightGBM dependency)..."
-            brew install libomp
+            brew install libomp || echo "[WARN] Could not install libomp (no internet?)."
         fi
     fi
 fi
 echo "[2/5] Checked native dependencies."
 
 # --- Python dependencies --------------------------------------------------
-echo "[3/5] Installing backend + frontend dependencies..."
-"$PY" -m pip install --upgrade pip -q
-"$PY" -m pip install -r "$ROOT/backend/requirements.txt" -q
-"$PY" -m pip install -r "$ROOT/frontend/requirements.txt" -q
+# Checked offline first: `pip install --no-index` succeeds only when every
+# requirement is already installed at a matching version, and never touches
+# the network. So a start with no internet does not hang on pip. Only when
+# something is missing does it go online, with a short timeout; if that
+# fails the servers start anyway with a warning.
+#   ./start.sh --update   force a full online install and upgrade pip
+REQS=(-r "$ROOT/backend/requirements.txt" -r "$ROOT/frontend/requirements.txt")
+PIP=("$PY" -m pip --disable-pip-version-check)
+if [ "${1:-}" = "--update" ]; then
+    echo "[3/5] Updating dependencies (--update)..."
+    "${PIP[@]}" install --upgrade pip -q || echo "[WARN] Could not upgrade pip."
+    "${PIP[@]}" install "${REQS[@]}" -q || echo "[WARN] Some dependencies failed to install."
+elif "${PIP[@]}" install --no-index "${REQS[@]}" -q >/dev/null 2>&1; then
+    echo "[3/5] Dependencies already installed; skipping (no internet needed)."
+else
+    echo "[3/5] Installing missing dependencies..."
+    if ! "${PIP[@]}" install --timeout 15 --retries 1 "${REQS[@]}" -q; then
+        echo "[WARN] Could not install every dependency (no internet?)."
+        echo "       Starting anyway; run ./start.sh --update once you are online."
+    fi
+fi
 
 if ! "$PY" -c "import lightgbm" >/dev/null 2>&1; then
     echo "[WARN] LightGBM could not be imported — forecasting will fall back."
