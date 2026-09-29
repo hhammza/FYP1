@@ -279,6 +279,22 @@ def attach_genome_features(df, data_cfg, feat_cfg, verbose=True):
         return df, []
     sys.path.insert(0, os.path.join(HERE, 'genome'))
 
+    # data.min_genome_bp: drop assemblies shorter than this. BV-BRC lists some
+    # plasmid-only records as genomes (genome_status = Plasmid); every one is
+    # under 500 kb, while a bacterial genome is 1-12 Mb. Lengths come from the
+    # k-mer cache, which covers every genome in the gene matrix.
+    min_bp = data_cfg.get('min_genome_bp')
+    if min_bp:
+        import kmers as _kmers
+        ids, _, length, _ = _kmers.load_counts()
+        long_enough = set(np.asarray(ids)[length >= int(min_bp)])
+        keep = df['Genome ID'].isin(long_enough)
+        if verbose:
+            gone = df.loc[~keep, 'Genome ID'].nunique()
+            print(f'[genome] min_genome_bp {int(min_bp):,}: dropped {int((~keep).sum()):,} rows '
+                  f'of {gone:,} genomes (plasmid-only records or no assembly)')
+        df = df.loc[keep].reset_index(drop=True)
+
     # data.genomes = "gene_matrix": every genome AMRFinderPlus searched, for
     # gene-only runs. The k-mer cache can cover fewer genomes (it is built
     # from the assemblies on this machine), so don't filter by it here.
