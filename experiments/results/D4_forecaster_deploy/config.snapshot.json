@@ -1,0 +1,32 @@
+{
+  "description": "D3 on cleaning v6: the complete BV-BRC export (7.8 M rows, 439,542 genomes)",
+  "data": {
+    "taxon_level": "species"
+  },
+  "split": {
+    "strategy": "grouped",
+    "test_size": 0.2,
+    "seed": 42
+  },
+  "features": {
+    "target_encoding": "oof"
+  },
+  "model": {
+    "type": "lightgbm",
+    "monotone_on": [
+      "mic_value",
+      "mic_log"
+    ]
+  },
+  "calibration": {
+    "method": "isotonic"
+  },
+  "threshold": {
+    "strategy": "vme_constrained",
+    "vme_budget": 0.1
+  },
+  "evaluation": {
+    "n_boot": 200
+  },
+  "id": "D4_forecaster_deploy"
+}
