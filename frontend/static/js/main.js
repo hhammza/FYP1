@@ -123,16 +123,27 @@ function initThemeToggle() {
 }
 
 /* ── FORM SUBMIT LOADING STATE ───────────────────────────────── */
+/* A form can set its own wording and wait:
+     data-loading-text="Analysing the genome…"   the button's text meanwhile
+     data-loading-ms="125000"                     when to give the button back
+     [data-loading-note] inside the form          shown while it waits      */
 function initFormSubmitLoading() {
   document.querySelectorAll('form').forEach(form => {
-    form.addEventListener('submit', function () {
+    form.addEventListener('submit', function (e) {
+      if (e.defaultPrevented) return;          /* another check stopped the submit */
       const btn = form.querySelector('[type=submit]');
       if (!btn) return;
       const orig = btn.innerHTML;
-      btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span>Processing…';
+      const text = form.dataset.loadingText || 'Processing…';
+      btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span>' + text;
       btn.disabled = true;
-      /* Restore if server takes too long (30s) */
-      setTimeout(() => { btn.innerHTML = orig; btn.disabled = false; }, 30000);
+      const note = form.querySelector('[data-loading-note]');
+      if (note) note.classList.remove('d-none');
+      /* Give the button back only once the server's own wait is over */
+      setTimeout(() => {
+        btn.innerHTML = orig; btn.disabled = false;
+        if (note) note.classList.add('d-none');
+      }, parseInt(form.dataset.loadingMs, 10) || 30000);
     });
   });
 }

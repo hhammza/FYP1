@@ -63,7 +63,8 @@
       <div class="form-card">
         <h5 class="form-card-title"><i class="bi bi-upload me-2"></i>Genome Input</h5>
 
-        <form method="POST" action="/predict" enctype="multipart/form-data" id="predictForm">
+        <form method="POST" action="/predict" enctype="multipart/form-data" id="predictForm"
+              data-loading-text="Analysing the genome…" data-loading-ms="125000">
 
           <div class="mb-3">
             <label class="form-label-custom">Antibiotic <span class="required">*</span>
@@ -143,6 +144,9 @@ GCATGCATGCATGCATGCATGCATGCATGCAT
           <button type="submit" class="btn btn-primary-custom btn-success-custom w-100 btn-lg">
             <i class="bi bi-dna me-2"></i>Predict Resistance
           </button>
+          <div class="form-hint text-center mt-2 d-none" data-loading-note role="status" aria-live="polite">
+            <i class="bi bi-hourglass-split me-1"></i>A complete genome can take up to a minute. Please keep this page open.
+          </div>
         </form>
       </div>
 
