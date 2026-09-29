@@ -1,10 +1,10 @@
 @echo off
-title AMRPredict — Starting Servers
+title AMRPredict - Starting Servers
 color 0A
 
 echo.
 echo  ============================================
-echo   AMRPredict — Antibiotic Resistance System
+echo   AMRPredict - Antibiotic Resistance System
 echo  ============================================
 echo.
 
@@ -21,12 +21,28 @@ cd /d "%~dp0"
 set "VENV=.venv"
 set "PY=.venv\Scripts\python.exe"
 
-REM Check Python: the "py" launcher first, then python
+REM Check Python: the "py" launcher first, then python. Each must have its
+REM own standard library (Lib\os.py under its install folder), not just
+REM print a version: an incomplete copy of python.exe without its Lib folder
+REM still runs, borrowing another install's library and printing "Could not
+REM find platform independent libraries" on every start, and a venv made from
+REM it breaks when that other install changes.
+set "OWNLIB=import os,sys; sys.exit(not os.path.isfile(os.path.join(sys.base_prefix,'Lib','os.py')))"
 set "BASEPY="
-py -3 --version >nul 2>&1 && set "BASEPY=py -3"
-if not defined BASEPY (python --version >nul 2>&1 && set "BASEPY=python")
+py -3 -c "%OWNLIB%" >nul 2>&1 && set "BASEPY=py -3"
+if not defined BASEPY (python -c "%OWNLIB%" >nul 2>&1 && set "BASEPY=python")
+
+REM A .venv made from such a copy, or from a Python since removed, is rebuilt
+if exist "%PY%" (
+    "%PY%" -c "%OWNLIB%" >nul 2>&1
+    if errorlevel 1 (
+        echo [1/5] The existing .venv does not work; rebuilding it...
+        rmdir /s /q "%VENV%"
+    )
+)
+
 if not defined BASEPY if not exist "%PY%" (
-    echo [ERROR] Python not found. Please install Python 3.9+ from python.org
+    echo [ERROR] No working Python found. Please install Python 3.9+ from python.org
     pause
     exit /b 1
 )
