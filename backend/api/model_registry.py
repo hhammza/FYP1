@@ -21,7 +21,11 @@ def init_models():
     from ml_models.mutation_timeline import MutationTimelinePredictor
 
     _lgbm = LGBMResistancePredictor(model_dir)
-    _kmer = KmerResistancePredictor(model_dir)
+    # /predict serves the complete-genome model once one is promoted
+    # (experiments/promote.py --genome), else the old K-mer RandomForest.
+    from ml_models.genome_predictor import GenomeModelPredictor
+    genome = GenomeModelPredictor(model_dir)
+    _kmer = genome if genome.is_trained else KmerResistancePredictor(model_dir)
     _timeline = MutationTimelinePredictor(model_dir)
     print("[Registry] All models initialized.")
 
