@@ -239,7 +239,9 @@ class LGBMResistancePredictor:
                               for g, a in zip(genus, ab)], index=records.index, dtype=float)
 
         X = pd.DataFrame({
-            'Taxon ID': taxon.fillna(0).astype('int64'),
+            # built as int64 directly: fillna on this object column made pandas warn
+            # about silent downcasting (same values: a missing taxon is 0)
+            'Taxon ID': pd.Series([0 if t is None else t for t in taxon], index=records.index, dtype='int64'),
             'Antibiotic': ab.map(lambda v: self._level('Antibiotic', v)),
             'drug_class': ab.map(lambda v: self.drug_class_map.get(v, 'other')),
             'genus': genus.map(lambda v: self._level('genus', v)),
