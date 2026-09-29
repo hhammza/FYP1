@@ -195,6 +195,84 @@ def build_metrics(run_id, run_dir, metrics, meta, promoted_at):
     }
 
 
+def promote_genome(run_id, out_dir, dry_run=False):
+    """Copy a Track B k-mer run into backend/trained_models/genome/.
+
+    Read by backend/ml_models/genome_predictor.py. The headline number in
+    genome_metrics.json is the lab AUC: computational labels were predicted
+    from the genome by BV-BRC, so the all-row AUC is partly circular.
+    """
+    run_dir = os.path.join(RESULTS, run_id)
+    model_dir = os.path.join(run_dir, 'model')
+    with open(os.path.join(run_dir, 'metrics.json')) as fh:
+        metrics = json.load(fh)
+    with open(os.path.join(model_dir, 'feature_meta.json')) as fh:
+        meta = json.load(fh)
+    cfg = metrics['config']
+    kcfg = cfg.get('features', {}).get('kmers')
+    problems = []
+    if meta.get('model_type') != 'lightgbm':
+        problems.append('genome_predictor.py serves LightGBM only')
+    if not kcfg:
+        problems.append('not a k-mer run (features.kmers missing)')
+    if cfg.get('features', {}).get('genes'):
+        problems.append('uses gene features, which need AMRFinderPlus at prediction time')
+    if cfg.get('split', {}).get('strategy') not in ('grouped', 'lineage'):
+        problems.append('not evaluated on a genome- or lineage-grouped split')
+    lab = metrics.get('test_by_label_source', {}).get('lab')
+    if not lab:
+        problems.append('no lab-labelled test rows, so no honest headline number')
+    if problems:
+        sys.exit('cannot promote genome model:\n- ' + '\n- '.join(problems))
+
+    commit, dirty = git_state()
+    t = metrics['test']
+    report = {
+        'schema': METRICS_SCHEMA, 'model': 'genome_kmer_lightgbm', 'page': '/predict',
+        'run_id': run_id, 'description': metrics.get('description', ''),
+        'algorithm': f"LightGBM on {kcfg.get('k', 4)}-mers of the complete genome",
+        'trained_at': metrics.get('finished_at'),
+        'promoted_at': datetime.now(timezone.utc).isoformat(timespec='seconds'),
+        'git_commit': commit, 'git_dirty': dirty,
+        'evaluation': {
+            'split': cfg['split'].get('strategy') + (f" ({cfg['split']['lineage_cut']} lineages)"
+                                                     if cfg['split'].get('lineage_cut') else ''),
+            'test_genomes_unseen': True,
+            'headline': 'lab-labelled test rows',
+            'all_rows_auc': rnd(t['auc_roc']),
+        },
+        'threshold': rnd(meta['threshold'], 3),
+        'threshold_rule': f"fixed at {meta['threshold']}",
+        'calibration': None,
+        'test': test_block(lab, lab.get('auc_roc_ci')),
+        'data': {
+            'source': 'complete assemblies (Data/genomes_full), cleaning '
+                      + metrics['dataset'].get('clean_version', 'unrecorded'),
+            'train_rows': int(metrics['dataset']['train_rows']),
+            'test_rows': int(lab['n']),
+            'train_genomes': int(meta['trained_on']['genomes']),
+            'test_genomes': lab.get('genomes'),
+            'prevalence': rnd(lab['prevalence']),
+            'antibiotics': len(meta['category_levels'].get('Antibiotic', [])),
+            'genera': [],
+        },
+    }
+    bundle = dict(meta, run_id=run_id, kmer_k=int(kcfg.get('k', 4)))
+    print(f"[promote] {run_id}: lab AUC {report['test']['auc_roc']} {report['test']['auc_roc_ci']} "
+          f"on {lab['n']:,} rows of {lab.get('genomes')} genomes (all rows {rnd(t['auc_roc'])})")
+    if dry_run:
+        print('[promote] dry run, nothing written')
+        return
+    target = os.path.join(out_dir, 'genome')
+    os.makedirs(target, exist_ok=True)
+    shutil.copyfile(os.path.join(model_dir, 'model.txt'), os.path.join(target, 'model.txt'))
+    with open(os.path.join(target, 'feature_meta.json'), 'w', encoding='utf-8') as fh:
+        json.dump(bundle, fh, indent=2)
+    with open(os.path.join(target, 'genome_metrics.json'), 'w', encoding='utf-8') as fh:
+        json.dump(report, fh, indent=2)
+    print(f'[promote] wrote {os.path.relpath(target, ROOT)}')
+
+
 def main():
     ap = argparse.ArgumentParser(description='Promote an experiment run to the served model')
     ap.add_argument('run_id')
@@ -204,7 +282,15 @@ def main():
                          'package loader (amrpredict/lgbm.py) does not yet apply '
                          'calibration or species-level taxa, so it would score the new '
                          'model differently from the web app. Enable once T2.6 lands.')
+    ap.add_argument('--genome', action='store_true',
+                    help='promote a Track B k-mer run for /predict (genome_predictor.py)')
+    ap.add_argument('--out', default=BACKEND_DIR,
+                    help='target folder (default backend/trained_models); use a temp folder to test')
     args = ap.parse_args()
+
+    if args.genome:
+        promote_genome(args.run_id, args.out, args.dry_run)
+        return
 
     run_dir, metrics, meta, rate_tables = load_run(args.run_id)
     check_servable(metrics, meta)
