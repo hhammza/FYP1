@@ -166,7 +166,7 @@ Built against the real files (`backend/trained_models/lgbm_metrics.json`, `kmer_
 
 ### From Ali (2026-09-28)
 
-- [~] Test the new `start.bat` once on Windows (Ali could only test on his Mac). *Its offline check works here: with everything installed it skips the online install. Still to do: one full run by hand (both windows open, site loads), and once with Wi-Fi off; then tell Ali*
+- [~] Test the new `start.bat` once on Windows (Ali could only test on his Mac). *Its offline check works here: with everything installed it skips the online install. Still to do: one full run by hand (both windows open, site loads), and once with Wi-Fi off; then tell Ali* *2026-09-29, first run by hand: "Could not find platform independent libraries" on every step. Cause: `py -3` picked an incomplete copy of Python at `C:\Python314` (no `Lib` folder; it borrows another install's library) and built `.venv` on it. `start.bat` now uses a Python only if it has its own `Lib\os.py`, and rebuilds a `.venv` made from one that doesn't; the banner's dash is a plain hyphen (the console showed "ΓÇö")*
 
 - [x] After Hamza's genome model is on `/predict`: on `/datasets`, label Dataset 2 *"Superseded by Dataset 3, kept to reproduce the original K-mer model"*. Don't remove it *Done 2026-09-29: the label as a note at the top of the Dataset 2 section and a "Superseded" badge in the overview. Also fixed: Dataset 2's boxes showed the new model's training rows (287,774, from Dataset 3) because `metrics.kmer` is now the served model; they give the original model's 6,002 and AUC 0.695. The `/predict` model card says K-mer LightGBM on Dataset 3. 3 tests (`test_datasets_page.py`)*
 
