@@ -93,7 +93,7 @@
               <div class="how-num about-obj-num">02</div>
               <div>
                 <div class="how-title">Alignment-Free Genomic Prediction</div>
-                <div class="how-desc">Build a k-mer frequency RandomForest model that predicts resistance directly from raw FASTA sequences without needing any reference genome alignment.</div>
+                <div class="how-desc">Build a k-mer frequency model (LightGBM on the complete genome) that predicts resistance directly from raw FASTA sequences without needing any reference genome alignment.</div>
               </div>
             </div>
           </div>
@@ -166,21 +166,21 @@
           </div>
         </div>
 
-        <!-- K-mer RF -->
+        <!-- K-mer genome model -->
         <div class="example-box mb-3">
           <div class="d-flex align-items-center gap-2 mb-2">
             <div class="model-icon kmer-icon about-model-icon"><i class="bi bi-dna"></i></div>
-            <div class="example-title mb-0">Model 2: K-mer RandomForest Predictor</div>
+            <div class="example-title mb-0">Model 2: K-mer Genome Predictor</div>
             <span class="status-badge trained about-kmer-badge ms-auto">AUC {{ metrics.kmer.auc }}</span>
           </div>
           <div class="table-responsive">
             <table class="table table-custom table-sm mb-0">
-              <tr><td class="text-muted about-td-label">Algorithm</td><td>RandomForest Classifier (scikit-learn), 100 trees</td></tr>
+              <tr><td class="text-muted about-td-label">Algorithm</td><td>LightGBM gradient-boosted trees on the complete genome assembly (replaced a 100-tree RandomForest trained on partial genomes, AUC about 0.70)</td></tr>
               <tr><td class="text-muted">Training data</td><td>{{ metrics.kmer.train_rows }} genome–antibiotic pairs from {{ metrics.kmer.train_genomes }} bacterial genomes</td></tr>
-              <tr><td class="text-muted">Features</td><td>256 4-mer frequencies + N antibiotic one-hot + 3 GC features = 321+ total</td></tr>
-              <tr><td class="text-muted">Class balance</td><td>class_weight='balanced' (handles imbalance without SMOTE)</td></tr>
-              <tr><td class="text-muted">Saved as</td><td class="font-mono">trained_models/kmer_resistance_model.pkl</td></tr>
-              <tr><td class="text-muted">Fallback</td><td>GC-content deviation + per-antibiotic base resistance rate heuristic</td></tr>
+              <tr><td class="text-muted">Features</td><td>256 4-mer frequencies counted within each contig + antibiotic + GC content + genome length</td></tr>
+              <tr><td class="text-muted">Threshold</td><td>{{ metrics.kmer.threshold }}, chosen on validation so that at most 10% of resistant isolates are missed</td></tr>
+              <tr><td class="text-muted">Saved as</td><td class="font-mono">trained_models/genome/model.txt</td></tr>
+              <tr><td class="text-muted">Input check</td><td>Refuses files under 100,000 bp (partial or plasmid-only); AUC is measured on lab-confirmed results only</td></tr>
             </table>
           </div>
         </div>
@@ -503,7 +503,7 @@
             <td><span class="about-perf-val">{{ metrics.lgbm.auc_ci }}</span></td>
           </tr>
           <tr>
-            <td class="text-muted">K-mer RF AUC-ROC</td>
+            <td class="text-muted">K-mer genome model AUC-ROC</td>
             <td><span class="about-perf-val">{{ metrics.kmer.auc_ci }}</span></td>
           </tr>
           <tr>

@@ -12,7 +12,7 @@
       <div class="page-header-icon kmer-icon"><i class="bi bi-dna"></i></div>
       <div>
         <h1 class="page-title">Genomic Resistance Prediction</h1>
-        <p class="page-subtitle">K-mer frequency analysis on FASTA genome sequences using a RandomForest classifier (AUC {{ metrics.kmer.auc }} on unseen genomes)</p>
+        <p class="page-subtitle">K-mer frequency analysis of a complete genome assembly with LightGBM (AUC {{ metrics.kmer.auc }} on lab-tested genomes it never saw)</p>
       </div>
     </div>
   </div>
@@ -93,7 +93,7 @@
           <div id="fileTab" class="tab-content-custom mb-3">
             <label class="form-label-custom">FASTA File <span class="required">*</span>
               <i class="bi bi-info-circle text-muted ms-1" data-bs-toggle="tooltip" data-bs-placement="right"
-                 data-bs-title="Upload a whole-genome assembly (.fasta, .fa, .fna). The model extracts 4-mer frequencies from up to 500,000 base pairs for classification."></i>
+                 data-bs-title="Upload a whole-genome assembly (.fasta, .fa, .fna). The model reads the whole genome (at least 100,000 bp; a partial or plasmid-only file is refused) and uses its 4-mer frequencies, counted within each contig."></i>
             </label>
             <div class="file-drop-zone" id="dropZone">
               <i class="bi bi-cloud-arrow-up fs-3 mb-2 text-accent"></i>
@@ -150,10 +150,10 @@ GCATGCATGCATGCATGCATGCATGCATGCAT
       <div class="info-card mt-4">
         <h6 class="card-section-title"><i class="bi bi-gear text-accent me-2"></i>K-mer Analysis Pipeline</h6>
         <div class="method-steps">
-          <div class="method-step"><span class="step-num">1</span>FASTA genome is read and cleaned; only A, T, C, G nucleotides retained</div>
+          <div class="method-step"><span class="step-num">1</span>The whole FASTA genome is read, contig by contig; only A, T, C, G windows are counted</div>
           <div class="method-step"><span class="step-num">2</span>Sliding 4-mer window generates 256-dimensional frequency vector</div>
-          <div class="method-step"><span class="step-num">3</span>Antibiotic one-hot encoding (N classes) + GC content features appended</div>
-          <div class="method-step"><span class="step-num">4</span>RandomForest (100 trees, balanced class weights) classifies Resistant vs Susceptible</div>
+          <div class="method-step"><span class="step-num">3</span>The antibiotic, GC content and genome length are added</div>
+          <div class="method-step"><span class="step-num">4</span>LightGBM (gradient-boosted trees) classifies Resistant vs Susceptible at a threshold chosen to miss at most 10% of resistant isolates</div>
           <div class="method-step"><span class="step-num">5</span>Output: probability, confidence, top discriminative k-mers</div>
         </div>
       </div>
@@ -372,9 +372,9 @@ GCATGCATGCATGCATGCATGCATGCATGCAT
       <div class="col-md-4">
         <div class="crisis-card amber h-100">
           <div class="crisis-icon"><i class="bi bi-tree text-amber2"></i></div>
-          <div class="crisis-val">RandomForest</div>
-          <div class="fw-600 mb-2 text-amber2">Ensemble Decision Tree Classifier</div>
-          <div class="crisis-desc">RandomForest builds 100 independent decision trees on random subsets of features and training data, then votes for the majority class. <code>class_weight='balanced'</code> corrects for class imbalance. On genomes outside its training files it scores AUC-ROC {{ metrics.kmer.auc_ci }}, no better than predicting from the antibiotic alone, because 4-mer frequencies mostly identify the species rather than the resistance mechanism.</div>
+          <div class="crisis-val">LightGBM</div>
+          <div class="fw-600 mb-2 text-amber2">Gradient-Boosted Decision Trees</div>
+          <div class="crisis-desc">LightGBM adds decision trees one at a time, each correcting the errors of the ones before. Trained on complete genomes of about 20,000 bacteria, it scores AUC-ROC {{ metrics.kmer.auc_ci }} on lab-tested genomes it never saw. The earlier RandomForest, trained on partial genomes, scored about 0.70, no better than the antibiotic alone. 4-mer frequencies partly identify the lineage rather than the resistance mechanism, so the next model uses the resistance genes themselves.</div>
         </div>
       </div>
       <div class="col-md-4">

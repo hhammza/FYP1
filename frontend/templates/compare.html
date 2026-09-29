@@ -107,15 +107,15 @@
       <div class="flow-lane mt-4">
         <div class="flow-source">
           <div class="flow-source-name"><i class="bi bi-folder2-open me-2"></i>mapped_output/ + fasta_output/</div>
-          <div class="flow-source-meta">{{ n(km.files_total) }} CSVs joined to genome files</div>
+          <div class="flow-source-meta">{{ n(km.files_total) }} {{ 'complete genome assemblies' if km.run_id else 'CSVs joined to genome files' }}</div>
           <div class="flow-source-meta">{{ n(km.genomes_with_fasta) }} genomes with a FASTA assembly</div>
           <div class="flow-source-meta">About 4 GB of sequence</div>
         </div>
         <div class="flow-arrow"><i class="bi bi-arrow-right"></i></div>
         <div class="flow-targets">
           <div class="flow-target deployed">
-            <div class="flow-target-head"><span class="flow-dot deployed"></span>Deployed K-mer RF <span class="caption-text ms-1">/predict</span></div>
-            <div class="flow-target-meta">Files 1 to {{ km.files_used }} → {{ n(kmp.rows) }} rows from {{ n(kmp.genomes) }} genomes</div>
+            <div class="flow-target-head"><span class="flow-dot deployed"></span>Deployed {{ km.short_name or 'K-mer RF' }} <span class="caption-text ms-1">/predict</span></div>
+            <div class="flow-target-meta">{{ (n(km.files_used) ~ ' training genomes') if km.run_id else ('Files 1 to ' ~ km.files_used) }} → {{ n(kmp.rows) }} rows from {{ n(kmp.genomes) }} genomes</div>
             <div class="flow-meter"><div class="flow-meter-fill deployed" style="width: {{ 100 * kmp.genomes / km.genomes_with_fasta }}%"></div></div>
             <div class="caption-text">{{ p(kmp.genomes / km.genomes_with_fasta) }} of the genomes with a FASTA</div>
           </div>
@@ -143,7 +143,7 @@
             <tr>
               <th></th>
               <th><span class="flow-dot deployed"></span>Deployed LightGBM</th>
-              <th><span class="flow-dot deployed"></span>Deployed K-mer RF</th>
+              <th><span class="flow-dot deployed"></span>Deployed {{ km.short_name or 'K-mer RF' }}</th>
               <th><span class="flow-dot experiment"></span>Best experiment ({{ best.id }})</th>
             </tr>
           </thead>
@@ -155,7 +155,7 @@
               <td>Experiment, not deployed yet</td></tr>
             <tr><td>Algorithm</td>
               <td>LightGBM, {{ lg.trees }} trees</td>
-              <td>Random forest, {{ km.trees }} trees</td>
+              <td>{{ km.algorithm or ('Random forest, ' ~ km.trees ~ ' trees') }}</td>
               <td>LightGBM, {{ report.best.model_info.n_trees }} trees</td></tr>
             <tr><td>What it reads</td>
               <td>Antibiotic, organism, MIC, resistance-rate lookups</td>
@@ -165,7 +165,7 @@
             <tr class="compare-section"><td colspan="4">Training data</td></tr>
             <tr><td>Source</td>
               <td class="font-mono small">amr_output/, files 1 to {{ lg.files_used }}</td>
-              <td class="font-mono small">mapped_output/, files 1 to {{ km.files_used }}</td>
+              <td class="font-mono small">{{ km.source if km.run_id else ('mapped_output/, files 1 to ' ~ km.files_used) }}</td>
               <td class="font-mono small">amr_output/, all {{ n(lg.files_total) }} files</td></tr>
             <tr><td>Training rows</td>
               <td class="font-mono">{{ n(lgp.rows) }}</td><td class="font-mono">{{ n(kmp.rows) }}</td>
@@ -264,7 +264,7 @@
         <table class="table table-custom table-sm mb-0">
           <thead><tr><th>Model</th><th>Type</th><th>Algorithm</th><th>Trained on</th><th>Train rows</th><th>Genomes</th><th>Genera</th><th>Resistant</th><th>Lab labels</th><th>Split</th><th>AUC, new genomes</th></tr></thead>
           <tbody>
-            {% for m, prof, algo, src in [(lg, lgp, 'lightgbm', 'amr_output files 1 to ' ~ lg.files_used), (km, kmp, 'random_forest', 'mapped_output files 1 to ' ~ km.files_used)] %}
+            {% for m, prof, algo, src in [(lg, lgp, 'lightgbm', 'amr_output files 1 to ' ~ lg.files_used), (km, kmp, 'lightgbm' if km.run_id else 'random_forest', km.source if km.run_id else 'mapped_output files 1 to ' ~ km.files_used)] %}
             <tr>
               <td><span class="text-white fw-600">{{ m.name }}</span><div class="caption-text">{{ m.page }}</div></td>
               <td class="text-nowrap"><span class="flow-dot deployed"></span>Deployed</td>

@@ -10,6 +10,8 @@
   if (!report) return;
   const { config, palette, layout, fmt, pct, legendName } = AMRReport;
   const shipped = report.shipped;
+  /* The /predict model's name, from the report (the old RandomForest has none) */
+  const KM_LABEL = 'Deployed ' + ((shipped && shipped.kmer && shipped.kmer.short_name) || 'K-mer RF');
 
   /* Colour follows the group, never the rank */
   const GROUPS = {
@@ -57,7 +59,7 @@
     if (!shipped || !document.getElementById('seenChart')) return;
     const p = palette();
     const best = report.runs.find(r => r.id === report.best_run);
-    const names = ['Deployed LightGBM', 'Deployed K-mer RF', `Best experiment (${best.id})`];
+    const names = ['Deployed LightGBM', KM_LABEL, `Best experiment (${best.id})`];
     const seen = [shipped.lightgbm.results[0], shipped.kmer.results[0]];
     const unseen = [shipped.lightgbm.results[1], shipped.kmer.results[1],
                     { auc_roc: best.auc_roc, auc_ci: best.auc_ci, rows: best.test_rows }];
@@ -94,7 +96,7 @@
       rows.push({ label: 'Deployed LightGBM', auc: shipped.lightgbm.results[1].auc_roc,
                   ci: shipped.lightgbm.results[1].auc_ci, group: 'shipped',
                   detail: 'backend model, tested on genomes it never saw' });
-      rows.push({ label: 'Deployed K-mer RF', auc: shipped.kmer.results[1].auc_roc,
+      rows.push({ label: KM_LABEL, auc: shipped.kmer.results[1].auc_roc,
                   ci: shipped.kmer.results[1].auc_ci, group: 'shipped',
                   detail: 'backend model, tested on genomes it never saw' });
     }
@@ -189,9 +191,9 @@
     if (shipped) {
       pts.push({ label: 'Deployed LightGBM', me: shipped.lightgbm.results[1].major_error,
                  vme: shipped.lightgbm.results[1].very_major_error, thr: shipped.lightgbm.threshold ?? 0.40, group: 'shipped' });
-      pts.push({ label: 'Deployed K-mer RF', me: shipped.kmer.results[1].major_error,
+      pts.push({ label: KM_LABEL, me: shipped.kmer.results[1].major_error,
                  vme: shipped.kmer.results[1].very_major_error, thr: shipped.kmer.threshold ?? 0.50, group: 'shipped' });
-      LABELLED.add('Deployed LightGBM'); LABELLED.add('Deployed K-mer RF');
+      LABELLED.add('Deployed LightGBM'); LABELLED.add(KM_LABEL);
     }
     const traces = Object.keys(GROUPS).map(key => {
       const g = pts.filter(r => r.group === key);

@@ -19,7 +19,7 @@
           with Machine Learning
         </h1>
         <p class="hero-desc">
-          Two trained ML models: LightGBM gradient boosting and k-mer RandomForest predict
+          Two trained ML models, both LightGBM gradient boosting (one on lab metadata, one on the k-mers of a complete genome), predict
           antimicrobial resistance in bacterial pathogens from {{ metrics.lgbm.train_rows_short }} labelled records.
           A separate biological simulation tool models resistance evolution over time.
         </p>
@@ -37,7 +37,7 @@
         <!-- Model badges row -->
         <div class="d-flex gap-2 flex-wrap mt-4">
           <span class="status-badge trained"><i class="bi bi-check-circle-fill"></i> LightGBM  AUC {{ metrics.lgbm.auc }}</span>
-          <span class="status-badge trained"><i class="bi bi-check-circle-fill"></i> K-mer RF  AUC {{ metrics.kmer.auc }}</span>
+          <span class="status-badge trained"><i class="bi bi-check-circle-fill"></i> Genome k-mers  AUC {{ metrics.kmer.auc }}</span>
           <span class="status-badge simulated"><i class="bi bi-diagram-3"></i> Timeline: Bio-Sim</span>
         </div>
       </div>
@@ -61,7 +61,7 @@
             <div class="hpanel-row">
               <div class="hpanel-icon kmer"><i class="bi bi-dna"></i></div>
               <div class="hpanel-info">
-                <div class="hpanel-name">K-mer RandomForest</div>
+                <div class="hpanel-name">K-mer LightGBM (complete genomes)</div>
                 <div class="hpanel-meta">{{ metrics.kmer.train_rows }} training rows &middot; 256 k-mer features</div>
               </div>
               <div class="hpanel-badge trained">AUC {{ metrics.kmer.auc }}</div>
@@ -273,7 +273,7 @@
           <div class="model-icon kmer-icon"><i class="bi bi-dna"></i></div>
           <div class="flex-grow-1">
             <div class="fw-700 text-white fs-15">Genomic Resistance Prediction</div>
-            <div class="model-subtitle">K-mer Spectrum + RandomForest · Trained on real data</div>
+            <div class="model-subtitle">K-mer Spectrum of the complete genome + LightGBM · Trained on real data</div>
           </div>
           {% if health and health.models and health.models.kmer_resistance %}
             {% if health.models.kmer_resistance.trained %}

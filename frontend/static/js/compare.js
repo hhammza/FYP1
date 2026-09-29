@@ -12,11 +12,12 @@
 
   const tp = report.training_profiles;
   const lg = report.shipped.lightgbm, km = report.shipped.kmer;
+  const KM_LABEL = 'Deployed ' + (km.short_name || 'K-mer RF');
   const run = id => report.runs.find(r => r.id === id);
 
   /* The training sets worth comparing. Colour marks deployed vs experiment. */
   const SETS = [
-    { key: 'deployed_kmer', label: 'Deployed K-mer RF', prof: km.train_profile, deployed: true },
+    { key: 'deployed_kmer', label: KM_LABEL, prof: km.train_profile, deployed: true },
     { key: 'deployed_lgbm', label: 'Deployed LightGBM', prof: lg.train_profile, deployed: true },
     { key: 'LC_50k', label: 'LC_50k (50k sample)', prof: tp.LC_50k },
     { key: 'LC_200k', label: 'LC_200k (200k sample)', prof: tp.LC_200k },
@@ -62,7 +63,7 @@
     const p = palette();
     const models = [
       { label: 'Deployed LightGBM', claimed: lg.claimed_auc, real: lg.results[1].auc_roc },
-      { label: 'Deployed K-mer RF', claimed: km.claimed_auc, real: km.results[1].auc_roc },
+      { label: KM_LABEL, claimed: km.claimed_auc, real: km.results[1].auc_roc },
       ...['A3_logistic', 'A4_random_forest', 'A5_xgboost', 'A5b_catboost', report.best_run]
         .map(run).filter(Boolean)
         .map(r => ({ label: r.id, claimed: r.auc_roc, real: r.auc_roc })),
@@ -103,7 +104,7 @@
       { label: 'A6 lab only', prof: tp.A6_lab_only },
       { label: 'A12 no Klebsiella', prof: tp.A12_species_holdout },
       { label: 'Deployed LightGBM', prof: lg.train_profile },
-      { label: 'Deployed K-mer RF', prof: km.train_profile },
+      { label: KM_LABEL, prof: km.train_profile },
     ].filter(c => c.prof);
     const share = (prof, g) => (prof.genus_rows[g] || 0) / prof.rows;
 
@@ -149,7 +150,7 @@
       { label: report.best_run, prof: tp[report.best_run] },
       { label: 'A6 lab only', prof: tp.A6_lab_only },
       { label: 'Deployed LightGBM', prof: lg.train_profile },
-      { label: 'Deployed K-mer RF', prof: km.train_profile },
+      { label: KM_LABEL, prof: km.train_profile },
     ].filter(s => s.prof);
     const series = [
       { key: 'prevalence', name: 'Resistant rows', color: p.c1 },

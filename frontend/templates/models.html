@@ -48,7 +48,7 @@
     </div></div>
     <div class="flex-fill min-w-130"><div class="stat-mini">
       <div class="stat-mini-value">{{ '%.3f' | format(sh.kmer.results[1].auc_roc) }}</div>
-      <div class="stat-mini-label">Deployed K-mer RF, new genomes</div>
+      <div class="stat-mini-label">Deployed {{ sh.kmer.short_name or 'K-mer RF' }}, new genomes</div>
     </div></div>
     {% endif %}
     <div class="flex-fill min-w-130"><div class="stat-mini">
@@ -258,11 +258,17 @@
             <li>Only knows {{ m.known_genera | length }} genera: {{ m.known_genera | join(', ') }}.</li>
             {% endif %}
             {% if key == 'kmer' %}
+            {% if m.within_antibiotic_auc is defined %}
+            {% if m.run_id %}
+            <li>Within a single antibiotic the lab AUC averages {{ '%.2f' | format(m.within_antibiotic_auc) }}, so the genome itself carries the signal, not just knowing the drug (drug-only baseline {{ '%.2f' | format(m.results[2].auc_roc) if m.results | length > 2 else 'n/a' }}).</li>
+            {% else %}
             <li>Within a single antibiotic the AUC averages {{ '%.2f' | format(m.within_antibiotic_auc) }}, so the genome adds little beyond knowing the drug.</li>
+            {% endif %}
+            {% endif %}
             {% if m.served_fallback_rate %}
             <li class="text-rose2"><i class="bi bi-bug me-1"></i>{{ '%.0f' | format(100 * m.served_fallback_rate) }}% of <code>/predict</code> calls fall back to a heuristic instead of running this model.</li>
             {% else %}
-            <li>Runs on every <code>/predict</code> call: 0% fall back to the heuristic (the scaler bug that used to force it was fixed in Week 1).</li>
+            <li>{% if m.run_id %}Runs on every <code>/predict</code> call; a file under 100,000 bp is refused rather than guessed.{% else %}Runs on every <code>/predict</code> call: 0% fall back to the heuristic (the scaler bug that used to force it was fixed in Week 1).{% endif %}</li>
             {% endif %}
             {% endif %}
           </ul>
