@@ -13,7 +13,8 @@ import pandas as pd
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 CACHE = os.path.join(os.path.dirname(HERE), 'cache')
-CACHES = {'v5': 'clean_v5_amr_output_norm.pkl', 'v6': 'clean_v6_amr_full_norm.pkl'}
+CACHES = {'v5': 'clean_v5_amr_output_norm.pkl', 'v6': 'clean_v6_amr_full_norm.pkl',
+          'v7': 'clean_v7_amr_full_norm.pkl'}
 
 
 def load(version):

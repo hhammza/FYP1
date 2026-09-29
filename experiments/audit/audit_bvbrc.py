@@ -3,9 +3,9 @@
 One command, no network. Reads:
     Data/amr_full/            the complete export (and its manifest.json)
     Data/amr_output/          the April export's download log (.progress.json)
-    experiments/cache/        the cleaned v5 and v6 tables (data_prep.get_clean)
+    experiments/cache/        the cleaned April (v5) and current tables (data_prep.get_clean)
     backend/taxon_species.csv taxon ranks from NCBI
-Writes experiments/audit/results/audit_v6.md and audit_v6.json.
+Writes experiments/audit/results/audit.md and audit.json.
 
 Run from the project root (about 3 minutes):
     .venv/bin/python experiments/audit/audit_bvbrc.py
@@ -29,8 +29,8 @@ from compare_clean_versions import summary as clean_summary  # noqa: E402
 
 FULL = os.path.join(data_prep.data_root(), 'amr_full')
 APRIL_LOG = os.path.join(data_prep.data_root(), 'amr_output', '.progress.json')
-OUT_MD = os.path.join(HERE, 'results', 'audit_v6.md')
-OUT_JSON = os.path.join(HERE, 'results', 'audit_v6.json')
+OUT_MD = os.path.join(HERE, 'results', 'audit.md')
+OUT_JSON = os.path.join(HERE, 'results', 'audit.json')
 PHENOTYPE_MAP = data_prep.PHENOTYPE_MAP
 ALIASES = data_prep.ANTIBIOTIC_ALIASES
 COLUMNS = ['Taxon ID', 'Genome ID', 'Antibiotic', 'Resistant Phenotype', 'Measurement',
@@ -219,12 +219,14 @@ def main():
         'lab_standard': dict(c['lab_standard']), 'lab_year': dict(c['lab_year']),
         'no_label_but_measurement': dict(c['no_label_but_measurement'])}
 
-    print('[audit] cleaned tables v5 and v6 ...')
+    new_version = data_prep.version_of()
+    print(f'[audit] cleaned tables v5 and {new_version} ...')
     v6 = data_prep.get_clean(verbose=False)
     v5 = data_prep.get_clean(source='amr_output', verbose=False)
     s5, s6 = clean_summary(v5), clean_summary(v6)
     key = ['Genome ID', 'Antibiotic']
     both = v5.merge(v6, on=key, suffixes=('_5', '_6'))
+    res['cleaning'] = new_version
     res['v5_v6'] = {
         'v5': {k: float(v) for k, v in s5.items()}, 'v6': {k: float(v) for k, v in s6.items()},
         'v5_genomes_gone': len(set(v5['Genome ID']) - set(v6['Genome ID'])),
@@ -238,7 +240,7 @@ def main():
           f'{manifest["finished"][:16].replace("T", " ")} UTC '
           f'from `{manifest["api"]}` ({n_files} files in `Data/amr_full/`). '
           'Every number below comes from `experiments/audit/audit_bvbrc.py`; '
-          'machine-readable copy in `audit_v6.json`.', '',
+          'machine-readable copy in `audit.json`.', '',
           '## 1. The export', '',
           '| | Lab | Computational | All |', '| --- | --- | --- | --- |',
           f'| Records | {lab_total:,} | {comp_total:,} | {total:,} |',
@@ -272,8 +274,9 @@ def main():
         a = f'{b["april_rows_kept"]:,} ({b["april_status"]})'
         L.append(f'| {tid} *{b["name"]}* | {a} | {b["complete_rows"]:,} |')
     a5, a6 = res['v5_v6']['v5'], res['v5_v6']['v6']
-    L += ['', '**Effect on the cleaned data** (same cleaning code, v5 = April, v6 = complete):', '',
-          '| | v5 | v6 |', '| --- | --- | --- |']
+    L += ['', f'**Effect on the cleaned data** (v5 = April export, {new_version} = complete export; '
+          'the cleaning differs only in v7 treating mm values as no MIC):', '',
+          f'| | v5 | {new_version} |', '| --- | --- | --- |']
     for k in a5:
         f = (lambda v: f'{100 * v:.1f}%') if a5[k] <= 1 else (lambda v: f'{int(v):,}')
         L.append(f'| {k} | {f(a5[k])} | {f(a6[k])} |')
@@ -347,7 +350,7 @@ def main():
           '', 'Pairs whose lab results conflict with each other, or whose computational results '
           'do, are left out of the agreement count.']
 
-    L += ['', '## 8. The cleaned data (v6) by genus, drug class and drug', '']
+    L += ['', f'## 8. The cleaned data ({new_version}) by genus, drug class and drug', '']
     L += table(breakdown(v6, 'genus', 15), 'Genus', italic=True)
     classes = breakdown(v6, 'drug_class', 15)
     L += ['', *table(classes, 'Drug class')]
