@@ -109,6 +109,8 @@ def evaluate_promoted_lgbm(served, seen_sample_genomes=20000, seed=0):
         version = json.load(fh).get('dataset', {}).get('clean_version')
     # The export the run was trained on, not today's default
     df = data_prep.get_clean(source=data_prep.source_of(version), verbose=False)
+    from run import compact
+    df = compact(df, verbose=False)    # v6 is 1.5 GB as strings, 0.4 GB as categories
     df = select_rows(df, cfg.get('data', {}), verbose=False)
     split_cfg = cfg.get('split', {})
     # Split on the frame the run used (species-level taxa if it used them),
@@ -415,6 +417,126 @@ def evaluate_kmer():
     }
 
 
+GENOME_DIR = os.path.join(MODEL_DIR, 'genome')
+
+
+def evaluate_genome_model(seen_sample_genomes=5000, seed=0):
+    """Re-test the complete-genome model /predict serves (promote.py --genome).
+
+    Rebuilds its run's rows and split, scores them with the promoted booster
+    on the run's own features, and reports lab-confirmed rows only:
+    computational labels were predicted from the genome by BV-BRC, so they
+    would flatter a genome model. Same shape as evaluate_kmer(), so /models
+    and /compare read it unchanged.
+    """
+    import lightgbm as lgb
+    from run import attach_genome_features, compact, select_rows
+
+    with open(os.path.join(GENOME_DIR, 'feature_meta.json')) as fh:
+        meta = json.load(fh)
+    with open(os.path.join(GENOME_DIR, 'genome_metrics.json')) as fh:
+        gm = json.load(fh)
+    run_id = meta['run_id']
+    with open(os.path.join(HERE, 'results', run_id, 'metrics.json')) as fh:
+        run_metrics = json.load(fh)
+    cfg = run_metrics['config']
+    print(f'[genome] promoted run {run_id}')
+
+    df = data_prep.get_clean(source=data_prep.source_of(run_metrics['dataset']['clean_version']),
+                             verbose=False)
+    df = compact(df, verbose=False)
+    df = select_rows(df, cfg.get('data', {}), verbose=False)
+    df, _ = attach_genome_features(df, cfg.get('data', {}), cfg.get('features', {}), verbose=False)
+    s = cfg.get('split', {})
+    tr, te = splits.make_split(df, strategy=s.get('strategy', 'grouped'), test_size=s.get('test_size', 0.2),
+                               seed=s.get('seed', 42), verbose=False)
+
+    booster = lgb.Booster(model_file=os.path.join(GENOME_DIR, 'model.txt'))
+    feats = meta['features']
+    levels = meta.get('category_levels', {})
+
+    def score(d):
+        X = d[feats].copy()
+        for col, lv in levels.items():
+            if col in X:
+                X[col] = pd.Categorical(X[col].astype(str), categories=lv)
+        return booster.predict(X)
+
+    thr = float(meta['threshold'])
+    lab = df['is_lab_confirmed'] == 1
+    train_df, test_df = df.loc[tr], df.loc[te]
+    test_lab = df.loc[te & lab]
+    rng = np.random.default_rng(seed)
+    genomes = train_df.loc[train_df['is_lab_confirmed'] == 1, 'Genome ID'].unique()
+    pick = set(rng.choice(genomes, size=min(seen_sample_genomes, len(genomes)), replace=False))
+    seen_lab = train_df[(train_df['is_lab_confirmed'] == 1) & train_df['Genome ID'].isin(pick)]
+
+    test_scores = score(test_lab)
+    # The promoted booster must reproduce the run's own test predictions
+    pred = pd.read_csv(os.path.join(HERE, 'results', run_id, 'predictions.csv'),
+                       dtype={'genome_id': str})
+    check = pd.DataFrame({'genome_id': test_lab['Genome ID'].to_numpy(),
+                          'antibiotic': test_lab['Antibiotic'].to_numpy(), 's': test_scores})
+    check = check.merge(pred, on=['genome_id', 'antibiotic'])
+    reconstruction = {
+        'run_id': run_id, 'split': gm['evaluation']['split'],
+        'lab_test_rows_expected': gm['test']['n'], 'lab_test_rows_rebuilt': int(len(test_lab)),
+        'max_score_difference': round(float((check['s'] - check['y_score']).abs().max()), 8),
+    }
+    print(f'[genome] reconstruction {reconstruction}')
+
+    def summ(name, d, s, roc=False):
+        return summarise(name, d['target'].to_numpy(), s, d['Genome ID'].to_numpy(), thr, roc)
+
+    rows = [
+        summ(f'Genomes it trained on (lab labels, sample of {len(pick):,})', seen_lab, score(seen_lab), roc=True),
+        summ('Genomes it never saw (lab labels)', test_lab, test_scores, roc=True),
+    ]
+    base_path = os.path.join(HERE, 'results', 'B6L_base_drug_v6', 'predictions.csv')
+    if os.path.exists(base_path):
+        base = pd.read_csv(base_path, dtype={'genome_id': str})
+        b = test_lab[['Genome ID', 'Antibiotic', 'target']].merge(
+            base, left_on=['Genome ID', 'Antibiotic'], right_on=['genome_id', 'antibiotic'])
+        if len(b) == len(test_lab):
+            rows.append(summarise('Drug-only baseline, genome ignored (lab labels)',
+                                  b['target'].to_numpy(), b['y_score'].to_numpy(),
+                                  b['Genome ID'].to_numpy(), thr, True))
+    # Within a single antibiotic: does the genome add anything beyond the drug?
+    per = []
+    for ab, g in pd.DataFrame({'ab': test_lab['Antibiotic'].astype(str).to_numpy(),
+                               'y': test_lab['target'].to_numpy(), 's': test_scores}).groupby('ab'):
+        if len(g) >= 50 and g['y'].nunique() == 2:
+            per.append({'antibiotic': ab, 'rows': int(len(g)),
+                        'auc_roc': round(float(roc_auc_score(g['y'], g['s'])), 4)})
+    within = float(np.average([p['auc_roc'] for p in per], weights=[p['rows'] for p in per])) if per else None
+    n_genomes = len(kmers_ids())
+    return {
+        'within_antibiotic_auc': round(within, 4) if within is not None else None,
+        'per_antibiotic': sorted(per, key=lambda p: -p['rows'])[:15],
+        'served_fallback_rate': 0.0,    # the genome predictor has no heuristic fallback
+        'name': 'K-mer LightGBM (complete genomes)', 'short_name': 'K-mer LightGBM',
+        'algorithm': f'LightGBM, {booster.num_trees()} trees, on 4-mers of the complete genome',
+        'page': '/predict', 'run_id': run_id,
+        'artifact': 'backend/trained_models/genome/model.txt',
+        'trees': booster.num_trees(), 'known_antibiotics': len(levels.get('Antibiotic', [])),
+        'train_rows': int(len(train_df)), 'train_genomes': int(train_df['Genome ID'].nunique()),
+        'source': 'genomes_full (complete assemblies) + amr_full (cleaning '
+                  + run_metrics['dataset']['clean_version'] + ')',
+        'files_used': int(train_df['Genome ID'].nunique()), 'files_total': n_genomes,
+        'genomes_with_fasta': n_genomes,
+        'train_profile': profile(train_df),
+        'claimed_auc': gm['test']['auc_roc'], 'split': gm['evaluation']['split'],
+        'threshold': thr, 'headline': 'lab-labelled rows',
+        'reconstruction': reconstruction, 'results': rows,
+    }
+
+
+def kmers_ids():
+    sys.path.insert(0, os.path.join(HERE, 'genome'))
+    import kmers
+    return kmers.load_counts()[0]
+
+
 def kmer_metrics(km):
     """kmer_metrics.json for the served K-mer model, from its unseen-genome re-test.
 
@@ -476,14 +598,27 @@ if __name__ == '__main__':
         if old.get('lightgbm', {}).get('run_id') is None and old.get('lightgbm'):
             previous = old['lightgbm']
 
-    report = {'lightgbm': evaluate_lgbm(), 'kmer': evaluate_kmer()}
+    # Likewise for /predict: keep the old K-mer RandomForest's re-test once a
+    # complete-genome model replaces it
+    previous_kmer = old.get('kmer_previous') if os.path.exists(OUT) else None
+    if os.path.exists(OUT) and old.get('kmer', {}).get('run_id') is None and old.get('kmer'):
+        previous_kmer = old['kmer']
+
+    genome_served = os.path.exists(os.path.join(GENOME_DIR, 'model.txt'))
+    report = {'lightgbm': evaluate_lgbm(),
+              'kmer': evaluate_genome_model() if genome_served else evaluate_kmer()}
     if previous and previous.get('run_id') != report['lightgbm'].get('run_id'):
         report['lightgbm_previous'] = previous
+    if genome_served and previous_kmer:
+        report['kmer_previous'] = previous_kmer
     with open(OUT, 'w') as fh:
         json.dump(report, fh, indent=1)
     print(f'wrote {os.path.relpath(OUT, ROOT)}')
 
-    km_path = os.path.join(MODEL_DIR, 'kmer_metrics.json')
-    with open(km_path, 'w', encoding='utf-8') as fh:
-        json.dump(kmer_metrics(report['kmer']), fh, indent=2)
-    print(f'wrote {os.path.relpath(km_path, ROOT)}')
+    if not genome_served:
+        # The complete-genome model carries genome_metrics.json from promote.py;
+        # kmer_metrics.json describes the old RandomForest only
+        km_path = os.path.join(MODEL_DIR, 'kmer_metrics.json')
+        with open(km_path, 'w', encoding='utf-8') as fh:
+            json.dump(kmer_metrics(report['kmer']), fh, indent=2)
+        print(f'wrote {os.path.relpath(km_path, ROOT)}')
