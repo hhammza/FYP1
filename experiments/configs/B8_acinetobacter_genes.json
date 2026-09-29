@@ -1,0 +1,33 @@
+{
+  "description": "B8: train without Acinetobacter, test only on it (with gene features)",
+  "data": {
+    "source": "amr_output",
+    "genomes": "gene_matrix"
+  },
+  "split": {
+    "strategy": "species_holdout",
+    "holdout_genus": "Acinetobacter"
+  },
+  "features": {
+    "target_encoding": "none",
+    "base": [
+      "Antibiotic",
+      "drug_class"
+    ],
+    "genes": {
+      "raw": true,
+      "min_genomes": 50,
+      "drug_aware": true
+    }
+  },
+  "model": {
+    "type": "lightgbm"
+  },
+  "threshold": {
+    "strategy": "fixed",
+    "fixed": 0.5
+  },
+  "evaluation": {
+    "n_boot": 200
+  }
+}

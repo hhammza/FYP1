@@ -1,0 +1,28 @@
+{
+  "description": "B8: train without Campylobacter, test only on it (without gene features)",
+  "data": {
+    "source": "amr_output",
+    "genomes": "gene_matrix"
+  },
+  "split": {
+    "strategy": "species_holdout",
+    "holdout_genus": "Campylobacter"
+  },
+  "features": {
+    "target_encoding": "none",
+    "base": [
+      "Antibiotic",
+      "drug_class"
+    ]
+  },
+  "model": {
+    "type": "lightgbm"
+  },
+  "threshold": {
+    "strategy": "fixed",
+    "fixed": 0.5
+  },
+  "evaluation": {
+    "n_boot": 200
+  }
+}
