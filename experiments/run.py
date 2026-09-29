@@ -82,6 +82,7 @@ def run(cfg, verbose=True):
         source=dcfg.get('source'),   # None: the current export (data_prep.DEFAULT_SOURCE)
         normalize_antibiotics=dcfg.get('normalize_antibiotics', True),
         verbose=verbose)
+    df = compact(df, verbose)
     df = select_rows(df, dcfg, verbose)
     df = apply_taxon_level(df, dcfg.get('taxon_level', 'strain'), verbose)
     df, genome_features = attach_genome_features(df, dcfg, cfg['features'], verbose)
@@ -262,6 +263,30 @@ def run(cfg, verbose=True):
     print(f'[saved] {os.path.relpath(run_dir, os.path.dirname(HERE))}  '
           f'({payload["runtime_seconds"]:.0f}s)')
     return payload
+
+
+def compact(df, verbose=True):
+    """Same values, less memory: text columns as categories, flags as int8.
+
+    The complete export (v6, 7.8 M rows) takes 1.5 GB with every genome ID and
+    drug name stored as its own string, and training then swaps on an 8 GB
+    machine. As categories it takes about 0.6 GB. Values are unchanged: the
+    grouping, encoding and splitting code sees the same groups, and the model
+    code turns categories back into the same sorted string levels
+    (algorithms.align_categories).
+    """
+    out = df.copy()
+    for col in out.columns:
+        dt = str(out[col].dtype)
+        if dt in ('object', 'str') or dt.startswith('string'):
+            out[col] = out[col].astype('category')
+    for col in ('has_mic', 'is_lab_confirmed', 'target'):
+        if col in out and str(out[col].dtype).startswith('int'):
+            out[col] = out[col].astype(np.int8)
+    if verbose:
+        print(f'[data] compacted: {df.memory_usage(deep=True).sum() / 1e9:.2f} GB '
+              f'→ {out.memory_usage(deep=True).sum() / 1e9:.2f} GB')
+    return out
 
 
 def attach_genome_features(df, data_cfg, feat_cfg, verbose=True):
