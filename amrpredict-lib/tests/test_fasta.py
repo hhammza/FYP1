@@ -119,17 +119,23 @@ def test_timeline_compartments_partition_the_population_early():
         assert total == pytest.approx(100.0, abs=0.5)
 
 
-@pytest.mark.xfail(strict=True, reason=(
-    'Known bug: once susceptible_fraction clamps at 0 the compartments are '
-    'not rebalanced, so the three shares sum above 100% (~106% by week 8). '
-    'The intermediate share is pinned at a constant 25%. Remove this xfail '
-    'when the simulation renormalises.'))
 def test_timeline_compartments_partition_the_population_throughout():
+    """After the susceptible pool is exhausted too (fixed 2026-09-29; the
+    library copy once reached 106% by week 8)."""
     r = amrpredict.simulate_timeline(as_fasta(make_sequence()), 'ciprofloxacin', n_weeks=8)
     for w in r['timeline']:
         total = (w['resistant_fraction'] + w['susceptible_fraction']
                  + w['intermediate_fraction'])
         assert total == pytest.approx(100.0, abs=0.5)
+
+
+def test_timeline_is_repeatable_with_a_seed():
+    """Same FASTA, drug and seed: the same response (mutations and types included)."""
+    fasta = as_fasta(make_sequence())
+    a = amrpredict.simulate_timeline(fasta, 'ciprofloxacin', n_weeks=8, seed=7)
+    b = amrpredict.simulate_timeline(fasta, 'ciprofloxacin', n_weeks=8, seed=7)
+    assert a == b
+    assert a['model_used'] == 'Biological Simulation' and a['simulation'] is True
 
 
 def test_kmer_model_actually_runs():
