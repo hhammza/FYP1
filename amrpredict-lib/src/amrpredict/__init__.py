@@ -71,22 +71,24 @@ def predict_fasta(fasta_text, antibiotic, *, threshold=0.5, model_dir=None):
     return registry.kmer(model_dir).predict(fasta_text, antibiotic, threshold)
 
 
-def simulate_timeline(fasta_text, antibiotic, *, n_weeks=8, model_dir=None):
+def simulate_timeline(fasta_text, antibiotic, *, n_weeks=8, seed=42, model_dir=None):
     """Simulate week-by-week resistance evolution under antibiotic pressure.
 
-    This is a deterministic biological simulation, not a trained model — it
-    carries no AUC or accuracy score. Treat its output as illustrative.
+    This is a biological simulation, not a trained model — it carries no AUC
+    or accuracy score. Treat its output as illustrative. The same inputs and
+    seed give the same output, and the three shares sum to 100 every week.
 
     Args:
         fasta_text: FASTA contents as a string.
         antibiotic: Antibiotic name, case-insensitive.
         n_weeks: Number of weeks to project.
+        seed: Seed for the random parts (mutation counts and types).
         model_dir: Override the bundled artifacts.
 
     Returns:
         dict with a ``weeks`` series, mutation events and gene activations.
     """
-    return registry.timeline(model_dir).predict(fasta_text, antibiotic, n_weeks)
+    return registry.timeline(model_dir).predict(fasta_text, antibiotic, n_weeks, seed=seed)
 
 
 def antibiotics(model_dir=None):
