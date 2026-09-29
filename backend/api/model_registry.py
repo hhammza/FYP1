@@ -21,13 +21,28 @@ def init_models():
     from ml_models.mutation_timeline import MutationTimelinePredictor
 
     _lgbm = LGBMResistancePredictor(model_dir)
-    # /predict serves the complete-genome model once one is promoted
-    # (experiments/promote.py --genome), else the old K-mer RandomForest.
-    from ml_models.genome_predictor import GenomeModelPredictor
-    genome = GenomeModelPredictor(model_dir)
-    _kmer = genome if genome.is_trained else KmerResistancePredictor(model_dir)
+    _kmer = predict_model(model_dir)
     _timeline = MutationTimelinePredictor(model_dir)
     print("[Registry] All models initialized.")
+
+def predict_model(model_dir):
+    """/predict serves the complete-genome model once one is promoted
+    (experiments/promote.py --genome), else the old K-mer RandomForest. A gene
+    model reports is_trained=False until the server runs AMRFinderPlus, so it
+    is never served with guessed gene features."""
+    from ml_models.genome_predictor import GenomeModelPredictor
+    from ml_models.resistance_predictor import KmerResistancePredictor
+    genome = GenomeModelPredictor(model_dir)
+    return genome if genome.is_trained else KmerResistancePredictor(model_dir)
+
+def reload_kmer():
+    """Choose and load the /predict model again, so a model promoted (or
+    removed) while the server runs is picked up whole: which model, its
+    features and its metrics, not just the old model's file."""
+    global _kmer
+    from django.conf import settings
+    _kmer = predict_model(str(settings.TRAINED_MODELS_DIR))
+    return _kmer
 
 def get_lgbm():
     return _lgbm
