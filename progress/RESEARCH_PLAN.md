@@ -2,7 +2,7 @@
 
 **Added:** 2026-09-28 by Ali
 
-**Last updated:** 2026-09-28
+**Last updated:** 2026-09-29
 
 This adds a research track (papers) to the existing plan. Nothing in the weekly plan is dropped: the FYP deliverables (models, website, library, timeline, RL, CTGAN, report) stay as they are in the three trackers. The research tasks sit beside them, and each person's tracker has a row pointing here.
 
@@ -30,7 +30,7 @@ All data comes from BV-BRC, a free public database of bacteria and their test re
 
 ### Data (Ali)
 
-- Cleaned the BV-BRC resistance table: **1,558,494 rows, 131,385 genomes**. Along the way we found and fixed real problems in the data (section 3).
+- Cleaned the BV-BRC resistance table. The first download (April) turned out to hold only 17% of BV-BRC's records, so we downloaded all **17.6 M** again: cleaning v6 has **7,847,110 rows, 439,542 genomes, 649,944 lab rows on 87,325 genomes** (April: 1,558,494 rows, 131,385 genomes). Along the way we found and fixed real problems in the data (section 3).
 - Downloaded the complete DNA of **24,926 genomes**, including **all 22,475 that have a real lab result**. Before this we had only 136 lab-tested genomes.
 - Ran AMRFinderPlus (a US government tool that finds resistance genes) on every genome. The result is a **gene table of 24,926 genomes x 2,733 genes and mutations**.
 - Built the **k-mer file** (`kmer6_counts.npz`): a count of every 6-letter DNA pattern in each genome, for Hamza's models.
@@ -57,14 +57,16 @@ All data comes from BV-BRC, a free public database of bacteria and their test re
 These findings matter more than any single accuracy number, and they are why we can write papers.
 
 1. **The first model looked great but was not.** The model shipped in July scored **0.94** on the genomes it had seen but **0.64** on 128,825 genomes it had not seen. It had trained on only 1.6% of the data, picked in alphabetical file order, and never saw *Klebsiella*, which is 30% of the data.
-2. **The database has hidden errors.**
-   - Genome IDs like `195.304` and `195.3040` look like numbers, and reading them as numbers merged **3,312 genomes into others and dropped 36,850 rows**.
-   - 68 genomes lost a trailing zero in their ID.
-   - The same species appears under hundreds of strain IDs (*E. coli* under about 1,200).
-   - Drug names had duplicates: 152 names became 130 after clean-up.
+2. **Downloading the data is itself a trap.** An ordinary paged download silently lost 83% of the records: no *E. coli*, *S. enterica* or *S. aureus* at species level, *Klebsiella* cut at 500,000 rows. The partial sample made resistance look more common than it is (lab rows 49.5% resistant vs 33.7% in the full data). BV-BRC also changed in between: 996 genomes removed, 1,665 labels changed. Numbers in `experiments/audit/results/audit_v6.md`.
+3. **The database has hidden errors** (complete export, 2026-09-28):
+   - Genome IDs like `195.304` and `195.3040` look like numbers; reading them as numbers merges **16,531 genomes** (32,744 IDs collide; 3,312 in the April data).
+   - 196 spellings of antibiotic names become 126 drugs after clean-up; 10 "drug" names are not drugs (drug classes, `instrument`).
+   - 45% of lab records have a measurement but no resistant or susceptible call; 8,380 lab rows give disk sizes in mm where an MIC is expected; testing standards appear as both "CLSI" and "clsi".
+   - 4,313 genome and drug pairs have conflicting lab results.
    - The first DNA files we downloaded held only about **31% of each genome**.
-3. **Most labels are not real lab results.** About 87% of BV-BRC's "resistant or susceptible" labels were predicted by BV-BRC's own computer model; only 13% are lab tests. A model trained on those partly learns to copy another model.
-4. **The metadata model mostly learns "this species is usually resistant to this drug."** When a whole species is hidden from training, it falls to about 0.60. The DNA models are needed to go beyond that.
+   - A correction: we thought the same species hides under hundreds of strain IDs and that *E. coli* 562 never appears. That was our failed download; in the full export 89% of rows sit under a species ID.
+4. **Most labels are not real lab results.** About 92% of the cleaned labels were predicted by BV-BRC's own models (SIR XGBoost, AdaBoost); only 8% are lab tests. Where both exist, the prediction disagrees with the lab 9.6% of the time, and for daptomycin (lipopeptides) the predictions say 95% resistant against 11% in the lab. A model trained on them partly learns to copy another model.
+5. **The metadata model mostly learns "this species is usually resistant to this drug."** When a whole species is hidden from training, it falls to about 0.60. The DNA models are needed to go beyond that.
 
 ## 4. What the published work already covers
 
@@ -100,8 +102,8 @@ Weeks follow the existing plan (week 4 = 19 to 23 Oct, week 5 = 26 to 30 Oct). W
 
 ### Ali (data)
 
-- [ ] **Audit script** (`experiments/audit/audit_bvbrc.py`), week 4: every data-error count from one command on a pinned export date (IDs merged as numbers, trailing zeros lost, strain vs species taxon IDs, drug-name duplicates, rows without a phenotype, missing MIC and testing standard, lab vs computational share, truncated FASTAs). *Why:* a reviewer must be able to check our numbers.
-- [ ] **Statistics table of the cleaned data**, week 4: rows, genomes, species, drugs and drug classes, resistant share, lab share, by genus; reconcile the 94, 124 and 164 species counts (they measure different things). *Why:* every data paper needs one.
+- [x] **Audit script** (`experiments/audit/audit_bvbrc.py`), week 4 (done 2026-09-29; truncated FASTAs are counted in `experiments/genome/`, not here): every data-error count from one command on a pinned export date (IDs merged as numbers, trailing zeros lost, strain vs species taxon IDs, drug-name duplicates, rows without a phenotype, missing MIC and testing standard, lab vs computational share, truncated FASTAs). *Why:* a reviewer must be able to check our numbers.
+- [x] **Statistics table of the cleaned data** (done 2026-09-29, section 8 of `audit_v6.md`; v6 has 247 species), week 4: rows, genomes, species, drugs and drug classes, resistant share, lab share, by genus; reconcile the 94, 124 and 164 species counts (they measure different things). *Why:* every data paper needs one.
 - [ ] **Prior acknowledgement check**, week 4: BV-BRC release notes, docs and GitHub issues for the ID and taxon problems. *Why:* so we do not claim something they already announced.
 - [ ] **Gene-lookup rule baseline**, week 4: resistant when AMRFinderPlus finds a gene or mutation of the drug's class (`gene_info.csv`), scored on the same lab rows and split as Hamza's B6. *Why:* published work shows this simple rule often wins, so our models must be compared with it.
 - [ ] **Collection year and country** for every genome from the BV-BRC genome API, with a coverage report, week 4. *Why:* needed for the forecasting test in section 8.
@@ -166,4 +168,5 @@ Both depend on how many genomes have a collection year, which Ali's coverage rep
 
 | Date | Who | What |
 | --- | --- | --- |
+| 2026-09-29 | Ali | April export found incomplete; complete export and cleaning v6; audit script and statistics tables done; section 3 findings corrected (taxon claim withdrawn, float-bug count updated) |
 | 2026-09-28 | Ali | Created this plan from the literature review; research rows added to all three trackers; plain-words project overview merged in |
