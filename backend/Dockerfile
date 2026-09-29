@@ -34,5 +34,8 @@ WORKDIR /app/backend
 EXPOSE 8000
 
 # gunicorn, not runserver. Railway sets PORT; locally it defaults to 8000.
-# The timeout leaves room for a slow genome prediction.
-CMD ["sh", "-c", "gunicorn backend.wsgi:application --bind 0.0.0.0:${PORT:-8000} --workers 2 --timeout 120"]
+# The timeout leaves room for a slow genome prediction: a gene model runs
+# AMRFinderPlus on the upload (10-45 s). It stays above the frontend's
+# PREDICT_TIMEOUT (120 s, frontend/app.py), so the page gives up first and
+# shows a message instead of the worker being killed mid-answer.
+CMD ["sh", "-c", "gunicorn backend.wsgi:application --bind 0.0.0.0:${PORT:-8000} --workers 2 --timeout 150"]

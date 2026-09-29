@@ -71,6 +71,13 @@ def backend_get(endpoint, timeout=10):
         return {'error': str(e)}, 500
 
 
+# /predict waits longer than other pages: a gene model runs AMRFinderPlus on
+# the upload, 10-45 s per genome (Ali), on top of reading the genome. Keep it
+# below the backend's gunicorn --timeout (backend/Dockerfile), so the backend
+# gives up after this page does, never before it.
+PREDICT_TIMEOUT = 120
+
+
 def backend_post(endpoint, data=None, files=None, json_data=None, timeout=30, headers=None):
     try:
         url = f'{BACKEND_URL}/{endpoint}'
@@ -84,6 +91,9 @@ def backend_post(endpoint, data=None, files=None, json_data=None, timeout=30, he
         return _parse_response(r)
     except requests.exceptions.ConnectionError:
         return {'error': 'Django backend not running. Start it with: python manage.py runserver'}, 503
+    except requests.exceptions.Timeout:
+        return {'error': f'The backend did not answer within {timeout} seconds. Try again; '
+                         'if it keeps happening, the server is overloaded.'}, 504
     except Exception as e:
         return {'error': str(e)}, 500
 
@@ -248,12 +258,12 @@ def resistance_prediction():
             post_data = {'antibiotic': antibiotic}
             if threshold:
                 post_data['threshold'] = threshold
-            data, status = backend_post('predict/', data=post_data, files=files)
+            data, status = backend_post('predict/', data=post_data, files=files, timeout=PREDICT_TIMEOUT)
         elif fasta_text:
             data, status = backend_post('predict/', json_data={
                 'fasta_text': fasta_text, 'antibiotic': antibiotic,
                 **({'threshold': float(threshold)} if threshold else {}),
-            })
+            }, timeout=PREDICT_TIMEOUT)
         else:
             error = 'Please provide a FASTA file or paste FASTA sequence text.'
             return render_template('resistance_prediction.html', result=result, error=error,
