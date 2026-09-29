@@ -3,4 +3,7 @@ Data/amr_output/amr_taxon_573_Klebsiella_pneumoniae.csv filter=lfs diff=lfs merg
 # Model artifacts must stay byte-exact: LightGBM cannot read a model file
 # whose line endings Git converted (core.autocrlf on Windows).
 backend/trained_models/** -text
+
+# Third-party libraries served by the site: kept byte-exact as published
+frontend/static/vendor/** -text
 amrpredict-lib/src/amrpredict/models/** -text
