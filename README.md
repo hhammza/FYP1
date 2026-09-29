@@ -409,6 +409,10 @@ The model details come from the metrics files on the server, never from the page
 
 **Batch upload** (`/forecast`, "Upload CSV" tab): columns `antibiotic` (required), `genus`, `species`, `taxon_id`, `mic_value`, `mic_sign`; up to 10,000 rows and 2 MB. `POST /api/forecast/batch/` checks every row, predicts the valid ones in one call (the same probabilities as the single form) and returns one result row per input row, with `error` set on the rows it could not use. The page shows the R/S counts, a chart per antibiotic and the first 200 rows; the results CSV has all of them.
 
+### Genome models on /models (Section 5)
+
+Built from `genome_runs` in `model_report.json`, the list of Track B runs that `experiments/export_report.py` writes (format: [progress/formats/README.md §6](progress/formats/README.md#6-genome-runs-for-models)). Only the runs of the newest cleaning version (now v6, 33 runs) with a lab AUC are shown; older versions are history. The section has its own intro saying the scores are on lab results only and on different data from Sections 1–4, a chart of lab AUC by run coloured by kind of split (grouped, lineage, unseen genus), and a table with the lab row count beside every score. The run `/predict` serves (`shipped.kmer.run_id`, now `G_kmer_deploy`) is starred and highlighted. Hidden when the report has no `genome_runs`.
+
 ### Resistance genes on /predict
 
 `templates/_genes_panel.html` shows the `genes_found` list of the `/api/predict/` response (format: [progress/formats/README.md §2](progress/formats/README.md#2-genome-prediction-response)) under the result, in its three states:
@@ -499,6 +503,15 @@ python train_models.py --model lgbm --max-files 500  # seeded random subset of f
 python train_models.py --model lgbm --model-dir /tmp/out   # write somewhere else
 ```
 Windows: `scripts\train_all.bat`. The trainer finds the data in `Data/` itself. With all files, the LightGBM trains in about 4 minutes on 1.56 M rows (cleaning v5); the K-mer model takes about an hour, because it computes GC content row by row. Training writes to `backend/trained_models/candidates/<model>/` (the same place `/api/train/` uses) and never touches the deployed models; a model is served only after `experiments/promote.py`, which also writes its `metrics.json`.
+
+### Docker (backend)
+
+```bash
+docker build -f backend/Dockerfile -t amr-backend .      # from the project root
+docker run -p 8000:8000 -e SECRET_KEY=... -e ALLOWED_HOSTS=localhost -e ADMIN_TOKEN=... amr-backend
+```
+
+The image holds `backend/` only (about 21 MB of code and models, plus AMRFinderPlus from bioconda for the gene model); the root `.dockerignore` keeps `Data/`, `experiments/` and the other folders out. It runs gunicorn on `$PORT` (8000 by default). Training is not available inside it (no `Data/`), so `/api/train/` answers 503 there.
 
 ### Deployment (Railway, two services)
 

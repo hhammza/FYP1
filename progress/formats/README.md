@@ -86,6 +86,8 @@ One file per served model, written **beside the artifact** so the numbers can't 
 
 **How `/predict` shows it** (Suleman, 2026-09-28, `frontend/templates/_genes_panel.html`): absent → one "Not searched" line and no panel; `[]` → "searched, none found"; a list → chips, `relevant` ones first, and a sentence on whether they support the call. If no entry has `relevant`, the genes are one plain list. If the genome model sends no `top_kmers`, the k-mer cards and chart are hidden, so they can be left out. Preview with the sample above at `/predict/sample` on a local run.
 
+**Refusals** (Suleman, 2026-09-29): when the model refuses instead of predicting (the genome model: under 100,000 bp; the old RandomForest: under 100 bp), `/api/predict/` answers **HTTP 400** with `error` (and `sequence_length`), and `/predict` shows the reason. `POST /api/reload/` chooses the `/predict` model again, so a model promoted while the server runs takes over without a restart.
+
 The LightGBM `/api/forecast/` response gains `model_run` (run id), `calibrated` (bool), and `model_used` can now also be `Heuristic fallback`.
 
 ---

@@ -155,6 +155,23 @@ All 23 experiment configs re-run on v5; `D1` and `D2` stay on v3 and v4 as the r
 
 ---
 
+## Genome section, /predict follow-ups and backend image (2026-09-29, Suleman)
+
+On top of Hamza's promotion of `G_kmer_deploy` to `/predict` (his wiring in `model_registry.py` stays).
+
+| File | Change |
+|---|---|
+| [frontend/templates/models.html](frontend/templates/models.html), [static/js/models.js](frontend/static/js/models.js), [static/css/charts.css](frontend/static/css/charts.css) | Section 5 "Genome models, scored on lab results": chart and table of the `genome_runs` list (newest cleaning version, lab AUC with its row count), the served run starred |
+| [backend/api/model_registry.py](backend/api/model_registry.py), [backend/api/views.py](backend/api/views.py) | Hamza's choice of `/predict` model moved into `predict_model()`; `/api/reload/` makes the choice again, so a model promoted while the server runs takes over without a restart. A refused genome (under 100 kb) is a 400 with the reason, not a 200 |
+| [frontend/templates/resistance_prediction.html](frontend/templates/resistance_prediction.html), [frontend/exports.py](frontend/exports.py) | The stats strip reads the served model's metrics (the old model's hand-typed 6,002 pairs, 62 antibiotics and "100 trees (RF)" are gone); hints say complete genomes of at least 100,000 bp; PDF shows "not reported" for a missing GC content |
+| [backend/ml_models/lgbm_predictor.py](backend/ml_models/lgbm_predictor.py) | `Taxon ID` column built as int64 directly: same values, no pandas `FutureWarning` on every forecast |
+| [.dockerignore](.dockerignore), [backend/Dockerfile](backend/Dockerfile) | The backend image gets `backend/` only (not `Data/` or `experiments/`), runs gunicorn on `$PORT` instead of `runserver`, pins scikit-learn 1.6.1 (the version `kmer_resistance_model.pkl` was saved with); AMRFinderPlus stays for the gene model |
+| [backend/tests/test_genome_wiring.py](backend/tests/test_genome_wiring.py), [frontend/tests/test_genome_section.py](frontend/tests/test_genome_section.py), [frontend/tests/test_predict_model.py](frontend/tests/test_predict_model.py) | New: 7, 5 and 3 tests |
+
+The Docker image was not built here (no Docker on the machine); the backend was checked running from a copy of `backend/` alone, in production mode. Documents: [README.md](README.md) (Section 5, Docker).
+
+---
+
 ## Resistance genes on /predict (2026-09-28)
 
 Suleman's Week 3, first part: the UI for the genome model's `genes_found`, built against the agreed sample before the model sends it.
