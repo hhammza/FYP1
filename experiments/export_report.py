@@ -59,6 +59,16 @@ def roc_points(y, s, n=101):
     return {'fpr': grid.round(4).tolist(), 'tpr': np.interp(grid, fpr, tpr).round(4).tolist()}
 
 
+def is_genome_run(run_id):
+    """Track B runs (B*, L_*, B6L_*, B8_*): configs that use genome data."""
+    path = os.path.join(RESULTS, run_id, 'config.snapshot.json')
+    if not os.path.exists(path):
+        return run_id.startswith(('B', 'L_'))
+    cfg = load_json(path)
+    feats = cfg.get('features', {})
+    return bool(cfg.get('data', {}).get('genomes') or feats.get('kmers') or feats.get('genes'))
+
+
 def runs_table():
     reg = pd.read_csv(os.path.join(RESULTS, 'registry.csv'))
     reg = reg.sort_values('finished_at').drop_duplicates('id', keep='last')
@@ -66,7 +76,7 @@ def runs_table():
     # genomes, mostly computational labels), so their AUCs are not comparable
     # with the tabular runs on this page. They stay in RESULTS.md until the
     # page has a genome section of its own.
-    reg = reg[~reg['id'].str.startswith('B')]
+    reg = reg[~reg['id'].map(is_genome_run)]
     out = []
     for r in reg.itertuples():
         cfg = load_json(RESULTS, r.id, 'config.snapshot.json')
