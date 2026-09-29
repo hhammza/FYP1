@@ -278,6 +278,23 @@ def attach_genome_features(df, data_cfg, feat_cfg, verbose=True):
     if not data_cfg.get('genomes') and not kcfg and not gcfg:
         return df, []
     sys.path.insert(0, os.path.join(HERE, 'genome'))
+
+    # data.genomes = "gene_matrix": every genome AMRFinderPlus searched, for
+    # gene-only runs. The k-mer cache can cover fewer genomes (it is built
+    # from the assemblies on this machine), so don't filter by it here.
+    if data_cfg.get('genomes') == 'gene_matrix':
+        if kcfg:
+            raise ValueError('data.genomes = "gene_matrix" is for gene-only runs; '
+                             'use "genomes_full" with k-mers')
+        import genes
+        added = []
+        if gcfg:
+            df, added = genes.attach(df, gcfg, verbose)
+        else:
+            m, _ = genes.load_matrix()
+            df = df[df['Genome ID'].isin(m.index)].reset_index(drop=True)
+        return df, added
+
     import kmers
 
     ids, counts, length, gc = kmers.load_counts()
