@@ -61,32 +61,19 @@ and prediction errors are now `warning` level.
 
 ---
 
+### Timeline compartments could exceed 100% (fixed 2026-09-29)
+
+In `simulate_timeline()` the three population shares stopped partitioning the
+population once the susceptible pool emptied (week 8 summed to 106.08, with
+intermediate pinned at 25.0). The intermediate share is now capped by the
+non-resistant share and susceptible takes the remainder, so every week sums to
+exactly 100. The same fix has been in the backend since 2026-09-26. The strict
+`xfail` on `test_timeline_compartments_partition_the_population_throughout` is
+gone: the test now has to pass. The simulation is also seeded (`seed=42` by
+default), so the same inputs give the same output, and `model_used` is always
+`Biological Simulation`.
+
 ## Open
-
-### Timeline compartments can exceed 100%
-
-**Severity: medium. Open.**
-
-In `simulate_timeline()`, the three population shares stop partitioning the
-population once the susceptible pool empties:
-
-| Week | Resistant | Susceptible | Intermediate | Sum |
-|---|---|---|---|---|
-| 0 | 16.87 | 58.13 | 25.0 | 100.00 |
-| 6 | 69.18 | 5.82 | 25.0 | 100.00 |
-| 7 | 75.98 | 0.00 | 25.0 | **100.98** |
-| 8 | 81.08 | 0.00 | 25.0 | **106.08** |
-
-Susceptible clamps at zero while resistant keeps growing, and the intermediate
-share is pinned at a constant 25.0 and never rebalances.
-
-Fixing it changes published numbers, so it is deliberately left alone and
-recorded instead as a strict `xfail`
-(`test_timeline_compartments_partition_the_population_throughout`). That test
-fails loudly if someone fixes the simulation without removing the marker.
-
-Until then, **do not present weeks past susceptible exhaustion as population
-percentages.**
 
 ### `*_fraction` fields are percentages
 

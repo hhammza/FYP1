@@ -170,7 +170,7 @@ Hamza's genome models (k-mers 0.956, genes 0.981) are tested on only 30 lab-test
 
 - [x] Seed the random parts, so the same inputs give the same output (`predict(..., seed=42)`, one `numpy` generator)
 
-- [ ] Remove the strict `xfail` in `amrpredict-lib/tests/test_fasta.py:122` so the test must pass. *Waits for Hamza: the library has its own copy in `amrpredict-lib/src/amrpredict/timeline.py`; remove the xfail when he syncs the fix (T2.6)*
+- [x] Remove the strict `xfail` in `amrpredict-lib/tests/test_fasta.py:122` so the test must pass. *Done 2026-09-29 with Hamza's OK: the backend fix synced into the library's timeline.py (partition, seed, honest label, calibration); 31 library tests pass* *Waits for Hamza: the library has its own copy in `amrpredict-lib/src/amrpredict/timeline.py`; remove the xfail when he syncs the fix (T2.6)*
 
 - [x] **Sensitivity analysis:** sweep `speed` and `peak` ±30%, plot how `failure_week` moves. *Done 2026-09-28: `experiments/evolution/sensitivity.py`, 8,232 combinations (also weeks asked and GC), checked against the served timeline. Main finding: the midpoint is 0.45 x the weeks asked, so asking for 52 weeks instead of 8 makes the same drug fail 2 to 6 times later; `peak` is a switch at 50% (colistin never fails); speed ±30% moves failure by a median 0.6 weeks. Calibrate a per-drug midpoint and the peak*
 
@@ -271,7 +271,7 @@ Alongside weeks 4 and 5, not instead of them. Why and how: [RESEARCH_PLAN.md](RE
 | Hamza | Full gene matrix | End of week 2 | [x] 2026-09-26, `experiments/genome/features/gene_matrix.parquet` + `gene_info.csv` |
 | Suleman | Canonical antibiotic list for dropdowns | Week 1 | [x] in `SULEMAN_PROGRESS.md` week 1 |
 | Hamza, Suleman | `train_models.py` from the command line no longer writes to the served models: default is `trained_models/candidates/<model>/`, like `/api/train/` | Week 1 | [x] 2026-09-26; checked the served files are byte-identical after a run |
-| Hamza | Timeline fix is in the backend only; the library copy (`amrpredict/timeline.py`) still has the >100% bug. Sync it in T2.6, then remove the strict xfail | Week 4 | [ ] |
+| Hamza | Timeline fix is in the backend only; the library copy (`amrpredict/timeline.py`) still has the >100% bug. Sync it in T2.6, then remove the strict xfail | Week 4 | [x] done by Ali 2026-09-29 at Hamza's request |
 | Hamza | **Hamza's answers (2026-09-29):** (1) **yes**, sync your timeline fix into `amrpredict/timeline.py` yourself and remove the strict xfail; (2) lab AUC on your genomes, cleaning v6, plasmid-only records excluded: **genes (B6) 0.979 [0.977–0.981] on 40,356 lab test rows from 4,481 genomes; the model trained on 24,719 genomes** (about 200,000 lab rows), k-mers 0.935; unseen genus 0.82–0.94 with genes (`experiments/GENOME_RESULTS.md`); (3) Dataset 2 kept; the k-mer genome model is now on `/predict` and Suleman is asked to mark Dataset 2 superseded | Week 3 | [x] |
 | Suleman | Templates still mention CNN-LSTM for the timeline (`mutation_timeline.html:164`, `train.html:142, 147, 154`; `datasets.html` already fixed); the API now says `Biological Simulation` only | Week 2 | [x] in Suleman's tracker 2026-09-26, line numbers updated 2026-09-27; the edit is his |
 | Suleman | Timeline + RL response format | Day 1 | [x] agreed 2026-09-26, `progress/formats/README.md` §4 |

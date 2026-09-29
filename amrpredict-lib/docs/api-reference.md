@@ -107,6 +107,7 @@ Week-by-week resistance evolution under sustained antibiotic pressure.
 | `fasta_text` | `str` | — | FASTA contents |
 | `antibiotic` | `str` | — | Antibiotic name |
 | `n_weeks` | `int` | `8` | Weeks to project |
+| `seed` | `int` | `42` | Seed for the random parts; same inputs and seed, same output |
 | `model_dir` | `str` | `None` | Alternative artifacts |
 
 **Returns** `dict`
@@ -122,6 +123,9 @@ Week-by-week resistance evolution under sustained antibiotic pressure.
 | `antibiotic_class` | `str` | Drug class |
 | `gc_content` | `float` | Percent |
 | `summary` | `str` | Human-readable description |
+| `model_used` | `str` | Always `Biological Simulation` |
+| `simulation`, `seed` | `bool`, `int` | `True`, and the seed used |
+| `calibration` | `dict \| None` | Fit against published curves, from `timeline_calibration.json` |
 
 Each `timeline` entry:
 
@@ -130,12 +134,12 @@ Each `timeline` entry:
 | `week` | `int` | 0-indexed |
 | `resistant_fraction` | `float` | **Percent (0–100)**, despite the name |
 | `susceptible_fraction` | `float` | Percent |
-| `intermediate_fraction` | `float` | Percent — constant at 25.0 |
+| `intermediate_fraction` | `float` | Percent; the three shares sum to 100 every week |
 | `cumulative_mutations` | `int` | Mutations accumulated |
 | `mic_fold_change` | `float` | MIC multiple vs baseline |
 | `treatment_effective` | `bool` | Whether treatment still works |
 
-See [Known issues](known-issues.md) for the naming and the >100% sum.
+See [Known issues](known-issues.md) for why the fraction fields hold percentages.
 
 ---
 

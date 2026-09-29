@@ -167,7 +167,7 @@ All figures on **cleaning v6**, plasmid-only records excluded (`*_v6` runs; the 
 ### T2.6 Library v0.2.0
 - [ ] New models and `metrics.json` in `amrpredict-lib/src/amrpredict/models/`: run `promote.py --library` once the package loader applies calibration and species-level taxa (it doesn't yet)
 - [ ] Library copy of the antibiotic names: read from `backend/amr_constants.py` (or ship a generated copy), like the backend (Ali, `b1b1e67`)
-- [ ] Sync the timeline fix into `amrpredict/timeline.py` (fractions sum to 100, seeded), then remove the strict `xfail` at `amrpredict-lib/tests/test_fasta.py:122`. *Ali is doing this himself (agreed 2026-09-29)*
+- [x] Sync the timeline fix into `amrpredict/timeline.py` (fractions sum to 100, seeded), then remove the strict `xfail` at `amrpredict-lib/tests/test_fasta.py:122`. *Ali is doing this himself (agreed 2026-09-29)* Done by Ali 2026-09-29 at your request: also a `seed` argument on `simulate_timeline()`, `model_used` always Biological Simulation, `calibration` from the bundled `timeline_calibration.json`; 31 tests pass
 - [ ] Backend imports `amrpredict` instead of its own copies in `backend/ml_models/` (agree the switch-over with Suleman, who owns `backend/api/`)
 - [ ] `amrpredict.status()` returns the metrics
 - [ ] Version `0.1.0` → `0.2.0` in `amrpredict-lib/pyproject.toml`; update `docs/` and `known-issues.md`
