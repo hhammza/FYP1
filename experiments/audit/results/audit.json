@@ -1,0 +1,250 @@
+{
+  "manifest": {
+    "api": "https://www.bv-brc.org/api/genome_amr/",
+    "started": "2026-09-28T19:44:54+00:00",
+    "finished": "2026-09-28T20:19:17+00:00",
+    "streams": {
+      "lab": {
+        "rows": 1285111,
+        "expected": 1285111,
+        "finished": "2026-09-28T19:51:06+00:00"
+      },
+      "computational": {
+        "rows": 16300395,
+        "expected": 16300395,
+        "finished": "2026-09-28T20:19:17+00:00"
+      }
+    },
+    "columns": [
+      "Taxon ID",
+      "Genome ID",
+      "Genome Name",
+      "Antibiotic",
+      "Resistant Phenotype",
+      "Measurement",
+      "Measurement Sign",
+      "Measurement Value",
+      "Measurement Unit",
+      "Laboratory Typing Method",
+      "Laboratory Typing Method Version",
+      "Laboratory Typing Platform",
+      "Vendor",
+      "Testing Standard",
+      "Testing Standard Year",
+      "Computational Method",
+      "Computational Method Version",
+      "Computational Method Performance",
+      "Evidence",
+      "Source",
+      "PubMed",
+      "Record ID",
+      "Date Inserted",
+      "Date Modified"
+    ]
+  },
+  "files": 36,
+  "rows": {
+    "computational": 16300395,
+    "lab": 1285111
+  },
+  "ids": {
+    "genome_ids": 449320,
+    "ids_in_collisions": 32744,
+    "ids_lost_to_merging": 16531,
+    "ids_with_trailing_zero": 43596,
+    "example_collision": [
+      "195.304",
+      "195.3040"
+    ]
+  },
+  "taxonomy": {
+    "taxon_ids": 13042,
+    "taxon_ids_species_rank": 442,
+    "taxon_ids_below_species": 12597,
+    "rows_under_species_rank_ids": 15673212,
+    "rows_total": 17585246,
+    "species": 449,
+    "ecoli_taxon_ids": 2423,
+    "ecoli_rows_under_562": 7219003,
+    "ecoli_rows_all_ids": 7466275
+  },
+  "names": {
+    "raw_names": 196,
+    "raw_names_with_labels": 156,
+    "names_after_clean_up": 126,
+    "renamed_names": 31,
+    "renamed_rows": 1234613,
+    "renamed_rows_with_labels": 683730,
+    "dropped_names": 10,
+    "dropped_rows": 45167,
+    "renamed_examples": [
+      "amipicillin_sulbactam",
+      "amoxicillin_clavulanat",
+      "ampicillin_clavulanic_acid",
+      "cefalexin",
+      "cefalothin",
+      "cefalotin",
+      "cefepime_taniborbactam",
+      "cefotaxime/clavulanic acid\u00e2"
+    ],
+    "dropped_examples": [
+      "aminogycosides",
+      "beta-lactam",
+      "carbapenem",
+      "cephalosporin",
+      "extended spectrum beta lactamase",
+      "fluoroquinolones",
+      "instrument",
+      "macrolides"
+    ]
+  },
+  "labels": {
+    "usable_rows": 8922627,
+    "pairs": 7891714,
+    "pairs_with_repeats": 884469,
+    "rows_removed_by_dedup": 1030913,
+    "lab_pairs": 658683,
+    "lab_pairs_repeated": 41389,
+    "lab_pairs_conflicting": 4313,
+    "pairs_with_lab_and_computational": 463429,
+    "computational_agrees_with_lab": 418746,
+    "computational_calls_resistant_susceptible": 25888,
+    "computational_calls_susceptible_resistant": 18795
+  },
+  "april": {
+    "status": {
+      "no_data": 22175,
+      "done": 3655,
+      "error": 597,
+      "partial": 1
+    },
+    "taxa_at_cap": [
+      573
+    ],
+    "big_taxa": {
+      "562": {
+        "name": "Escherichia coli",
+        "april_status": "error",
+        "april_rows_kept": 0,
+        "complete_rows": 7219003
+      },
+      "573": {
+        "name": "Klebsiella pneumoniae",
+        "april_status": "done",
+        "april_rows_kept": 500000,
+        "complete_rows": 1814185
+      },
+      "28901": {
+        "name": "Salmonella enterica",
+        "april_status": "error",
+        "april_rows_kept": 0,
+        "complete_rows": 960834
+      },
+      "1280": {
+        "name": "Staphylococcus aureus",
+        "april_status": "error",
+        "april_rows_kept": 0,
+        "complete_rows": 527038
+      }
+    },
+    "april_rows": 2986755
+  },
+  "phenotype": {
+    "computational|(empty)": 8082677,
+    "computational|Susceptible": 5935627,
+    "computational|Resistant": 2282091,
+    "lab|(empty)": 580202,
+    "lab|Resistant": 218263,
+    "lab|Susceptible": 465198,
+    "lab|Nonsusceptible": 2840,
+    "lab|Intermediate": 18485,
+    "lab|Reduced Susceptibility": 116,
+    "lab|Susceptible-dose dependent": 7
+  },
+  "usable": {
+    "lab": 704909,
+    "computational": 8217718
+  },
+  "methods": {
+    "computational|MIC XGBoost Model|no label": 8082677,
+    "computational|SIR XGBoost Model|label": 7218911,
+    "computational|AdaBoost Classifier|label": 998807,
+    "lab|(none)|no label": 580202,
+    "lab|(none)|label": 704909
+  },
+  "measurements": {
+    "usable_lab_with_mic": 239859,
+    "usable_comp_with_mic": 0,
+    "usable_lab_units": {
+      "mg/L": 227892,
+      "(none)": 468637,
+      "mm": 8380
+    },
+    "lab_standard": {
+      "CLSI": 250190,
+      "(none)": 232793,
+      "CLSI, NARMS": 4398,
+      "EUCAST": 123234,
+      "WHO: Guidelines for Surveillance of Drug Resistance in Tuberculosis": 10805,
+      "NARMS": 5086,
+      "eucast": 9521,
+      "clsi": 31879,
+      "CLSI, EUCAST": 5939,
+      "clsi_non-meningitis": 6743,
+      "Australian Gonococcal Surveillance Programme (AGSP)": 12918,
+      "clsi_meningitis": 5693,
+      "EUCAST, CLSI": 473,
+      "British Society for Antimicrobial Chemotherapy (BSAC)": 1223,
+      "British Society for Antimicrobial Chemotherapy": 757,
+      "CLSI criteria and NARMS breakpoints (described in the NARMS 2012-2013 Integrated Report)": 120,
+      "used breakpoint concentrations set in this publication": 1944,
+      "Australian Gonococcal Surveillance Programme": 470,
+      "CLSI M100": 141,
+      "French Committee for Antimicrobial Susceptibility Testing": 128,
+      "CDC GISP Protocol": 236,
+      "EUCAST and CLSI": 88,
+      "British Society for Antimicrobial Chemotherapy (EUCAST)": 90,
+      "SFM": 30,
+      "NCCLS": 10
+    },
+    "lab_year": {
+      "yes": 314163,
+      "no": 390746
+    },
+    "no_label_but_measurement": {
+      "computational": 8082677,
+      "lab": 580200
+    }
+  },
+  "cleaning": "v7",
+  "v5_v6": {
+    "v5": {
+      "Rows": 1558494.0,
+      "Genomes": 131385.0,
+      "Lab rows": 201042.0,
+      "Lab-tested genomes": 22475.0,
+      "Antibiotics": 130.0,
+      "Genera": 40.0,
+      "Species taxa": 124.0,
+      "Resistant share, all rows": 0.36457246546987027,
+      "Resistant share, lab rows": 0.4950159668129048,
+      "Rows with an MIC": 0.06729894372387703,
+      "Lab share of rows": 0.1289976092304494
+    },
+    "v6": {
+      "Rows": 7847110.0,
+      "Genomes": 439542.0,
+      "Lab rows": 649944.0,
+      "Lab-tested genomes": 87325.0,
+      "Antibiotics": 126.0,
+      "Genera": 40.0,
+      "Species taxa": 247.0,
+      "Resistant share, all rows": 0.2803810574848575,
+      "Resistant share, lab rows": 0.33726136405598023,
+      "Rows with an MIC": 0.027395308591315785,
+      "Lab share of rows": 0.08282590660765556
+    },
+    "v5_genomes_gone": 996,
+    "labels_changed": 1665
+  }
+}

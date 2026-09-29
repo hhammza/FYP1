@@ -22,11 +22,15 @@ import time
 import numpy as np
 import pandas as pd
 
-CLEAN_VERSION = 'v6'  # v2: extended ANTIBIOTIC_ALIASES; v3: species_taxon_id (2026-09-25); v4: 54 drugs added to DRUG_CLASS_MAP (2026-09-26); v5: Genome ID read as text (2026-09-26); v6: the complete BV-BRC export in Data/amr_full/ (2026-09-29)
+CLEAN_VERSION = 'v7'  # v2: extended ANTIBIOTIC_ALIASES; v3: species_taxon_id (2026-09-25); v4: 54 drugs added to DRUG_CLASS_MAP (2026-09-26); v5: Genome ID read as text (2026-09-26); v6: the complete BV-BRC export in Data/amr_full/ (2026-09-29); v7: disk-diffusion zone sizes (mm) are not MICs (2026-09-29)
 # v6: the April export (Data/amr_output/) paged by offset and stopped each
 # taxon at 500,000 rows, so E. coli, S. enterica and S. aureus were missing
 # and K. pneumoniae was cut. Data/amr_full/ holds all 17,585,506 records
 # (scripts/bvbrc_download/download_amr_full.py). The cleaning is unchanged.
+# v7: rows measured in mm are disk-diffusion zone diameters, not MICs, but
+# their number was read as mic_value (8,380 lab rows in the complete export,
+# experiments/audit/results/audit.md). From v7 they keep their label and
+# have no MIC. The April export stays on v5 cleaning so v5 runs rebuild exactly.
 # v5: read as a number, Genome IDs that differ only by trailing zeros
 # (195.304, 195.3040) became one genome; 3,312 genomes merged and the
 # per-genome dedup dropped 36,850 of their rows. The 13 aliases and 'sulfa'
@@ -36,10 +40,9 @@ GENOME_ID_TEXT = {'Genome ID': str}
 # Where the raw export lives, under the data root. amr_output/ is the April
 # export, kept so v5 runs can be reproduced.
 DEFAULT_SOURCE = 'amr_full'
-# The cleaning code is the same for both exports; the version names the data.
-# v1 to v5 all read the April export (v1 to v4 also cleaned it differently, so
-# only v5 runs rebuild exactly).
-EXPORT_VERSIONS = {'amr_output': 'v5', 'amr_full': 'v6'}
+# The version names the export and the cleaning applied to it. v1 to v5 read
+# the April export (only v5 runs rebuild exactly); v6 and v7 the complete one.
+EXPORT_VERSIONS = {'amr_output': 'v5', 'amr_full': 'v7'}
 
 
 def version_of(source=None):
@@ -50,15 +53,12 @@ def version_of(source=None):
 def source_of(version):
     """The export a run on this cleaning version read. Runs recorded before
     versions were recorded predate v5 and read the April export."""
-    try:
-        number = int(str(version).lstrip('v'))
-    except ValueError:
-        return 'amr_output'
+    number = version_number(version)
     return 'amr_output' if number < 6 else DEFAULT_SOURCE
 # The only raw columns clean() reads; loading just these keeps the 5 GB
 # export within a laptop's memory.
 RAW_COLUMNS = ['Taxon ID', 'Genome ID', 'Genome Name', 'Antibiotic', 'Resistant Phenotype',
-               'Measurement', 'Measurement Value', 'Evidence',
+               'Measurement', 'Measurement Value', 'Measurement Unit', 'Evidence',
                'Computational Method Performance']
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -153,8 +153,19 @@ def load_raw(source=None, max_files=None, verbose=True):
     return df
 
 
-def clean(df_raw, normalize_antibiotics=True, verbose=True):
-    """Raw export → modelling table. Vectorised; no per-row apply."""
+def version_number(version):
+    try:
+        return int(str(version).lstrip('v'))
+    except ValueError:
+        return 0
+
+
+def clean(df_raw, normalize_antibiotics=True, verbose=True, version=CLEAN_VERSION):
+    """Raw export → modelling table. Vectorised; no per-row apply.
+
+    `version` switches on the fixes of that cleaning version and later, so an
+    older version's table can still be rebuilt exactly.
+    """
     df = df_raw.copy()
 
     # ── MIC: sign and magnitude ──────────────────────────────────────────
@@ -164,6 +175,13 @@ def clean(df_raw, normalize_antibiotics=True, verbose=True):
     fallback = df['Measurement Value'].astype('string').str.extract(
         r'(\d+\.?\d*)', expand=False).astype('Float64')
     df['mic_value'] = mic.fillna(fallback).astype('float64')
+    if version_number(version) >= 7 and 'Measurement Unit' in df:
+        # Disk diffusion reports a zone diameter in mm, not an MIC
+        zone = df['Measurement Unit'].astype('string').str.strip().str.lower().eq('mm').fillna(False)
+        df.loc[zone.to_numpy(), 'mic_value'] = np.nan
+        df.loc[zone.to_numpy(), 'mic_sign'] = 'unknown'
+        if verbose:
+            print(f'[clean] {int(zone.sum()):,} rows measured in mm (disk diffusion): no MIC')
     df['has_mic'] = df['mic_value'].notna().astype(int)
     df['mic_log'] = np.log1p(df['mic_value'].clip(lower=0))
 
@@ -241,7 +259,8 @@ def get_clean(source=None, normalize_antibiotics=True, max_files=None,
         with open(path, 'rb') as fh:
             return pickle.load(fh)
 
-    df = clean(load_raw(source, max_files, verbose), normalize_antibiotics, verbose)
+    df = clean(load_raw(source, max_files, verbose), normalize_antibiotics, verbose,
+               version=version_of(source))
     if max_files is None:
         with open(path, 'wb') as fh:
             pickle.dump(df, fh, protocol=4)
