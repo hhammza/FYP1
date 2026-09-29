@@ -1,0 +1,37 @@
+{
+  "description": "B1 on the 24,926 genomes : RF on 4-mers + antibiotic + GC/length, genome-grouped [cleaning v6, plasmid-only records (< 500 kb) excluded]",
+  "data": {
+    "genomes": "genomes_full",
+    "min_genome_bp": 500000
+  },
+  "split": {
+    "strategy": "grouped",
+    "test_size": 0.2,
+    "seed": 42
+  },
+  "features": {
+    "target_encoding": "none",
+    "base": [
+      "Antibiotic"
+    ],
+    "kmers": {
+      "k": 4,
+      "extras": true
+    }
+  },
+  "model": {
+    "type": "random_forest",
+    "params": {
+      "n_estimators": 100,
+      "max_depth": 15
+    }
+  },
+  "threshold": {
+    "strategy": "fixed",
+    "fixed": 0.5
+  },
+  "evaluation": {
+    "n_boot": 200
+  },
+  "id": "B1L_kmer4_rf_v6"
+}
