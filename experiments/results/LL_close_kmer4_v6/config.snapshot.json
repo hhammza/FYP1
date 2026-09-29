@@ -1,0 +1,34 @@
+{
+  "description": "Lineage check at scale, close lineages held out: LightGBM on 4-mers [cleaning v6, plasmid-only records (< 500 kb) excluded]",
+  "data": {
+    "genomes": "genomes_full",
+    "min_genome_bp": 500000
+  },
+  "split": {
+    "strategy": "lineage",
+    "lineage_cut": "close",
+    "test_size": 0.2,
+    "seed": 42
+  },
+  "features": {
+    "target_encoding": "none",
+    "base": [
+      "Antibiotic"
+    ],
+    "kmers": {
+      "k": 4,
+      "extras": true
+    }
+  },
+  "model": {
+    "type": "lightgbm"
+  },
+  "threshold": {
+    "strategy": "fixed",
+    "fixed": 0.5
+  },
+  "evaluation": {
+    "n_boot": 200
+  },
+  "id": "LL_close_kmer4_v6"
+}
