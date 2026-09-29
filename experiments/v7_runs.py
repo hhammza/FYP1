@@ -20,7 +20,7 @@ import os
 import subprocess
 import sys
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 CONFIGS = os.path.join(HERE, 'configs')
@@ -117,6 +117,24 @@ def auc(row, key='auc_roc'):
         return '-'
 
 
+def seconds(row):
+    try:
+        return float(row['runtime_seconds'])
+    except (KeyError, TypeError, ValueError):
+        return None
+
+
+def estimates(q, reg):
+    """Expected minutes per v7 run: its v5 runtime times how much slower v7 has
+    been so far (median over finished pairs; 5x, the row ratio, before any)."""
+    ratios = sorted(seconds(reg[f'{b}_v7']) / seconds(reg[b]) for b in q
+                    if f'{b}_v7' in reg and b in reg
+                    and seconds(reg[f'{b}_v7']) and seconds(reg[b]))
+    ratio = ratios[len(ratios) // 2] if ratios else 5.0
+    return ({b: (seconds(reg[b]) * ratio if b in reg and seconds(reg[b]) else 5 * 60) / 60
+             for b in q}, ratio, len(ratios))
+
+
 def watch(every=10):
     try:
         while True:
@@ -126,31 +144,51 @@ def watch(every=10):
             live = running_ids()
             q = queue()
             done = sum(finished(f'{b}_v7') for b in q)
-            out = [f'Experiments on cleaning v7   {datetime.now():%H:%M:%S}   '
-                   f'{done} of {len(q)} done   (Ctrl+C closes this view only)', '',
-                   f'{"Experiment":28s} {"Status":22s} {"v7 AUC":>8s} {"95% CI":>17s} '
-                   f'{"v5 AUC":>8s} {"v7 lab AUC":>10s}', '-' * 98]
+            est, ratio, n_ratio = estimates(q, reg)
+            left_min = 0.0
+            out = [f'{"Experiment":28s} {"Status":22s} {"v7 AUC":>8s} {"95% CI":>17s} '
+                   f'{"v5 AUC":>8s} {"v7 lab AUC":>10s} {"Time":>10s}', '-' * 109]
             for base in q:
                 rid = f'{base}_v7'
                 r7, r5 = reg.get(rid, {}), reg.get(base, {})
+                timing = ''
                 if finished(rid):
                     status = 'done'
+                    if seconds(r7):
+                        timing = f'{seconds(r7) / 60:.0f} min'
                 elif rid in live:
                     t0 = starts.get(rid)
-                    mins = ''
+                    mins, elapsed = '', 0.0
                     if t0:
                         start = datetime.combine(datetime.now().date(),
                                                  datetime.strptime(t0, '%H:%M:%S').time())
-                        mins = f' {max((datetime.now() - start).seconds // 60, 0)} min'
+                        elapsed = max((datetime.now() - start).seconds / 60, 0)
+                        mins = f' {elapsed:.0f} min'
                     status = 'RUNNING' + mins
+                    remaining = max(est[base] - elapsed, 1)
+                    left_min += remaining
+                    timing = f'~{remaining:.0f} left'
                 elif any(l.startswith(f'FAILED {rid}') for l in lines):
                     status = 'FAILED (see log)'
                 else:
                     status = 'waiting'
+                    left_min += est[base]
+                    timing = f'~{est[base]:.0f} min'
                 ci = (f'[{auc(r7, "auc_ci_low")}-{auc(r7, "auc_ci_high")}]'
                       if r7.get('auc_ci_low') else '')
                 out.append(f'{base:28s} {status:22s} {auc(r7):>8s} {ci:>17s} '
-                           f'{auc(r5):>8s} {auc(r7, "auc_roc_lab"):>10s}')
+                           f'{auc(r5):>8s} {auc(r7, "auc_roc_lab"):>10s} {timing:>10s}')
+            finish = datetime.now() + timedelta(minutes=left_min)
+            if done == len(q):
+                eta = 'all done'
+            else:
+                day = f' {finish:%a}' if finish.date() != datetime.now().date() else ''
+                eta = f'about {left_min / 60:.1f} h left, finishing around {finish:%H:%M}{day}'
+            basis = (f'estimate: v5 runtime x {ratio:.1f}, the median of {n_ratio} finished runs'
+                     if n_ratio else 'estimate: v5 runtime x 5 until a run finishes')
+            out = [f'Experiments on cleaning v7   {datetime.now():%H:%M:%S}   '
+                   f'{done} of {len(q)} done   {eta}',
+                   f'({basis}; Ctrl+C closes this view only)', ''] + out
             ps = subprocess.run(['ps', '-axo', 'pcpu,rss,command'], capture_output=True, text=True).stdout
             procs = [l.split(None, 2) for l in ps.splitlines() if 'run.py' in l and 'grep' not in l]
             if procs:
