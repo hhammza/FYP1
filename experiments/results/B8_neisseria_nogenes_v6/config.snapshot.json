@@ -1,0 +1,29 @@
+{
+  "description": "B8: train without Neisseria, test only on it (without gene features) [cleaning v6, plasmid-only records (< 500 kb) excluded]",
+  "data": {
+    "genomes": "gene_matrix",
+    "min_genome_bp": 500000
+  },
+  "split": {
+    "strategy": "species_holdout",
+    "holdout_genus": "Neisseria"
+  },
+  "features": {
+    "target_encoding": "none",
+    "base": [
+      "Antibiotic",
+      "drug_class"
+    ]
+  },
+  "model": {
+    "type": "lightgbm"
+  },
+  "threshold": {
+    "strategy": "fixed",
+    "fixed": 0.5
+  },
+  "evaluation": {
+    "n_boot": 200
+  },
+  "id": "B8_neisseria_nogenes_v6"
+}
