@@ -181,7 +181,8 @@ def _result_rows(page, result, inputs):
                 ['P(resistant)', _pct(result.get('probability'))],
                 ['Threshold used', result.get('threshold')],
                 ['Sequence length', f"{result.get('sequence_length', 0):,} bp"],
-                ['GC content', f"{result.get('gc_content')}%"],
+                ['GC content', f"{result['gc_content']}%" if result.get('gc_content') is not None
+                 else 'not reported by this model'],
                 ['Model used', result.get('model_used')],
                 ['Resistance genes', genes_text(result)]]
     if page == 'timeline':

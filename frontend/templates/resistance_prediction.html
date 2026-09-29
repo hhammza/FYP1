@@ -22,7 +22,7 @@
 {% block content %}
 <div class="container-xl py-4">
 
-  <!-- ── Model Stats Strip ───────────────────────────────────── -->
+  <!-- ── Model Stats Strip (from the served model's metrics file) ── -->
   <div class="d-flex gap-3 flex-wrap mb-4">
     <div class="flex-fill min-w-150">
       <div class="stat-mini">
@@ -38,19 +38,19 @@
     </div>
     <div class="flex-fill min-w-150">
       <div class="stat-mini">
-        <div class="stat-mini-value text-indigo2">100</div>
-        <div class="stat-mini-label">Decision trees (RF)</div>
+        <div class="stat-mini-value text-indigo2">{{ metrics.kmer.threshold or 'n/a' }}</div>
+        <div class="stat-mini-label">Decision threshold (validated)</div>
       </div>
     </div>
     <div class="flex-fill min-w-150">
       <div class="stat-mini">
-        <div class="stat-mini-value text-amber2">6,002</div>
+        <div class="stat-mini-value text-amber2">{{ metrics.kmer.train_rows_short }}</div>
         <div class="stat-mini-label">Training genome-antibiotic pairs</div>
       </div>
     </div>
     <div class="flex-fill min-w-150">
       <div class="stat-mini">
-        <div class="stat-mini-value text-rose2">62</div>
+        <div class="stat-mini-value text-rose2">{{ metrics.kmer.antibiotics }}</div>
         <div class="stat-mini-label">Antibiotics covered</div>
       </div>
     </div>
@@ -68,7 +68,7 @@
           <div class="mb-3">
             <label class="form-label-custom">Antibiotic <span class="required">*</span>
               <i class="bi bi-info-circle text-muted ms-1" data-bs-toggle="tooltip" data-bs-placement="right"
-                 data-bs-title="Select the antibiotic to predict resistance against. Must be one of the 62 antibiotics the K-mer model was trained on."></i>
+                 data-bs-title="Select the antibiotic to predict resistance against. The list holds only the {{ metrics.kmer.antibiotics }} antibiotics the model was trained on."></i>
             </label>
             <select name="antibiotic" class="form-select form-select-custom" required
                     data-populate="antibiotics-kmer" data-selected="{{ form_data.antibiotic }}">
@@ -103,7 +103,7 @@
               <label for="fastaFile" class="btn btn-outline-custom btn-sm mt-1">Browse Files</label>
               <div id="fileName" class="mt-2 text-accent small"></div>
             </div>
-            <div class="form-hint">Accepts .fasta, .fa, .fna formats; max 500K bp analyzed</div>
+            <div class="form-hint">Accepts .fasta, .fa, .fna formats; a complete assembly (at least 100K bp), read in full</div>
           </div>
 
           <div id="textTab" class="tab-content-custom mb-3 d-none">
@@ -319,8 +319,9 @@ GCATGCATGCATGCATGCATGCATGCATGCAT
         <p>Upload a FASTA file or paste a genome sequence to predict antibiotic resistance using 4-mer frequency analysis.</p>
         <div class="alert alert-info-custom mt-3 text-start">
           <i class="bi bi-lightbulb me-2"></i>
-          <strong>Tip:</strong> Use FASTA files from the <code>fasta_output/</code> folder in your dataset directory,
-          or click <strong>Load Sample</strong> in the Paste Sequence tab to test with an <em>E. coli</em> K-12 genome.
+          <strong>Tip:</strong> Upload a complete genome assembly, for example one from <code>Data/genomes_full/</code>.
+          <strong>Load Sample</strong> in the Paste Sequence tab pastes a short <em>E. coli</em> snippet (about 500 bp):
+          the model refuses it, since it reads complete genomes of at least 100,000 bp.
         </div>
         <div class="row g-3 mt-2 text-start">
           <div class="col-md-6">
