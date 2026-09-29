@@ -112,7 +112,7 @@ FYP1/
 │   └── HANDBOOK.md              Full documentation of the training setup
 │
 ├── Data/                        The BV-BRC export (committed, 5 GB)
-│   ├── amr_full/                The complete BV-BRC AMR export, 17.6 M records (not in git; cleaning v6)
+│   ├── amr_full/                The complete BV-BRC AMR export, 17.6 M records (not in git; cleaning v6 and later)
 │   ├── amr_output/              3,655 per-species AMR CSVs from April (incomplete; v1 to v5)
 │   ├── mapped_output/           The same rows joined to FASTA paths
 │   └── fasta_output/            Genome assemblies (4 GB)

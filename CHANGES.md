@@ -18,6 +18,19 @@ Baseline is commit **`52ae361`** *(Add amrpredict library and macOS launcher, 20
 
 ---
 
+## Data audit and cleaning v7 (2026-09-29)
+
+| File | Change |
+|---|---|
+| [audit_bvbrc.py](experiments/audit/audit_bvbrc.py) | New: the data audit for Paper A in one command (no network, about 2 minutes). Results in [audit.md](experiments/audit/results/audit.md) and `audit.json`: 16,531 genomes merge when Genome ID is read as a number; 89% of rows sit under species-rank taxon IDs (the April export's strain-heavy picture came from its failed downloads); computational labels agree with the lab on 90.4% of 463,429 pairs (daptomycin 95.4% vs 10.9% resistant); 580,200 lab records have a measurement but no call |
+| [data_prep.py](experiments/lib/data_prep.py) | Cleaning v7: rows measured in mm (disk diffusion, 8,380 lab rows) no longer count as MICs. Switched on by version, so the April export is still cleaned as v5 and rebuilds identically |
+| [compare_clean_versions.py](experiments/audit/compare_clean_versions.py) | Knows the v7 cache |
+| [RESEARCH_PLAN.md](progress/RESEARCH_PLAN.md) | Section 3 findings updated from the audit; the strain-level taxon claim withdrawn |
+
+Hamza takes `clean_v7_amr_full_norm.pkl` from Drive instead of the v6 file.
+
+---
+
 ## Complete BV-BRC export and cleaning v6 (2026-09-29)
 
 Ali, while checking 597 taxa the April download never finished. The April export (`Data/amr_output/`) held 2,986,755 of the 17,585,506 AMR records BV-BRC has: its downloader paged each taxon by offset and stopped at 500,000 rows, so *E. coli*, *S. enterica* and *S. aureus* were missing at species level and *K. pneumoniae* was cut.
