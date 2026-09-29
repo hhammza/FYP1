@@ -327,6 +327,10 @@ class ResistancePredictionView(View):
                 return json_error('Model not initialized', 503)
 
             result = model.predict(fasta_text, antibiotic, threshold=threshold)
+            if 'error' in result:
+                # the genome model refuses rather than guesses (e.g. a genome
+                # under 100 kb): a 400 with the reason, not a prediction
+                return JsonResponse(result, status=400)
             return JsonResponse(result)
 
         except Exception as e:
@@ -505,15 +509,16 @@ class ReloadModelsView(View):
         if denied:
             return denied
         lgbm = model_registry.get_lgbm()
-        kmer = model_registry.get_kmer()
         timeline = model_registry.get_timeline()
         results = {}
         if lgbm:
             lgbm._load()
             results['lgbm'] = {'trained': lgbm.is_trained}
+        # chosen again, not just re-read: a genome model promoted since start-up takes over /predict
+        kmer = model_registry.reload_kmer()
         if kmer:
-            kmer._load()
-            results['kmer'] = {'trained': kmer.is_trained}
+            results['kmer'] = {'trained': kmer.is_trained,
+                               'run_id': getattr(kmer, 'meta', {}).get('run_id')}
         if timeline:
             timeline._load()
             results['timeline'] = {'trained': timeline.is_trained}
