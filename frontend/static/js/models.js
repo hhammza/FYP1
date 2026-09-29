@@ -250,25 +250,31 @@
 
   /* ── Section 5: genome runs, lab AUC (progress/formats/README.md §6) ── */
   function renderGenomeChart() {
-    const gr = report.genome_runs;
-    if (!gr || !gr.runs || !gr.runs.length || !document.getElementById('genomeChart')) return;
+    /* Same runs as the template: newest cleaning version, lab score present */
+    const all = Array.isArray(report.genome_runs) ? report.genome_runs : [];
+    const version = all.map(r => r.clean_version).sort().pop();
+    const runs = all.filter(r => r.clean_version === version && typeof r.auc_roc_lab === 'number');
+    if (!runs.length || !document.getElementById('genomeChart')) return;
+    const servedId = shipped && shipped.kmer && shipped.kmer.run_id;
     const p = palette();
     const colours = [p.c1, p.c2, p.c3, p.c4, p.c5];
-    const splits = [...new Set(gr.runs.map(r => r.split))];
-    const rows = gr.runs.slice().sort((a, b) => a.auc_roc_lab - b.auc_roc_lab);
+    /* One colour per kind of split, not per held-out genus or lineage cut */
+    const kind = s => String(s || 'other').split(' ')[0];
+    const splits = [...new Set(runs.map(r => kind(r.split)))];
+    const rows = runs.slice().sort((a, b) => a.auc_roc_lab - b.auc_roc_lab);
     const order = rows.map(r => r.id);
     const traces = splits.map((split, i) => {
-      const g = rows.filter(r => r.split === split);
+      const g = rows.filter(r => kind(r.split) === split);
       const ci = g.map(r => r.auc_roc_lab_ci);
       return {
         type: 'scatter', mode: 'markers', name: legendName(split),
         x: g.map(r => r.auc_roc_lab), y: g.map(r => r.id),
-        marker: { color: colours[i % colours.length], size: 10, symbol: g.map(r => r.served ? 'star' : 'circle'),
+        marker: { color: colours[i % colours.length], size: 10, symbol: g.map(r => r.id === servedId ? 'star' : 'circle'),
                   line: { color: p.card, width: 2 } },
         error_x: ci.every(c => c) ? { type: 'data', symmetric: false, color: colours[i % colours.length], thickness: 2, width: 0,
                    array: g.map(r => r.auc_roc_lab_ci[1] - r.auc_roc_lab), arrayminus: g.map(r => r.auc_roc_lab - r.auc_roc_lab_ci[0]) }
                  : { visible: false },
-        customdata: g.map(r => [r.n_lab.toLocaleString(), r.features || '', r.description || '']),
+        customdata: g.map(r => [(r.n_lab || 0).toLocaleString(), (r.features || '') + ', ' + (r.split || ''), r.description || '']),
         hovertemplate: '<b>%{y}</b><br>Lab AUC %{x:.3f} on %{customdata[0]} lab rows<br>%{customdata[1]}'
                      + '<br>%{customdata[2]}<extra></extra>',
       };
@@ -279,7 +285,7 @@
       xaxis: { range: [low, 1.0], title: { text: narrow ? 'Lab AUC (0.5 = guessing)' : 'AUC on lab-tested results (0.5 = guessing)' } },
       yaxis: { categoryorder: 'array', categoryarray: order,
                tickfont: { family: "'JetBrains Mono',monospace", size: narrow ? 9 : 11, color: AMR.plotLayout().tickColor } },
-      margin: { t: 10, r: 16, b: 80, l: narrow ? 120 : 170 },
+      margin: { t: 10, r: 16, b: 80, l: narrow ? 130 : 200 },
       legend: { orientation: 'h', x: 0, xanchor: 'left', y: -50 / (140 + 22 * rows.length) - 0.06, font: { color: p.text2, size: 11 } },
       hovermode: 'closest',
     }), config);
