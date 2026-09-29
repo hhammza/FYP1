@@ -69,6 +69,40 @@ def is_genome_run(run_id):
     return bool(cfg.get('data', {}).get('genomes') or feats.get('kmers') or feats.get('genes'))
 
 
+def genome_runs():
+    """Track B runs for the separate Genome models section of /models
+    (progress/formats/README.md §6). Judged by lab-confirmed rows: BV-BRC's
+    computational labels were predicted from the genome."""
+    reg = pd.read_csv(os.path.join(RESULTS, 'registry.csv'))
+    reg = reg.sort_values('finished_at').drop_duplicates('id', keep='last')
+    out = []
+    for r in reg.itertuples():
+        if not is_genome_run(r.id):
+            continue
+        m = load_json(RESULTS, r.id, 'metrics.json')
+        cfg = m['config']
+        lab = m.get('test_by_label_source', {}).get('lab') or {}
+        feats = cfg.get('features', {})
+        split = cfg.get('split', {})
+        out.append({
+            'id': r.id, 'description': r.description,
+            'clean_version': m['dataset'].get('clean_version'),
+            'model': r.model,
+            'features': ('genes + k-mers' if feats.get('genes') and feats.get('kmers') else
+                         'genes' if feats.get('genes') else 'k-mers' if feats.get('kmers') else
+                         'no genome features'),
+            'split': split.get('strategy', 'grouped') + (f" ({split['lineage_cut']})" if split.get('lineage_cut') else '')
+                     + (f" ({split['holdout_genus']} held out)" if split.get('holdout_genus') else ''),
+            'plasmids_excluded': bool(cfg.get('data', {}).get('min_genome_bp')),
+            'auc_roc': round(float(r.auc_roc), 4),
+            'auc_roc_lab': round(float(lab['auc_roc']), 4) if lab else None,
+            'auc_roc_lab_ci': [round(float(x), 4) for x in lab['auc_roc_ci']] if lab else None,
+            'n_lab': int(lab.get('n', 0)) if lab else 0,
+            'lab_genomes': lab.get('genomes') if lab else None,
+        })
+    return sorted(out, key=lambda x: (x['clean_version'] or '', x['id']))
+
+
 def runs_table():
     reg = pd.read_csv(os.path.join(RESULTS, 'registry.csv'))
     reg = reg.sort_values('finished_at').drop_duplicates('id', keep='last')
@@ -219,6 +253,7 @@ def main():
         'best': best_run_detail(),
         'roc': roc_curves(previous),
         'shipped': shipped,
+        'genome_runs': genome_runs(),
     }
     report['training_profiles'] = training_profiles([r['id'] for r in report['runs']])
     with open(OUT, 'w') as fh:
