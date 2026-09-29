@@ -222,7 +222,7 @@ Alongside weeks 4 and 5, not instead of them. Why and how: [RESEARCH_PLAN.md](RE
 
 - [x] **Complete export and cleaning v6** (found while checking the 597 unfinished April taxa). *Done 2026-09-29: the April export held 2,986,755 of BV-BRC's 17,585,506 records (offset paging, 500,000-row cap). New `download_amr_full.py` fetched all of them (34 min, matches BV-BRC's counts); cleaning v6 = 7,847,110 rows, 649,944 lab rows on 87,325 genomes; species table rebuilt (463 species); runs rebuild on their own export; first audit output is the v5 vs v6 table in experiments/audit/results*
 
-- [x] **Audit script** (`experiments/audit/audit_bvbrc.py`). *Done 2026-09-29 on the complete export: one command, about 2 minutes, results in experiments/audit/results/audit_v6.md and .json*
+- [x] **Audit script** (`experiments/audit/audit_bvbrc.py`). *Done 2026-09-29 on the complete export: one command, about 2 minutes, results in experiments/audit/results/audit.md and .json*
 
   Planned scope: every data-defect count from one command on a pinned export date (IDs merged as numbers, trailing zeros lost, strain vs species taxon IDs, drug-name duplicates, rows without a phenotype, missing MIC and testing standard, lab vs computational share, truncated FASTAs)
 
@@ -276,7 +276,7 @@ Alongside weeks 4 and 5, not instead of them. Why and how: [RESEARCH_PLAN.md](RE
 | Suleman | Timeline + RL response format | Day 1 | [x] agreed 2026-09-26, `progress/formats/README.md` §4 |
 | Hamza, Suleman | **Retiring Dataset 2 (partial FASTAs).** Keep `Data/fasta_output/` and `Data/mapped_output/`: the served K-mer model was trained on them and the report compares partial vs complete genomes (K-mer 0.70 vs 0.90). Once Hamza's genome model is on `/predict`, Suleman labels Dataset 2 "superseded by Dataset 3" on `/datasets`. Rows added to both trackers 2026-09-28 | Week 3 (at deploy) | [~] noted |
 | Suleman | Working RL output | Week 4 | [ ] |
-| Hamza | **Cleaning v6** (complete BV-BRC export): retrain D3 and rerun the quoted configs on it; cleaned table `clean_v6_amr_full_norm.pkl` on the genomes Drive folder. `run.py` already switched (at the team's request) | Week 4 | [x] handed over 2026-09-29, row in Hamza's tracker |
+| Hamza | **Cleaning v6, then v7** (complete BV-BRC export; v7 also stops reading disk-diffusion mm values as MICs): retrain D3 and rerun the quoted configs on it; cleaned table `clean_v7_amr_full_norm.pkl` on the genomes Drive folder (replaces the v6 file). `run.py` already switched (at the team's request) | Week 4 | [x] handed over 2026-09-29, row in Hamza's tracker |
 | Hamza, Suleman | **Research track** ([RESEARCH_PLAN.md](RESEARCH_PLAN.md)): the papers need, from Hamza, B6 to B8 on lab rows, the lineage split scaled and applied to the tabular configs, seeds and significance tests, the D3 calibration plot; from Suleman, the repo-public decision, CI and stale README numbers. Rows added to both trackers 2026-09-28 | Weeks 4 to 5 | [~] noted |
 
 ---
