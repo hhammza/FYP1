@@ -1,0 +1,35 @@
+# Build context for backend/Dockerfile, built from the project root:
+#   docker build -f backend/Dockerfile -t amr-backend .
+# The backend image needs backend/ only. Everything below stays out, most of
+# all Data/ (gigabytes of genomes) and the experiment caches.
+
+.git
+.github
+.venv
+venv
+**/__pycache__
+**/*.pyc
+**/.pytest_cache
+**/.ipynb_checkpoints
+.DS_Store
+.vscode
+.idea
+
+# data and experiments (the served models are in backend/trained_models/)
+Data/
+data/
+experiments/
+report_figures/
+
+# not part of the backend service
+frontend/
+notebooks/
+docs/
+progress/
+scripts/
+amrpredict-lib/
+
+# local-only files inside backend/
+backend/trained_models/candidates/
+backend/db.sqlite3
+backend/tests/
