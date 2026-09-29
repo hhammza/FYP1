@@ -1,0 +1,39 @@
+{
+  "description": "B7 on the 24,926 genomes (v5): genes + 4-mers + antibiotic, drug class, genus",
+  "data": {
+    "source": "amr_output",
+    "genomes": "genomes_full"
+  },
+  "split": {
+    "strategy": "grouped",
+    "test_size": 0.2,
+    "seed": 42
+  },
+  "features": {
+    "target_encoding": "none",
+    "base": [
+      "Antibiotic",
+      "drug_class",
+      "genus"
+    ],
+    "kmers": {
+      "k": 4,
+      "extras": true
+    },
+    "genes": {
+      "raw": true,
+      "min_genomes": 50,
+      "drug_aware": true
+    }
+  },
+  "model": {
+    "type": "lightgbm"
+  },
+  "threshold": {
+    "strategy": "fixed",
+    "fixed": 0.5
+  },
+  "evaluation": {
+    "n_boot": 200
+  }
+}
