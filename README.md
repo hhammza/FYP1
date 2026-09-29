@@ -43,8 +43,8 @@ And **three prediction engines**, of which only two are machine learning:
 
 | Engine | Type | Input | Output | Trained? |
 |---|---|---|---|---|
-| LightGBM forecaster | Gradient-boosted trees | Antibiotic + taxonomy + MIC metadata | Resistant / Susceptible + probability | ✅ 217 trees on disk |
-| K-mer classifier | RandomForest (100 trees) | Genome FASTA + antibiotic | Resistant / Susceptible + probability | ✅ trained, **but see §11.1, the web app never actually runs it** |
+| LightGBM forecaster | Gradient-boosted trees | Antibiotic + taxonomy + MIC metadata | Resistant / Susceptible + probability | ✅ `D4_forecaster_deploy`, cleaning v6, calibrated; AUC 0.774 on unseen genomes (lab rows 0.907) |
+| Genome k-mer model | LightGBM on 4-mers of the complete genome | Genome FASTA + antibiotic | Resistant / Susceptible + probability | ✅ `G_kmer_deploy` (since 2026-09-29), lab AUC 0.935 on unseen genomes; replaced a RandomForest on partial genomes (0.695). A gene model (0.979) follows once AMRFinderPlus runs on the server |
 | Mutation timeline | Logistic-growth simulation | Genome FASTA + antibiotic | Week-by-week resistance curve | ❌ not a model, no AUC, by design |
 
 The honesty about engine 3, labelling it a simulation everywhere in the UI rather than dressing it up as deep learning, is one of the stronger points of the project, and worth defending in a viva rather than hiding.
@@ -60,7 +60,7 @@ The honesty about engine 3, labelling it a simulation everywhere in the UI rathe
 **The three questions the app answers**, one per page:
 
 1. *"I have lab metadata for this isolate, will it resist drug X?"* → `/forecast` → LightGBM
-2. *"I have the genome assembly, will it resist drug X?"* → `/predict` → K-mer RandomForest
+2. *"I have the genome assembly, will it resist drug X?"* → `/predict` → k-mer LightGBM on the complete genome
 3. *"If I treat with drug X, how fast does resistance take over the population?"* → `/timeline` → simulation
 
 ---
@@ -157,7 +157,7 @@ Two things about this shape:
 1. **Browser** - `resistance_prediction.html` posts `antibiotic`, `threshold`, and either `fasta_file` or `fasta_text`. Client-side JS blocks submission if neither is present (`static/js/prediction.js`).
 2. **Flask** (`app.py:115-150`), picks the branch: a file goes to Django as `multipart/form-data`; pasted text goes as JSON. If neither, it returns the page with an error rather than calling the backend.
 3. **Django** (`api/views.py:95-128`), decodes the upload, rejects empty FASTA or empty antibiotic with HTTP 400, then calls the engine.
-4. **Engine** (`ml_models/resistance_predictor.py:145-190`), strips FASTA headers and non-ACGT characters, caps at 500,000 bp, builds a 321-feature vector, asks the RandomForest for `predict_proba`, and applies the threshold.
+4. **Engine** (`ml_models/genome_predictor.py`), reads the whole genome contig by contig, counts 4-mers over A/C/G/T windows only (as in training), adds the antibiotic, GC content and length, asks LightGBM for the probability, and applies the model's threshold (0.43). Genomes under 100,000 bp are refused. (Until 2026-09-29 this was `resistance_predictor.py`: a RandomForest on the first 500,000 bp.)
 5. **Back up**, the dict returns as JSON; Flask puts it in `result` and re-renders the same template, which now draws the probability bar and a Plotly bar chart of the top 20 k-mers.
 
 Every page follows this pattern: **POST to itself, render the result inline.** There is no SPA, no client-side routing, no JSON API consumed by JavaScript except the dropdown lists.
@@ -185,26 +185,21 @@ The target encodings are the interesting part and the most likely viva question.
 
 **Taxon IDs are now species level in the trainer (2026-09-25).** The export's `Taxon ID` is mostly strain level: *E. coli* is spread over about 1,200 IDs and the species ID 562 never appears, so the shipped taxon table never matches what a user types. `backend/taxon_species.csv` (built from NCBI by `experiments/build_taxonomy.py`) maps every ID to its species, and `train_models.py` now trains and builds the taxon table on species IDs: a model retrained this way recognises 562 on `/forecast`. The deployed model still uses strain IDs until it is retrained, and the predictor should map a user's strain ID to its species at the same time (`load_species_map()` in `train_models.py`). The trainer's own random-split AUC falls from 0.825 to 0.805 with species IDs, because strain IDs let it partly recognise individual genomes; a genome-grouped comparison is still to be run.
 
-**Threshold:** default 0.40, not 0.50, tuned toward recall, because a missed resistance call is the costlier error.
+**Threshold:** the served model's own, chosen on validation genomes so that at most 10% of resistant isolates are missed (0.16 for D4, after isotonic calibration), read from `lgbm_metrics.json`. The first version used a fixed 0.40.
 
-**Verified working.** Running the shipped artifacts: `ciprofloxacin`, taxon 562, MIC 4, `>=` → `Susceptible`, p=0.152, and identical on repeat calls (deterministic).
+**Served model (2026-09-29): `D4_forecaster_deploy`**, promoted by `experiments/promote.py`: trained on cleaning v6 (7.85 M rows) with species-level taxa, a monotone MIC effect and isotonic calibration. Deterministic; taxon 562 matches. History and numbers: `experiments/README.md` ("Currently served").
 
-### 4.2 K-mer resistance predictor - `ml_models/resistance_predictor.py`
+### 4.2 Genome k-mer model - `ml_models/genome_predictor.py`
 
-**Input:** FASTA text + antibiotic. **Model:** RandomForest, 100 trees, max_depth 15, `class_weight='balanced'`.
+**Input:** FASTA text (a complete assembly) + antibiotic. **Model:** LightGBM, promoted by `experiments/promote.py <run> --genome` into `backend/trained_models/genome/`; `api/model_registry.py` serves it whenever that folder exists.
 
-**The feature vector (321 dimensions):**
+**Features (259):** 256 4-mer frequencies of the whole genome, counted inside each contig over A/C/G/T windows only (exactly as `experiments/genome/kmers.py` counted them for training), the antibiotic (a native categorical), GC content and genome length. A *k-mer* is a substring of length k; with k = 4 there are 256 possible words, and their frequencies are a fixed-size fingerprint of the genome, with no alignment or reference needed.
 
-```
-[ 256 4-mer frequencies ][ 62 antibiotic one-hot ][ GC, 1-GC, length/500000 ]
-        AAAA … TTTT          the 62 drugs seen in training
-```
+**Served run `G_kmer_deploy`:** trained on 24,719 complete genomes (cleaning v6, plasmid-only records dropped), threshold 0.43 chosen on validation for at most 10% very major error. **Lab AUC 0.935 [0.931–0.939]** on 40,356 lab-confirmed test rows from genomes it never saw. Uploads under 100,000 bp are refused (a partial or plasmid-only file is not a genome).
 
-A *k-mer* is just a substring of length k. With k=4 over {A,T,C,G} there are 4⁴ = 256 possible words; count each one across the genome and divide by the total, and you get a fixed-size fingerprint of the genome's composition regardless of how long it is. That is the whole trick, it turns a variable-length genome into a vector a classifier can eat, without alignment, gene calling or a reference database.
+**Why not the genes?** A gene model on AMRFinderPlus hits scores 0.979 and transfers to unseen genera (0.82–0.94 against 0.46–0.75 without genes), but it needs AMRFinderPlus on every upload (10–45 s), which needs the Docker image. It replaces this model then. All genome results: `experiments/GENOME_RESULTS.md`.
 
-**Preprocessing:** headers dropped, everything lowercased→uppercased and non-ACGT stripped via a 256-char translation table, truncated at 500 kbp. Sequences under 100 bp are rejected with an error rather than a guess.
-
-**⚠️ This engine is broken in the web app.** It loads, reports `trained: True`, and then every prediction silently falls back to a random heuristic. Full detail in §11.1, this is the most important item in this document.
+**The old engine** (`resistance_predictor.py`, a 100-tree RandomForest on the first 500 kb of partial FASTAs) stays as the fallback when no genome model is promoted. Re-tested on genomes outside its training files it scored 0.695, no better than the antibiotic alone; its scaler bug (§11.1) is fixed.
 
 ### 4.3 Mutation timeline - `ml_models/mutation_timeline.py`
 
@@ -524,6 +519,17 @@ Leave `DEBUG` unset in production. Without `SECRET_KEY` or `ALLOWED_HOSTS` the b
 
 There are several AUC figures in circulation in this project. They are not contradictory, they come from different runs on different data, but you should know which is which before a viva.
 
+**Current figures (2026-09-29, cleaning v6).** Quote these; the tables below are the history that led to them.
+
+| Model | Served on | Test | AUC [95% CI] |
+|---|---|---|---|
+| `D4_forecaster_deploy` (LightGBM, metadata + MIC) | `/forecast` | 1.57 M rows of unseen genomes | **0.774** [0.772–0.775]; lab-confirmed rows 0.907 |
+| `G_kmer_deploy` (LightGBM, 4-mers of the complete genome) | `/predict` | 40,356 lab rows, 4,481 unseen genomes | **0.935** [0.931–0.939] |
+| `B6L_genes_v6` (LightGBM, AMRFinderPlus genes) | next on `/predict` | same | **0.979** [0.977–0.981] |
+| `B8_*_v6` (genes, one genus held out) | experiment | 7 genera | 0.82–0.94 with genes, 0.46–0.75 without |
+
+Genome models are judged on lab-confirmed rows (computational labels were predicted from the genome). Details: `experiments/GENOME_RESULTS.md`, `experiments/RESULTS.md`, and the "Currently served" note in `experiments/README.md`.
+
 | Number | Source | What it measures |
 |---|---|---|
 | **0.8881** | `LightGBM_Model_Improved.ipynb`, cell 5 output | Test AUC of the notebook model, 18,166 held-out rows from the single BV-BRC CSV |
@@ -587,7 +593,9 @@ The 48-vs-62 gap means 14 antibiotics the k-mer model was trained on can never b
 
 Each of these was reproduced or read directly in the code today, not inferred.
 
-### 11.1 The K-mer model never runs in the web app 🔴
+### 11.1 The K-mer model never ran in the web app (fixed 2026-09-25; model replaced 2026-09-29)
+
+*Fixed in `resistance_predictor.py` (the scaler now sees only the 256 k-mer columns), and since 2026-09-29 `/predict` serves the complete-genome model (§4.2). Kept below as the record of what went wrong.*
 
 `train_models.py` fits the scaler on the **256 k-mer columns only**. `resistance_predictor.py:158` hands it the **full 321-element vector**:
 

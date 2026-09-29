@@ -31,6 +31,37 @@ Hamza takes `clean_v7_amr_full_norm.pkl` from Drive instead of the v6 file.
 
 ---
 
+## Week 3 on cleaning v6: genome models, a new /predict model and D4 (2026-09-29)
+
+Hamza. Figures on the complete export (v6), as the team agreed; v5 runs stay in the registry as history.
+
+### Served models
+| Page | Model | Result |
+|---|---|---|
+| `/forecast` | `D4_forecaster_deploy` (D3 on v6) | AUC 0.774 [0.772–0.775] on 1.57 M unseen-genome rows, lab rows 0.907; threshold re-picked 0.16 (VME 9.8%, ME 58.4%) because the resistant share fell to 28.0% |
+| `/predict` | `G_kmer_deploy`, LightGBM on 4-mers of the complete genome | lab AUC 0.935 [0.931–0.939]; threshold 0.43 (VME 9.6%, ME 19.5%). Replaces the RandomForest on partial genomes (0.695) |
+
+### Genome experiments (v6, plasmid-only records excluded, 40,356 lab test rows)
+Genes (B6) 0.979, k-mers 0.935, genes + k-mers 0.981 (no real gain), taxonomy 0.849; unseen genus 0.82–0.94 with genes vs 0.46–0.75 without; genes hold 0.965 with broad lineages held out, k-mers 0.900. Tables: [experiments/GENOME_RESULTS.md](experiments/GENOME_RESULTS.md).
+
+### Code
+| File | Change |
+|---|---|
+| `backend/ml_models/genome_predictor.py` | New: serves a promoted genome model; whole genome, k-mers per contig as in training, 100 kb minimum; same response fields as the old predictor |
+| `backend/api/model_registry.py` | `/predict` uses the genome model when `trained_models/genome/` exists, else the old RandomForest |
+| `experiments/promote.py` | `--genome` mode (lab AUC headline, threshold rule recorded); thresholds rounded |
+| `experiments/run.py` | `data.genomes = "gene_matrix"`, `data.min_genome_bp` (plasmid filter), `compact()` (v6 in 0.42 GB instead of 1.5 GB, identical results) |
+| `experiments/genome/lineage.py` | Clusters within each species, so it scales to 24,926 genomes |
+| `experiments/evaluate_shipped.py` | Re-tests the served genome model; keeps the old RandomForest as `kmer_previous`; compacts v6 |
+| `experiments/export_report.py` | Skips every genome run on `/models`; adds `genome_runs` for the Genome models section (formats §6) |
+| Templates (Suleman's, listed in his tracker) | Home, `/predict`, `/about` describe the new model; `/models`, `/compare` read its name from the report |
+| `.gitignore` | Lets `backend/trained_models/genome/` (3.6 MB) be committed |
+
+### Still to come
+The 23 tabular registry configs: Ali re-runs them on cleaning v7 (`*_v7`, `experiments/v7_runs.py`), which supersedes v6, so the v6 re-run here was stopped; `RESULTS.md`, the handbook and the plan take their tables from those runs. Ali's `D3_forecaster_deploy_v7` replaces D4 on `/forecast` when it finishes. The genome runs here stand for v7 too: v7 changes only MIC values, which they do not use. The gene model goes on `/predict` with Suleman's Docker image.
+
+---
+
 ## Complete BV-BRC export and cleaning v6 (2026-09-29)
 
 Ali, while checking 597 taxa the April download never finished. The April export (`Data/amr_output/`) held 2,986,755 of the 17,585,506 AMR records BV-BRC has: its downloader paged each taxon by offset and stopped at 500,000 rows, so *E. coli*, *S. enterica* and *S. aureus* were missing at species level and *K. pneumoniae* was cut.

@@ -123,7 +123,8 @@ comparable result.
 | `threshold.strategy` | `fixed`, `maximize_f1`, `vme_constrained` (+ `vme_budget`: highest threshold whose validation VME fits, i.e. the lowest ME within it) |
 | `calibration.method` | `isotonic` or `platt`. The validation genomes are halved: the calibrator is fitted on one half, the threshold chosen on the other. `metrics.json` gets a `calibration` block with Brier and AUC before and after, and reliability points |
 | `data.label_sources` | `["lab"]`, `["computational"]`, or both |
-| `data.genomes` | `genomes_full`: keep only rows whose genome has a complete assembly (Track B) |
+| `data.genomes` | `genomes_full`: keep only rows whose genome has a k-mer vector (Track B, k-mer runs); `gene_matrix`: rows whose genome AMRFinderPlus searched (gene-only runs, not limited by the local k-mer cache) |
+| `data.min_genome_bp` | drop assemblies shorter than this; `500000` removes the plasmid-only records BV-BRC lists as genomes (`genome_status = Plasmid`, all under 500 kb). Lengths come from the k-mer cache |
 | `features.kmers` | `{"k": 4, "extras": true}`: k-mer frequencies from `experiments/genome/kmers.py`, plus GC and length |
 | `features.genes` | `{"raw": true, "min_genomes": 10, "drug_aware": true}`: gene-matrix features from `experiments/genome/genes.py` |
 | `data.taxon_level` | `strain` (default, the export's own IDs) or `species` (cleaning v3's `species_taxon_id`, which is what a user can type, e.g. 562). Costs about 0.018 AUC (A10 vs A10s) |
@@ -211,8 +212,21 @@ features, and a run not evaluated on a grouped split.
 package loader applies calibration and species-level taxa (T2.6); until then
 it would score the promoted model differently from the web app.
 
-Currently served: **`D3_forecaster_deploy`** (A10 + species taxa + isotonic
-calibration + threshold 0.23 for VME ≤ 10%, cleaning v5), promoted 2026-09-26.
-History: `D1` (v3), then `D2` (v4, 54 drugs moved out of drug class `other`),
-then `D3` (v5, Genome ID read as text so 3,312 merged genomes are separate).
-D1 and D2 keep their original results as a record of what was served.
+**Genome models for `/predict`:** `python experiments/promote.py <run_id> --genome`
+copies a Track B k-mer run into `backend/trained_models/genome/` (model, feature
+meta, `genome_metrics.json` with the **lab** AUC as headline).
+`backend/ml_models/genome_predictor.py` serves it: whole genome, k-mers counted
+per contig exactly as `experiments/genome/kmers.py`, uploads under 100 kb refused.
+`backend/api/model_registry.py` switches `/predict` to it as soon as the folder
+exists, otherwise it keeps the old K-mer RandomForest. `promote.py --genome`
+refuses gene runs (they need AMRFinderPlus at prediction time, which needs the
+Docker image), splits that are not genome- or lineage-grouped, and runs without
+lab test rows. `evaluate_shipped.py` then re-tests it on the run's lab test
+genomes and keeps the old RandomForest's re-test as `kmer_previous`.
+
+Currently served (2026-09-29):
+
+- `/forecast`: **`D4_forecaster_deploy`**: A10 + species taxa + isotonic calibration, trained on **cleaning v6** (the complete export, 7.85 M rows); threshold **0.16** re-picked for VME ≤ 10% (the resistant share fell from 36.5% to 28.0%). All test rows AUC 0.774 [0.772–0.775], lab-confirmed rows 0.907. History: `D1` (v3), `D2` (v4, 54 more drug classes), `D3` (v5, Genome ID as text; 0.804 on the v5 test set), `D4` (v6). The drop from D3 is the data, not the model: v6 adds millions of *E. coli* and *M. tuberculosis* rows, mostly computational labels without an MIC.
+- `/predict`: **`G_kmer_deploy`**: LightGBM on 4-mers of the complete genome, v6, plasmid-only records excluded, threshold 0.43 for VME ≤ 10%; lab AUC **0.935 [0.931–0.939]**. Replaced the K-mer RandomForest (0.695, partial genomes). The gene model (0.979) replaces it once the Docker image with AMRFinderPlus is ready.
+
+D1–D3 keep their original results as a record of what was served.

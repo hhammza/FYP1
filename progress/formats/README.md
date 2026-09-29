@@ -9,6 +9,7 @@ The data that passes between our three areas of work. Proposed by Hamza on 2026-
 | [3. Gene matrix](#3-gene-matrix) | Ali → Hamza | `experiments/genome/features/gene_matrix.parquet` + `gene_info.csv` |
 | [4. Timeline + RL response](#4-timeline--rl-response) | Ali → Suleman | `POST /api/timeline/` JSON |
 | [5. Batch forecast CSV](#5-batch-forecast-csv) | user → Suleman → Hamza's model | upload to `POST /api/forecast/batch/`, JSON back |
+| [6. Genome runs for /models](#6-genome-runs-for-models) | Hamza → Suleman | `genome_runs` in `backend/trained_models/model_report.json` |
 
 Samples: [`lgbm_metrics.sample.json`](lgbm_metrics.sample.json), [`genome_response.sample.json`](genome_response.sample.json), [`timeline_response.sample.json`](timeline_response.sample.json).
 
@@ -22,6 +23,7 @@ One file per served model, written **beside the artifact** so the numbers can't 
 |---|---|---|
 | LightGBM forecaster (`/forecast`) | `backend/trained_models/lgbm_metrics.json` | `experiments/promote.py <run_id>` |
 | K-mer RandomForest (`/predict`) | `backend/trained_models/kmer_metrics.json` | `experiments/evaluate_shipped.py` |
+| **Complete-genome k-mer LightGBM (`/predict`, since 2026-09-29)** | `backend/trained_models/genome/genome_metrics.json` (headline = lab AUC) | `experiments/promote.py <run> --genome` |
 
 **How the UI gets it:** `GET /api/health/` → `models.lgbm_forecasting.metrics` and `models.kmer_resistance.metrics` hold the file's contents unchanged (`null` if the file is missing, so show "not measured" rather than a number). `default_threshold` sits beside it.
 
@@ -233,3 +235,28 @@ Valid rows are predicted in **one** `predict_frame()` call, so a row gets the sa
 Errors about the whole file (no `antibiotic` column, not UTF-8, no rows, too many rows, too large) come back as `{"error": "..."}` with 400 or 413 instead.
 
 **Results CSV** (`/export/batch.csv`): columns `row, antibiotic, genus, species, taxon_id, mic_value, mic_sign, prediction, probability_resistant, error`; a cell that would start a spreadsheet formula gets a leading apostrophe.
+
+---
+
+## 6. Genome runs for /models
+
+*Requested by Suleman (2026-09-28) for the Genome models section; written by Hamza 2026-09-29. Suleman: edit this section if the page needs more.*
+
+`experiments/export_report.py` writes `genome_runs` into `backend/trained_models/model_report.json` (served by `GET /api/models/`): every Track B run, kept out of `runs` because its dataset and labels differ from the tabular runs. Sorted by `clean_version`, then `id`.
+
+| Field | Type | Meaning |
+|---|---|---|
+| `id` | string | Run id (`experiments/results/<id>/`) |
+| `description` | string | One line from the config |
+| `clean_version` | string | `v5` or `v6`. **Show the v6 runs** (the current figures, `*_v6`); older runs are history |
+| `model` | string | `lightgbm` or `random_forest` |
+| `features` | string | `genes`, `k-mers`, `genes + k-mers`, or `no genome features` (a baseline on the same rows) |
+| `split` | string | `grouped`, `lineage (clone|close|broad|species)`, or `species_holdout (<Genus> held out)` |
+| `plasmids_excluded` | bool | `true` for the current runs (plasmid-only records dropped) |
+| `auc_roc` | number | All test rows. Partly circular for genome features: show it small, or not at all |
+| `auc_roc_lab`, `auc_roc_lab_ci` | number, `[lo, hi]` | **The headline**: lab-confirmed test rows, 95% CI resampling genomes (or lineages under the lineage split) |
+| `n_lab`, `lab_genomes` | int | Lab test rows and genomes behind `auc_roc_lab`; always show `n_lab` |
+
+Suggested grouping on the page: the B6 table (`B6L_*_v6`, `B4L_*_v6`, `B1L_*_v6`, `B7L_*_v6`), the unseen-genus table (`B8_*_v6`, genes vs no genes per genus), the lineage table (`LL_*_v6`). The same tables, with commentary, are in `experiments/GENOME_RESULTS.md`.
+
+The model `/predict` serves is not in this list twice: its re-test is `shipped.kmer` (as for the old model), and its metrics file is `backend/trained_models/genome/genome_metrics.json` (format §1), which `/api/health/` returns as `models.kmer_resistance.metrics`.
