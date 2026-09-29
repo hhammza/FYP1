@@ -152,6 +152,9 @@ class GenomeModelPredictor:
         prob = float(self.model.predict(X)[0])
         ab = normalize_antibiotic(antibiotic)
         known = ab in self.levels.get('Antibiotic', {})
+        kmer_cols = [c for c in self.features if c.startswith(f'k{self.k}_')]
+        freq = X[kmer_cols].iloc[0]
+        top = freq.sort_values(ascending=False).head(10)
         return {
             'prediction': 'Resistant' if prob >= threshold else 'Susceptible',
             'probability': round(prob, 4),
@@ -159,16 +162,29 @@ class GenomeModelPredictor:
             'antibiotic': ab,
             'antibiotic_known': known,
             'sequence_length': length,
+            # Same fields as the old K-mer predictor, so /predict's page and
+            # charts work unchanged
+            'gc_content': round(float(X['genome_gc'].iloc[0]) * 100, 2) if 'genome_gc' in X else None,
+            'top_kmers': [{'kmer': c.split('_', 1)[1], 'frequency': round(float(v), 5)}
+                          for c, v in top.items()],
             'threshold': threshold,
             'model_used': f"LightGBM on {self.k}-mers ({self.meta.get('run_id')})",
         }
+
+    @property
+    def ab_list(self):
+        """Antibiotics the model was trained on (the /predict dropdown)."""
+        return sorted(self.levels.get('Antibiotic', {}).values())
 
     @property
     def status(self):
         return {
             'trained': self.is_trained,
             'model_type': f'LightGBM on {getattr(self, "k", 4)}-mer frequencies of the complete genome',
+            'description': 'Predicts resistance from a complete genome assembly (FASTA)',
             'run_id': self.meta.get('run_id'),
+            'antibiotics_known': len(self.ab_list),
+            'feature_dim': len(getattr(self, 'features', [])),
             'needs_amrfinder': getattr(self, 'uses_genes', False),
             'default_threshold': self.threshold,
             'metrics': self.metrics,
