@@ -1,0 +1,34 @@
+{
+  "description": "Genes and drug-aware features + antibiotic and drug class only, no genus: does the gene signal stand alone?",
+  "data": {
+    "source": "amr_output",
+    "genomes": "gene_matrix"
+  },
+  "split": {
+    "strategy": "grouped",
+    "test_size": 0.2,
+    "seed": 42
+  },
+  "features": {
+    "target_encoding": "none",
+    "base": [
+      "Antibiotic",
+      "drug_class"
+    ],
+    "genes": {
+      "raw": true,
+      "min_genomes": 50,
+      "drug_aware": true
+    }
+  },
+  "model": {
+    "type": "lightgbm"
+  },
+  "threshold": {
+    "strategy": "fixed",
+    "fixed": 0.5
+  },
+  "evaluation": {
+    "n_boot": 200
+  }
+}
