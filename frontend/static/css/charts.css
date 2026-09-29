@@ -121,6 +121,9 @@
 /* ── MODEL REPORT (/models) ─────────────────────────────────── */
 .report-chart { width: 100%; }
 .report-best-row td { background: var(--primary-dim) !important; }
+/* genome runs on /models: the description needs room; the table scrolls on narrow screens */
+.genome-runs-table td:nth-child(3) { min-width: 240px; }
+.genome-runs-table td:nth-child(1), .genome-runs-table td:nth-child(4) { white-space: nowrap; }
 
 .split-bar { display: flex; gap: 2px; height: 46px; border-radius: var(--r-sm); overflow: hidden; }
 .split-seg {

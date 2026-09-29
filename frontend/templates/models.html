@@ -391,6 +391,74 @@
     </div>
   </div>
 
+  {#- Section 5: genome models, only once export_report.py writes genome_runs
+      (progress/formats/README.md §6). Their data and labels differ from
+      Sections 1-4, so they get their own section and are never mixed in. -#}
+  {% set gr = report.genome_runs %}
+  {% if gr and gr.runs %}
+  <div class="mb-5" id="genome">
+    <div class="sec-eyebrow">Section 5</div>
+    <h2 class="sec-title">Genome models, scored on lab results</h2>
+    {% if gr.preview %}
+    <div class="alert alert-warning-custom mb-3" role="status">
+      <i class="bi bi-eye me-2"></i><strong>Preview with sample data, not the published report.</strong>
+      This is <code>progress/formats/genome_runs.sample.json</code>; these numbers are not ready to quote.
+    </div>
+    {% endif %}
+    <p class="sec-sub mb-4">
+      These models read the genome itself (resistance genes, k-mers, or both){% if gr.lab_genomes %}, trained and
+      tested on {{ '{:,}'.format(gr.genomes) }} complete genomes, {{ '{:,}'.format(gr.lab_genomes) }} of them with a
+      lab result{% endif %}. Every score here is on <strong>lab-tested results only</strong>, from genomes the model
+      never saw. The data and labels differ from Sections 1 to 4, so compare these scores with each other, not with the forecaster.
+    </p>
+    {% set served = gr.runs | selectattr('served') | list %}
+    <div class="row g-4 mb-4">
+      <div class="col-lg-8">
+        <div class="glass-card h-100">
+          <h6 class="card-section-title mb-1"><i class="bi bi-dna text-accent me-2"></i>Lab AUC by run</h6>
+          <p class="small text-muted mb-2">Each dot is one run; the colour is how its test genomes were held out.</p>
+          <div id="genomeChart" class="report-chart" style="height:{{ 140 + 22 * (gr.runs | length) }}px"></div>
+        </div>
+      </div>
+      <div class="col-lg-4">
+        <div class="info-card h-100">
+          <h6 class="card-section-title"><i class="bi bi-info-circle text-accent me-2"></i>Reading these scores</h6>
+          <ul class="small mb-0 ps-3">
+            <li class="mb-2"><strong>Lab AUC</strong> uses only rows with a real lab result. BV-BRC's computer-predicted
+              labels were made from the genome itself, so scoring on them would reward copying.</li>
+            <li class="mb-2"><strong>Split</strong>: <em>grouped</em> keeps each genome on one side; <em>lineage</em> also keeps
+              near-identical isolates together, so outbreak clones cannot leak.</li>
+            <li class="mb-2"><strong>Lab rows</strong> is how many results each score rests on.</li>
+            <li>{% if served %}Served on <a href="/predict">/predict</a>: <code>{{ served[0].id }}</code>.
+              {% else %}None of these is served yet; <a href="/predict">/predict</a> still uses the k-mer model in Section 2.{% endif %}</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="info-card">
+      <h6 class="card-section-title"><i class="bi bi-table text-accent me-2"></i>All genome runs</h6>
+      <div class="table-responsive">
+        <table class="table table-custom table-sm mb-0 genome-runs-table">
+          <thead><tr><th>Run</th><th>Reads</th><th>What it tests</th><th>Split</th><th>Lab AUC</th><th>Lab rows</th></tr></thead>
+          <tbody>
+          {% for r in gr.runs | sort(attribute='auc_roc_lab', reverse=true) %}
+            <tr{% if r.served %} class="report-best-row"{% endif %}>
+              <td class="font-mono small">{{ r.id }}{% if r.served %} <span class="status-badge trained ms-1">Served</span>{% endif %}</td>
+              <td class="small">{{ r.features or '' }}</td>
+              <td class="small text-muted">{{ r.description }}</td>
+              <td class="small">{{ r.split }}</td>
+              <td class="font-mono">{{ '%.3f' | format(r.auc_roc_lab) }}{% if r.auc_roc_lab_ci %}
+                <span class="text-muted small">[{{ '%.3f' | format(r.auc_roc_lab_ci[0]) }}–{{ '%.3f' | format(r.auc_roc_lab_ci[1]) }}]</span>{% endif %}</td>
+              <td class="font-mono small">{{ '{:,}'.format(r.n_lab) }}</td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
   <div class="glass-card">
     <h6 class="card-section-title"><i class="bi bi-arrow-repeat text-accent me-2"></i>Updating this page</h6>
     <p class="small text-muted">This page reads <code>backend/trained_models/model_report.json</code>, generated {{ report.generated_at[:10] }}. After new experiments or retraining, rebuild it:</p>

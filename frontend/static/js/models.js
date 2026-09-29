@@ -248,7 +248,45 @@
     }), config);
   }
 
+  /* ── Section 5: genome runs, lab AUC (progress/formats/README.md §6) ── */
+  function renderGenomeChart() {
+    const gr = report.genome_runs;
+    if (!gr || !gr.runs || !gr.runs.length || !document.getElementById('genomeChart')) return;
+    const p = palette();
+    const colours = [p.c1, p.c2, p.c3, p.c4, p.c5];
+    const splits = [...new Set(gr.runs.map(r => r.split))];
+    const rows = gr.runs.slice().sort((a, b) => a.auc_roc_lab - b.auc_roc_lab);
+    const order = rows.map(r => r.id);
+    const traces = splits.map((split, i) => {
+      const g = rows.filter(r => r.split === split);
+      const ci = g.map(r => r.auc_roc_lab_ci);
+      return {
+        type: 'scatter', mode: 'markers', name: legendName(split),
+        x: g.map(r => r.auc_roc_lab), y: g.map(r => r.id),
+        marker: { color: colours[i % colours.length], size: 10, symbol: g.map(r => r.served ? 'star' : 'circle'),
+                  line: { color: p.card, width: 2 } },
+        error_x: ci.every(c => c) ? { type: 'data', symmetric: false, color: colours[i % colours.length], thickness: 2, width: 0,
+                   array: g.map(r => r.auc_roc_lab_ci[1] - r.auc_roc_lab), arrayminus: g.map(r => r.auc_roc_lab - r.auc_roc_lab_ci[0]) }
+                 : { visible: false },
+        customdata: g.map(r => [r.n_lab.toLocaleString(), r.features || '', r.description || '']),
+        hovertemplate: '<b>%{y}</b><br>Lab AUC %{x:.3f} on %{customdata[0]} lab rows<br>%{customdata[1]}'
+                     + '<br>%{customdata[2]}<extra></extra>',
+      };
+    });
+    const narrow = window.innerWidth < 576;
+    const low = Math.min(0.5, Math.floor((Math.min(...rows.map(r => r.auc_roc_lab)) - 0.03) * 20) / 20);
+    Plotly.react('genomeChart', traces, layout({
+      xaxis: { range: [low, 1.0], title: { text: narrow ? 'Lab AUC (0.5 = guessing)' : 'AUC on lab-tested results (0.5 = guessing)' } },
+      yaxis: { categoryorder: 'array', categoryarray: order,
+               tickfont: { family: "'JetBrains Mono',monospace", size: narrow ? 9 : 11, color: AMR.plotLayout().tickColor } },
+      margin: { t: 10, r: 16, b: 80, l: narrow ? 120 : 170 },
+      legend: { orientation: 'h', x: 0, xanchor: 'left', y: -50 / (140 + 22 * rows.length) - 0.06, font: { color: p.text2, size: 11 } },
+      hovermode: 'closest',
+    }), config);
+  }
+
   function renderAll() {
+    renderGenomeChart();
     renderSeenChart();
     renderAucChart();
     renderRocChart();
