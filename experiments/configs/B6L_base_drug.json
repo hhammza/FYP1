@@ -1,0 +1,28 @@
+{
+  "description": "Lab-tested genome set (v5, 24,844 genomes): antibiotic only",
+  "data": {
+    "source": "amr_output",
+    "genomes": "gene_matrix"
+  },
+  "split": {
+    "strategy": "grouped",
+    "test_size": 0.2,
+    "seed": 42
+  },
+  "features": {
+    "target_encoding": "none",
+    "base": [
+      "Antibiotic"
+    ]
+  },
+  "model": {
+    "type": "lightgbm"
+  },
+  "threshold": {
+    "strategy": "fixed",
+    "fixed": 0.5
+  },
+  "evaluation": {
+    "n_boot": 200
+  }
+}
