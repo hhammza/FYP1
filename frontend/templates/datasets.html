@@ -74,11 +74,12 @@
           </tr>
           <tr>
             <td><span class="step-num step-emerald">2</span></td>
-            <td class="fw-600 text-white"><a href="#ds-fasta">Genome Sequences (partial FASTA)</a></td>
+            <td class="fw-600 text-white"><a href="#ds-fasta">Genome Sequences (partial FASTA)</a>
+              <span class="status-badge simulated ms-1">Superseded</span></td>
             <td class="font-mono text-accent small">fasta_output/</td>
             <td>2,587 files · 4.0 GB</td>
             <td class="small">NCBI GenBank</td>
-            <td><span class="status-badge trained status-badge-emerald">K-mer RF</span></td>
+            <td><span class="status-badge simulated">Original K-mer RF (retired)</span></td>
           </tr>
           <tr>
             <td><span class="step-num step-amber">3</span></td>
@@ -86,7 +87,8 @@
             <td class="font-mono text-accent small">genomes_full/</td>
             <td>24,926 genomes · 102.5 billion bp</td>
             <td class="small">BV-BRC</td>
-            <td><span class="status-badge trained status-badge-emerald">AMRFinderPlus</span></td>
+            <td><span class="status-badge trained status-badge-emerald">K-mer LightGBM</span>
+              <span class="status-badge trained status-badge-emerald ms-1">AMRFinderPlus</span></td>
           </tr>
           <tr>
             <td><span class="step-num step-rose">4</span></td>
@@ -123,7 +125,7 @@
             <td class="fw-600 text-white"><a href="#ds-mapped">Mapped AMR Records</a></td>
             <td class="font-mono text-accent small">mapped_output/</td>
             <td class="small">Dataset 1 rows joined to Dataset 2 files</td>
-            <td><span class="status-badge trained status-badge-emerald">K-mer RF</span></td>
+            <td><span class="status-badge simulated">Original K-mer RF (retired)</span></td>
           </tr>
           <tr>
             <td class="fw-600 text-white"><a href="/genes">Gene Matrix</a></td>
@@ -292,6 +294,12 @@
       </div>
     </div>
 
+    <div class="alert alert-warning-custom mb-4" role="note">
+      <i class="bi bi-archive me-2"></i><strong>Superseded by <a href="#ds-assemblies">Dataset 3</a>, kept to reproduce the original K-mer model.</strong>
+      <a href="/predict">/predict</a> now serves a model trained on the complete genomes of Dataset 3. The numbers in this
+      section describe the original K-mer RandomForest trained on these partial files.
+    </div>
+
     <div class="row g-4">
       <div class="col-lg-8">
         <div class="info-card h-100">
@@ -352,9 +360,11 @@ GCGAGTGTTGAAGTTCGGCGGTACATCAGTGGCAAATGCAGAACGTTTT
             <tr><td class="text-muted">Taxon folders</td><td class="fw-600 text-white">1,683</td></tr>
             <tr><td class="text-muted">Size on disk</td><td class="fw-600 text-white">4.0 GB</td></tr>
             <tr><td class="text-muted">Share of each genome kept</td><td class="fw-600 text-white">median 31%</td></tr>
-            <tr><td class="text-muted">BP analyzed per genome</td><td class="fw-600 text-white">up to 500,000</td></tr>
+            {#- The retired model's final numbers (backend/trained_models/kmer_metrics.json):
+                metrics.kmer is now the model /predict serves, trained on Dataset 3 -#}
+            <tr><td class="text-muted">BP analyzed per genome (original model)</td><td class="fw-600 text-white">up to 500,000</td></tr>
             <tr><td class="text-muted">4-mer dimensions</td><td class="fw-600 text-white">256</td></tr>
-            <tr><td class="text-muted">Served K-mer model trained on</td><td class="fw-600 text-white">{{ metrics.kmer.train_rows }} genome–antibiotic pairs</td></tr>
+            <tr><td class="text-muted">Original K-mer RF trained on</td><td class="fw-600 text-white">6,002 genome–antibiotic pairs</td></tr>
           </table>
         </div>
 
@@ -388,7 +398,8 @@ GCGAGTGTTGAAGTTCGGCGGTACATCAGTGGCAAATGCAGAACGTTTT
           <div class="d-flex flex-wrap gap-2 mt-2">
             <span class="feature-tag">Reference-free</span>
             <span class="feature-tag">O(n) scan</span>
-            <span class="feature-tag">AUC {{ metrics.kmer.auc }}</span>
+            <span class="feature-tag">Original model AUC 0.695</span>
+            <span class="feature-tag">On complete genomes (Dataset 3): {{ metrics.kmer.auc }}</span>
           </div>
         </div>
       </div>
@@ -554,7 +565,7 @@ GCGAGTGTTGAAGTTCGGCGGTACATCAGTGGCAAATGCAGAACGTTTT
             This is a <strong>linking table</strong> made by <code class="font-mono">scripts/fasta_amr_map.py</code> that bridges Dataset 1 (AMR phenotype labels) and Dataset 2 (FASTA sequences). Each row from the AMR CSV files is enriched with a <code class="font-mono" style="color:var(--accent2)">fasta_path</code> column pointing to the actual genome FASTA file for that isolate.
           </p>
           <p style="font-size:13px;color:var(--text-2);line-height:1.7;">
-            This linkage is essential for training the K-mer RandomForest model: the model needs both the <strong style="color:var(--rose2)">resistance label</strong> (from Dataset 1) AND the <strong style="color:var(--emerald2)">genome sequence</strong> (from Dataset 2). The mapped records provide both in one place.
+            This linkage was essential for training the original K-mer RandomForest model (now retired, see <a href="#ds-fasta">Dataset 2</a>): the model needs both the <strong style="color:var(--rose2)">resistance label</strong> (from Dataset 1) AND the <strong style="color:var(--emerald2)">genome sequence</strong> (from Dataset 2). The mapped records provide both in one place.
           </p>
           <p style="font-size:13px;color:var(--text-2);line-height:1.7;">
             Not every AMR record has a matching FASTA file: 1,683 of the 3,655 taxon files of the April export have genomes. This linkage step keeps only the rows that do.
@@ -608,7 +619,7 @@ GCGAGTGTTGAAGTTCGGCGGTACATCAGTGGCAAATGCAGAACGTTTT
             <tr><td class="text-muted">Genomes linked</td><td class="fw-600 text-white">2,567</td></tr>
             <tr><td class="text-muted">Antibiotics</td><td class="fw-600 text-white">101</td></tr>
             <tr><td class="text-muted">Taxon files with genomes</td><td class="fw-600" style="color:var(--emerald2)">1,683 of 3,655 (46%)</td></tr>
-            <tr><td class="text-muted">Served K-mer model trained on</td><td class="fw-600 text-white">{{ metrics.kmer.train_rows }} rows</td></tr>
+            <tr><td class="text-muted">Original K-mer RF trained on</td><td class="fw-600 text-white">6,002 rows</td></tr>
           </table>
         </div>
 
@@ -728,17 +739,17 @@ GCGAGTGTTGAAGTTCGGCGGTACATCAGTGGCAAATGCAGAACGTTTT
         <div class="model-card h-100">
           <div class="d-flex align-items-start gap-3 mb-3">
             <div class="model-icon kmer-icon"><i class="bi bi-dna"></i></div>
-            <div><div class="fw-700 text-white">K-mer RandomForest</div><div style="font-size:12px;color:var(--text-3)">Genomic Resistance Predictor</div></div>
+            <div><div class="fw-700 text-white">K-mer LightGBM</div><div style="font-size:12px;color:var(--text-3)">Genomic Resistance Predictor</div></div>
           </div>
           <div class="mb-3">
             <div class="text-muted small mb-2">Datasets used:</div>
-            <span class="feature-tag" style="background:rgba(16,185,129,0.15);color:var(--emerald2);border-color:rgba(16,185,129,0.3)">Dataset 2  FASTA</span>
-            <span class="feature-tag ms-1">Mapped Records (labels)</span>
+            <span class="feature-tag" style="background:rgba(245,158,11,0.15);color:var(--amber2);border-color:rgba(245,158,11,0.3)">Dataset 3  Complete genomes</span>
+            <span class="feature-tag ms-1">Dataset 1 (labels)</span>
           </div>
           <div class="method-steps">
-            <div class="method-step"><span class="step-num" style="width:20px;height:20px;font-size:9px">→</span>256 k-mer features per genome</div>
+            <div class="method-step"><span class="step-num" style="width:20px;height:20px;font-size:9px">→</span>256 k-mer features per complete genome</div>
             <div class="method-step"><span class="step-num" style="width:20px;height:20px;font-size:9px">→</span>{{ metrics.kmer.train_rows }} genome–antibiotic pairs</div>
-            <div class="method-step"><span class="step-num" style="width:20px;height:20px;font-size:9px">→</span>Requires FASTA at inference</div>
+            <div class="method-step"><span class="step-num" style="width:20px;height:20px;font-size:9px">→</span>Requires a complete assembly at inference (at least 100,000 bp)</div>
           </div>
           <a href="/predict" class="btn btn-model btn-model-green w-100 mt-3"><i class="bi bi-arrow-right-circle me-2"></i>Use Resistance Prediction</a>
         </div>
