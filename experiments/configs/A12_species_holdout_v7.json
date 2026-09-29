@@ -1,0 +1,22 @@
+{
+  "description": "A12_species_holdout on cleaning v7 (the complete BV-BRC export); compare with the v5 run A12_species_holdout",
+  "split": {
+    "strategy": "species_holdout",
+    "holdout_genus": "Klebsiella",
+    "seed": 42
+  },
+  "features": {
+    "target_encoding": "oof"
+  },
+  "model": {
+    "type": "lightgbm"
+  },
+  "threshold": {
+    "strategy": "fixed",
+    "fixed": 0.4
+  },
+  "id": "A12_species_holdout_v7",
+  "data": {
+    "source": "amr_full"
+  }
+}

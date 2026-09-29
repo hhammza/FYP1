@@ -1,0 +1,23 @@
+{
+  "data": {
+    "sample_rows": 400000,
+    "seed": 42,
+    "source": "amr_full"
+  },
+  "split": {
+    "strategy": "grouped",
+    "test_size": 0.2,
+    "seed": 42
+  },
+  "features": {
+    "target_encoding": "none"
+  },
+  "threshold": {
+    "strategy": "maximize_f1"
+  },
+  "id": "A5c_catboost_native_v7",
+  "description": "A5c_catboost_native on cleaning v7 (the complete BV-BRC export); compare with the v5 run A5c_catboost_native",
+  "model": {
+    "type": "catboost"
+  }
+}
