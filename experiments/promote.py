@@ -242,7 +242,9 @@ def promote_genome(run_id, out_dir, dry_run=False):
             'all_rows_auc': rnd(t['auc_roc']),
         },
         'threshold': rnd(meta['threshold'], 3),
-        'threshold_rule': f"fixed at {meta['threshold']}",
+        'threshold_rule': THRESHOLD_RULES.get(cfg.get('threshold', {}).get('strategy', 'fixed'), 'fixed').format(
+            fixed=cfg.get('threshold', {}).get('fixed', 0.5),
+            vme_budget=cfg.get('threshold', {}).get('vme_budget', 0.03)),
         'calibration': None,
         'test': test_block(lab, lab.get('auc_roc_ci')),
         'data': {
@@ -257,7 +259,9 @@ def promote_genome(run_id, out_dir, dry_run=False):
             'genera': [],
         },
     }
-    bundle = dict(meta, run_id=run_id, kmer_k=int(kcfg.get('k', 4)))
+    # threshold off a linspace grid (0.43000000000000005) -> the value a person reads
+    bundle = dict(meta, run_id=run_id, kmer_k=int(kcfg.get('k', 4)),
+                  threshold=round(float(meta['threshold']), 4))
     print(f"[promote] {run_id}: lab AUC {report['test']['auc_roc']} {report['test']['auc_roc_ci']} "
           f"on {lab['n']:,} rows of {lab.get('genomes')} genomes (all rows {rnd(t['auc_roc'])})")
     if dry_run:
