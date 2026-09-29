@@ -1,0 +1,31 @@
+{
+  "description": "Lineage check at scale, broad lineages held out: antibiotic + genus + species",
+  "data": {
+    "source": "amr_output",
+    "genomes": "gene_matrix"
+  },
+  "split": {
+    "strategy": "lineage",
+    "lineage_cut": "broad",
+    "test_size": 0.2,
+    "seed": 42
+  },
+  "features": {
+    "target_encoding": "none",
+    "base": [
+      "Antibiotic",
+      "genus",
+      "species"
+    ]
+  },
+  "model": {
+    "type": "lightgbm"
+  },
+  "threshold": {
+    "strategy": "fixed",
+    "fixed": 0.5
+  },
+  "evaluation": {
+    "n_boot": 200
+  }
+}

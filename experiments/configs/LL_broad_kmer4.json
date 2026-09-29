@@ -1,0 +1,33 @@
+{
+  "description": "Lineage check at scale, broad lineages held out: LightGBM on 4-mers",
+  "data": {
+    "source": "amr_output",
+    "genomes": "genomes_full"
+  },
+  "split": {
+    "strategy": "lineage",
+    "lineage_cut": "broad",
+    "test_size": 0.2,
+    "seed": 42
+  },
+  "features": {
+    "target_encoding": "none",
+    "base": [
+      "Antibiotic"
+    ],
+    "kmers": {
+      "k": 4,
+      "extras": true
+    }
+  },
+  "model": {
+    "type": "lightgbm"
+  },
+  "threshold": {
+    "strategy": "fixed",
+    "fixed": 0.5
+  },
+  "evaluation": {
+    "n_boot": 200
+  }
+}
