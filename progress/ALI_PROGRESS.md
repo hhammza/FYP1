@@ -222,9 +222,13 @@ Alongside weeks 4 and 5, not instead of them. Why and how: [RESEARCH_PLAN.md](RE
 
 - [x] **Complete export and cleaning v6** (found while checking the 597 unfinished April taxa). *Done 2026-09-29: the April export held 2,986,755 of BV-BRC's 17,585,506 records (offset paging, 500,000-row cap). New `download_amr_full.py` fetched all of them (34 min, matches BV-BRC's counts); cleaning v6 = 7,847,110 rows, 649,944 lab rows on 87,325 genomes; species table rebuilt (463 species); runs rebuild on their own export; first audit output is the v5 vs v6 table in experiments/audit/results*
 
-- [ ] **Audit script** (`experiments/audit/audit_bvbrc.py`): every data-defect count from one command on a pinned export date (IDs merged as numbers, trailing zeros lost, strain vs species taxon IDs, drug-name duplicates, rows without a phenotype, missing MIC and testing standard, lab vs computational share, truncated FASTAs)
+- [x] **Audit script** (`experiments/audit/audit_bvbrc.py`). *Done 2026-09-29 on the complete export: one command, about 2 minutes, results in experiments/audit/results/audit_v6.md and .json*
 
-- [ ] **v5 statistics table** for the paper (rows, genomes, species, drugs, drug classes, resistant share, lab share, by genus); reconcile the 94, 124 and 164 species counts
+  Planned scope: every data-defect count from one command on a pinned export date (IDs merged as numbers, trailing zeros lost, strain vs species taxon IDs, drug-name duplicates, rows without a phenotype, missing MIC and testing standard, lab vs computational share, truncated FASTAs)
+
+- [x] **Statistics table** (on v6 instead of v5) for the paper. *Done 2026-09-29: section 8 of the audit, by genus, drug class and drug*
+
+  Planned scope: (rows, genomes, species, drugs, drug classes, resistant share, lab share, by genus); reconcile the 94, 124 and 164 species counts
 
 - [ ] **Prior acknowledgement check:** BV-BRC release notes, docs and GitHub issues for the ID and taxon problems
 
@@ -295,6 +299,7 @@ Newest first. One line per work session: date, what I did, what is next, anythin
 
 | Date | Done | Next | Blockers |
 | --- | --- | --- | --- |
+| 2026-09-29 | Audit script and statistics tables on the complete export (`audit_bvbrc.py`): Genome ID collisions 16,531, 89% of rows under species IDs (the April strain picture was our failed download, claim corrected in RESEARCH_PLAN), computational labels agree with the lab on 90.4% of 463,429 pairs, 8,380 mm rows read as MIC | Collection years; prior-acknowledgement check | None |
 | 2026-09-29 | The April AMR export was incomplete (2.99 M of 17.6 M records; no *E. coli*, *S. enterica*, *S. aureus*). Wrote `download_amr_full.py` (record-ID paging, 16 parallel shards, resumable, keeps the Mac awake) and downloaded everything in 34 min. Cleaning v6 on it (7.85 M rows, 87,325 lab-tested genomes), species table for 13,058 taxon IDs, runs rebuild on their own export (D3 split exact), v5 vs v6 comparison, Datasets page, HANDBOOK, README, CHANGES. Cleaned table on Drive for Hamza. Also moved loose root files into `docs/`, `notebooks/`, `scripts/`, and start scripts use relative paths and port 5001 | Audit script and statistics table on v6; collection years | Hamza: retrain on v6. Team: DNA for the 64,850 new lab-tested genomes? |
 | 2026-09-28 | Research track added from the literature review: `progress/RESEARCH_PLAN.md` (Paper A audit, Paper B genes vs k-mers vs rule, Paper C library), research tasks in this tracker, rows for Hamza and Suleman. Existing weekly plan unchanged | Audit script and v5 statistics table | Supervisor: venue and scope reply |
 | 2026-09-28 | Calibration on the site: `/api/timeline/` fills `calibration` (15 curves, rmse 2.9 points, `parameters_changed: false`) and `/timeline` shows it with its limits; three overstated "calibrated" claims corrected. Constants unchanged, since no source is in weeks. Docs: README §4.3, formats §4, CHANGES.md | RL environment (week 4) | Hamza: library timeline sync before the xfail goes |
