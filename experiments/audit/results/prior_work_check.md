@@ -29,9 +29,15 @@ This is BV-BRC's own description of the same AMR metadata, as of November 2020: 
 - **Genome ID type.** The API schema types `genome_id` as a string ("511145.183"). Nothing warns that spreadsheet or pandas defaults turn it into a number. The closest precedent is gene symbols turned into dates by Excel: Ziemann M, Eren Y, El-Osta A (2016), Gene name errors are widespread in the scientific literature, *Genome Biology* 17, 177, https://doi.org/10.1186/s13059-016-1044-7. Cite it as the same kind of error.
 - **Earlier BV-BRC AMR work** (for background, none reports our issues): Davis JJ et al. (2016), Antimicrobial resistance prediction in PATRIC and RAST, *Scientific Reports* 6, 27930, https://doi.org/10.1038/srep27930; Antonopoulos DA et al. (2019), PATRIC as a unique resource for studying antimicrobial resistance, *Briefings in Bioinformatics* 20(4), 1094 to 1102, https://doi.org/10.1093/bib/bbx083; Olson RD et al. (2023), Introducing the Bacterial and Viral Bioinformatics Resource Center (BV-BRC), *Nucleic Acids Research* 51(D1), D678 to D689, https://doi.org/10.1093/nar/gkac1003.
 
+## BV-BRC GitHub issues
+
+Searched 2026-09-30 across the BV-BRC organisation for "genome_amr", "antibiotic", "genome_id", "measurement", "collection_year", "taxon_id", "AMR phenotype", "resistant_phenotype", "float" and "duplicate". None of the hits reports any of our problems, so none of them has an open or closed issue. One hit matters for other reasons:
+
+- [BV-BRC-API #204](https://github.com/BV-BRC/BV-BRC-API/issues/204), "Clarify reuse terms for laboratory-method genome_amr API rows" (opened 2026-09-01, no reply yet). Another group asks whether lab-method rows may be downloaded, normalised and redistributed, and under which licence. The repository's MIT licence covers the API code, not the data. **For us:** until BV-BRC answers, publish the cleaning code and the retrieval date, not the cleaned table, or ask BV-BRC ourselves.
+- The same issue names [CultureBotAI/AntibioticMech](https://github.com/CultureBotAI/AntibioticMech), a CC BY 4.0 knowledge base of antibiotic chemical structures (ChEBI, CARD ARO, PubChem, one record per structure). Read 2026-09-30: it does not yet use BV-BRC AMR rows and normalises drug structures, not phenotype rows, units, taxa or evidence types; no paper. The issue shows they plan to add BV-BRC lab rows, so check it again before submission.
+
 ## Not checked yet
 
-- **GitHub issues** in the BV-BRC organisation: `gh` is not logged in on this Mac. Search https://github.com/issues?q=org%3ABV-BRC for "genome_amr", "antibiotic", "measurement_unit" and "genome_id".
 - **BV-BRC help desk.** Most user reports go to help@bv-brc.org, not GitHub. Before submission, email them our list and ask whether any of it is known; their answer also serves as the acknowledgement we cite.
 - **VanOeffelen 2021 full text.** The table above comes from the article page; read the PDF once to confirm nothing on names, taxon IDs or computational labels sits in the supplement.
 
