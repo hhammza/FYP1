@@ -180,6 +180,15 @@
 @media (max-width: 575.98px) { .stat-mini-value { font-size: 17px; } }
 .stat-mini-label { font-size: 11px; color: var(--text-3); margin-top: 5px; }
 
+/* ── INSIGHT CARDS (/models key findings) ──────────────────── */
+.insight-card { display: flex; flex-direction: column; }
+.insight-card .caption-text { margin-top: auto; }
+.insight-icon {
+  width: 36px; height: 36px; border-radius: var(--r-sm);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; background: var(--primary-dim); color: var(--primary);
+}
+
 /* ── EMPTY STATE ────────────────────────────────────────────── */
 .empty-state {
   text-align: center; padding: 60px 24px;

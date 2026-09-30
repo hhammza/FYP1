@@ -87,6 +87,31 @@
   </div>
 
   <!-- ════════════════════════════════════════════════════════════
+       KEY FINDINGS (built from the results by experiments/export_report.py)
+       ════════════════════════════════════════════════════════════ -->
+  {% if report.insights %}
+  <div class="mb-5" id="insights">
+    <div class="sec-eyebrow">Key findings</div>
+    <h2 class="sec-title">What the results tell us</h2>
+    <p class="sec-sub mb-4">
+      Each finding is written from the numbers when the report is rebuilt, and names the runs behind it.
+    </p>
+    <div class="row g-3">
+      {% for f in report.insights %}
+      <div class="col-md-6 col-xl-3">
+        <div class="glass-card h-100 insight-card">
+          <div class="insight-icon mb-2"><i class="bi bi-{{ f.icon }}"></i></div>
+          <h6 class="fw-700 mb-2">{{ f.title }}</h6>
+          <p class="small body-text mb-2">{{ f.text }}</p>
+          <div class="caption-text"><i class="bi bi-link-45deg me-1"></i>{{ f.evidence }}</div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- ════════════════════════════════════════════════════════════
        HOW WE SPLIT
        ════════════════════════════════════════════════════════════ -->
   <div class="mb-5" id="split">
@@ -351,6 +376,68 @@
   </div>
 
   <!-- ════════════════════════════════════════════════════════════
+       V5 VS V7: THE SAME RUNS ON THE COMPLETE EXPORT
+       ════════════════════════════════════════════════════════════ -->
+  {% set vc = report.version_comparison %}
+  {% if vc and vc.runs %}
+  <div class="mb-5" id="versions">
+    <div class="sec-eyebrow">Section 3b</div>
+    <h2 class="sec-title">The same runs on the complete data (v5 vs v7)</h2>
+    <p class="sec-sub mb-4">
+      The April download (cleaning v5) missed whole species. Every run above was repeated on the complete BV-BRC
+      export (cleaning v7) with the same code and settings, so the only difference is the data.
+    </p>
+    {% if vc.data %}
+    <div class="d-flex gap-3 flex-wrap mb-4">
+      <div class="flex-fill min-w-130"><div class="stat-mini">
+        <div class="stat-mini-value">{{ '{:,}'.format(vc.data.v5.rows) }} <i class="bi bi-arrow-right small"></i> {{ '{:,}'.format(vc.data.v7.rows) }}</div>
+        <div class="stat-mini-label">Labelled rows</div>
+      </div></div>
+      <div class="flex-fill min-w-130"><div class="stat-mini">
+        <div class="stat-mini-value">{{ '{:,}'.format(vc.data.v5.genomes) }} <i class="bi bi-arrow-right small"></i> {{ '{:,}'.format(vc.data.v7.genomes) }}</div>
+        <div class="stat-mini-label">Genomes</div>
+      </div></div>
+      <div class="flex-fill min-w-130"><div class="stat-mini">
+        <div class="stat-mini-value">{{ '%.0f' | format(100 * vc.data.v5.prevalence) }}% <i class="bi bi-arrow-right small"></i> {{ '%.0f' | format(100 * vc.data.v7.prevalence) }}%</div>
+        <div class="stat-mini-label">Resistant share</div>
+      </div></div>
+    </div>
+    {% endif %}
+
+    <div class="glass-card mb-4">
+      <h6 class="card-section-title mb-1"><i class="bi bi-arrow-left-right text-accent me-2"></i>AUC on v5 and v7, run by run</h6>
+      <p class="small text-muted mb-2">Each line joins a run's v5 score to its v7 score. Almost every line moves left by the same amount, so the ranking holds.</p>
+      <div id="versionChart" class="report-chart" style="height:{{ 140 + 26 * (vc.runs | length) }}px"></div>
+    </div>
+
+    <div class="glass-card">
+      <h6 class="card-section-title"><i class="bi bi-table text-accent me-2"></i>v5 vs v7 table</h6>
+      <div class="table-responsive">
+        <table class="table table-custom table-sm mb-0">
+          <thead><tr><th>Run</th><th>v5 AUC [95% CI]</th><th>v7 AUC [95% CI]</th><th>Change</th><th>v7 lab AUC</th><th>v7 rows</th></tr></thead>
+          <tbody>
+          {% for v in vc.runs %}
+            <tr{% if v.id == report.best_run %} class="report-best-row"{% endif %}>
+              <td><span class="small text-white">{{ v.label }}</span><div class="caption-text font-mono">{{ v.id }}_v7</div></td>
+              <td class="font-mono small text-nowrap">{{ '%.3f' | format(v.v5_auc) }}<div class="caption-text">{{ '%.3f' | format(v.v5_ci[0]) }} to {{ '%.3f' | format(v.v5_ci[1]) }}</div></td>
+              <td class="font-mono small text-nowrap">{{ '%.3f' | format(v.v7_auc) }}<div class="caption-text">{{ '%.3f' | format(v.v7_ci[0]) }} to {{ '%.3f' | format(v.v7_ci[1]) }}</div></td>
+              <td class="font-mono small">{{ '%+.3f' | format(v.change) }}</td>
+              <td class="font-mono small">{{ '%.3f' | format(v.v7_lab_auc) if v.v7_lab_auc is number else '-' }}</td>
+              <td class="font-mono small">{{ '{:,}'.format(v.v7_rows) }}</td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <p class="caption-text mt-2 mb-0">
+        Lab AUC: only test rows with a laboratory result. The v5 runs did not record it, so there is no v5 column.
+        The served forecaster changes from D4 (cleaning v6) to the D3 recipe on v7 once it is promoted.
+      </p>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- ════════════════════════════════════════════════════════════
        BEST MODEL DETAIL
        ════════════════════════════════════════════════════════════ -->
   {% set b = report.best %}
@@ -396,8 +483,11 @@
       (older runs are history), and only runs with a lab score. Their data and
       labels differ from Sections 1-4, so they get their own section. -#}
   {% set gr_all = report.genome_runs or [] %}
-  {% set gr_version = (gr_all | map(attribute='clean_version') | max) if gr_all else none %}
-  {% set gr_runs = gr_all | selectattr('clean_version', 'equalto', gr_version) | selectattr('auc_roc_lab', 'number') | list %}
+  {# label_version: v6 and v7 share rows and labels for genome runs (v7 changed only MIC values) #}
+  {% for r in gr_all %}{% if r.label_version is not defined %}{% set _ = r.update({'label_version': r.clean_version}) %}{% endif %}{% endfor %}
+  {% set gr_version = (gr_all | map(attribute='label_version') | max) if gr_all else none %}
+  {% set gr_runs = gr_all | selectattr('label_version', 'equalto', gr_version) | selectattr('auc_roc_lab', 'number') | list %}
+  {% set gr_has_v7 = gr_runs | selectattr('clean_version', 'equalto', 'v7') | list | length > 0 %}
   {% set served_id = report.shipped.kmer.run_id if report.shipped and report.shipped.kmer else none %}
   {% if gr_runs %}
   <div class="mb-5" id="genome">
@@ -405,7 +495,7 @@
     <h2 class="sec-title">Genome models, scored on lab results</h2>
     <p class="sec-sub mb-4">
       {% set n_runs = gr_runs | length %}These {{ n_runs }} run{{ 's' if n_runs != 1 }} read the genome itself (resistance genes, k-mers, or both; baselines use none),
-      on complete genomes, cleaning {{ gr_version }}. Every score here is on <strong>lab-tested results only</strong>, from
+      on complete genomes, cleaning {{ gr_version }}{% if gr_has_v7 %} (runs marked v7 read the same rows and labels; v7 changed only MIC values, which genome runs do not use){% endif %}. Every score here is on <strong>lab-tested results only</strong>, from
       genomes the model never saw. The data and labels differ from Sections 1 to 4, so compare these scores with each
       other, not with the forecaster.
     </p>

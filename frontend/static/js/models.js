@@ -250,10 +250,12 @@
 
   /* ── Section 5: genome runs, lab AUC (progress/formats/README.md §6) ── */
   function renderGenomeChart() {
-    /* Same runs as the template: newest cleaning version, lab score present */
+    /* Same runs as the template: newest label version (v6 and v7 share rows
+       and labels for genome runs), lab score present */
     const all = Array.isArray(report.genome_runs) ? report.genome_runs : [];
-    const version = all.map(r => r.clean_version).sort().pop();
-    const runs = all.filter(r => r.clean_version === version && typeof r.auc_roc_lab === 'number');
+    const labelVersion = r => r.label_version || r.clean_version;
+    const version = all.map(labelVersion).sort().pop();
+    const runs = all.filter(r => labelVersion(r) === version && typeof r.auc_roc_lab === 'number');
     if (!runs.length || !document.getElementById('genomeChart')) return;
     const servedId = shipped && shipped.kmer && shipped.kmer.run_id;
     const p = palette();
@@ -291,7 +293,44 @@
     }), config);
   }
 
+  /* ── Section 3b: the same runs on v5 and v7 ────────────────── */
+  function renderVersionChart() {
+    const vc = report.version_comparison;
+    if (!vc || !vc.runs || !vc.runs.length || !document.getElementById('versionChart')) return;
+    const p = palette();
+    const rows = vc.runs.slice().reverse();          /* first run at the top */
+    const order = rows.map(r => r.label);
+    /* One grey segment per run, v5 to v7 */
+    const segX = [], segY = [];
+    rows.forEach(r => { segX.push(r.v5_auc, r.v7_auc, null); segY.push(r.label, r.label, null); });
+    const dots = (key, name, color) => ({
+      type: 'scatter', mode: 'markers', name: legendName(name),
+      x: rows.map(r => r[key + '_auc']), y: order,
+      marker: { color, size: 10, line: { color: p.card, width: 2 } },
+      customdata: rows.map(r => [r[key + '_ci'][0], r[key + '_ci'][1], r.change, r.id]),
+      hovertemplate: `<b>%{y}</b><br>${name}: AUC %{x:.3f} [%{customdata[0]:.3f} to %{customdata[1]:.3f}]`
+                   + '<br>change v5 to v7 %{customdata[2]:+.3f}<extra></extra>',
+    });
+    const narrow = window.innerWidth < 576;
+    const all = rows.flatMap(r => [r.v5_auc, r.v7_auc]);
+    const low = Math.min(0.5, Math.floor((Math.min(...all) - 0.03) * 20) / 20);
+    Plotly.react('versionChart', [
+      { type: 'scatter', mode: 'lines', x: segX, y: segY, line: { color: p.text2, width: 2 },
+        hoverinfo: 'skip', showlegend: false },
+      dots('v5', 'v5 (April export)', p.c2),
+      dots('v7', 'v7 (complete export)', p.c1),
+    ], layout({
+      xaxis: { range: [low, 1.0], title: { text: narrow ? 'AUC-ROC' : 'AUC-ROC on held-out genomes (0.5 = guessing)' } },
+      yaxis: { categoryorder: 'array', categoryarray: order,
+               tickfont: { size: narrow ? 9 : 11, color: AMR.plotLayout().tickColor } },
+      margin: { t: 10, r: 16, b: 80, l: narrow ? 150 : 260 },
+      legend: { orientation: 'h', x: 0, xanchor: 'left', y: -50 / (140 + 26 * rows.length) - 0.06, font: { color: p.text2, size: 11 } },
+      hovermode: 'closest',
+    }), config);
+  }
+
   function renderAll() {
+    renderVersionChart();
     renderGenomeChart();
     renderSeenChart();
     renderAucChart();
