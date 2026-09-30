@@ -1,0 +1,38 @@
+{
+  "description": "Gene-lookup rule, nothing learned: resistant when the genome carries a named key determinant for the drug (genes.py KEY_DETERMINANTS, 16 drugs; other drugs score 0). Same genomes and split as B6L_genes_v6 [cleaning v7, plasmid-only records (< 500 kb) excluded]",
+  "data": {
+    "genomes": "gene_matrix",
+    "min_genome_bp": 500000
+  },
+  "split": {
+    "strategy": "grouped",
+    "test_size": 0.2,
+    "seed": 42
+  },
+  "features": {
+    "target_encoding": "none",
+    "base": [
+      "Antibiotic"
+    ],
+    "genes": {
+      "raw": false,
+      "drug_aware": true
+    }
+  },
+  "threshold": {
+    "strategy": "fixed",
+    "fixed": 0.5
+  },
+  "evaluation": {
+    "n_boot": 200
+  },
+  "model": {
+    "type": "gene_rule",
+    "params": {
+      "columns": [
+        "key_determinant"
+      ]
+    }
+  },
+  "id": "B6R_gene_rule_key_v7"
+}

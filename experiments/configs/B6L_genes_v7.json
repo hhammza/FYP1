@@ -1,0 +1,35 @@
+{
+  "description": "B6 on the lab-tested genome set: genes (in >= 50 genomes) + drug-aware features + antibiotic, drug class, genus [cleaning v7, plasmid-only records (< 500 kb) excluded]; same run as B6L_genes_v6 on v7, for the per-drug comparison with the gene-lookup rules (B6R)",
+  "data": {
+    "genomes": "gene_matrix",
+    "min_genome_bp": 500000
+  },
+  "split": {
+    "strategy": "grouped",
+    "test_size": 0.2,
+    "seed": 42
+  },
+  "features": {
+    "target_encoding": "none",
+    "base": [
+      "Antibiotic",
+      "drug_class",
+      "genus"
+    ],
+    "genes": {
+      "raw": true,
+      "min_genomes": 50,
+      "drug_aware": true
+    }
+  },
+  "model": {
+    "type": "lightgbm"
+  },
+  "threshold": {
+    "strategy": "fixed",
+    "fixed": 0.5
+  },
+  "evaluation": {
+    "n_boot": 200
+  }
+}

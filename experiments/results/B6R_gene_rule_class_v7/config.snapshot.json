@@ -1,0 +1,38 @@
+{
+  "description": "Gene-lookup rule, nothing learned: resistant when the genome carries an AMRFinderPlus gene or point mutation of the drug's class. Same genomes and split as B6L_genes_v6 [cleaning v7, plasmid-only records (< 500 kb) excluded]",
+  "data": {
+    "genomes": "gene_matrix",
+    "min_genome_bp": 500000
+  },
+  "split": {
+    "strategy": "grouped",
+    "test_size": 0.2,
+    "seed": 42
+  },
+  "features": {
+    "target_encoding": "none",
+    "base": [
+      "Antibiotic"
+    ],
+    "genes": {
+      "raw": false,
+      "drug_aware": true
+    }
+  },
+  "threshold": {
+    "strategy": "fixed",
+    "fixed": 0.5
+  },
+  "evaluation": {
+    "n_boot": 200
+  },
+  "model": {
+    "type": "gene_rule",
+    "params": {
+      "columns": [
+        "gene_class_any"
+      ]
+    }
+  },
+  "id": "B6R_gene_rule_class_v7"
+}
