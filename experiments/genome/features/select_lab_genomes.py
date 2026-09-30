@@ -15,7 +15,14 @@ Klebsiella and Neisseria, the two largest genera.
 
 Writes experiments/genome/features/lab_genomes.csv: genome_id, taxon_id,
 genus, lab_rows (lab results for that genome), lab_drugs.
+
+    python experiments/genome/features/select_lab_genomes.py --todo
+
+lists instead the lab-tested genomes of the current cleaning whose assembly
+is not in Data/genomes_full/ yet (lab_genomes_todo.csv, same columns and
+order), for notebooks/download_genomes_to_drive.ipynb.
 """
+import argparse
 import os
 import sys
 
@@ -27,10 +34,15 @@ sys.path.insert(0, EXPERIMENTS)
 from lib import data_prep  # noqa: E402
 
 OUT = os.path.join(HERE, 'lab_genomes.csv')
+TODO = os.path.join(HERE, 'lab_genomes_todo.csv')
 SEED = 42
 
 
 def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument('--todo', action='store_true',
+                    help='only genomes whose assembly is not in Data/genomes_full/')
+    args = ap.parse_args()
     df = data_prep.get_clean()
     lab = df[df['is_lab_confirmed'] == 1]
     genomes = (lab.groupby('Genome ID')
@@ -44,10 +56,17 @@ def main():
     genomes = genomes.sample(frac=1, random_state=SEED)
     genomes['rank'] = genomes.groupby('genus').cumcount()
     genomes = genomes.sort_values(['rank', 'genus'], kind='stable').drop(columns='rank')
-    genomes.to_csv(OUT, index=False)
+    out = OUT
+    if args.todo:
+        have_dir = os.path.join(data_prep.data_root(), 'genomes_full')
+        have = {f[:-len('.fna')] for f in os.listdir(have_dir) if f.endswith('.fna')} \
+            if os.path.isdir(have_dir) else set()
+        genomes = genomes[~genomes['genome_id'].isin(have)]
+        out = TODO
+    genomes.to_csv(out, index=False)
 
     print(f'[lab] {len(genomes):,} genomes with lab results, '
-          f'{genomes["lab_rows"].sum():,} lab rows, written to {os.path.relpath(OUT)}')
+          f'{genomes["lab_rows"].sum():,} lab rows, written to {os.path.relpath(out)}')
     print(genomes['genus'].value_counts().head(12).to_string())
 
 
