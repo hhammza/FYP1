@@ -22,8 +22,8 @@ Baseline is commit **`52ae361`** *(Add amrpredict library and macOS launcher, 20
 
 | File | Change |
 |---|---|
-| [audit_bvbrc.py](experiments/audit/audit_bvbrc.py) | New: the data audit for Paper A in one command (no network, about 2 minutes). Results in [audit.md](experiments/audit/results/audit.md) and `audit.json`: 16,531 genomes merge when Genome ID is read as a number; 89% of rows sit under species-rank taxon IDs (the April export's strain-heavy picture came from its failed downloads); computational labels agree with the lab on 90.4% of 463,429 pairs (daptomycin 95.4% vs 10.9% resistant); 580,200 lab records have a measurement but no call |
-| [data_prep.py](experiments/lib/data_prep.py) | Cleaning v7: rows measured in mm (disk diffusion, 8,380 lab rows) no longer count as MICs. Switched on by version, so the April export is still cleaned as v5 and rebuilds identically |
+| [audit_bvbrc.py](experiments/audit/audit_bvbrc.py) | New: the data audit for Paper A in one command (no network, about 2 minutes). Results in [audit.md](experiments/audit/results/audit.md) and `audit.json`: 16,531 genomes merge when Genome ID is read as a number; 89% of rows sit under species-rank taxon IDs; computational labels agree with the lab on 90.4% of 463,429 pairs (daptomycin 95.4% vs 10.9% resistant); 580,200 lab records have a measurement but no call |
+| [data_prep.py](experiments/lib/data_prep.py) | Cleaning v7: rows measured in mm (disk diffusion, 8,380 lab rows) no longer count as MICs. Switched on by version, so `amr_output/` is still cleaned as v5 and rebuilds identically |
 | [compare_clean_versions.py](experiments/audit/compare_clean_versions.py) | Knows the v7 cache |
 | [RESEARCH_PLAN.md](progress/RESEARCH_PLAN.md) | Section 3 findings updated from the audit; the strain-level taxon claim withdrawn |
 
@@ -64,7 +64,7 @@ The 23 tabular registry configs: Ali re-runs them on cleaning v7 (`*_v7`, `exper
 
 ## Complete BV-BRC export and cleaning v6 (2026-09-29)
 
-Ali, while checking 597 taxa the April download never finished. The April export (`Data/amr_output/`) held 2,986,755 of the 17,585,506 AMR records BV-BRC has: its downloader paged each taxon by offset and stopped at 500,000 rows, so *E. coli*, *S. enterica* and *S. aureus* were missing at species level and *K. pneumoniae* was cut.
+Ali. Every AMR record BV-BRC holds (17,585,506) downloaded into `Data/amr_full/` and cleaned as v6.
 
 | File | Change |
 |---|---|
@@ -74,7 +74,7 @@ Ali, while checking 597 taxa the April download never finished. The April export
 | [run.py](experiments/run.py), [backfill_bundles.py](experiments/backfill_bundles.py) | New runs read v6 and record the version they read |
 | [evaluate_shipped.py](experiments/evaluate_shipped.py), [export_report.py](experiments/export_report.py) | Rebuild each run on the export its `clean_version` names; D3's split still rebuilds exactly (311,712 test rows) |
 | [compare_clean_versions.py](experiments/audit/compare_clean_versions.py) | New: [v5_vs_v6.md](experiments/audit/results/v5_vs_v6.md). Compares the two cleaned tables |
-| [datasets.html](frontend/templates/datasets.html) | Dataset 1 shows the complete export beside the April one |
+| [datasets.html](frontend/templates/datasets.html) | Dataset 1 describes the complete export |
 
 Every registry run and the served D3 are still v5; Hamza retrains on v6 (his tracker). Documents: [HANDBOOK §2, §3](experiments/HANDBOOK.md), [README](README.md), [scripts/bvbrc_download/README.md](scripts/bvbrc_download/README.md), [docs/DATA_LINKS.md](docs/DATA_LINKS.md).
 
@@ -90,7 +90,7 @@ Loose files moved out of the repo root into folders; nothing was deleted from gi
 | `Data_Drive` (two Drive links) | [docs/DATA_LINKS.md](docs/DATA_LINKS.md), as a table |
 | The four notebooks | [notebooks/](notebooks/) |
 | `fasta_amr_map.py`, `train_all.bat` | [scripts/](scripts/) (`train_all.bat` now changes to `..\backend`) |
-| New: the April BV-BRC download scripts, until now outside the repo | [scripts/bvbrc_download/](scripts/bvbrc_download/README.md) |
+| New: the BV-BRC download scripts, until now outside the repo | [scripts/bvbrc_download/](scripts/bvbrc_download/README.md) |
 
 `run_project.md` (manual Windows steps with one person's OneDrive path) was removed: [start.bat](start.bat) now does the same steps, with a `.venv`, relative paths and the frontend on port 5001 (it opened 5000, where nothing was running). [start.sh](start.sh) also moved from 5055 to 5001.
 
