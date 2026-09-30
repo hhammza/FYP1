@@ -164,6 +164,19 @@ Hamza's genome models (k-mers 0.956, genes 0.981) are tested on only 30 lab-test
 
 ---
 
+## Complete genomes on Google Drive (added by Ali 2026-10-01)
+
+Our genome models learn from 22,475 of the 87,325 lab-tested genomes in the complete data, because only their DNA was downloaded. The other 64,850 (448,730 lab results) would triple what the genome models learn from and test on. They do not fit on the Mac (247 GB of DNA, disk 83% full), so they go straight to Google Drive (5 TB plan) through Colab.
+
+- [x] List the missing genomes: `select_lab_genomes.py --todo` → `experiments/genome/features/lab_genomes_todo.csv` (64,850 genomes, all found on BV-BRC; round-robin by genus, so a partial download is still balanced). *Done 2026-09-30*
+- [~] Download them in Colab straight to Drive: `notebooks/download_genomes_to_drive.ipynb` → `My Drive/FYP/genomes_lab_v7/` (gzipped, about 76 GB; length checked against BV-BRC; resumable). *Started 2026-10-01; about 1 to 2 days over a few Colab sessions*
+- [ ] Move the 24,926 genomes already on the Mac (98 GB) to Drive, gzipped (about 30 GB), in batches, then free the space on the Mac
+- [ ] Features for all 89,776 genomes in Colab, read from Drive: AMRFinderPlus → `gene_matrix.parquet` + `gene_info.csv`, and `kmers.py` → `kmer6_counts.npz`. Same file formats as now, so Hamza's code needs no change
+- [ ] Hand the new files to Hamza (Drive), then retrain and re-test the genome models on all 87,325 lab-tested genomes
+- **Done when:** every lab-tested genome of cleaning v7 has a gene row and a k-mer row, and the genome models report lab AUC on all of them
+
+---
+
 ## Week 3: evolution component (T3.1)
 
 - [x] **Fix >100% bug** in `mutation_timeline.py`: susceptible + intermediate + resistant = 100 every week. *Done early, 2026-09-26, in the backend: checked on every drug profile at 1 to 52 weeks (20,020 weeks, all exactly 100). Also `simulation`, `seed`, `calibration` fields and `model_used` always `Biological Simulation`, per format §4*
@@ -307,6 +320,7 @@ Alongside weeks 4 and 5, not instead of them. Why and how: [RESEARCH_PLAN.md](RE
 Newest first. One line per work session: date, what I did, what is next, anything blocking.
 
 | Date | Done | Next | Blockers |
+| 2026-10-01 | Started downloading the 64,850 missing lab-tested genomes in Colab straight to Google Drive (`notebooks/download_genomes_to_drive.ipynb`, gzipped, about 76 GB), so the genome models can train on all 87,325 lab-tested genomes. Also on Drive: `clean_v7_amr_full_norm.pkl`, `genome_meta.csv`, the D3 v7 model | Move the 98 GB already on the Mac to Drive; features (genes, k-mers) for all genomes in Colab | Colab must stay open (Mac kept awake) |
 | --- | --- | --- | --- |
 | 2026-09-29 | Audit script and statistics tables on the complete export (`audit_bvbrc.py`): Genome ID collisions 16,531, 89% of rows under species IDs, computational labels agree with the lab on 90.4% of 463,429 pairs, 8,380 mm rows read as MIC | Collection years; prior-acknowledgement check | None |
 | 2026-09-29 | Downloaded every BV-BRC AMR record (17.6 M) with `download_amr_full.py` (record-ID paging, 16 parallel shards, resumable, keeps the Mac awake) and downloaded everything in 34 min. Cleaning v6 on it (7.85 M rows, 87,325 lab-tested genomes), species table for 13,058 taxon IDs, runs rebuild on their own export (D3 split exact), v5 vs v6 comparison, Datasets page, HANDBOOK, README, CHANGES. Cleaned table on Drive for Hamza. Also moved loose root files into `docs/`, `notebooks/`, `scripts/`, and start scripts use relative paths and port 5001 | Audit script and statistics table on v6; collection years | Hamza: retrain on v6. Team: DNA for the 64,850 new lab-tested genomes? |
