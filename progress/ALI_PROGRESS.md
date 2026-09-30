@@ -232,7 +232,8 @@ Alongside weeks 4 and 5, not instead of them. Why and how: [RESEARCH_PLAN.md](RE
 
 - [ ] **Prior acknowledgement check:** BV-BRC release notes, docs and GitHub issues for the ID and taxon problems
 
-- [ ] **Gene-lookup rule baseline:** resistant when AMRFinderPlus finds a gene or mutation of the drug's class, scored on the same lab rows and split as Hamza's B6
+- [x] **Gene-lookup rule baseline:** resistant when AMRFinderPlus finds a gene or mutation of the drug's class, scored on the same lab rows and split as Hamza's B6. Done 2026-09-30 (`74bccd8`): model type `gene_rule`, runs `B6R_gene_rule_class_v7` and `B6R_gene_rule_key_v7`, report `experiments/genome/results/rule_vs_model.md`. On the 40,356 lab test rows: class rule AUC 0.711 (VME 5.2%, ME 52.6%), about the same as knowing only the drug (0.715); genes model 0.979, gap +0.268 [+0.261, +0.274] by paired genome bootstrap, ahead on 45 of 46 drugs and on all 13 with a named determinant
+- [ ] **Subclass-aware rule** (the fairer opponent for Paper B): count only genes whose AMRFinderPlus subclass matches the drug (carbapenemases for carbapenems, and so on), same rows and split
 
 - [x] **Collection year and country** for every genome from the BV-BRC genome API, with a coverage report (for the temporal test in RESEARCH_PLAN §5). Done 2026-09-30: `scripts/bvbrc_download/download_genome_meta.py` (about 2 min), report `experiments/audit/results/genome_meta_coverage.md`. 449,286 of 449,320 genomes found; 79% have a year, 83% a country. Of the cleaned v7 lab-tested genomes, 75,284 of 87,325 have a year (571,202 of 649,944 lab rows), median 2012. For Paper A: 31,577 lab-tested genomes (25.6%) have an empty `collection_year` field but the year is in `collection_date`
 
