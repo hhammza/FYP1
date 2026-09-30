@@ -73,7 +73,7 @@ Ali, while checking 597 taxa the April download never finished. The April export
 | [build_taxonomy.py](experiments/build_taxonomy.py), [taxon_species.csv](backend/taxon_species.csv) | 13,058 taxon IDs, 463 species (was 3,655 IDs); without it v6 had 9,114 "species" |
 | [run.py](experiments/run.py), [backfill_bundles.py](experiments/backfill_bundles.py) | New runs read v6 and record the version they read |
 | [evaluate_shipped.py](experiments/evaluate_shipped.py), [export_report.py](experiments/export_report.py) | Rebuild each run on the export its `clean_version` names; D3's split still rebuilds exactly (311,712 test rows) |
-| [compare_clean_versions.py](experiments/audit/compare_clean_versions.py) | New: [v5_vs_v6.md](experiments/audit/results/v5_vs_v6.md). No lab pair lost; BV-BRC removed 996 genomes and changed 1,665 labels since April; the April lab rows were 49.5% resistant, the complete set 33.7% |
+| [compare_clean_versions.py](experiments/audit/compare_clean_versions.py) | New: [v5_vs_v6.md](experiments/audit/results/v5_vs_v6.md). Compares the two cleaned tables |
 | [datasets.html](frontend/templates/datasets.html) | Dataset 1 shows the complete export beside the April one |
 
 Every registry run and the served D3 are still v5; Hamza retrains on v6 (his tracker). Documents: [HANDBOOK §2, §3](experiments/HANDBOOK.md), [README](README.md), [scripts/bvbrc_download/README.md](scripts/bvbrc_download/README.md), [docs/DATA_LINKS.md](docs/DATA_LINKS.md).
