@@ -234,7 +234,7 @@ Alongside weeks 4 and 5, not instead of them. Why and how: [RESEARCH_PLAN.md](RE
 
 - [ ] **Gene-lookup rule baseline:** resistant when AMRFinderPlus finds a gene or mutation of the drug's class, scored on the same lab rows and split as Hamza's B6
 
-- [ ] **Collection year and country** for every genome from the BV-BRC genome API, with a coverage report (for the temporal test in RESEARCH_PLAN §5)
+- [x] **Collection year and country** for every genome from the BV-BRC genome API, with a coverage report (for the temporal test in RESEARCH_PLAN §5). Done 2026-09-30: `scripts/bvbrc_download/download_genome_meta.py` (about 2 min), report `experiments/audit/results/genome_meta_coverage.md`. 449,286 of 449,320 genomes found; 79% have a year, 83% a country. Of the cleaned v7 lab-tested genomes, 75,284 of 87,325 have a year (571,202 of 649,944 lab rows), median 2012. For Paper A: 31,577 lab-tested genomes (25.6%) have an empty `collection_year` field but the year is in `collection_date`
 
 - [ ] Week 5 data and methods chapters written so they double as Paper A's data section
 
