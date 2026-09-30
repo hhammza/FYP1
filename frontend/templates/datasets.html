@@ -170,9 +170,6 @@
           <p class="body-text lh-17">
             After cleaning it covers 40 bacterial genera and 126 antibiotics. Only 8% of the labels were measured in a laboratory; the rest were predicted by BV-BRC's own models, and every row records which it is.
           </p>
-          <p class="body-text lh-17">
-            <strong>Two downloads of the same database.</strong> The first, in April 2026 (<code class="font-mono text-accent2">amr_output/</code>, one CSV per taxon), stopped each species at 500,000 records and failed on the largest ones, so it held no <em>E. coli</em>, <em>Salmonella enterica</em> or <em>Staphylococcus aureus</em> records at species level and only part of <em>Klebsiella pneumoniae</em>: 2,986,755 of the 17,585,506 records BV-BRC holds. The complete export (<code class="font-mono text-accent2">amr_full/</code>, 29 Sept 2026) has every record, checked against BV-BRC's own count. The served model was trained on the April export; the next retraining uses the complete one.
-          </p>
 
           <h6 class="card-section-title mt-4"><i class="bi bi-table text-accent me-2"></i>Column Schema</h6>
           <div class="table-responsive">
@@ -200,28 +197,27 @@
         <div class="info-card mb-4">
           <h6 class="card-section-title"><i class="bi bi-bar-chart text-accent me-2"></i>Dataset Statistics</h6>
           <table class="table table-custom table-sm">
-            <thead><tr><th></th><th>Complete</th><th>April</th></tr></thead>
-            <tr><td class="text-muted">Raw records</td><td class="fw-600 text-white">17,585,506</td><td class="text-muted">2,986,755</td></tr>
-            <tr><td class="text-muted">Rows after cleaning</td><td class="fw-600 text-white">7,847,110</td><td class="text-muted">1,558,494</td></tr>
-            <tr><td class="text-muted">Genomes</td><td class="fw-600 text-white">439,542</td><td class="text-muted">131,385</td></tr>
-            <tr><td class="text-muted">Lab-tested genomes</td><td class="fw-600 text-white">87,325</td><td class="text-muted">22,475</td></tr>
-            <tr><td class="text-muted">Laboratory-measured rows</td><td class="fw-600 text-white">649,944 (8%)</td><td class="text-muted">201,042 (13%)</td></tr>
-            <tr><td class="text-muted">Antibiotics</td><td class="fw-600 text-white">126</td><td class="text-muted">130</td></tr>
-            <tr><td class="text-muted">Species</td><td class="fw-600 text-white">247</td><td class="text-muted">124</td></tr>
-            <tr><td class="text-muted">Resistant share</td><td class="fw-600 text-white">28.0%</td><td class="text-muted">36.5%</td></tr>
-            <tr><td class="text-muted">Resistant share, lab rows</td><td class="fw-600 text-white">33.7%</td><td class="text-muted">49.5%</td></tr>
+            <thead><tr><th></th><th>Count</th></tr></thead>
+            <tr><td class="text-muted">Raw records</td><td class="fw-600 text-white">17,585,506</td></tr>
+            <tr><td class="text-muted">Rows after cleaning</td><td class="fw-600 text-white">7,847,110</td></tr>
+            <tr><td class="text-muted">Genomes</td><td class="fw-600 text-white">439,542</td></tr>
+            <tr><td class="text-muted">Lab-tested genomes</td><td class="fw-600 text-white">87,325</td></tr>
+            <tr><td class="text-muted">Laboratory-measured rows</td><td class="fw-600 text-white">649,944 (8%)</td></tr>
+            <tr><td class="text-muted">Antibiotics</td><td class="fw-600 text-white">126</td></tr>
+            <tr><td class="text-muted">Species</td><td class="fw-600 text-white">247</td></tr>
+            <tr><td class="text-muted">Resistant share</td><td class="fw-600 text-white">28.0%</td></tr>
+            <tr><td class="text-muted">Resistant share, lab rows</td><td class="fw-600 text-white">33.7%</td></tr>
           </table>
-          <p class="fs-13 text-muted mb-0">Served model trained on {{ metrics.lgbm.train_rows }} rows of the April export. The April sample overstated resistance: its lab rows were 49.5% resistant, the complete set 33.7%.</p>
         </div>
 
         <div class="info-card mb-4">
-          <h6 class="card-section-title"><i class="bi bi-bacteria text-accent me-2"></i>Largest Genera (rows after cleaning, complete export)</h6>
+          <h6 class="card-section-title"><i class="bi bi-bacteria text-accent me-2"></i>Largest Genera (rows after cleaning)</h6>
           <div class="method-steps">
-            <div class="method-step"><span class="step-num step-num-xs">1</span><div><em>Escherichia</em>: 3,562,956 <span class="text-muted">(April: 75,182)</span></div></div>
-            <div class="method-step"><span class="step-num step-num-xs">2</span><div><em>Salmonella</em>: 1,083,062 <span class="text-muted">(353,228)</span></div></div>
-            <div class="method-step"><span class="step-num step-num-xs">3</span><div><em>Mycobacterium</em>: 979,138 <span class="text-muted">(4,904)</span></div></div>
-            <div class="method-step"><span class="step-num step-num-xs">4</span><div><em>Klebsiella</em>: 703,539 <span class="text-muted">(452,426)</span></div></div>
-            <div class="method-step"><span class="step-num step-num-xs">5</span><div><em>Staphylococcus</em>: 366,887 <span class="text-muted">(8,840)</span></div></div>
+            <div class="method-step"><span class="step-num step-num-xs">1</span><div><em>Escherichia</em>: 3,562,956</div></div>
+            <div class="method-step"><span class="step-num step-num-xs">2</span><div><em>Salmonella</em>: 1,083,062</div></div>
+            <div class="method-step"><span class="step-num step-num-xs">3</span><div><em>Mycobacterium</em>: 979,138</div></div>
+            <div class="method-step"><span class="step-num step-num-xs">4</span><div><em>Klebsiella</em>: 703,539</div></div>
+            <div class="method-step"><span class="step-num step-num-xs">5</span><div><em>Staphylococcus</em>: 366,887</div></div>
           </div>
         </div>
 
@@ -424,7 +420,7 @@ GCGAGTGTTGAAGTTCGGCGGTACATCAGTGGCAAATGCAGAACGTTTT
         <div class="info-card h-100">
           <h6 class="card-section-title"><i class="bi bi-info-circle text-accent me-2"></i>What This Dataset Contains</h6>
           <p class="body-text lh-17">
-            Complete genomes downloaded from the <strong>BV-BRC API</strong>: the same 2,587 isolates as Dataset 2 (downloaded again because the local FASTA files are partial), plus every genome with a <strong>laboratory</strong> resistance result in the April export of Dataset 1, 22,475 in all (Sept 2026). The complete export has 87,325 lab-tested genomes; the DNA of the other 64,850 is not downloaded yet. Before that, only 136 genomes with DNA had a lab result, too few to test the genome models on. A download is kept only if its length is within 1% of the length BV-BRC reports for that genome, so every file here is complete.
+            Complete genomes downloaded from the <strong>BV-BRC API</strong>: the same 2,587 isolates as Dataset 2 (downloaded again because the local FASTA files are partial), plus every genome with a <strong>laboratory</strong> resistance result in the earlier version of Dataset 1, 22,475 in all (Sept 2026). The complete export has 87,325 lab-tested genomes; the DNA of the other 64,850 is not downloaded yet. Before that, only 136 genomes with DNA had a lab result, too few to test the genome models on. A download is kept only if its length is within 1% of the length BV-BRC reports for that genome, so every file here is complete.
           </p>
           <p class="body-text lh-17">
             NCBI <strong>AMRFinderPlus</strong> searched every assembly for known resistance genes and resistance mutations. The results form the <a href="/genes">gene matrix</a>: one row per genome, one 0/1 column per gene or mutation (2,733 columns). At about 100 GB the assemblies are not stored in git; <code class="font-mono">experiments/genome/features/download_genomes.py</code> downloads them again.
@@ -568,7 +564,7 @@ GCGAGTGTTGAAGTTCGGCGGTACATCAGTGGCAAATGCAGAACGTTTT
             This linkage was essential for training the original K-mer RandomForest model (now retired, see <a href="#ds-fasta">Dataset 2</a>): the model needs both the <strong style="color:var(--rose2)">resistance label</strong> (from Dataset 1) AND the <strong style="color:var(--emerald2)">genome sequence</strong> (from Dataset 2). The mapped records provide both in one place.
           </p>
           <p style="font-size:13px;color:var(--text-2);line-height:1.7;">
-            Not every AMR record has a matching FASTA file: 1,683 of the 3,655 taxon files of the April export have genomes. This linkage step keeps only the rows that do.
+            Not every AMR record has a matching FASTA file: 1,683 of the 3,655 taxon files it was built from have genomes. This linkage step keeps only the rows that do.
           </p>
 
           <h6 class="card-section-title mt-4"><i class="bi bi-diagram-3 text-accent me-2"></i>How the Linkage Works</h6>

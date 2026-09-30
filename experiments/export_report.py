@@ -276,8 +276,7 @@ def lab_auc(m):
 
 def version_comparison():
     """Every tabular run repeated on cleaning v7 (the complete BV-BRC export),
-    next to its v5 twin (the April export). Same code and config; only the
-    data differ."""
+    next to its v5 twin. Same code and config; only the data differ."""
     reg = pd.read_csv(os.path.join(RESULTS, 'registry.csv'))
     reg = reg.sort_values('finished_at').drop_duplicates('id', keep='last').set_index('id')
     rows = []
@@ -346,11 +345,10 @@ def insights(report):
         d = report['version_comparison'].get('data') or {}
         size = ''
         if d:
-            size = (f' ({d["v7"]["rows"] / d["v5"]["rows"]:.1f}x the rows, {d["v7"]["genomes"]:,} genomes; '
-                    f'resistant share {100 * d["v5"]["prevalence"]:.0f}% to {100 * d["v7"]["prevalence"]:.0f}%)')
-        out.append({'icon': 'database-check', 'title': 'The complete export is a harder, fairer test',
-                    'text': f'The April download missed E. coli, Salmonella and S. aureus at species level. On the complete '
-                            f'export{size}, {down} of {len(vc)} runs score lower (median change {med:+.3f} AUC) and the '
+            size = (f': {d["v7"]["rows"] / d["v5"]["rows"]:.1f}x the rows, {d["v7"]["genomes"]:,} genomes, '
+                    f'resistant share {100 * d["v5"]["prevalence"]:.0f}% to {100 * d["v7"]["prevalence"]:.0f}%')
+        out.append({'icon': 'database-check', 'title': 'The complete data is a harder, fairer test',
+                    'text': f'On the complete data (cleaning v7{size}), {down} of {len(vc)} runs score lower (median change {med:+.3f} AUC) and the '
                             'order of methods is unchanged'
                             + (f'; only {" and ".join(up)} did not drop' if up else '')
                             + '. The v5 numbers were optimistic, not wrong.',

@@ -317,8 +317,8 @@
     Plotly.react('versionChart', [
       { type: 'scatter', mode: 'lines', x: segX, y: segY, line: { color: p.text2, width: 2 },
         hoverinfo: 'skip', showlegend: false },
-      dots('v5', 'v5 (April export)', p.c2),
-      dots('v7', 'v7 (complete export)', p.c1),
+      dots('v5', 'v5 (earlier data)', p.c2),
+      dots('v7', 'v7 (complete data)', p.c1),
     ], layout({
       xaxis: { range: [low, 1.0], title: { text: narrow ? 'AUC-ROC' : 'AUC-ROC on held-out genomes (0.5 = guessing)' } },
       yaxis: { categoryorder: 'array', categoryarray: order,
