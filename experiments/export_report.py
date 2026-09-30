@@ -46,6 +46,29 @@ GROUPS = {
 ROC_RUNS = ['A2_oof_grouped', 'A3_logistic', 'A6_lab_only',
             'A12_species_holdout', 'A_ablation_drug_only', 'D3_forecaster_deploy']
 BEST = 'A2_oof_grouped'
+V7 = '_v7'
+# Short names for the version comparison, in page order
+V7_LABELS = {
+    'A2_oof_grouped': 'A2 LightGBM, genome-grouped split (best)',
+    'D3_forecaster_deploy': 'D3 forecaster (the /forecast recipe)',
+    'A0_baseline_leaky': 'A0 leaky target encoding',
+    'A1_oof_random': 'A1 random split',
+    'A2b_no_encoding': 'A2b no target encoding',
+    'A9_threshold_f1': 'A9 threshold for best F1',
+    'A10_monotonic_mic': 'A10 monotonic in MIC',
+    'A10s_monotonic_species': 'A10s monotonic, species level',
+    'A3_logistic': 'A3 logistic regression',
+    'A3b_lgbm_same_sample': 'A3b LightGBM, same 400k sample',
+    'A4_random_forest': 'A4 random forest',
+    'A5_xgboost': 'A5 XGBoost',
+    'A5b_catboost': 'A5b CatBoost',
+    'A5c_catboost_native': 'A5c CatBoost, native categories',
+    'A6_lab_only': 'A6 lab-confirmed rows only',
+    'A6b_lab_only_no_mic': 'A6b lab rows, no MIC',
+    'A_ablation_no_mic': 'Ablation: no MIC',
+    'A_ablation_drug_only': 'Ablation: antibiotic only',
+    'A12_species_holdout': 'A12 unseen genus',
+}
 
 
 def load_json(*parts):
@@ -84,11 +107,16 @@ def genome_runs():
         lab = m.get('test_by_label_source', {}).get('lab') or {}
         feats = cfg.get('features', {})
         split = cfg.get('split', {})
+        cv = m['dataset'].get('clean_version')
         out.append({
             'id': r.id, 'description': r.description,
-            'clean_version': m['dataset'].get('clean_version'),
+            'clean_version': cv,
+            # v7 changed only MIC values, which genome runs do not use, so
+            # their rows and labels are v6's: one section shows both.
+            'label_version': 'v6' if cv in ('v6', 'v7') else cv,
             'model': r.model,
-            'features': ('genes + k-mers' if feats.get('genes') and feats.get('kmers') else
+            'features': ('gene lookup rule, nothing learned' if r.model == 'gene_rule' else
+                         'genes + k-mers' if feats.get('genes') and feats.get('kmers') else
                          'genes' if feats.get('genes') else 'k-mers' if feats.get('kmers') else
                          'no genome features'),
             'split': split.get('strategy', 'grouped') + (f" ({split['lineage_cut']})" if split.get('lineage_cut') else '')
@@ -111,6 +139,9 @@ def runs_table():
     # with the tabular runs on this page. They stay in RESULTS.md until the
     # page has a genome section of its own.
     reg = reg[~reg['id'].map(is_genome_run)]
+    # The v7 re-runs have their own section (version_comparison), so the
+    # charts here keep comparing runs on the same data.
+    reg = reg[~reg['id'].str.endswith(V7)]
     out = []
     for r in reg.itertuples():
         cfg = load_json(RESULTS, r.id, 'config.snapshot.json')
@@ -238,6 +269,143 @@ def roc_curves(previous=None):
     return out
 
 
+def lab_auc(m):
+    lab = (m.get('test_by_label_source') or {}).get('lab') or {}
+    return round(float(lab['auc_roc']), 4) if lab.get('auc_roc') is not None else None
+
+
+def version_comparison():
+    """Every tabular run repeated on cleaning v7 (the complete BV-BRC export),
+    next to its v5 twin (the April export). Same code and config; only the
+    data differ."""
+    reg = pd.read_csv(os.path.join(RESULTS, 'registry.csv'))
+    reg = reg.sort_values('finished_at').drop_duplicates('id', keep='last').set_index('id')
+    rows = []
+    for rid in reg.index:
+        if not rid.endswith(V7) or is_genome_run(rid):
+            continue
+        base = rid[:-len(V7)]
+        if base not in reg.index:
+            continue
+        m5, m7 = load_json(RESULTS, base, 'metrics.json'), load_json(RESULTS, rid, 'metrics.json')
+        r5, r7 = reg.loc[base], reg.loc[rid]
+        rows.append({
+            'id': base, 'label': V7_LABELS.get(base, base),
+            'group': GROUPS.get(base, 'learning_curve' if base.startswith('LC_') else 'other'),
+            'v5_auc': round(float(r5.auc_roc), 4), 'v5_ci': [float(r5.auc_ci_low), float(r5.auc_ci_high)],
+            'v7_auc': round(float(r7.auc_roc), 4), 'v7_ci': [float(r7.auc_ci_low), float(r7.auc_ci_high)],
+            'v5_lab_auc': lab_auc(m5), 'v7_lab_auc': lab_auc(m7),
+            'change': round(float(r7.auc_roc - r5.auc_roc), 4),
+            'v5_rows': int(r5.rows), 'v7_rows': int(r7.rows),
+            'v5_prevalence': round(m5['dataset']['prevalence'], 4),
+            'v7_prevalence': round(m7['dataset']['prevalence'], 4),
+        })
+    order = list(V7_LABELS)
+    rows.sort(key=lambda r: (order.index(r['id']) if r['id'] in order else len(order), r['v5_rows']))
+    data = {}
+    if rows:
+        a2 = [r for r in rows if r['id'] == BEST]
+        if a2:
+            m5 = load_json(RESULTS, BEST, 'metrics.json')['dataset']
+            m7 = load_json(RESULTS, BEST + V7, 'metrics.json')['dataset']
+            data = {'v5': {k: m5[k] for k in ('rows', 'genomes', 'antibiotics', 'prevalence')},
+                    'v7': {k: m7[k] for k in ('rows', 'genomes', 'antibiotics', 'prevalence')}}
+    return {'runs': rows, 'data': data}
+
+
+def insights(report):
+    """What the results say, each with the runs behind it. Built from the
+    numbers, so a re-run updates the text; a finding whose runs are missing
+    is left out rather than written from memory."""
+    reg = pd.read_csv(os.path.join(RESULTS, 'registry.csv'))
+    reg = reg.sort_values('finished_at').drop_duplicates('id', keep='last').set_index('id')
+
+    def auc(rid):
+        return float(reg.loc[rid, 'auc_roc']) if rid in reg.index else None
+
+    def lab(rid):
+        path = os.path.join(RESULTS, rid, 'metrics.json')
+        return lab_auc(load_json(path)) if os.path.exists(path) else None
+
+    out = []
+    sh = (report.get('shipped') or {}).get('lightgbm_previous')
+    if sh and len(sh.get('results', [])) > 1:
+        seen, unseen = sh['results'][0]['auc_roc'], sh['results'][1]['auc_roc']
+        out.append({'icon': 'exclamation-triangle', 'title': 'The first model was tested on genomes it had seen',
+                    'text': f'The original forecaster reported AUC {sh["claimed_auc"]:.2f} from a random row split. '
+                            f'On genomes it trained on it scores {seen:.2f}; on genomes it never saw, {unseen:.2f}. '
+                            'Every result on this site now uses a genome-grouped split, so no genome is on both sides.',
+                    'evidence': 'Section 2, lightgbm_previous in shipped_eval.json'})
+
+    vc = report.get('version_comparison', {}).get('runs', [])
+    if vc:
+        changes = sorted(r['change'] for r in vc)
+        med = changes[len(changes) // 2]
+        down = sum(c < 0 for c in changes)
+        up = [r['label'] for r in vc if r['change'] >= 0]
+        d = report['version_comparison'].get('data') or {}
+        size = ''
+        if d:
+            size = (f' ({d["v7"]["rows"] / d["v5"]["rows"]:.1f}x the rows, {d["v7"]["genomes"]:,} genomes; '
+                    f'resistant share {100 * d["v5"]["prevalence"]:.0f}% to {100 * d["v7"]["prevalence"]:.0f}%)')
+        out.append({'icon': 'database-check', 'title': 'The complete export is a harder, fairer test',
+                    'text': f'The April download missed E. coli, Salmonella and S. aureus at species level. On the complete '
+                            f'export{size}, {down} of {len(vc)} runs score lower (median change {med:+.3f} AUC) and the '
+                            'order of methods is unchanged'
+                            + (f'; only {" and ".join(up)} did not drop' if up else '')
+                            + '. The v5 numbers were optimistic, not wrong.',
+                    'evidence': 'Section "v5 vs v7" below'})
+
+    a2l = lab(BEST + V7)
+    if auc(BEST + V7) and a2l:
+        out.append({'icon': 'clipboard2-pulse', 'title': 'Lab-confirmed results are predicted far better',
+                    'text': f'On v7 the best model scores {auc(BEST + V7):.3f} on all test rows but {a2l:.3f} on the rows with '
+                            'a real laboratory result. Most test rows carry labels BV-BRC predicted by computer, which '
+                            'these features predict less well. Quote the lab AUC for claims about real isolates.',
+                    'evidence': 'A2_oof_grouped_v7, test_by_label_source'})
+
+    algos = {k: auc(k + V7) for k in ('A3b_lgbm_same_sample', 'A4_random_forest', 'A5_xgboost', 'A5b_catboost')}
+    if all(algos.values()) and auc('A3_logistic' + V7):
+        lo, hi = min(algos.values()), max(algos.values())
+        out.append({'icon': 'cpu', 'title': 'The algorithm matters less than the data',
+                    'text': f'On the same 400k-row sample, LightGBM, XGBoost, CatBoost and random forest land within '
+                            f'{hi - lo:.3f} AUC of each other ({lo:.3f} to {hi:.3f}); logistic regression trails at '
+                            f'{auc("A3_logistic" + V7):.3f}. Tree ensembles win, but which one barely matters.',
+                    'evidence': 'A3 to A5 on v7'})
+
+    lc = {k: auc(f'LC_{k}{V7}') for k in ('50k', '200k', '800k')}
+    if all(lc.values()):
+        out.append({'icon': 'graph-up', 'title': 'More rows stopped helping early',
+                    'text': f'AUC goes from {lc["50k"]:.3f} with 50k training rows to {lc["200k"]:.3f} with 200k and '
+                            f'{lc["800k"]:.3f} with 800k. Better features, not more of the same rows, is the way up.',
+                    'evidence': 'Learning curve LC_* on v7'})
+
+    drug, nomic, a2 = auc('A_ablation_drug_only' + V7), auc('A_ablation_no_mic' + V7), auc(BEST + V7)
+    if drug and nomic and a2:
+        out.append({'icon': 'eyedropper', 'title': 'The MIC and the organism carry the signal',
+                    'text': f'Knowing only the antibiotic and its class gives {drug:.3f}. Every feature except the MIC '
+                            f'(organism, resistance rates) gives {nomic:.3f}, and adding the MIC lifts it to {a2:.3f}. '
+                            'The organism does most of the work; the measured MIC adds the rest.',
+                    'evidence': 'Ablations on v7'})
+
+    held = auc('A12_species_holdout' + V7)
+    if held:
+        out.append({'icon': 'question-diamond', 'title': 'A genus it never saw is still hard',
+                    'text': f'With every Klebsiella genome held out of training, AUC on Klebsiella is {held:.3f}. The forecaster '
+                            'generalises to new genomes of organisms it knows, not to new organisms.',
+                    'evidence': 'A12_species_holdout_v7'})
+
+    rule, genes, nogenes = lab('B6R_gene_rule_class_v7'), lab('B6L_genes_v7'), lab('B6L_nogenes_v6')
+    if rule and genes:
+        extra = f'; organism and drug alone reach {nogenes:.3f}' if nogenes else ''
+        out.append({'icon': 'dna', 'title': 'The genome beats a gene lookup table',
+                    'text': f'On the same lab-tested genomes, calling a strain resistant whenever it carries a gene of the '
+                            f'drug\'s class scores {rule:.3f}{extra}; the learned genes model scores {genes:.3f}. A lookup '
+                            'rule over-calls resistance; learning which genes matter for which drug is what works.',
+                    'evidence': 'Section 5; experiments/genome/results/rule_vs_model.md'})
+    return out
+
+
 def main():
     shipped_path = os.path.join(RESULTS, 'shipped_eval.json')
     shipped = load_json(shipped_path) if os.path.exists(shipped_path) else None
@@ -255,6 +423,8 @@ def main():
         'shipped': shipped,
         'genome_runs': genome_runs(),
     }
+    report['version_comparison'] = version_comparison()
+    report['insights'] = insights(report)
     report['training_profiles'] = training_profiles([r['id'] for r in report['runs']])
     with open(OUT, 'w') as fh:
         json.dump(report, fh, separators=(',', ':'))
