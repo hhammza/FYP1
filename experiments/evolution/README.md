@@ -81,3 +81,15 @@ Findings (numbers in `results/calibration_summary.md`):
 ECDC data: "Dataset provided by ECDC based on data provided by public health authorities, scientific institutes or health care providers in the relevant reporting countries and/or by WHO" (CC BY 4.0); the fitted curves are our adaptation.
 
 Not used yet: Maltas & Wood 2019 (mostly endpoints), Zlamal et al. 2021 (check whether its data sets hold resistance over time), and further ECDC series (*E. coli* fluoroquinolones, MRSA), which `calibrate.py` can take once exported.
+
+## 3. RL environment (`rl_env.py`, T3.1c)
+
+```bash
+.venv/bin/python experiments/evolution/rl_env.py          # seconds
+```
+
+A Gymnasium environment for choosing one drug a week. The drug given moves one week along its timeline curve (k = 2.5 x speed, ceiling `peak`); drugs not given lose resistance by a weekly fitness cost. The state is the resistant share per drug plus the share of the horizon gone; the reward is minus the resistant share of the drug given, minus the week's total rise in resistance. A week's treatment fails when the drug given is at 50% or more. Episodes always run the full horizon (104 weeks): ending them at failure would pay the agent to fail fast.
+
+`results/rl_baselines.md` scores the policies the agent has to beat (always one drug, cycling every week or every 4 weeks, and greedy: the drug with the lowest resistance now) over 100 seeded episodes, for fitness costs of 0%, 2% and 5% a week, since the real cost is not known. With no cost every mixed policy gets about 36 effective weeks; with 2%, cycling every week gets the most effective weeks (57) and greedy the lowest burden; with 5%, greedy never fails.
+
+Simplifications: three drugs from different classes (ciprofloxacin, gentamicin, imipenem), no cross-resistance, hand-set curves and an illustrative time scale. The policy is learned on a simulation, not on patient data.
