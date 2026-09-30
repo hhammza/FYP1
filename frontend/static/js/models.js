@@ -177,7 +177,10 @@
     }], layout({
       xaxis: { type: 'log', title: { text: 'Rows used (log scale)' },
                tickvals: pts.map(r => r.rows), ticktext: pts.map(r => (r.rows >= 1e6 ? (r.rows / 1e6).toFixed(1) + 'M' : Math.round(r.rows / 1e3) + 'k')) },
-      yaxis: { range: [0.78, 0.85], title: { text: 'AUC-ROC' } },
+      /* Fit the range to the points and their intervals, with a little room */
+      yaxis: { range: [Math.floor((Math.min(...pts.map(r => r.auc_ci[0])) - 0.005) * 100) / 100,
+                       Math.ceil((Math.max(...pts.map(r => r.auc_ci[1])) + 0.005) * 100) / 100],
+               title: { text: 'AUC-ROC' } },
       showlegend: false,
     }), config);
   }
@@ -293,44 +296,7 @@
     }), config);
   }
 
-  /* ── Section 3b: the same runs on v5 and v7 ────────────────── */
-  function renderVersionChart() {
-    const vc = report.version_comparison;
-    if (!vc || !vc.runs || !vc.runs.length || !document.getElementById('versionChart')) return;
-    const p = palette();
-    const rows = vc.runs.slice().reverse();          /* first run at the top */
-    const order = rows.map(r => r.label);
-    /* One grey segment per run, v5 to v7 */
-    const segX = [], segY = [];
-    rows.forEach(r => { segX.push(r.v5_auc, r.v7_auc, null); segY.push(r.label, r.label, null); });
-    const dots = (key, name, color) => ({
-      type: 'scatter', mode: 'markers', name: legendName(name),
-      x: rows.map(r => r[key + '_auc']), y: order,
-      marker: { color, size: 10, line: { color: p.card, width: 2 } },
-      customdata: rows.map(r => [r[key + '_ci'][0], r[key + '_ci'][1], r.change, r.id]),
-      hovertemplate: `<b>%{y}</b><br>${name}: AUC %{x:.3f} [%{customdata[0]:.3f} to %{customdata[1]:.3f}]`
-                   + '<br>change v5 to v7 %{customdata[2]:+.3f}<extra></extra>',
-    });
-    const narrow = window.innerWidth < 576;
-    const all = rows.flatMap(r => [r.v5_auc, r.v7_auc]);
-    const low = Math.min(0.5, Math.floor((Math.min(...all) - 0.03) * 20) / 20);
-    Plotly.react('versionChart', [
-      { type: 'scatter', mode: 'lines', x: segX, y: segY, line: { color: p.text2, width: 2 },
-        hoverinfo: 'skip', showlegend: false },
-      dots('v5', 'v5 (earlier data)', p.c2),
-      dots('v7', 'v7 (complete data)', p.c1),
-    ], layout({
-      xaxis: { range: [low, 1.0], title: { text: narrow ? 'AUC-ROC' : 'AUC-ROC on held-out genomes (0.5 = guessing)' } },
-      yaxis: { categoryorder: 'array', categoryarray: order,
-               tickfont: { size: narrow ? 9 : 11, color: AMR.plotLayout().tickColor } },
-      margin: { t: 10, r: 16, b: 80, l: narrow ? 150 : 260 },
-      legend: { orientation: 'h', x: 0, xanchor: 'left', y: -50 / (140 + 26 * rows.length) - 0.06, font: { color: p.text2, size: 11 } },
-      hovermode: 'closest',
-    }), config);
-  }
-
   function renderAll() {
-    renderVersionChart();
     renderGenomeChart();
     renderSeenChart();
     renderAucChart();

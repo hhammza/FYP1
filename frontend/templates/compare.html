@@ -45,6 +45,7 @@
 {% set km = report.shipped.kmer %}
 {% set lgp = lg.train_profile %}
 {% set kmp = km.train_profile %}
+{% set sv = report.shipped_versions or {} %}
 {% set best = report.runs | selectattr('id', 'equalto', report.best_run) | first %}
 {% set bp = tp[report.best_run] %}
 
@@ -75,15 +76,15 @@
     <div class="sec-eyebrow">Section 1</div>
     <h2 class="sec-title">Where each model's training data comes from</h2>
     <p class="sec-sub mb-4">
-      All data comes from one BV-BRC / PATRIC export. The deployed models read only the first files of each folder,
-      in alphabetical order, because <code>train_models.py</code> caps how many files it loads.
+      All data comes from BV-BRC / PATRIC: the resistance table for the forecaster, and complete genome
+      assemblies for the genome model.
     </p>
 
     <div class="glass-card">
       <div class="flow-lane">
         <div class="flow-source">
-          <div class="flow-source-name"><i class="bi bi-folder2-open me-2"></i>amr_output/</div>
-          <div class="flow-source-meta">{{ n(lg.files_total) }} CSVs, one per taxon</div>
+          <div class="flow-source-name"><i class="bi bi-folder2-open me-2"></i>BV-BRC AMR export</div>
+          <div class="flow-source-meta">complete, cleaning {{ report.clean_version or 'v7' }}</div>
           <div class="flow-source-meta">{{ n(full.rows) }} rows after cleaning</div>
           <div class="flow-source-meta">{{ n(full.genomes) }} genomes, {{ full.genera }} genera</div>
         </div>
@@ -91,13 +92,13 @@
         <div class="flow-targets">
           <div class="flow-target deployed">
             <div class="flow-target-head"><span class="flow-dot deployed"></span>Deployed LightGBM <span class="caption-text ms-1">/forecast</span></div>
-            <div class="flow-target-meta">Files 1 to {{ lg.files_used }} ({{ p(lg.files_used / lg.files_total) }} of files) → {{ n(lgp.rows) }} rows</div>
+            <div class="flow-target-meta">{{ n(lgp.rows) }} training rows{% if sv.lightgbm %} (cleaning {{ sv.lightgbm }}){% endif %}</div>
             <div class="flow-meter"><div class="flow-meter-fill deployed" style="width: {{ [100 * lgp.rows / full.rows, 0.6] | max }}%"></div></div>
             <div class="caption-text">{{ p(lgp.rows / full.rows) }} of the available rows</div>
           </div>
           <div class="flow-target experiment">
             <div class="flow-target-head"><span class="flow-dot experiment"></span>Experiments <span class="caption-text ms-1">A0 to A12, learning curves</span></div>
-            <div class="flow-target-meta">All {{ n(lg.files_total) }} files → up to {{ n(full.rows) }} rows, 80% for training</div>
+            <div class="flow-target-meta">The whole export → up to {{ n(full.rows) }} rows, 80% for training</div>
             <div class="flow-meter"><div class="flow-meter-fill experiment" style="width: 100%"></div></div>
             <div class="caption-text">100% of the available rows (some runs sample or filter, see the table below)</div>
           </div>
@@ -106,10 +107,10 @@
 
       <div class="flow-lane mt-4">
         <div class="flow-source">
-          <div class="flow-source-name"><i class="bi bi-folder2-open me-2"></i>mapped_output/ + fasta_output/</div>
+          <div class="flow-source-name"><i class="bi bi-folder2-open me-2"></i>{{ 'Complete genome assemblies' if km.run_id else 'mapped_output/ + fasta_output/' }}</div>
           <div class="flow-source-meta">{{ n(km.files_total) }} {{ 'complete genome assemblies' if km.run_id else 'CSVs joined to genome files' }}</div>
           <div class="flow-source-meta">{{ n(km.genomes_with_fasta) }} genomes with a FASTA assembly</div>
-          <div class="flow-source-meta">About 4 GB of sequence</div>
+          {% if not km.run_id %}<div class="flow-source-meta">About 4 GB of sequence</div>{% endif %}
         </div>
         <div class="flow-arrow"><i class="bi bi-arrow-right"></i></div>
         <div class="flow-targets">
@@ -119,10 +120,17 @@
             <div class="flow-meter"><div class="flow-meter-fill deployed" style="width: {{ 100 * kmp.genomes / km.genomes_with_fasta }}%"></div></div>
             <div class="caption-text">{{ p(kmp.genomes / km.genomes_with_fasta) }} of the genomes with a FASTA</div>
           </div>
+          {% if report.genome_runs %}
+          <div class="flow-target experiment">
+            <div class="flow-target-head"><span class="flow-dot experiment"></span>Experiments <span class="caption-text ms-1">genes, k-mers, lineage splits</span></div>
+            <div class="flow-target-meta">{{ report.genome_runs | length }} genome runs, scored on lab results: <a href="/models#genome">Model Report, Section 5</a></div>
+          </div>
+          {% else %}
           <div class="flow-target empty">
             <div class="flow-target-head"><span class="flow-dot"></span>Experiments</div>
             <div class="flow-target-meta">No genome-sequence experiment yet. All experiments use the tabular AMR data.</div>
           </div>
+          {% endif %}
         </div>
       </div>
     </div>
@@ -164,9 +172,9 @@
 
             <tr class="compare-section"><td colspan="4">Training data</td></tr>
             <tr><td>Source</td>
-              <td class="font-mono small">amr_output/, files 1 to {{ lg.files_used }}</td>
+              <td class="font-mono small">{{ ('BV-BRC export, cleaning ' ~ sv.lightgbm) if sv.lightgbm else ('amr_output/, files 1 to ' ~ lg.files_used) }}</td>
               <td class="font-mono small">{{ km.source if km.run_id else ('mapped_output/, files 1 to ' ~ km.files_used) }}</td>
-              <td class="font-mono small">amr_output/, all {{ n(lg.files_total) }} files</td></tr>
+              <td class="font-mono small">amr_full/, the complete export (cleaning {{ report.clean_version or 'v7' }})</td></tr>
             <tr><td>Training rows</td>
               <td class="font-mono">{{ n(lgp.rows) }}</td><td class="font-mono">{{ n(kmp.rows) }}</td>
               <td class="font-mono">{{ n(bp.rows) }} <span class="caption-text">incl. validation</span></td></tr>
@@ -264,7 +272,7 @@
         <table class="table table-custom table-sm mb-0">
           <thead><tr><th>Model</th><th>Type</th><th>Algorithm</th><th>Trained on</th><th>Train rows</th><th>Genomes</th><th>Genera</th><th>Resistant</th><th>Lab labels</th><th>Split</th><th>AUC, new genomes</th></tr></thead>
           <tbody>
-            {% for m, prof, algo, src in [(lg, lgp, 'lightgbm', 'amr_output files 1 to ' ~ lg.files_used), (km, kmp, 'lightgbm' if km.run_id else 'random_forest', km.source if km.run_id else 'mapped_output files 1 to ' ~ km.files_used)] %}
+            {% for m, prof, algo, src in [(lg, lgp, 'lightgbm', ('BV-BRC export, cleaning ' ~ sv.lightgbm) if sv.lightgbm else ('amr_output files 1 to ' ~ lg.files_used)), (km, kmp, 'lightgbm' if km.run_id else 'random_forest', km.source if km.run_id else 'mapped_output files 1 to ' ~ km.files_used)] %}
             <tr>
               <td><span class="text-white fw-600">{{ m.name }}</span><div class="caption-text">{{ m.page }}</div></td>
               <td class="text-nowrap"><span class="flow-dot deployed"></span>Deployed</td>

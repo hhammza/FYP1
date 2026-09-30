@@ -310,7 +310,7 @@
   <div class="mb-5" id="experiments">
     <div class="sec-eyebrow">Section 3</div>
     <h2 class="sec-title">All experiment runs</h2>
-    <p class="sec-sub mb-4">Every run from <code>experiments/</code>, on the test genomes it held out. The bars show the 95% confidence interval, resampled by genome.</p>
+    <p class="sec-sub mb-4">Every run from <code>experiments/</code> on the complete BV-BRC data (cleaning {{ report.clean_version or 'v7' }}), scored on the test genomes it held out. The bars show the 95% confidence interval, resampled by genome.</p>
 
     <div class="glass-card mb-4">
       <h6 class="card-section-title mb-1"><i class="bi bi-bar-chart-steps text-accent me-2"></i>AUC-ROC by run</h6>
@@ -339,7 +339,7 @@
       <p class="small text-muted mb-2">
         <strong>VME</strong> (very major error) is a resistant isolate called susceptible, the dangerous mistake.
         <strong>ME</strong> (major error) is a false resistant call. Moving the threshold trades one for the other,
-        which is why A2 (threshold 0.40) and A9 (0.47) share an AUC but sit far apart here.
+        {% set a2r = report.runs | selectattr('id', 'equalto', 'A2_oof_grouped') | first %}{% set a9r = report.runs | selectattr('id', 'equalto', 'A9_threshold_f1') | first %}{% if a2r and a9r %}which is why A2 (threshold {{ '%.2f' | format(a2r.threshold) }}) and A9 ({{ '%.2f' | format(a9r.threshold) }}) share an AUC but sit far apart here.{% endif %}
       </p>
       <div id="errorChart" class="report-chart" style="height:380px"></div>
     </div>
@@ -352,7 +352,7 @@
           <tbody>
           {% for run in report.runs %}
             <tr{% if run.id == report.best_run %} class="report-best-row"{% endif %}>
-              <td><span class="font-mono small text-white">{{ run.id }}</span>
+              <td><span class="font-mono small text-white">{{ run.run_id or run.id }}</span>
                   <div class="caption-text">{{ run.description }}</div></td>
               <td class="small">{{ run.model }}</td>
               <td class="small">{{ run.split }}</td>
@@ -369,73 +369,11 @@
         </table>
       </div>
       <p class="caption-text mt-2 mb-0">
-        A6 (lab labels only) scores highest because a wet-lab label is almost fixed by the MIC value. Without MIC (A6b)
-        it drops to about 0.87, so it is an easier task, not a better model.
+        {% set a6b = report.runs | selectattr('id', 'equalto', 'A6b_lab_only_no_mic') | first %}A6 (lab labels only) scores highest because a wet-lab label is almost fixed by the MIC value.{% if a6b %} Without MIC (A6b)
+        it drops to {{ '%.3f' | format(a6b.auc_roc) }}, so it is an easier task, not a better model.{% endif %}
       </p>
     </div>
   </div>
-
-  <!-- ════════════════════════════════════════════════════════════
-       V5 VS V7: THE SAME RUNS ON THE COMPLETE EXPORT
-       ════════════════════════════════════════════════════════════ -->
-  {% set vc = report.version_comparison %}
-  {% if vc and vc.runs %}
-  <div class="mb-5" id="versions">
-    <div class="sec-eyebrow">Section 3b</div>
-    <h2 class="sec-title">The same runs on the complete data (v5 vs v7)</h2>
-    <p class="sec-sub mb-4">
-      Every run above was repeated on cleaning v7, built from the complete BV-BRC export, with the same code and
-      settings. Cleaning v5 was built from an earlier, smaller set of files, so the only difference is the data.
-    </p>
-    {% if vc.data %}
-    <div class="d-flex gap-3 flex-wrap mb-4">
-      <div class="flex-fill min-w-130"><div class="stat-mini">
-        <div class="stat-mini-value">{{ '{:,}'.format(vc.data.v5.rows) }} <i class="bi bi-arrow-right small"></i> {{ '{:,}'.format(vc.data.v7.rows) }}</div>
-        <div class="stat-mini-label">Labelled rows</div>
-      </div></div>
-      <div class="flex-fill min-w-130"><div class="stat-mini">
-        <div class="stat-mini-value">{{ '{:,}'.format(vc.data.v5.genomes) }} <i class="bi bi-arrow-right small"></i> {{ '{:,}'.format(vc.data.v7.genomes) }}</div>
-        <div class="stat-mini-label">Genomes</div>
-      </div></div>
-      <div class="flex-fill min-w-130"><div class="stat-mini">
-        <div class="stat-mini-value">{{ '%.0f' | format(100 * vc.data.v5.prevalence) }}% <i class="bi bi-arrow-right small"></i> {{ '%.0f' | format(100 * vc.data.v7.prevalence) }}%</div>
-        <div class="stat-mini-label">Resistant share</div>
-      </div></div>
-    </div>
-    {% endif %}
-
-    <div class="glass-card mb-4">
-      <h6 class="card-section-title mb-1"><i class="bi bi-arrow-left-right text-accent me-2"></i>AUC on v5 and v7, run by run</h6>
-      <p class="small text-muted mb-2">Each line joins a run's v5 score to its v7 score. Almost every line moves left by the same amount, so the ranking holds.</p>
-      <div id="versionChart" class="report-chart" style="height:{{ 140 + 26 * (vc.runs | length) }}px"></div>
-    </div>
-
-    <div class="glass-card">
-      <h6 class="card-section-title"><i class="bi bi-table text-accent me-2"></i>v5 vs v7 table</h6>
-      <div class="table-responsive">
-        <table class="table table-custom table-sm mb-0">
-          <thead><tr><th>Run</th><th>v5 AUC [95% CI]</th><th>v7 AUC [95% CI]</th><th>Change</th><th>v7 lab AUC</th><th>v7 rows</th></tr></thead>
-          <tbody>
-          {% for v in vc.runs %}
-            <tr{% if v.id == report.best_run %} class="report-best-row"{% endif %}>
-              <td><span class="small text-white">{{ v.label }}</span><div class="caption-text font-mono">{{ v.id }}_v7</div></td>
-              <td class="font-mono small text-nowrap">{{ '%.3f' | format(v.v5_auc) }}<div class="caption-text">{{ '%.3f' | format(v.v5_ci[0]) }} to {{ '%.3f' | format(v.v5_ci[1]) }}</div></td>
-              <td class="font-mono small text-nowrap">{{ '%.3f' | format(v.v7_auc) }}<div class="caption-text">{{ '%.3f' | format(v.v7_ci[0]) }} to {{ '%.3f' | format(v.v7_ci[1]) }}</div></td>
-              <td class="font-mono small">{{ '%+.3f' | format(v.change) }}</td>
-              <td class="font-mono small">{{ '%.3f' | format(v.v7_lab_auc) if v.v7_lab_auc is number else '-' }}</td>
-              <td class="font-mono small">{{ '{:,}'.format(v.v7_rows) }}</td>
-            </tr>
-          {% endfor %}
-          </tbody>
-        </table>
-      </div>
-      <p class="caption-text mt-2 mb-0">
-        Lab AUC: only test rows with a laboratory result. The v5 runs did not record it, so there is no v5 column.
-        The served forecaster changes from D4 (cleaning v6) to the D3 recipe on v7 once it is promoted.
-      </p>
-    </div>
-  </div>
-  {% endif %}
 
   <!-- ════════════════════════════════════════════════════════════
        BEST MODEL DETAIL
