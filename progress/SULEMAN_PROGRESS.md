@@ -178,6 +178,7 @@ Built against the real files (`backend/trained_models/lgbm_metrics.json`, `kmer_
 
 - [x] Remove the "CNN-LSTM deep-learning model is available for training" claim (`mutation_timeline.html:164`, `train.html:142, 147, 154`): `/train` only trains `lgbm` and `kmer`, and the format drops the CNN-LSTM label *Done 2026-09-27, with the "results are accurate" claims on the same cards*
 
+- [x] **Converter from Ali's RL environment to format §4** (his question 4, 2026-09-30). *Done: `experiments/evolution/rl_output.py` turns `rl_env.py`'s episodes into the `rl` block: percent 0–100, `failure_week` null when never failed, plus optional `effective_weeks` and `mean_burden` (added to §4). His `rl_env.py` untouched. 8 tests (`test_rl_output.py`), matched against his `run_episode`. Questions for Ali in his Handovers table: horizon 104 vs a 1–52 week request; the env's curve vs the main timeline's*
 - [ ] Panel labelled **"Simulation + RL policy (not trained on patient data)"**, built against Ali's agreed response format
 
 - [ ] Chart of the RL policy against the fixed baselines
