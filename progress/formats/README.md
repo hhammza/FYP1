@@ -171,6 +171,10 @@ A new `rl` object. **Field absent = RL not run** (Week 1 to 3, or the agent is n
 | `rl.policies[].resistant_fraction` | object: drug → list of numbers 0–100, length `n_weeks + 1` | Resistant percent per drug, week 0 to `n_weeks`. One line per drug on the chart |
 | `rl.policies[].failure_week` | int or `null` | First week the drug given that week has `resistant_fraction` ≥ 50 |
 | `rl.policies[].total_reward` | number | Episode reward (higher is better). For the comparison table only |
+| `rl.policies[].effective_weeks` | int, optional | Weeks the drug given was under 50% resistance, out of `n_weeks`. *Added 2026-09-30 (Suleman)*: fairer than `failure_week` alone, since a policy can fail early yet work most weeks |
+| `rl.policies[].mean_burden` | number 0–100, optional | Resistant percent of the drug given, averaged over the weeks (lower is better). *Added 2026-09-30 (Suleman)* |
+
+**Built by** `experiments/evolution/rl_output.py` (`rl_block(antibiotic, n_weeks, seed, agent=...)`, Suleman 2026-09-30) from Ali's `rl_env.py`, which keeps its own units (0–1 shares, "never failed" = week `weeks + 1`); the conversion to this format happens only there. Every policy runs on the same seed. Baseline names: `always_<drug>`, `cycle`, `cycle_4`, `lowest_resistance`; the panel shows any name by its `label`. Tests: `experiments/evolution/test_rl_output.py`.
 
 **Display rules:** label the panel "Simulation + RL policy (not trained on patient data)". Percentages with one decimal. Show the policy as a row of drug chips per week under the chart.
 
