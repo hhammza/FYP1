@@ -1,0 +1,23 @@
+{
+  "description": "A2b_no_encoding on cleaning v7 (the complete BV-BRC export); compare with the v5 run A2b_no_encoding",
+  "split": {
+    "strategy": "grouped",
+    "test_size": 0.2,
+    "seed": 42
+  },
+  "features": {
+    "target_encoding": "none"
+  },
+  "model": {
+    "type": "lightgbm"
+  },
+  "threshold": {
+    "strategy": "fixed",
+    "fixed": 0.4
+  },
+  "id": "A2b_no_encoding_v7",
+  "data": {
+    "source": "amr_full"
+  },
+  "evaluation": {}
+}
