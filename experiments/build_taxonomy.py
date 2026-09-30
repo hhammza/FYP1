@@ -2,10 +2,8 @@
 Map every Taxon ID in the data to its species and genus, using NCBI Taxonomy.
 
 The export's `Taxon ID` is mostly strain level: Escherichia coli alone is
-spread over about 1,200 IDs (244319 is O26:H11, 83334 is O157:H7). In the
-April export the species ID 562 never appeared at all, but only because that
-download failed on it (see scripts/bvbrc_download/README.md); the complete
-export has 7.2 M rows under 562. Grouping at species level still matters:
+spread over about 1,200 IDs (244319 is O26:H11, 83334 is O157:H7), next to
+7.2 M rows under the species ID 562. Grouping at species level matters:
 a user who types 562 should match every E. coli strain. This script looks each ID up once and writes a small table
 that training and prediction both use to move to species level.
 

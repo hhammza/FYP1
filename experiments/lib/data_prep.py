@@ -23,25 +23,23 @@ import numpy as np
 import pandas as pd
 
 CLEAN_VERSION = 'v7'  # v2: extended ANTIBIOTIC_ALIASES; v3: species_taxon_id (2026-09-25); v4: 54 drugs added to DRUG_CLASS_MAP (2026-09-26); v5: Genome ID read as text (2026-09-26); v6: the complete BV-BRC export in Data/amr_full/ (2026-09-29); v7: disk-diffusion zone sizes (mm) are not MICs (2026-09-29)
-# v6: the April export (Data/amr_output/) paged by offset and stopped each
-# taxon at 500,000 rows, so E. coli, S. enterica and S. aureus were missing
-# and K. pneumoniae was cut. Data/amr_full/ holds all 17,585,506 records
+# v6: Data/amr_full/ holds all 17,585,506 BV-BRC records
 # (scripts/bvbrc_download/download_amr_full.py). The cleaning is unchanged.
 # v7: rows measured in mm are disk-diffusion zone diameters, not MICs, but
 # their number was read as mic_value (8,380 lab rows in the complete export,
 # experiments/audit/results/audit.md). From v7 they keep their label and
-# have no MIC. The April export stays on v5 cleaning so v5 runs rebuild exactly.
+# have no MIC. amr_output/ stays on v5 cleaning so v5 runs rebuild exactly.
 # v5: read as a number, Genome IDs that differ only by trailing zeros
 # (195.304, 195.3040) became one genome; 3,312 genomes merged and the
 # per-genome dedup dropped 36,850 of their rows. The 13 aliases and 'sulfa'
 # added in v4 change nothing: every row they touch has no usable phenotype.
 GENOME_ID_TEXT = {'Genome ID': str}
 
-# Where the raw export lives, under the data root. amr_output/ is the April
-# export, kept so v5 runs can be reproduced.
+# Where the raw export lives, under the data root. amr_output/ holds the
+# earlier files, kept so v5 runs can be reproduced.
 DEFAULT_SOURCE = 'amr_full'
 # The version names the export and the cleaning applied to it. v1 to v5 read
-# the April export (only v5 runs rebuild exactly); v6 and v7 the complete one.
+# amr_output/ (only v5 runs rebuild exactly); v6 and v7 the complete export.
 EXPORT_VERSIONS = {'amr_output': 'v5', 'amr_full': 'v7'}
 
 
@@ -52,7 +50,7 @@ def version_of(source=None):
 
 def source_of(version):
     """The export a run on this cleaning version read. Runs recorded before
-    versions were recorded predate v5 and read the April export."""
+    versions were recorded predate v5 and read amr_output/."""
     number = version_number(version)
     return 'amr_output' if number < 6 else DEFAULT_SOURCE
 # The only raw columns clean() reads; loading just these keeps the 5 GB

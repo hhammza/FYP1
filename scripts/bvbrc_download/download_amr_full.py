@@ -1,11 +1,7 @@
 """Download every AMR record from BV-BRC, resumable, with the Mac kept awake.
 
-The April download (download_amr_csv.py) paged with a growing offset and
-stopped at 500,000 rows per taxon, so the largest species broke: E. coli
-(taxon 562, 7.2 M rows) is missing entirely, and K. pneumoniae stopped at
-500,000 of 1.84 M. This script pages by record ID instead (sort by id, then
-"id greater than the last one"), which has no depth limit and restarts
-exactly where it stopped.
+It pages by record ID (sort by id, then "id greater than the last one"),
+which has no depth limit and restarts exactly where it stopped.
 
 Two streams, lab results first because they matter most:
     lab             evidence = Laboratory Method       (~1.3 M rows, ~10 min)
@@ -20,7 +16,7 @@ Output (Data/amr_full/, not in git):
     manifest.json    written at the end: rows per stream vs BV-BRC's count
     download.log     when started with the command below
 
-The CSV columns are the April ones (so data_prep can read them), plus
+The CSV columns are those of download_amr_csv.py (so data_prep can read them), plus
 Record ID, Date Inserted and Date Modified at the end.
 
 Run from the project root:
@@ -53,7 +49,7 @@ STREAMS = {
     'computational': 'Computational Method',
 }
 
-# April column names and order (download_amr_csv.py), then three new ones.
+# Column names and order of download_amr_csv.py, then three new ones.
 FIELDS = [
     ('taxon_id', 'Taxon ID'),
     ('genome_id', 'Genome ID'),
