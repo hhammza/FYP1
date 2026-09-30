@@ -30,8 +30,8 @@ All data comes from BV-BRC, a free public database of bacteria and their test re
 
 ### Data (Ali)
 
-- Cleaned the BV-BRC resistance table. The first download (April) turned out to hold only 17% of BV-BRC's records, so we downloaded all **17.6 M** again: cleaning v6 has **7,847,110 rows, 439,542 genomes, 649,944 lab rows on 87,325 genomes** (April: 1,558,494 rows, 131,385 genomes). Along the way we found and fixed real problems in the data (section 3).
-- Downloaded the complete DNA of **24,926 genomes**, including **all 22,475 that have a real lab result**. Before this we had only 136 lab-tested genomes.
+- Cleaned the BV-BRC resistance table: all **17.6 M** records. Cleaning v7 has **7,847,110 rows, 439,542 genomes, 649,944 lab rows on 87,325 genomes**. Along the way we found and fixed real problems in the data (section 3).
+- Downloaded the complete DNA of **24,926 genomes**, 22,475 of them with a real lab result. The complete export has 87,325 lab-tested genomes; the DNA of the other 64,850 is not downloaded yet (team decision).
 - Ran AMRFinderPlus (a US government tool that finds resistance genes) on every genome. The result is a **gene table of 24,926 genomes x 2,733 genes and mutations**.
 - Built the **k-mer file** (`kmer6_counts.npz`): a count of every 6-letter DNA pattern in each genome, for Hamza's models.
 
@@ -56,17 +56,15 @@ All data comes from BV-BRC, a free public database of bacteria and their test re
 
 These findings matter more than any single accuracy number, and they are why we can write papers.
 
-1. **The first model looked great but was not.** The model shipped in July scored **0.94** on the genomes it had seen but **0.64** on 128,825 genomes it had not seen. It had trained on only 1.6% of the data, picked in alphabetical file order, and never saw *Klebsiella*, which is 30% of the data.
-2. **Downloading the data is itself a trap.** An ordinary paged download silently lost 83% of the records: no *E. coli*, *S. enterica* or *S. aureus* at species level, *Klebsiella* cut at 500,000 rows. The partial sample made resistance look more common than it is (lab rows 49.5% resistant vs 33.7% in the full data). BV-BRC also changed in between: 996 genomes removed, 1,665 labels changed. Numbers in `experiments/audit/results/audit.md`.
-3. **The database has hidden errors** (complete export, 2026-09-28):
-   - Genome IDs like `195.304` and `195.3040` look like numbers; reading them as numbers merges **16,531 genomes** (32,744 IDs collide; 3,312 in the April data).
+1. **The first model looked great but was not.** The model shipped in July scored **0.94** on the genomes it had seen but **0.64** on 128,825 genomes it had not seen. It had trained on only 1.6% of the data, picked in alphabetical file order, and never saw *Klebsiella*.
+2. **The database has hidden errors** (complete export, 2026-09-28):
+   - Genome IDs like `195.304` and `195.3040` look like numbers; reading them as numbers merges **16,531 genomes** (32,744 IDs collide).
    - 196 spellings of antibiotic names become 126 drugs after clean-up; 10 "drug" names are not drugs (drug classes, `instrument`).
    - 45% of lab records have a measurement but no resistant or susceptible call; 8,380 lab rows give disk sizes in mm where an MIC is expected; testing standards appear as both "CLSI" and "clsi".
    - 4,313 genome and drug pairs have conflicting lab results.
-   - The first DNA files we downloaded held only about **31% of each genome**.
-   - A correction: we thought the same species hides under hundreds of strain IDs and that *E. coli* 562 never appears. That was our failed download; in the full export 89% of rows sit under a species ID.
-4. **Most labels are not real lab results.** About 92% of the cleaned labels were predicted by BV-BRC's own models (SIR XGBoost, AdaBoost); only 8% are lab tests. Where both exist, the prediction disagrees with the lab 9.6% of the time, and for daptomycin (lipopeptides) the predictions say 95% resistant against 11% in the lab. A model trained on them partly learns to copy another model.
-5. **The metadata model mostly learns "this species is usually resistant to this drug."** When a whole species is hidden from training, it falls to about 0.60. The DNA models are needed to go beyond that.
+   - Most taxon IDs are strains or serotypes, but 89% of rows sit under a species-rank ID.
+3. **Most labels are not real lab results.** About 92% of the cleaned labels were predicted by BV-BRC's own models (SIR XGBoost, AdaBoost); only 8% are lab tests. Where both exist, the prediction disagrees with the lab 9.6% of the time, and for daptomycin (lipopeptides) the predictions say 95% resistant against 11% in the lab. A model trained on them partly learns to copy another model.
+4. **The metadata model mostly learns "this species is usually resistant to this drug."** When a whole species is hidden from training, it falls to about 0.60. The DNA models are needed to go beyond that.
 
 ## 4. What the published work already covers
 
@@ -81,7 +79,7 @@ These findings matter more than any single accuracy number, and they are why we 
 
 | Paper | In one line | Main evidence we have | Where |
 | --- | --- | --- | --- |
-| **A (main)** | What is wrong with BV-BRC's resistance data, and how it made our first model look better than it was | Cleaning v1 to v5 counts; shipped model 0.94 seen vs 0.64 unseen; D3 0.80 with CI; lab-only vs computational labels; VME and ME at the chosen threshold | *Microbial Genomics*, fallback *PLOS ONE* |
+| **A (main)** | What is wrong with BV-BRC's resistance data, and how it made our first model look better than it was | Audit counts on the complete export (cleaning v7); shipped model 0.94 seen vs 0.64 unseen; D3 on v7 0.774 (lab rows 0.908) with CI; lab-only vs computational labels; VME and ME at the chosen threshold | *Microbial Genomics*, fallback *PLOS ONE* |
 | **B** | Genes vs k-mers vs a simple gene lookup, on 22,475 lab-tested genomes, tested on lineages and species the model never saw | Gene table 24,926 x 2,733; `kmer6_counts.npz`; first lineage runs (genes 0.708 vs k-mers 0.545 at species level, old 2,505 genomes) | *BMC Bioinformatics* or *PeerJ*, or joined with A |
 | **C (later)** | Our `amrpredict` software library and web app | Library, tests, docs | *JOSS*, after about 6 months of public code |
 
@@ -89,7 +87,7 @@ Order: Paper A first (most of its evidence exists), Paper B in parallel as the g
 
 ## 6. Rules for any number in a paper
 
-1. Only from cleaning v5 runs (Genome ID read as text).
+1. Only from cleaning v7 runs: the complete export, Genome ID read as text, mm values not read as MICs.
 2. Every headline number has a 95% CI, and every "A beats B" or "no difference" has a DeLong (AUC) or McNemar (threshold) test.
 3. Three seeds for headline runs; report mean and sd.
 4. Genome models: quote the **lab** AUC only. BV-BRC's computational labels come from its own genome classifiers, so all-row scores are partly circular.
@@ -168,5 +166,5 @@ Both depend on how many genomes have a collection year, which Ali's coverage rep
 
 | Date | Who | What |
 | --- | --- | --- |
-| 2026-09-29 | Ali | April export found incomplete; complete export and cleaning v6; audit script and statistics tables done; section 3 findings corrected (taxon claim withdrawn, float-bug count updated) |
+| 2026-09-29 | Ali | Complete BV-BRC export downloaded; cleaning v6; audit script and statistics tables done |
 | 2026-09-28 | Ali | Created this plan from the literature review; research rows added to all three trackers; plain-words project overview merged in |
