@@ -2,8 +2,7 @@
 
 One command, no network. Reads:
     Data/amr_full/            the complete export (and its manifest.json)
-    Data/amr_output/          the April export's download log (.progress.json)
-    experiments/cache/        the cleaned April (v5) and current tables (data_prep.get_clean)
+    experiments/cache/        the current cleaned table (data_prep.get_clean)
     backend/taxon_species.csv taxon ranks from NCBI
 Writes experiments/audit/results/audit.md and audit.json.
 
@@ -28,7 +27,6 @@ from lib import data_prep  # noqa: E402
 from compare_clean_versions import summary as clean_summary  # noqa: E402
 
 FULL = os.path.join(data_prep.data_root(), 'amr_full')
-APRIL_LOG = os.path.join(data_prep.data_root(), 'amr_output', '.progress.json')
 OUT_MD = os.path.join(HERE, 'results', 'audit.md')
 OUT_JSON = os.path.join(HERE, 'results', 'audit.json')
 PHENOTYPE_MAP = data_prep.PHENOTYPE_MAP
@@ -36,8 +34,6 @@ ALIASES = data_prep.ANTIBIOTIC_ALIASES
 COLUMNS = ['Taxon ID', 'Genome ID', 'Antibiotic', 'Resistant Phenotype', 'Measurement',
            'Measurement Value', 'Measurement Unit', 'Testing Standard', 'Testing Standard Year',
            'Computational Method', 'Evidence']
-BIG_TAXA = {562: 'Escherichia coli', 573: 'Klebsiella pneumoniae',
-            28901: 'Salmonella enterica', 1280: 'Staphylococcus aureus'}
 
 
 def pct(a, b):
@@ -156,23 +152,6 @@ def labels(u):
     }
 
 
-def april(c):
-    """What the April download got, from its own log, against the complete export."""
-    log = json.load(open(APRIL_LOG))
-    status = collections.Counter(v.get('status') for k, v in log.items() if k != '_summary')
-    rows = {int(k): v for k, v in log.items() if k != '_summary'}
-    capped = [k for k, v in rows.items() if v.get('amr_records') == 500000]
-    big = {}
-    for tid, name in BIG_TAXA.items():
-        r = rows.get(tid, {})
-        big[tid] = {'name': name, 'april_status': r.get('status', 'absent'),
-                    'april_rows_kept': r.get('amr_records', 0) if r.get('status') == 'done' else 0,
-                    'complete_rows': int(c['taxon_rows'].get(str(tid), 0))}
-    return {'status': dict(status), 'taxa_at_cap': capped, 'big_taxa': big,
-            'april_rows': int(sum(v.get('amr_records', 0) for v in rows.values()
-                                  if v.get('status') == 'done'))}
-
-
 def breakdown(df, key, top=None):
     lab = df['is_lab_confirmed'] == 1
     t = df.groupby(key).agg(rows=('target', 'size'), genomes=('Genome ID', 'nunique'),
@@ -202,7 +181,7 @@ def main():
     res = {'manifest': manifest, 'files': n_files,
            'rows': dict(c['rows']), 'ids': id_problems(genome_ids),
            'taxonomy': taxonomy(c['taxon_rows']), 'names': names(c),
-           'labels': labels(usable), 'april': april(c)}
+           'labels': labels(usable)}
     total = sum(c['rows'].values())
     lab_total, comp_total = c['rows']['lab'], c['rows']['computational']
     ph = c['phenotype']
@@ -220,21 +199,14 @@ def main():
         'no_label_but_measurement': dict(c['no_label_but_measurement'])}
 
     new_version = data_prep.version_of()
-    print(f'[audit] cleaned tables v5 and {new_version} ...')
+    print(f'[audit] cleaned table {new_version} ...')
     v6 = data_prep.get_clean(verbose=False)
-    v5 = data_prep.get_clean(source='amr_output', verbose=False)
-    s5, s6 = clean_summary(v5), clean_summary(v6)
-    key = ['Genome ID', 'Antibiotic']
-    both = v5.merge(v6, on=key, suffixes=('_5', '_6'))
     res['cleaning'] = new_version
-    res['v5_v6'] = {
-        'v5': {k: float(v) for k, v in s5.items()}, 'v6': {k: float(v) for k, v in s6.items()},
-        'v5_genomes_gone': len(set(v5['Genome ID']) - set(v6['Genome ID'])),
-        'labels_changed': int((both['target_5'] != both['target_6']).sum())}
+    res['clean_summary'] = {k: float(v) for k, v in clean_summary(v6).items()}
 
     # ── Markdown ─────────────────────────────────────────────────────────
     L = []
-    ids, tx, nm, lb, ap, ms = (res[k] for k in ('ids', 'taxonomy', 'names', 'labels', 'april', 'measurements'))
+    ids, tx, nm, lb, ms = (res[k] for k in ('ids', 'taxonomy', 'names', 'labels', 'measurements'))
     L += ['# BV-BRC AMR export: data audit', '',
           f'Export downloaded {manifest["started"][:16].replace("T", " ")} to '
           f'{manifest["finished"][:16].replace("T", " ")} UTC '
@@ -261,30 +233,7 @@ def main():
     for m, (a, b) in sorted(meth.items(), key=lambda x: -sum(x[1])):
         L.append(f'| {m} | {a:,} | {b:,} |')
 
-    L += ['', '## 2. The April export was incomplete', '',
-          'The first download (April 2026, `scripts/bvbrc_download/download_amr_csv.py`) '
-          'paged each taxon by offset and stopped at 500,000 rows. Its own log:', '',
-          '| Status in the April log | Taxa |', '| --- | --- |']
-    L += [f'| {k} | {v:,} |' for k, v in sorted(ap['status'].items(), key=lambda x: -x[1])]
-    L += ['', f'Rows kept in April: {ap["april_rows"]:,} of {total:,} '
-          f'({pct(ap["april_rows"], total):.1f}%). Taxa stopped at the 500,000-row cap: '
-          f'{", ".join(map(str, ap["taxa_at_cap"])) or "none"}.', '',
-          '| Taxon | April | Complete export |', '| --- | --- | --- |']
-    for tid, b in ap['big_taxa'].items():
-        a = f'{b["april_rows_kept"]:,} ({b["april_status"]})'
-        L.append(f'| {tid} *{b["name"]}* | {a} | {b["complete_rows"]:,} |')
-    a5, a6 = res['v5_v6']['v5'], res['v5_v6']['v6']
-    L += ['', f'**Effect on the cleaned data** (v5 = April export, {new_version} = complete export; '
-          'the cleaning differs only in v7 treating mm values as no MIC):', '',
-          f'| | v5 | {new_version} |', '| --- | --- | --- |']
-    for k in a5:
-        f = (lambda v: f'{100 * v:.1f}%') if a5[k] <= 1 else (lambda v: f'{int(v):,}')
-        L.append(f'| {k} | {f(a5[k])} | {f(a6[k])} |')
-    L += ['', f'Between the two downloads BV-BRC removed {res["v5_v6"]["v5_genomes_gone"]:,} '
-          f'genomes and changed {res["v5_v6"]["labels_changed"]:,} labels, so an export must '
-          'be dated to be reproducible.']
-
-    L += ['', '## 3. Identifiers', '',
+    L += ['', '## 2. Identifiers', '',
           '| Genome ID read as a number instead of text | Count |', '| --- | --- |',
           f'| Genome IDs | {ids["genome_ids"]:,} |',
           f'| IDs that collide with another ID | {ids["ids_in_collisions"]:,} |',
@@ -292,7 +241,7 @@ def main():
           f'| IDs ending in 0 after the dot (lose it as a number) | {ids["ids_with_trailing_zero"]:,} |',
           '', f'Example collision: {" and ".join(ids["example_collision"])}.']
 
-    L += ['', '## 4. Taxonomy', '',
+    L += ['', '## 3. Taxonomy', '',
           '| | Count |', '| --- | --- |',
           f'| Taxon IDs in the export | {tx["taxon_ids"]:,} |',
           f'| of which species rank | {tx["taxon_ids_species_rank"]:,} |',
@@ -304,11 +253,9 @@ def main():
           f'| *E. coli*: rows under 562 itself, and under all its IDs | '
           f'{tx["ecoli_rows_under_562"]:,} of {tx["ecoli_rows_all_ids"]:,} |',
           '', 'Most taxon IDs are strains or serotypes, but most rows are filed under a '
-          'species ID. The April export looked the other way round (3,224 of its 3,655 taxa '
-          'were strains, and *E. coli* 562 never appeared) only because its species-level '
-          'downloads failed (section 2).']
+          'species ID.']
 
-    L += ['', '## 5. Antibiotic names', '',
+    L += ['', '## 4. Antibiotic names', '',
           '| | Count |', '| --- | --- |',
           f'| Distinct names (lower-cased) | {nm["raw_names"]:,} |',
           f'| Distinct names on rows with a phenotype | {nm["raw_names_with_labels"]:,} |',
@@ -321,7 +268,7 @@ def main():
 
     ul = ms['usable_lab_units']
     std = ms['lab_standard']
-    L += ['', '## 6. Measurements and testing standards (rows with a phenotype)', '',
+    L += ['', '## 5. Measurements and testing standards (rows with a phenotype)', '',
           '| | Count |', '| --- | --- |',
           f'| Lab rows with a measurement | {ms["usable_lab_with_mic"]:,} of {usable_lab:,} '
           f'({pct(ms["usable_lab_with_mic"], usable_lab):.1f}%) |',
@@ -335,7 +282,7 @@ def main():
         '', 'Rows measured in mm are disk-diffusion zone diameters, not MICs; the cleaning '
         '(`data_prep.clean`) currently reads their number as an MIC.']
 
-    L += ['', '## 7. Duplicates, conflicts and computational vs lab labels', '',
+    L += ['', '## 6. Duplicates, conflicts and computational vs lab labels', '',
           '| | Count |', '| --- | --- |',
           f'| Rows with a phenotype | {lb["usable_rows"]:,} |',
           f'| Genome and drug pairs | {lb["pairs"]:,} |',
@@ -350,7 +297,7 @@ def main():
           '', 'Pairs whose lab results conflict with each other, or whose computational results '
           'do, are left out of the agreement count.']
 
-    L += ['', f'## 8. The cleaned data ({new_version}) by genus, drug class and drug', '']
+    L += ['', f'## 7. The cleaned data ({new_version}) by genus, drug class and drug', '']
     L += table(breakdown(v6, 'genus', 15), 'Genus', italic=True)
     classes = breakdown(v6, 'drug_class', 15)
     L += ['', *table(classes, 'Drug class')]

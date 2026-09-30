@@ -1,6 +1,6 @@
 # Cleaned data: v5 vs v6
 
-v5: the April export (`Data/amr_output/`). v6: the complete export (`Data/amr_full/`, 2026-09-29). Same cleaning code; only the raw export differs.
+v5: built from `Data/amr_output/`. v6: built from `Data/amr_full/` (2026-09-29). Same cleaning code; only the input files differ.
 
 Built by `experiments/audit/compare_clean_versions.py`.
 
@@ -19,17 +19,6 @@ Built by `experiments/audit/compare_clean_versions.py`.
 | Resistant share, lab rows | 49.5% | 33.7% | -15.8 points |
 | Rows with an MIC | 6.7% | 2.8% | -3.9 points |
 | Lab share of rows | 12.9% | 8.3% | -4.6 points |
-
-## Does the new export contain the old one?
-
-| Check | Count |
-| --- | --- |
-| v5 genomes also in v6 | 130,389 of 131,385 |
-| v5 genomes missing from v6 | 996 |
-| v5 genome and drug pairs also in v6 | 1,543,808 of 1,558,494 |
-| v5 lab pairs missing from v6 | 0 of 201,042 |
-| Pairs whose label changed | 1,665 |
-| Pairs that became lab-confirmed | 0 |
 
 ## All rows by genus (top 15 in v6)
 

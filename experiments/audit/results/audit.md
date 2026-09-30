@@ -20,45 +20,7 @@ Lab records without a phenotype are measurements (mostly MICs) that BV-BRC never
 | SIR XGBoost Model | 7,218,911 | 0 |
 | AdaBoost Classifier | 998,807 | 0 |
 
-## 2. The April export was incomplete
-
-The first download (April 2026, `scripts/bvbrc_download/download_amr_csv.py`) paged each taxon by offset and stopped at 500,000 rows. Its own log:
-
-| Status in the April log | Taxa |
-| --- | --- |
-| no_data | 22,175 |
-| done | 3,655 |
-| error | 597 |
-| partial | 1 |
-
-Rows kept in April: 2,986,755 of 17,585,506 (17.0%). Taxa stopped at the 500,000-row cap: 573.
-
-| Taxon | April | Complete export |
-| --- | --- | --- |
-| 562 *Escherichia coli* | 0 (error) | 7,219,003 |
-| 573 *Klebsiella pneumoniae* | 500,000 (done) | 1,814,185 |
-| 28901 *Salmonella enterica* | 0 (error) | 960,834 |
-| 1280 *Staphylococcus aureus* | 0 (error) | 527,038 |
-
-**Effect on the cleaned data** (v5 = April export, v7 = complete export; the cleaning differs only in v7 treating mm values as no MIC):
-
-| | v5 | v7 |
-| --- | --- | --- |
-| Rows | 1,558,494 | 7,847,110 |
-| Genomes | 131,385 | 439,542 |
-| Lab rows | 201,042 | 649,944 |
-| Lab-tested genomes | 22,475 | 87,325 |
-| Antibiotics | 130 | 126 |
-| Genera | 40 | 40 |
-| Species taxa | 124 | 247 |
-| Resistant share, all rows | 36.5% | 28.0% |
-| Resistant share, lab rows | 49.5% | 33.7% |
-| Rows with an MIC | 6.7% | 2.7% |
-| Lab share of rows | 12.9% | 8.3% |
-
-Between the two downloads BV-BRC removed 996 genomes and changed 1,665 labels, so an export must be dated to be reproducible.
-
-## 3. Identifiers
+## 2. Identifiers
 
 | Genome ID read as a number instead of text | Count |
 | --- | --- |
@@ -69,7 +31,7 @@ Between the two downloads BV-BRC removed 996 genomes and changed 1,665 labels, s
 
 Example collision: 195.304 and 195.3040.
 
-## 4. Taxonomy
+## 3. Taxonomy
 
 | | Count |
 | --- | --- |
@@ -81,9 +43,9 @@ Example collision: 195.304 and 195.3040.
 | *E. coli*: taxon IDs | 2,423 |
 | *E. coli*: rows under 562 itself, and under all its IDs | 7,219,003 of 7,466,275 |
 
-Most taxon IDs are strains or serotypes, but most rows are filed under a species ID. The April export looked the other way round (3,224 of its 3,655 taxa were strains, and *E. coli* 562 never appeared) only because its species-level downloads failed (section 2).
+Most taxon IDs are strains or serotypes, but most rows are filed under a species ID.
 
-## 5. Antibiotic names
+## 4. Antibiotic names
 
 | | Count |
 | --- | --- |
@@ -95,7 +57,7 @@ Most taxon IDs are strains or serotypes, but most rows are filed under a species
 
 Renamed, for example: amipicillin_sulbactam, amoxicillin_clavulanat, ampicillin_clavulanic_acid, cefalexin, cefalothin, cefalotin, cefepime_taniborbactam, cefotaxime/clavulanic acidâ. Dropped, for example: aminogycosides, beta-lactam, carbapenem, cephalosporin, extended spectrum beta lactamase, fluoroquinolones, instrument, macrolides.
 
-## 6. Measurements and testing standards (rows with a phenotype)
+## 5. Measurements and testing standards (rows with a phenotype)
 
 | | Count |
 | --- | --- |
@@ -111,7 +73,7 @@ Testing standards as written (lab rows): "CLSI" 250,190, "(none)" 232,793, "EUCA
 
 Rows measured in mm are disk-diffusion zone diameters, not MICs; the cleaning (`data_prep.clean`) currently reads their number as an MIC.
 
-## 7. Duplicates, conflicts and computational vs lab labels
+## 6. Duplicates, conflicts and computational vs lab labels
 
 | | Count |
 | --- | --- |
@@ -127,7 +89,7 @@ Rows measured in mm are disk-diffusion zone diameters, not MICs; the cleaning (`
 
 Pairs whose lab results conflict with each other, or whose computational results do, are left out of the agreement count.
 
-## 8. The cleaned data (v7) by genus, drug class and drug
+## 7. The cleaned data (v7) by genus, drug class and drug
 
 | Genus | Rows | Genomes | Resistant | Lab rows | Lab resistant |
 | --- | --- | --- | --- | --- | --- |

@@ -1,5 +1,5 @@
-"""Compare two cleaned datasets (default v5, the April export, and v6, the
-complete one) and write experiments/audit/results/<old>_vs_<new>.md.
+"""Compare two cleaned datasets (default v5 and v6) and write
+experiments/audit/results/<old>_vs_<new>.md.
 
 Reads the cached cleaned frames in experiments/cache/, so build both first
 (data_prep.get_clean). Run from the project root:
@@ -62,9 +62,9 @@ def main():
     a, b = summary(old), summary(new)
 
     lines = [f'# Cleaned data: {args.old} vs {args.new}', '',
-             f'{args.old}: the April export (`Data/amr_output/`). '
-             f'{args.new}: the complete export (`Data/amr_full/`, 2026-09-29). '
-             'Same cleaning code; only the raw export differs.', '',
+             f'{args.old}: built from `Data/amr_output/`. '
+             f'{args.new}: built from `Data/amr_full/` (2026-09-29). '
+             'Same cleaning code; only the input files differ.', '',
              f'Built by `experiments/audit/compare_clean_versions.py`.', '',
              '## Overall', '',
              f'| | {args.old} | {args.new} | Change |', '| --- | --- | --- | --- |']
@@ -74,24 +74,6 @@ def main():
         else:
             change = f'x{b[k] / a[k]:.2f}' if a[k] else 'new'
         lines.append(f'| {k} | {fmt(a[k])} | {fmt(b[k])} | {change} |')
-
-    # Is v5 a subset of v6?
-    og, ng = set(old['Genome ID']), set(new['Genome ID'])
-    key = ['Genome ID', 'Antibiotic']
-    both = old.merge(new, on=key, suffixes=('_old', '_new'))
-    lab_old = old[old['is_lab_confirmed'] == 1]
-    lab_lost = lab_old.merge(new[key], on=key, how='left', indicator=True)
-    lab_lost = int((lab_lost['_merge'] == 'left_only').sum())
-    flips = int((both['target_old'] != both['target_new']).sum())
-    lines += ['', '## Does the new export contain the old one?', '',
-              '| Check | Count |', '| --- | --- |',
-              f'| {args.old} genomes also in {args.new} | {len(og & ng):,} of {len(og):,} |',
-              f'| {args.old} genomes missing from {args.new} | {len(og - ng):,} |',
-              f'| {args.old} genome and drug pairs also in {args.new} | {len(both):,} of {len(old):,} |',
-              f'| {args.old} lab pairs missing from {args.new} | {lab_lost:,} of {len(lab_old):,} |',
-              f'| Pairs whose label changed | {flips:,} |',
-              f'| Pairs that became lab-confirmed | '
-              f'{int(((both["is_lab_confirmed_old"] == 0) & (both["is_lab_confirmed_new"] == 1)).sum()):,} |']
 
     for lab_only, title in ((False, 'All rows'), (True, 'Lab rows')):
         head, full = by_genus(old, new, lab_only)

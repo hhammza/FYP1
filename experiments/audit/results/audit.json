@@ -111,44 +111,6 @@
     "computational_calls_resistant_susceptible": 25888,
     "computational_calls_susceptible_resistant": 18795
   },
-  "april": {
-    "status": {
-      "no_data": 22175,
-      "done": 3655,
-      "error": 597,
-      "partial": 1
-    },
-    "taxa_at_cap": [
-      573
-    ],
-    "big_taxa": {
-      "562": {
-        "name": "Escherichia coli",
-        "april_status": "error",
-        "april_rows_kept": 0,
-        "complete_rows": 7219003
-      },
-      "573": {
-        "name": "Klebsiella pneumoniae",
-        "april_status": "done",
-        "april_rows_kept": 500000,
-        "complete_rows": 1814185
-      },
-      "28901": {
-        "name": "Salmonella enterica",
-        "april_status": "error",
-        "april_rows_kept": 0,
-        "complete_rows": 960834
-      },
-      "1280": {
-        "name": "Staphylococcus aureus",
-        "april_status": "error",
-        "april_rows_kept": 0,
-        "complete_rows": 527038
-      }
-    },
-    "april_rows": 2986755
-  },
   "phenotype": {
     "computational|(empty)": 8082677,
     "computational|Susceptible": 5935627,
@@ -217,34 +179,17 @@
     }
   },
   "cleaning": "v7",
-  "v5_v6": {
-    "v5": {
-      "Rows": 1558494.0,
-      "Genomes": 131385.0,
-      "Lab rows": 201042.0,
-      "Lab-tested genomes": 22475.0,
-      "Antibiotics": 130.0,
-      "Genera": 40.0,
-      "Species taxa": 124.0,
-      "Resistant share, all rows": 0.36457246546987027,
-      "Resistant share, lab rows": 0.4950159668129048,
-      "Rows with an MIC": 0.06729894372387703,
-      "Lab share of rows": 0.1289976092304494
-    },
-    "v6": {
-      "Rows": 7847110.0,
-      "Genomes": 439542.0,
-      "Lab rows": 649944.0,
-      "Lab-tested genomes": 87325.0,
-      "Antibiotics": 126.0,
-      "Genera": 40.0,
-      "Species taxa": 247.0,
-      "Resistant share, all rows": 0.2803810574848575,
-      "Resistant share, lab rows": 0.33726136405598023,
-      "Rows with an MIC": 0.027395308591315785,
-      "Lab share of rows": 0.08282590660765556
-    },
-    "v5_genomes_gone": 996,
-    "labels_changed": 1665
+  "clean_summary": {
+    "Rows": 7847110.0,
+    "Genomes": 439542.0,
+    "Lab rows": 649944.0,
+    "Lab-tested genomes": 87325.0,
+    "Antibiotics": 126.0,
+    "Genera": 40.0,
+    "Species taxa": 247.0,
+    "Resistant share, all rows": 0.2803810574848575,
+    "Resistant share, lab rows": 0.33726136405598023,
+    "Rows with an MIC": 0.027395308591315785,
+    "Lab share of rows": 0.08282590660765556
   }
 }

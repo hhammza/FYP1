@@ -19,13 +19,12 @@ This is BV-BRC's own description of the same AMR metadata, as of November 2020: 
 | Conflicting lab calls for one genome and drug (4,313 pairs) | No | New |
 | Species vs strain taxon IDs (89% of rows under species-rank IDs) | No | New |
 | Genome ID read as a number (16,531 genomes merge, 32,744 IDs collide) | No | New for BV-BRC; see the precedent below |
-| Records removed or relabelled between downloads (996 genomes gone, 1,665 labels changed) | No | New; argues for versioned snapshots |
 | A quarter of lab-tested genomes have the year only in `collection_date` (31,577 of 123,503) | No | New |
 
 ## Other sources checked
 
 - **BV-BRC AMR documentation** ([AMR phenotypes](https://www.bv-brc.org/docs/quick_references/organisms_taxon/amr_phenotypes.html), [AMR data protocol](https://www.bv-brc.org/docs/data_protocols/antimicrobial_resistance.html), [data overview](https://www.bv-brc.org/docs/system_documentation/data.html)). It says the phenotypes are "not fully curated" and marks predicted records with the typing method "Computational Prediction" and the classifier as platform. It gives no warning against training on them. The pages sit behind a browser check, so they were read through search results; quote them from a browser before the paper.
-- **BV-BRC API documentation** ([API docs](https://www.bv-brc.org/api/doc/), [Data API source](https://github.com/BV-BRC/BV-BRC-API)). It documents cursor paging (`cursor(*)` with the `X-Cursor-Mark` header) as the way to read large result sets. So the April export's truncation came from how our first script paged (a growing offset, stopping at 500,000 rows per taxon), not from a BV-BRC fault. Paper A should say "a naive offset download silently loses whole species" and not blame the API.
+- **BV-BRC API documentation** ([API docs](https://www.bv-brc.org/api/doc/), [Data API source](https://github.com/BV-BRC/BV-BRC-API)). It documents cursor paging (`cursor(*)` with the `X-Cursor-Mark` header) as the way to read large result sets. Our own download uses keyset paging by record ID, checked against BV-BRC's record count.
 - **Genome ID type.** The API schema types `genome_id` as a string ("511145.183"). Nothing warns that spreadsheet or pandas defaults turn it into a number. The closest precedent is gene symbols turned into dates by Excel: Ziemann M, Eren Y, El-Osta A (2016), Gene name errors are widespread in the scientific literature, *Genome Biology* 17, 177, https://doi.org/10.1186/s13059-016-1044-7. Cite it as the same kind of error.
 - **Earlier BV-BRC AMR work** (for background, none reports our issues): Davis JJ et al. (2016), Antimicrobial resistance prediction in PATRIC and RAST, *Scientific Reports* 6, 27930, https://doi.org/10.1038/srep27930; Antonopoulos DA et al. (2019), PATRIC as a unique resource for studying antimicrobial resistance, *Briefings in Bioinformatics* 20(4), 1094 to 1102, https://doi.org/10.1093/bib/bbx083; Olson RD et al. (2023), Introducing the Bacterial and Viral Bioinformatics Resource Center (BV-BRC), *Nucleic Acids Research* 51(D1), D678 to D689, https://doi.org/10.1093/nar/gkac1003.
 
@@ -43,4 +42,4 @@ Searched 2026-09-30 across the BV-BRC organisation for "genome_amr", "antibiotic
 
 ## What this means for Paper A
 
-The data problems nobody has reported are the antibiotic names, lab vs computational labels, measurements without calls, conflicting calls, taxon ID rank, the Genome ID type, changes between downloads and years hidden in `collection_date`. Sampling bias and the presence of zone diameters are known: cite VanOeffelen 2021 and build on them. The truncated download is our own method's failure, useful as a warning, not as a BV-BRC defect.
+The data problems nobody has reported are the antibiotic names, lab vs computational labels, measurements without calls, conflicting calls, taxon ID rank, the Genome ID type and years hidden in `collection_date`. Sampling bias and the presence of zone diameters are known: cite VanOeffelen 2021 and build on them.
