@@ -262,7 +262,8 @@ def resistance_prediction():
         elif fasta_text:
             data, status = backend_post('predict/', json_data={
                 'fasta_text': fasta_text, 'antibiotic': antibiotic,
-                **({'threshold': float(threshold)} if threshold else {}),
+                # as typed: the backend checks it and answers a bad value with a 400
+                **({'threshold': threshold} if threshold else {}),
             }, timeout=PREDICT_TIMEOUT)
         else:
             error = 'Please provide a FASTA file or paste FASTA sequence text.'
@@ -321,7 +322,7 @@ def mutation_timeline():
             data, status = backend_post('timeline/', data=post_data, files=files)
         elif fasta_text:
             data, status = backend_post('timeline/', json_data={
-                'fasta_text': fasta_text, 'antibiotic': antibiotic, 'n_weeks': int(n_weeks)
+                'fasta_text': fasta_text, 'antibiotic': antibiotic, 'n_weeks': n_weeks   # checked by the backend
             })
         else:
             error = 'Please provide a FASTA file or paste FASTA sequence text.'
