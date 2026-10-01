@@ -213,7 +213,8 @@ def species_profiles():
     freq = counts[keep] / counts[keep].sum(axis=1, keepdims=True)
     labels = species[keep].to_numpy()
     taxa = pd.read_csv(os.path.join(ROOT, 'backend', 'taxon_species.csv')).dropna(subset=['species_taxon_id'])
-    taxa = taxa.drop_duplicates('species_taxon_id').set_index(taxa['species_taxon_id'].astype(int).astype(str))
+    taxa = taxa.drop_duplicates('species_taxon_id')
+    taxa.index = taxa['species_taxon_id'].astype(int).astype(str)
     names = sorted(set(labels))
     centroid = np.stack([freq[labels == s].mean(axis=0) for s in names]).astype(np.float32)
     return {
