@@ -13,6 +13,7 @@ import json
 import os
 
 import matplotlib
+import lib  # noqa: E402,F401  (UTF-8 output on Windows; see lib/__init__.py)
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt  # noqa: E402
 
