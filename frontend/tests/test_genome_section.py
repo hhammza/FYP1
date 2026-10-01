@@ -56,6 +56,16 @@ class GenomeSection(unittest.TestCase):
         self.assertIn('40,553', s)                                        # the lab row count is shown
         self.assertIn('cleaning v6', s)
 
+    def test_a_run_redone_on_v7_is_shown_once(self):
+        runs = [dict(run('B6L_genes_v6', 'v6', 0.978, n=40553), label_version='v6'),
+                dict(run('B6L_genes_v7', 'v7', 0.979, n=40554), label_version='v6'),
+                dict(run('B8_klebsiella_genes_v6', 'v6', 0.9), label_version='v6')]
+        s = section(models_page(dict(REPORT, genome_runs=runs))[1])
+        self.assertIn('B6L_genes_v7', s)
+        self.assertNotIn('B6L_genes_v6', s)
+        self.assertIn('B8_klebsiella_genes_v6', s)                          # no v7 copy: kept
+        self.assertIn('These 2 runs', s)
+
     def test_runs_without_a_lab_score_are_left_out(self):
         runs = [run('A_v6', 'v6', 0.9), dict(run('NOLAB_v6', 'v6', 0.9), auc_roc_lab=None)]
         _, h = models_page(dict(REPORT, genome_runs=runs))
