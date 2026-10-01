@@ -34,7 +34,8 @@ def build_parser():
     p.add_argument('--mic-sign', default=None, help="MIC comparator, e.g. '=' or '>'")
     p.add_argument('--genus', default='unknown')
     p.add_argument('--species', default='unknown')
-    p.add_argument('--threshold', type=float, default=0.40)
+    p.add_argument('--threshold', type=float, default=None,
+                   help="default: the bundled model's own threshold")
 
     p = sub.add_parser('predict', help='predict from a genome FASTA')
     p.add_argument('fasta', help="path to a FASTA file, or '-' for stdin")

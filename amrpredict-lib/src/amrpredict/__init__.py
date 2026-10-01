@@ -14,7 +14,7 @@ and is a biological simulation, not a trained model.
 from . import registry
 from ._paths import default_model_dir
 
-__version__ = '0.1.0'
+__version__ = '0.2.0'
 
 __all__ = [
     'forecast',
@@ -32,7 +32,7 @@ __all__ = [
 
 
 def forecast(antibiotic, *, taxon_id=None, mic_value=None, mic_sign=None,
-             genus='unknown', species='unknown', threshold=0.40, model_dir=None):
+             genus='unknown', species='unknown', threshold=None, model_dir=None):
     """Forecast resistance from genome metadata and (optionally) an MIC value.
 
     Args:
@@ -43,11 +43,14 @@ def forecast(antibiotic, *, taxon_id=None, mic_value=None, mic_sign=None,
         genus: Genus name, e.g. ``'Escherichia'``.
         species: Species name, e.g. ``'coli'``.
         threshold: Probability at or above which the call is ``'Resistant'``.
+            Default: the threshold the bundled model was promoted with
+            (``status()['lgbm_forecasting']['default_threshold']``).
         model_dir: Override the bundled artifacts.
 
     Returns:
-        dict with ``prediction``, ``probability``, ``confidence``, ``drug_class``
-        and related fields.
+        dict with ``prediction``, ``probability`` (calibrated), ``confidence``,
+        ``drug_class``, ``model_run``, ``evidence`` (which inputs the model
+        recognised) and related fields.
     """
     return registry.lgbm(model_dir).predict(
         antibiotic, taxon_id=taxon_id, mic_value=mic_value, mic_sign=mic_sign,
@@ -97,7 +100,9 @@ def antibiotics(model_dir=None):
 
 
 def status(model_dir=None):
-    """Report which models loaded, keyed by model name."""
+    """Report which models loaded, keyed by model name. The forecaster's
+    entry carries its measured test metrics (``metrics``, the promoted run's
+    lgbm_metrics.json)."""
     return {
         'version': __version__,
         'lgbm_forecasting': registry.lgbm(model_dir).status,
