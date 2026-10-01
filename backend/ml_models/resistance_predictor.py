@@ -148,8 +148,8 @@ class KmerResistancePredictor:
             entropy_norm = entropy / np.log(N_KMERS + 1)
             adjustment += (entropy_norm - 0.5) * 0.15
 
-        noise = np.random.uniform(-0.04, 0.04)
-        prob = float(np.clip(base + adjustment + noise, 0.03, 0.97))
+        # No random noise: the same input must give the same answer, even here
+        prob = float(np.clip(base + adjustment, 0.03, 0.97))
         return prob
 
     def predict(self, fasta_text, antibiotic, threshold=None):
