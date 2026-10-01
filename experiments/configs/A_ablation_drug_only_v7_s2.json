@@ -1,0 +1,26 @@
+{
+  "description": "A_ablation_drug_only_v7 with split seed 2 (seed 42 is A_ablation_drug_only_v7): seed variation for T2.5",
+  "split": {
+    "strategy": "grouped",
+    "test_size": 0.2,
+    "seed": 2
+  },
+  "features": {
+    "target_encoding": "none",
+    "base": [
+      "Antibiotic",
+      "drug_class"
+    ]
+  },
+  "model": {
+    "type": "lightgbm"
+  },
+  "threshold": {
+    "strategy": "fixed",
+    "fixed": 0.4
+  },
+  "id": "A_ablation_drug_only_v7_s2",
+  "data": {
+    "source": "amr_full"
+  }
+}

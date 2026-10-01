@@ -1,0 +1,26 @@
+{
+  "description": "A10_monotonic_mic_v7 with split seed 2 (seed 42 is A10_monotonic_mic_v7): seed variation for T2.5",
+  "split": {
+    "strategy": "grouped",
+    "test_size": 0.2,
+    "seed": 2
+  },
+  "features": {
+    "target_encoding": "oof"
+  },
+  "model": {
+    "type": "lightgbm",
+    "monotone_on": [
+      "mic_value",
+      "mic_log"
+    ]
+  },
+  "threshold": {
+    "strategy": "fixed",
+    "fixed": 0.4
+  },
+  "id": "A10_monotonic_mic_v7_s2",
+  "data": {
+    "source": "amr_full"
+  }
+}
