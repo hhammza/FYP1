@@ -81,6 +81,20 @@ class PredictPage(unittest.TestCase):
             gunicorn = int(fh.read().split('--timeout ')[1].split('"')[0])
         self.assertGreater(gunicorn, app.PREDICT_TIMEOUT)
 
+    def test_bad_threshold_is_passed_on_not_a_crash(self):
+        seen = {}
+
+        def fake_post(endpoint, **kw):
+            seen.update(kw.get('json_data') or {})
+            return {'error': 'threshold must be a number between 0 and 1.'}, 400
+        with mock.patch.object(app, 'model_health', return_value=HEALTH), \
+                mock.patch.object(app, 'backend_post', side_effect=fake_post):
+            r = app.app.test_client().post('/predict', data={'antibiotic': 'ampicillin', 'threshold': 'abc',
+                                                             'fasta_text': '>x\nACGT'})
+        self.assertEqual(r.status_code, 200)                           # the page, not a Flask 500
+        self.assertEqual(seen['threshold'], 'abc')                     # the backend decides
+        self.assertIn('threshold must be a number between 0 and 1', r.get_data(as_text=True))
+
     def test_export_without_gc_content(self):
         result = {'antibiotic': 'ciprofloxacin', 'prediction': 'Resistant', 'probability': 0.8, 'threshold': 0.43,
                   'sequence_length': 5_000_000, 'gc_content': None, 'model_used': 'LightGBM on 4-mers (G_kmer_deploy)'}
