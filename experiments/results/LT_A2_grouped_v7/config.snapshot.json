@@ -1,0 +1,25 @@
+{
+  "description": "Lineage check for the tabular model A2_oof_grouped_v7 (Research track): its config on the 24,926 genomes with lineage clusters (no plasmid records), genome-grouped split (the twin of the lineage runs, same rows) [cleaning v7]",
+  "split": {
+    "strategy": "grouped",
+    "test_size": 0.2,
+    "seed": 42
+  },
+  "features": {
+    "target_encoding": "oof"
+  },
+  "model": {
+    "type": "lightgbm"
+  },
+  "threshold": {
+    "strategy": "fixed",
+    "fixed": 0.4
+  },
+  "id": "LT_A2_grouped_v7",
+  "data": {
+    "source": "amr_full",
+    "genomes": "genomes_full",
+    "min_genome_bp": 500000
+  },
+  "evaluation": {}
+}
