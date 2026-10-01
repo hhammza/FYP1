@@ -10,13 +10,25 @@ ENV PYTHONUNBUFFERED=1 \
 
 WORKDIR /app
 
-# AMRFinderPlus from bioconda, with its database, for the gene model (B6).
-# Only needed if /predict serves a model with `needs_amrfinder`; the k-mer
-# model does not use it (Hamza's choice, Week 3).
+# AMRFinderPlus from bioconda for the gene model: /predict uses it when it is
+# installed (backend/ml_models/genome_predictor.py), else the k-mer model.
 RUN conda install -n base -c conda-forge -c bioconda -y \
     ncbi-amrfinderplus=4.2.7 && \
-    amrfinder -u && \
     conda clean -afy
+
+# Its database pinned to the version the gene model was trained with, not the
+# newest that `amrfinder -u` would fetch, so gene and mutation names match
+# training. Put where AMRFinderPlus looks by default (data/latest) and named in
+# AMRFINDER_DATABASE, which genome_predictor.py passes as --database. Change
+# both together with a gene model retrained on a newer database.
+ENV AMRFINDER_DB_VERSION=2026-08-07.1
+ENV AMRFINDER_DATABASE=/opt/conda/share/amrfinderplus/data/${AMRFINDER_DB_VERSION}
+COPY backend/docker/fetch_amrfinder_db.py /tmp/fetch_amrfinder_db.py
+RUN python /tmp/fetch_amrfinder_db.py "$AMRFINDER_DB_VERSION" "$AMRFINDER_DATABASE" && \
+    amrfinder_index "$AMRFINDER_DATABASE" && \
+    ln -sfn "$AMRFINDER_DB_VERSION" "$(dirname "$AMRFINDER_DATABASE")/latest" && \
+    amrfinder --database "$AMRFINDER_DATABASE" --database_version && \
+    rm /tmp/fetch_amrfinder_db.py
 
 # Python dependencies first, so code changes do not reinstall them.
 COPY backend/requirements.txt /tmp/requirements.txt

@@ -33,3 +33,4 @@ amrpredict-lib/
 backend/trained_models/candidates/
 backend/db.sqlite3
 backend/tests/
+# backend/docker/ is copied on its own, before the code (the database pin)
