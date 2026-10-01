@@ -18,6 +18,23 @@ Baseline is commit **`52ae361`** *(Add amrpredict library and macOS launcher, 20
 
 ---
 
+## Code review fixes (2026-09-30)
+
+A read-through of the backend, frontend, library and experiment harness. Every test suite passes (backend 37, frontend 33, library 35, RL output 8). Fixed in Hamza's files:
+
+| File | Bug | Fix |
+|---|---|---|
+| [lgbm_predictor.py](backend/ml_models/lgbm_predictor.py), [amrpredict/lgbm.py](amrpredict-lib/src/amrpredict/lgbm.py) | `POST /api/reload/` after a promotion re-read the model but not `lgbm_metrics.json`, so `model_run`, `/api/health/` metrics and the slider default stayed those of the previous run; a reload with the files gone kept the old calibration | `_load()` resets all state and re-reads the metrics. Test: [test_lgbm_reload.py](backend/tests/test_lgbm_reload.py) (fails before the fix) |
+| [experiments/lib/__init__.py](experiments/lib/__init__.py) (new), `report.py`, `predict.py`, `calibration_plot.py` | On Windows, output redirected to a file is cp1252, so the first `→` printed killed the script (`run.py ... > log`, `export_report.py`) | stdout/stderr switched to UTF-8 wherever `lib` is imported |
+| [genome_predictor.py](backend/ml_models/genome_predictor.py) | An antibiotic the genome model never saw was put into a `Categorical` outside its categories: deprecated in pandas, an error in the next major version | Unknown values go in as missing (what LightGBM already did); stale "not wired into the API" docstring corrected |
+| `lgbm_predictor.py`, `resistance_predictor.py`, library `lgbm.py`, `kmer.py` | The heuristic fallbacks (used when a model fails to load) added random noise, so the same input gave different answers | Noise removed |
+| [amrpredict/kmer.py](amrpredict-lib/src/amrpredict/kmer.py), [timeline.py](amrpredict-lib/src/amrpredict/timeline.py) | The library matched names by lower-casing only (timeline: rifampin alias only), unlike the backend | Both use the library's `amr_constants`; the timeline echoes the canonical name like the backend. Library test added |
+| [test_library_parity.py](backend/tests/test_library_parity.py) (new) | Nothing checked that the library's copy of the forecaster loader still matched the backend's | Same probability, call, threshold and evidence on 5 inputs whenever both hold the same run |
+
+Sent as Handovers, not changed (other owners' files): `backend/api/views.py` returns 500 with the raw Python message on malformed JSON, a non-numeric `threshold` or `n_weeks`, or `antibiotic: null`, and `frontend/app.py:265` on a non-numeric threshold (Suleman); stale July pipeline text in `about.html` and `index.html` (Suleman); per-process rate-limit cache (Suleman, optional); `experiments/v7_runs.py` uses `pgrep`/`ps`, which Windows lacks, and `mutation_timeline.py` would report `trained` if a `.pkl` appeared (Ali).
+
+Environment: `gymnasium` (in `experiments/requirements.txt`) was missing from Hamza's venv, so `experiments/evolution/test_rl_output.py` could not run; installed.
+
 ## v7 forecaster served, library 0.2.0, significance tests and a temporal split (2026-09-30)
 
 | File | Change |
@@ -31,6 +48,7 @@ Baseline is commit **`52ae361`** *(Add amrpredict library and macOS launcher, 20
 | [splits.py](experiments/lib/splits.py), [run.py](experiments/run.py) | New `temporal` split (`split.cutoff_year`): train on genomes collected up to the year, test on later ones, years from Ali's `Data/genome_meta/genome_meta.csv` (Genome ID as text; genomes without a year dropped). `data.require_year` gives a grouped twin on the same rows |
 | `experiments/configs/` | `T0_grouped_withyear_v7`, `T1_temporal_{2012,2014,2015}_v7` (A6 on lab rows); `*_v7` copies of the 30 genome configs; split seeds 1 and 2 (`*_v7_s1`, `*_v7_s2`) for A2, A6, A6b, A10, drug-only and `B6L_genes_v7` |
 | [TEMPORAL_RESULTS.md](experiments/TEMPORAL_RESULTS.md) | New: A6 on lab rows trained up to 2012 / 2014 / 2015 and tested on later genomes scores 0.878 / 0.857 / 0.857 against 0.928 for a random genome split of the same rows; the loss is within-genus drift in 2017–2018 (*Shigella*, *Neisseria*, *Salmonella*), not steady decay |
+| Seeds (so far) | AUC mean ± sd over split seeds 42, 1, 2: B6 genes lab 0.9789 ± 0.0004, A6 0.9214 ± 0.0012, A6b 0.8376 ± 0.0024, drug-only 0.6569 ± 0.0004; A2 and A10 running |
 | [backend/tests/test_amr_constants.py](backend/tests/test_amr_constants.py) | Fails if the library's copy of the names goes stale |
 | READMEs, trackers | Served-model text and figures; Hamza's answers to Ali in his Handovers |
 
