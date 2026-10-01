@@ -68,12 +68,82 @@ def admin_denied(request):
     return None
 
 
+class BadInput(ValueError):
+    """A request field that cannot be used. Every view answers it with a 400
+    and this message, instead of a 500 with a raw Python error."""
+
+
+def read_json(request):
+    """The request body as a JSON object ({} when empty)."""
+    try:
+        body = request.body.decode('utf-8')
+        data = json.loads(body) if body.strip() else {}
+    except (UnicodeDecodeError, json.JSONDecodeError):
+        raise BadInput('The request body is not valid JSON.')
+    if not isinstance(data, dict):
+        raise BadInput('The request body must be a JSON object.')
+    return data
+
+
+def text_field(data, name, default=''):
+    """A text field, stripped; `default` when missing or null."""
+    value = data.get(name, default)
+    if value is None:
+        return default
+    if not isinstance(value, str):
+        raise BadInput(f'{name} must be text.')
+    return value.strip()
+
+
+def optional_number(data, name, whole=False):
+    """A positive number (a whole one if `whole`), or None when left out."""
+    value = data.get(name)
+    if value is None or (isinstance(value, str) and not value.strip()):
+        return None
+    kind = 'a positive whole number' if whole else 'a positive number'
+    if isinstance(value, bool):
+        raise BadInput(f'{name} must be {kind}.')
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        raise BadInput(f'{name} must be {kind}, not "{value}".')
+    if not 0 < number < float('inf') or (whole and number != int(number)):
+        raise BadInput(f'{name} must be {kind}, not "{value}".')
+    return int(number) if whole else number
+
+
+def whole_number(data, name, default, low, high):
+    """A whole number from `low` to `high`; `default` when left out."""
+    value = data.get(name)
+    if value is None or (isinstance(value, str) and not value.strip()):
+        return default
+    message = f'{name} must be a whole number from {low} to {high}.'
+    if isinstance(value, bool):
+        raise BadInput(message)
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        raise BadInput(message)
+    if number != number or not low <= number <= high or number != int(number):   # NaN, range, fraction
+        raise BadInput(message)
+    return int(number)
+
+
 def optional_threshold(value):
     """A threshold from the request, or None so the model uses the one it
     was validated at (its metrics.json), not a number typed in here."""
     if value is None or str(value).strip() == '':
         return None
-    return float(value)
+    message = 'threshold must be a number between 0 and 1.'
+    if isinstance(value, bool):
+        raise BadInput(message)
+    try:
+        threshold = float(value)
+    except (TypeError, ValueError):
+        raise BadInput(message)
+    if not 0 < threshold < 1:                 # also rejects NaN and infinity
+        raise BadInput(message)
+    return threshold
 
 
 class HealthView(View):
@@ -102,18 +172,19 @@ class ResistanceForecastView(View):
             if request.content_type and 'multipart' in request.content_type:
                 data = request.POST
             else:
-                body = request.body.decode('utf-8')
-                data = json.loads(body) if body else {}
+                data = read_json(request)
 
-            antibiotic = data.get('antibiotic', '').strip()
+            antibiotic = text_field(data, 'antibiotic')
             if not antibiotic:
                 return json_error('antibiotic is required')
 
-            taxon_id = data.get('taxon_id', None)
-            mic_value = data.get('mic_value', None)
-            mic_sign = data.get('mic_sign', None)
-            genus = data.get('genus', 'unknown')
-            species = data.get('species', 'unknown')
+            taxon_id = optional_number(data, 'taxon_id', whole=True)
+            mic_value = optional_number(data, 'mic_value')
+            mic_sign = text_field(data, 'mic_sign') or None
+            if mic_sign and mic_sign not in MIC_SIGNS:
+                raise BadInput(f'mic_sign must be one of = < <= > >=, not "{mic_sign}".')
+            genus = text_field(data, 'genus') or 'unknown'
+            species = text_field(data, 'species') or 'unknown'
             threshold = optional_threshold(data.get('threshold'))
 
             model = model_registry.get_lgbm()
@@ -152,6 +223,8 @@ class ResistanceForecastView(View):
             result['comparison_chart'] = comparison
             return JsonResponse(result)
 
+        except BadInput as e:
+            return json_error(str(e), 400)
         except Exception as e:
             traceback.print_exc()
             return json_error(str(e), 500)
@@ -297,7 +370,7 @@ class ResistancePredictionView(View):
         if refused:
             return refused
         try:
-            antibiotic = request.POST.get('antibiotic', '').strip()
+            antibiotic = text_field(request.POST, 'antibiotic')
             threshold = optional_threshold(request.POST.get('threshold'))
 
             fasta_text = ''
@@ -307,9 +380,9 @@ class ResistancePredictionView(View):
                     return fasta_too_large()
                 fasta_text = fasta_file.read().decode('utf-8', errors='ignore')
             elif request.content_type and 'application/json' in request.content_type:
-                body = json.loads(request.body.decode('utf-8'))
-                fasta_text = body.get('fasta_text', '')
-                antibiotic = body.get('antibiotic', antibiotic)
+                body = read_json(request)
+                fasta_text = text_field(body, 'fasta_text')
+                antibiotic = text_field(body, 'antibiotic', antibiotic)
                 if body.get('threshold') is not None:
                     threshold = optional_threshold(body.get('threshold'))
             else:
@@ -333,6 +406,8 @@ class ResistancePredictionView(View):
                 return JsonResponse(result, status=400)
             return JsonResponse(result)
 
+        except BadInput as e:
+            return json_error(str(e), 400)
         except Exception as e:
             traceback.print_exc()
             return json_error(str(e), 500)
@@ -356,17 +431,15 @@ class MutationTimelineView(View):
                 if fasta_file.size > settings.MAX_FASTA_BYTES:
                     return fasta_too_large()
                 fasta_text = fasta_file.read().decode('utf-8', errors='ignore')
-                antibiotic = request.POST.get('antibiotic', '').strip()
-                n_weeks = int(request.POST.get('n_weeks', n_weeks_default))
+                fields = request.POST
             elif request.content_type and 'application/json' in request.content_type:
-                body = json.loads(request.body.decode('utf-8'))
-                fasta_text = body.get('fasta_text', '')
-                antibiotic = body.get('antibiotic', '').strip()
-                n_weeks = int(body.get('n_weeks', n_weeks_default))
+                fields = read_json(request)
+                fasta_text = text_field(fields, 'fasta_text')
             else:
+                fields = request.POST
                 fasta_text = request.POST.get('fasta_text', '')
-                antibiotic = request.POST.get('antibiotic', '').strip()
-                n_weeks = int(request.POST.get('n_weeks', n_weeks_default))
+            antibiotic = text_field(fields, 'antibiotic')
+            n_weeks = whole_number(fields, 'n_weeks', n_weeks_default, 1, 52)
 
             if not fasta_text:
                 return json_error('FASTA sequence or file is required')
@@ -374,8 +447,6 @@ class MutationTimelineView(View):
                 return fasta_too_large()
             if not antibiotic:
                 return json_error('antibiotic is required')
-            if n_weeks < 1 or n_weeks > 52:
-                return json_error('n_weeks must be between 1 and 52')
 
             model = model_registry.get_timeline()
             if model is None:
@@ -384,6 +455,8 @@ class MutationTimelineView(View):
             result = model.predict(fasta_text, antibiotic, n_weeks=n_weeks)
             return JsonResponse(result)
 
+        except BadInput as e:
+            return json_error(str(e), 400)
         except Exception as e:
             traceback.print_exc()
             return json_error(str(e), 500)
@@ -534,11 +607,11 @@ class TrainModelView(View):
             return denied
         try:
             if request.content_type and 'application/json' in request.content_type:
-                body = json.loads(request.body.decode('utf-8'))
+                body = read_json(request)
             else:
                 body = request.POST
 
-            model_name = body.get('model', 'lgbm')
+            model_name = text_field(body, 'model', 'lgbm')
             if model_name not in ('lgbm', 'kmer'):
                 return json_error("model must be 'lgbm' or 'kmer'")
 
@@ -592,6 +665,8 @@ class TrainModelView(View):
                             f'candidate it must be evaluated and promoted with experiments/promote.py.'),
             })
 
+        except BadInput as e:
+            return json_error(str(e), 400)
         except Exception as e:
             traceback.print_exc()
             return json_error(str(e), 500)
