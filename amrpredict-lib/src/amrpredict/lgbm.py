@@ -119,6 +119,21 @@ class LGBMResistancePredictor:
         self._load()
 
     def _load(self):
+        # Start clean, so a reload after a promotion (POST /api/reload/) never
+        # mixes the new model with the old one's metrics, calibration or levels
+        self.model = None
+        self.ab_rate = self.taxon_rate = self.genus_rate = None
+        self.global_mean = 0.31
+        self.is_trained = False
+        self.calibration = None
+        self.taxon_level = 'strain'
+        self.threshold = self.DEFAULT_THRESHOLD
+        self.drug_class_map = DRUG_CLASS_MAP
+        self.species_map = {}
+        self.metrics = load_metrics(os.path.join(self.model_dir, self.METRICS_FILE))
+        self.levels = {}
+        self.known = {c: set() for c in self.CAT_FEATURES}
+        self.known_taxon_pairs = set()
         model_path = os.path.join(self.model_dir, 'amr_lgbm_final_model.txt')
         ab_rate_path = os.path.join(self.model_dir, 'ab_rate_full.joblib')
 
@@ -207,9 +222,8 @@ class LGBMResistancePredictor:
         elif mic_sign == '<=' or mic_sign == '<':
             base_rate = max(base_rate - 0.10, 0.05)
 
-        # Add small noise for realism
-        noise = np.random.uniform(-0.05, 0.05)
-        prob = float(np.clip(base_rate + noise, 0.02, 0.98))
+        # No random noise: the same input must give the same answer, even here
+        prob = float(np.clip(base_rate, 0.02, 0.98))
         return prob
 
     # Comparators a user may type or pick that the booster has no category for.
