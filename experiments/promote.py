@@ -2,7 +2,7 @@
 
     python experiments/promote.py D1_forecaster_deploy            # backend
     python experiments/promote.py D1_forecaster_deploy --dry-run  # check only
-    python experiments/promote.py D1_forecaster_deploy --library  # + amrpredict (after T2.6)
+    python experiments/promote.py D1_forecaster_deploy --library  # + the amrpredict package
 
 A run's saved bundle (results/<id>/model/) holds everything needed to predict,
 but not in the shape backend/ml_models/lgbm_predictor.py loads. This script
@@ -19,6 +19,8 @@ amrpredict-lib/src/amrpredict/models/):
     lgbm_meta.joblib             global mean, threshold, calibration, taxon level,
                                  drug-class map, run id
     lgbm_metrics.json            format in progress/formats/README.md
+    taxon_species.csv            library only: strain -> species Taxon IDs (the
+                                 backend reads backend/taxon_species.csv)
 
 Afterwards run evaluate_shipped.py and export_report.py so /models and
 /compare describe the new model.
@@ -282,10 +284,8 @@ def main():
     ap.add_argument('run_id')
     ap.add_argument('--dry-run', action='store_true', help='check and print, write nothing')
     ap.add_argument('--library', action='store_true',
-                    help='also copy into the amrpredict package. Off by default: the '
-                         'package loader (amrpredict/lgbm.py) does not yet apply '
-                         'calibration or species-level taxa, so it would score the new '
-                         'model differently from the web app. Enable once T2.6 lands.')
+                    help='also copy into the amrpredict package, whose loader '
+                         '(amrpredict/lgbm.py) matches the backend loader since v0.2.0')
     ap.add_argument('--genome', action='store_true',
                     help='promote a Track B k-mer run for /predict (genome_predictor.py)')
     ap.add_argument('--out', default=BACKEND_DIR,
@@ -335,6 +335,10 @@ def main():
         joblib.dump(lgbm_meta, os.path.join(target, 'lgbm_meta.joblib'))
         with open(os.path.join(target, 'lgbm_metrics.json'), 'w', encoding='utf-8') as fh:
             json.dump(report, fh, indent=2)
+        if target == LIBRARY_DIR:
+            # The package installs without backend/, so it carries the species map
+            shutil.copyfile(os.path.join(ROOT, 'backend', 'taxon_species.csv'),
+                            os.path.join(target, 'taxon_species.csv'))
         print(f'[promote] wrote {os.path.relpath(target, ROOT)}')
     print('[promote] next: restart the backend (or POST /api/reload/), then run '
           'experiments/evaluate_shipped.py and experiments/export_report.py')
