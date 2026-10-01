@@ -83,8 +83,14 @@ One file per served model, written **beside the artifact** so the numbers can't 
 | `genes_found[].drug_class` | string | Week 3 | AMRFinderPlus class, lower-case, e.g. `beta-lactam`, `quinolone` |
 | `genes_found[].type` | `"gene"` / `"point_mutation"` | Week 3, optional | For grouping in the panel |
 | `genes_found[].relevant` | bool | Week 3, optional | `true` if its class matches the requested antibiotic's class; show these first |
+| `genes_found[].subclass`, `genes_found[].name` | string | **2026-09-30**, optional | AMRFinderPlus subclass (e.g. `cephalosporin`, `carbapenem`) and the element's full name, for a tooltip |
+| `model_run` | string | **2026-09-30** | Run id of the genome model that answered |
+| `species_detected` | object | **2026-09-30**, gene model only | `species`, `genus` (from the upload's 6-mer profile; `null` when nothing is close), `distance`, `amrfinder_organism` (the `--organism` AMRFinderPlus ran with, or `null`). Show as "Identified as *Escherichia coli*" |
+| `warning` | string | **2026-09-30** | Present when AMRFinderPlus failed on this upload and the k-mer model answered instead (then `genes_found` is absent). **Show as a warning** |
 
 **How `/predict` shows it** (Suleman, 2026-09-28, `frontend/templates/_genes_panel.html`): absent → one "Not searched" line and no panel; `[]` → "searched, none found"; a list → chips, `relevant` ones first, and a sentence on whether they support the call. If no entry has `relevant`, the genes are one plain list. If the genome model sends no `top_kmers`, the k-mer cards and chart are hidden, so they can be left out. Preview with the sample above at `/predict/sample` on a local run.
+
+**Which model answers** (2026-09-30): `backend/ml_models/genome_predictor.py` serves the gene model (`trained_models/genome_genes/`, from `promote.py <run> --genome` on a gene run) when AMRFinderPlus is installed on the server, else the k-mer model (`genome/`). The gene model sends `genes_found`, `species_detected` and no `top_kmers`; the k-mer model sends `top_kmers` and no `genes_found`. `/api/health/` → `models.kmer_resistance.searches_genes` says which. AMRFinderPlus is found via `AMRFINDER_PATH`, `PATH` or a conda env named `amrfinder`; `AMRFINDER_THREADS` (default 4) and `AMRFINDER_TIMEOUT` (default 100 s, under the page's 120 s wait) tune it.
 
 **Refusals** (Suleman, 2026-09-29): when the model refuses instead of predicting (the genome model: under 100,000 bp; the old RandomForest: under 100 bp), `/api/predict/` answers **HTTP 400** with `error` (and `sequence_length`), and `/predict` shows the reason. `POST /api/reload/` chooses the `/predict` model again, so a model promoted while the server runs takes over without a restart.
 

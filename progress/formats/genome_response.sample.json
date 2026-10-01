@@ -4,18 +4,24 @@
   "confidence": 85.7,
   "antibiotic": "ciprofloxacin",
   "antibiotic_known": true,
-  "sequence_length": 500000,
+  "sequence_length": 5131397,
   "gc_content": 50.61,
   "top_kmers": [
     {"kmer": "CTGG", "frequency": 0.00893},
     {"kmer": "CCAG", "frequency": 0.00889}
   ],
-  "model_used": "RandomForest K-mer (trained)",
+  "model_used": "LightGBM on AMRFinderPlus resistance genes (G_genes_deploy)",
+  "model_run": "G_genes_deploy",
   "threshold": 0.5,
   "genes_found": [
-    {"gene": "gyrA_S83L", "drug_class": "quinolone", "type": "point_mutation", "relevant": true},
-    {"gene": "parC_S80I", "drug_class": "quinolone", "type": "point_mutation", "relevant": true},
-    {"gene": "blaCTX-M-15", "drug_class": "beta-lactam", "type": "gene", "relevant": false}
+    {"gene": "gyrA_S83L", "drug_class": "quinolone", "type": "point_mutation", "relevant": true,
+     "subclass": "quinolone", "name": "Escherichia coli quinolone resistant GyrA"},
+    {"gene": "parC_S80I", "drug_class": "quinolone", "type": "point_mutation", "relevant": true,
+     "subclass": "quinolone", "name": "Escherichia coli quinolone resistant ParC"},
+    {"gene": "blaCTX-M-15", "drug_class": "beta-lactam", "type": "gene", "relevant": false,
+     "subclass": "cephalosporin", "name": "class A extended-spectrum beta-lactamase CTX-M-15"}
   ],
-  "_comment": "genes_found arrives in Week 3 with the gene-feature model; until then the field is absent. Values above are illustrative."
+  "species_detected": {"species": "Escherichia coli", "genus": "Escherichia", "distance": 0.00041,
+                       "amrfinder_organism": "Escherichia"},
+  "_comment": "The shape the gene model (backend/ml_models/genome_predictor.py, genome_genes/) returns. Values are illustrative. The real gene model sends no top_kmers (the k-mer cards are hidden); they stay here because the panel test checks both states. When AMRFinderPlus fails on an upload, the k-mer model answers instead, with a `warning` string and no genes_found."
 }
