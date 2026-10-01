@@ -18,6 +18,18 @@ Baseline is commit **`52ae361`** *(Add amrpredict library and macOS launcher, 20
 
 ---
 
+## Gene model path on /predict, lineage check for the tabular models (2026-09-30)
+
+| File | Change |
+|---|---|
+| [genome_predictor.py](backend/ml_models/genome_predictor.py) | Serves the **gene model** (`trained_models/genome_genes/`) whenever AMRFinderPlus is on the server, the k-mer model otherwise. Per upload: species from the 6-mer profile (nearest of 99 species profiles; right species for 98.0%, right genus for 99.8% of 4,929 held-out genomes), AMRFinderPlus with that `--organism` as in training, core AMR hits turned into the gene features of `genes.py` (identical on 3,600 real genome-drug rows), and `genes_found` / `species_detected` in the response. AMRFinderPlus failure or timeout: the k-mer model answers, with a `warning`. Settings: `AMRFINDER_PATH`, `AMRFINDER_THREADS`, `AMRFINDER_TIMEOUT` (100 s), `AMRFINDER_DATABASE` |
+| [promote.py](experiments/promote.py) | `--genome` takes gene runs too (to `genome_genes/`, with the gene rules and `species_profiles.npz`); refuses runs that use genus or species, which an upload does not have |
+| [G_genes_deploy.json](experiments/configs/G_genes_deploy.json) | Deploy candidate: genes + antibiotic + drug class (no genus), threshold for VME ≤ 10% on validation, cleaning v7. Trains after the seed runs |
+| [test_gene_model.py](backend/tests/test_gene_model.py) | 9 tests with a stand-in for AMRFinderPlus: model choice, `genes_found` (relevant first, empty list when none), species and `--organism`, fallback with `warning`, refusal before AMRFinderPlus runs, report parsing (old and new column names) |
+| [formats/README.md](progress/formats/README.md) §2, [genome_response.sample.json](progress/formats/genome_response.sample.json) | New fields `species_detected`, `warning`, `model_run`, `genes_found[].subclass` / `name`; which model answers and how AMRFinderPlus is found |
+| `experiments/configs/LT_*_v7.json` | Lineage check for the tabular models: A2 and D3 on the 24,926 genomes with lineage clusters, genome-grouped twin and the close and broad lineage cuts (Research track). Queued |
+| Trackers | Hamza: Week 3 gene-model item done, Dataset 2 ticks; Suleman: what is left on his side (Docker build, database pin, show `warning` and the species) and the library switch-over answer (after the demo); Ali: one real AMRFinderPlus check on the Mac |
+
 ## Code review fixes (2026-09-30)
 
 A read-through of the backend, frontend, library and experiment harness. Every test suite passes (backend 37, frontend 33, library 35, RL output 8). Fixed in Hamza's files:
