@@ -18,6 +18,19 @@ Baseline is commit **`52ae361`** *(Add amrpredict library and macOS launcher, 20
 
 ---
 
+## Gene model promoted, seeds, significance and lineage results (2026-10-01)
+
+| File | Change |
+|---|---|
+| `backend/trained_models/genome_genes/` | **`G_genes_deploy` promoted:** lab AUC 0.977 [0.975–0.979] on 40,356 lab test rows of 4,481 unseen genomes, threshold 0.58 for VME ≤ 10% (VME 10.2%, ME 5.1%). Served when AMRFinderPlus is on the server; the website's predictor reproduces the run's probabilities on 400 test rows (largest difference 1e-16) |
+| [.gitignore](.gitignore) | `backend/trained_models/genome_genes/` committed like `genome/` (it was ignored, so the gene model would never have reached GitHub) |
+| [promote.py](experiments/promote.py) | Fix: the species table was indexed with the column from before de-duplication (`Length mismatch`) |
+| [export_report.py](experiments/export_report.py) | Rebuilds temporal runs' splits (collection years and `cutoff_year`) |
+| [significance.md](experiments/results/significance.md) | 7 pairs: genes vs k-mers +0.0445, vs taxonomy +0.130, vs drug only +0.264; A2 vs drug only +0.128; MIC on lab rows +0.083 (all p < 0.0001); genes + k-mers +0.002; A10 vs A2 −0.0004 (McNemar p = 0.14) |
+| Seeds | Split seeds 42, 1, 2: A2 0.7849 ± 0.0005, A10 0.7845 ± 0.0005, A6 0.9214 ± 0.0012, A6b 0.8376 ± 0.0024, drug-only 0.6569 ± 0.0004, B6 genes lab 0.9789 ± 0.0004 |
+| `LT_*_v7` | Lineage check for the tabular models on the 24,926 genomes with clusters, lab AUC grouped / close / broad: A2 0.968 / 0.967 / 0.961, D3 0.962 / 0.962 / 0.961 |
+| [RESULTS.md](experiments/RESULTS.md) | Regenerated |
+
 ## Gene model path on /predict, lineage check for the tabular models (2026-09-30)
 
 | File | Change |
