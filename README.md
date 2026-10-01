@@ -43,7 +43,7 @@ And **three prediction engines**, of which only two are machine learning:
 
 | Engine | Type | Input | Output | Trained? |
 |---|---|---|---|---|
-| LightGBM forecaster | Gradient-boosted trees | Antibiotic + taxonomy + MIC metadata | Resistant / Susceptible + probability | ✅ `D4_forecaster_deploy`, cleaning v6, calibrated; AUC 0.774 on unseen genomes (lab rows 0.907) |
+| LightGBM forecaster | Gradient-boosted trees | Antibiotic + taxonomy + MIC metadata | Resistant / Susceptible + probability | ✅ `D3_forecaster_deploy_v7`, cleaning v7, calibrated; AUC 0.774 on unseen genomes (lab rows 0.908) |
 | Genome k-mer model | LightGBM on 4-mers of the complete genome | Genome FASTA + antibiotic | Resistant / Susceptible + probability | ✅ `G_kmer_deploy` (since 2026-09-29), lab AUC 0.935 on unseen genomes; replaced a RandomForest on partial genomes (0.695). A gene model (0.979) follows once AMRFinderPlus runs on the server |
 | Mutation timeline | Logistic-growth simulation | Genome FASTA + antibiotic | Week-by-week resistance curve | ❌ not a model, no AUC, by design |
 
@@ -185,9 +185,9 @@ The target encodings are the interesting part and the most likely viva question.
 
 **Taxon IDs are now species level in the trainer (2026-09-25).** The export's `Taxon ID` is mostly strain level: *E. coli* is spread over about 1,200 IDs and the species ID 562 never appears, so the shipped taxon table never matches what a user types. `backend/taxon_species.csv` (built from NCBI by `experiments/build_taxonomy.py`) maps every ID to its species, and `train_models.py` now trains and builds the taxon table on species IDs: a model retrained this way recognises 562 on `/forecast`. The deployed model still uses strain IDs until it is retrained, and the predictor should map a user's strain ID to its species at the same time (`load_species_map()` in `train_models.py`). The trainer's own random-split AUC falls from 0.825 to 0.805 with species IDs, because strain IDs let it partly recognise individual genomes; a genome-grouped comparison is still to be run.
 
-**Threshold:** the served model's own, chosen on validation genomes so that at most 10% of resistant isolates are missed (0.16 for D4, after isotonic calibration), read from `lgbm_metrics.json`. The first version used a fixed 0.40.
+**Threshold:** the served model's own, chosen on validation genomes so that at most 10% of resistant isolates are missed (0.15 for `D3_forecaster_deploy_v7`, after isotonic calibration), read from `lgbm_metrics.json`. The first version used a fixed 0.40.
 
-**Served model (2026-09-29): `D4_forecaster_deploy`**, promoted by `experiments/promote.py`: trained on cleaning v6 (7.85 M rows) with species-level taxa, a monotone MIC effect and isotonic calibration. Deterministic; taxon 562 matches. History and numbers: `experiments/README.md` ("Currently served").
+**Served model (2026-09-30): `D3_forecaster_deploy_v7`**, promoted by `experiments/promote.py` (also bundled in `amrpredict` 0.2.0): trained on cleaning v7 (7.85 M rows; v7 = v6 with disk-diffusion mm values no longer read as MICs) with species-level taxa, a monotone MIC effect and isotonic calibration. Deterministic; taxon 562 matches. History and numbers: `experiments/README.md` ("Currently served").
 
 ### 4.2 Genome k-mer model - `ml_models/genome_predictor.py`
 
@@ -532,11 +532,11 @@ Leave `DEBUG` unset in production. Without `SECRET_KEY` or `ALLOWED_HOSTS` the b
 
 There are several AUC figures in circulation in this project. They are not contradictory, they come from different runs on different data, but you should know which is which before a viva.
 
-**Current figures (2026-09-29, cleaning v6).** Quote these; the tables below are the history that led to them.
+**Current figures (2026-09-30; forecaster cleaning v7, genome models v6).** Quote these; the tables below are the history that led to them.
 
 | Model | Served on | Test | AUC [95% CI] |
 |---|---|---|---|
-| `D4_forecaster_deploy` (LightGBM, metadata + MIC) | `/forecast` | 1.57 M rows of unseen genomes | **0.774** [0.772–0.775]; lab-confirmed rows 0.907 |
+| `D3_forecaster_deploy_v7` (LightGBM, metadata + MIC) | `/forecast` | 1.57 M rows of unseen genomes | **0.774** [0.772–0.775]; lab-confirmed rows 0.908; 0.762 as `/forecast` scores it (form inputs) |
 | `G_kmer_deploy` (LightGBM, 4-mers of the complete genome) | `/predict` | 40,356 lab rows, 4,481 unseen genomes | **0.935** [0.931–0.939] |
 | `B6L_genes_v6` (LightGBM, AMRFinderPlus genes) | next on `/predict` | same | **0.979** [0.977–0.981] |
 | `B8_*_v6` (genes, one genus held out) | experiment | 7 genera | 0.82–0.94 with genes, 0.46–0.75 without |

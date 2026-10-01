@@ -1,8 +1,14 @@
 # Genome model results (Track B)
 
-Last updated 2026-09-29. Every number is from `experiments/results/registry.csv` (configs in `experiments/configs/`, run ids below). Data: **cleaning v6** (the complete BV-BRC export), with **plasmid-only records excluded** (`data.min_genome_bp = 500000`), runs named `*_v6`. Genome models are judged on **lab-confirmed rows**: BV-BRC's computational labels were predicted from the genome, so all-row scores are partly circular.
+Last updated 2026-09-30. Every number is from `experiments/results/registry.csv` (configs in `experiments/configs/`, run ids below). Data: **cleaning v6** (the complete BV-BRC export), with **plasmid-only records excluded** (`data.min_genome_bp = 500000`), runs named `*_v6`. Genome models are judged on **lab-confirmed rows**: BV-BRC's computational labels were predicted from the genome, so all-row scores are partly circular.
 
 **Rows:** Ali's gene matrix and k-mer cache cover 24,926 complete genomes. With v6 labels and without the 207 plasmid-only records (all under 500 kb, `genome_status = Plasmid`), that is **359,712 rows on 24,719 genomes**, about 200,000 of them lab-confirmed. Genome-grouped 80/20 split: **40,356 lab test rows from 4,481 genomes**. LightGBM unless stated; threshold 0.5 unless stated.
+
+**Cleaning v7 (2026-09-30).** Every run below was repeated on v7 as `*_v7` (same configs). The results are identical: all 28 finished runs give the same lab AUC to 4 decimals. The one exception is the RandomForest (`B1L`), 0.8657 vs 0.8665, which is forest randomness. v7 changes only MIC values, which genome runs don't use. So the v6 tables stand for v7, and the papers can cite either id. (`LL_broad_genes_v7` is still to re-run: Windows blocked a SciPy file for that one run.)
+
+**Seed check.** `B6L_genes_v7` with split seeds 42, 1 and 2: lab AUC **0.9789 ± 0.0004** (sd over seeds), VME 7.6% ± 0.3%, ME 5.7% ± 0.1%. The headline doesn't depend on the split.
+
+**Significance.** Genes vs k-mers on the same 40,356 lab rows: +0.0445, DeLong 95% CI [+0.043, +0.046], p < 0.0001; paired genome bootstrap [+0.041, +0.048]; McNemar 4,054 rows only the gene model gets right vs 1,069 only the k-mer model gets right, p < 0.0001 (`experiments/compare.py`; all pairs in `results/significance.md`). Genes beat taxonomy by +0.130 and the drug-only baseline by +0.264 (both p < 0.0001). Adding k-mers to genes (B7) is a real but small gain: +0.0019, genome bootstrap [+0.0012, +0.0026]. That is statistically clear and practically negligible, so B6 stays the model to serve: it needs only AMRFinderPlus, not k-mer counting as well.
 
 ## 1. Gene features (B6) against the baselines
 

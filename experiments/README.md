@@ -30,6 +30,13 @@ python experiments/report.py --out experiments/RESULTS.md
 # the weakest antibiotics for one run
 python experiments/report.py --per-antibiotic A2_oof_grouped
 
+# is A really better than B? DeLong, McNemar and a paired genome bootstrap
+python experiments/compare.py B6L_genes_v6 B4L_kmer4_lgbm_v6 --lab
+python experiments/compare.py --pairs --out experiments/results/significance.md
+
+# reliability diagram of the served forecaster (or any calibrated run)
+python experiments/calibration_plot.py
+
 # refresh the web app's /models and /compare pages
 python experiments/evaluate_shipped.py   # only after retraining the app's models
 python experiments/export_report.py
@@ -60,6 +67,8 @@ experiments/
 │   └── profile.py      size, organism and label mix of a training set
 ├── run.py              runs one config end to end
 ├── report.py           registry.csv → Markdown
+├── compare.py          significance of A vs B on shared test rows (lib/significance.py)
+├── calibration_plot.py reliability diagram from a run's metrics.json → results/figures/
 ├── predict.py          load a saved model and predict with it
 ├── evaluate_shipped.py re-test the deployed models on genomes they never saw
 ├── build_taxonomy.py   Taxon ID → species via NCBI → backend/taxon_species.csv
@@ -115,7 +124,8 @@ comparable result.
 
 | Field | Options |
 |---|---|
-| `split.strategy` | `grouped` (default, no genome on both sides), `random` (reproduces the old pipeline), `species_holdout` (+ `holdout_genus`), `lineage` (+ `lineage_cut`: `clone`, `close`, `broad` or `species`; no lineage cluster on both sides, built by `experiments/genome/lineage.py` from 6-mer distances; genome runs only) |
+| `split.strategy` | `grouped` (default, no genome on both sides), `random` (reproduces the old pipeline), `species_holdout` (+ `holdout_genus`), `lineage` (+ `lineage_cut`: `clone`, `close`, `broad` or `species`; no lineage cluster on both sides, built by `experiments/genome/lineage.py` from 6-mer distances; genome runs only), `temporal` (+ `cutoff_year`: train on genomes collected up to that year, test on later ones; genomes without a year are dropped; years from `Data/genome_meta/genome_meta.csv`, Ali's `download_genome_meta.py`) |
+| `data.require_year` | `true` keeps only genomes with a collection year, so a grouped run sits on the same rows as a temporal one |
 | `features.target_encoding` | `oof` (correct), `leaky` (reproduces the bug, for comparison), `none` |
 | `features.drop` | feature names to remove, this is how ablations are expressed |
 | `model.type` | `lightgbm`, `logistic`, `random_forest`, `xgboost`*, `catboost`* |
@@ -224,9 +234,9 @@ Docker image), splits that are not genome- or lineage-grouped, and runs without
 lab test rows. `evaluate_shipped.py` then re-tests it on the run's lab test
 genomes and keeps the old RandomForest's re-test as `kmer_previous`.
 
-Currently served (2026-09-29):
+Currently served (2026-09-30):
 
-- `/forecast`: **`D4_forecaster_deploy`**: A10 + species taxa + isotonic calibration, trained on **cleaning v6** (the complete export, 7.85 M rows); threshold **0.16** re-picked for VME ≤ 10% (the resistant share fell from 36.5% to 28.0%). All test rows AUC 0.774 [0.772–0.775], lab-confirmed rows 0.907. History: `D1` (v3), `D2` (v4, 54 more drug classes), `D3` (v5, Genome ID as text; 0.804 on the v5 test set), `D4` (v6). The drop from D3 is the data, not the model: v6 adds millions of *E. coli* and *M. tuberculosis* rows, mostly computational labels without an MIC.
+- `/forecast`: **`D3_forecaster_deploy_v7`** (Ali's run of the D3 config on **cleaning v7**, the complete export with mm values no longer read as MICs, 7.85 M rows): A10 + species taxa + isotonic calibration; threshold **0.15** for VME ≤ 10% (VME 8.6%, ME 60.8%, recall 91.4%). All test rows AUC 0.774 [0.772–0.775], lab-confirmed rows 0.908; `evaluate_shipped.py` through the backend's form inputs 0.762 [0.760–0.764]. Also bundled in `amrpredict` 0.2.0 (`promote.py --library`). Reliability diagram: `calibration_plot.py` → `results/figures/`. History: `D1` (v3), `D2` (v4, 54 more drug classes), `D3` (v5, Genome ID as text; 0.804 on the v5 test set), `D4` (v6, served 2026-09-29), `D3_forecaster_deploy_v7`. The drop from D3 is the data, not the model: v6 adds millions of *E. coli* and *M. tuberculosis* rows, mostly computational labels without an MIC.
 - `/predict`: **`G_kmer_deploy`**: LightGBM on 4-mers of the complete genome, v6, plasmid-only records excluded, threshold 0.43 for VME ≤ 10%; lab AUC **0.935 [0.931–0.939]**. Replaced the K-mer RandomForest (0.695, partial genomes). The gene model (0.979) replaces it once the Docker image with AMRFinderPlus is ready.
 
 D1–D3 keep their original results as a record of what was served.
