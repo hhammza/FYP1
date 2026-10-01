@@ -1,0 +1,32 @@
+{
+  "description": "Lineage check at scale, broad lineages held out: antibiotic + genus + species [cleaning v7, plasmid-only records (< 500 kb) excluded]",
+  "data": {
+    "genomes": "gene_matrix",
+    "min_genome_bp": 500000
+  },
+  "split": {
+    "strategy": "lineage",
+    "lineage_cut": "broad",
+    "test_size": 0.2,
+    "seed": 42
+  },
+  "features": {
+    "target_encoding": "none",
+    "base": [
+      "Antibiotic",
+      "genus",
+      "species"
+    ]
+  },
+  "model": {
+    "type": "lightgbm"
+  },
+  "threshold": {
+    "strategy": "fixed",
+    "fixed": 0.5
+  },
+  "evaluation": {
+    "n_boot": 200
+  },
+  "id": "LL_broad_taxonomy_v7"
+}
