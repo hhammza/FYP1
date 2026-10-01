@@ -1,8 +1,9 @@
 """Predictor for the Track B genome models (k-mers on complete genomes).
 
-Replaces the K-mer RandomForest on /predict once a genome model is promoted
-(experiments/promote.py --genome <run_id>). Not wired into the API yet: that
-waits on the choice of model (k-mers vs genes) and on Suleman's backend/api/.
+Serves /predict once a genome model is promoted (experiments/promote.py
+--genome <run_id>): api/model_registry.predict_model() picks it over the old
+K-mer RandomForest. A gene model is not served until the server runs
+AMRFinderPlus (is_trained stays False).
 
 Differences from resistance_predictor.py, which serves the old model:
   * the whole genome is read; no 500 kb cut. The old model was trained on the
@@ -136,8 +137,11 @@ class GenomeModelPredictor:
         X = pd.DataFrame([row])
         for col, lv in self.levels.items():
             if col in X:
-                X[col] = pd.Categorical([lv.get(str(X[col].iloc[0]).lower(), X[col].iloc[0])],
-                                        categories=list(lv.values()))
+                # A value the model never saw (e.g. an unknown antibiotic) goes in
+                # as missing, as LightGBM treats it; pandas will refuse it as a
+                # value outside the categories
+                value = lv.get(str(X[col].iloc[0]).lower())
+                X[col] = pd.Categorical([value], categories=list(lv.values()))
         return X[self.features], length
 
     def predict(self, fasta_text, antibiotic, threshold=None, genus=None, species=None):
