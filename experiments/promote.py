@@ -197,12 +197,44 @@ def build_metrics(run_id, run_dir, metrics, meta, promoted_at):
     }
 
 
-def promote_genome(run_id, out_dir, dry_run=False):
-    """Copy a Track B k-mer run into backend/trained_models/genome/.
+def species_profiles():
+    """Mean 6-mer profile of each species in the k-mer cache, so the server can
+    tell an upload's species (and so AMRFinderPlus's --organism) from its
+    sequence. Nearest profile by cosine distance: right species for 98.0% and
+    right genus for 99.8% of held-out genomes (2026-09-30, 4,929 genomes)."""
+    import numpy as np
+    sys.path.insert(0, os.path.join(HERE, 'genome'))
+    import kmers
+    import lineage
+    ids, counts, length, _ = kmers.load_counts()
+    lin = lineage.load()
+    species = pd.Series(ids).map(dict(zip(lin['genome_id'].astype(str), lin['species'].astype(str))))
+    keep = (species.notna() & (species != 'unknown')).to_numpy() & (length >= 500_000)
+    freq = counts[keep] / counts[keep].sum(axis=1, keepdims=True)
+    labels = species[keep].to_numpy()
+    taxa = pd.read_csv(os.path.join(ROOT, 'backend', 'taxon_species.csv')).dropna(subset=['species_taxon_id'])
+    taxa = taxa.drop_duplicates('species_taxon_id').set_index(taxa['species_taxon_id'].astype(int).astype(str))
+    names = sorted(set(labels))
+    centroid = np.stack([freq[labels == s].mean(axis=0) for s in names]).astype(np.float32)
+    return {
+        'species_taxon_id': np.array(names, dtype=str),
+        'species_name': np.array([taxa['species_name'].get(s, 'unknown') for s in names], dtype=str),
+        'genus_name': np.array([taxa['genus_name'].get(s, 'unknown') for s in names], dtype=str),
+        'genomes': np.array([int((labels == s).sum()) for s in names]),
+        'profile': centroid,
+    }
 
-    Read by backend/ml_models/genome_predictor.py. The headline number in
-    genome_metrics.json is the lab AUC: computational labels were predicted
-    from the genome by BV-BRC, so the all-row AUC is partly circular.
+
+def promote_genome(run_id, out_dir, dry_run=False):
+    """Copy a Track B genome run into backend/trained_models/: a k-mer run to
+    genome/, a gene run (AMRFinderPlus features, with or without k-mers) to
+    genome_genes/.
+
+    Read by backend/ml_models/genome_predictor.py, which serves the gene model
+    when the server can run AMRFinderPlus and the k-mer model otherwise. The
+    headline number in genome_metrics.json is the lab AUC: computational labels
+    were predicted from the genome by BV-BRC, so the all-row AUC is partly
+    circular.
     """
     run_dir = os.path.join(RESULTS, run_id)
     model_dir = os.path.join(run_dir, 'model')
@@ -212,13 +244,14 @@ def promote_genome(run_id, out_dir, dry_run=False):
         meta = json.load(fh)
     cfg = metrics['config']
     kcfg = cfg.get('features', {}).get('kmers')
+    gcfg = cfg.get('features', {}).get('genes')
     problems = []
     if meta.get('model_type') != 'lightgbm':
         problems.append('genome_predictor.py serves LightGBM only')
-    if not kcfg:
-        problems.append('not a k-mer run (features.kmers missing)')
-    if cfg.get('features', {}).get('genes'):
-        problems.append('uses gene features, which need AMRFinderPlus at prediction time')
+    if not kcfg and not gcfg:
+        problems.append('neither a k-mer nor a gene run (features.kmers and features.genes missing)')
+    if 'genus' in meta['features'] or 'species' in meta['features']:
+        problems.append('uses genus or species as a feature, which an upload does not come with')
     if cfg.get('split', {}).get('strategy') not in ('grouped', 'lineage'):
         problems.append('not evaluated on a genome- or lineage-grouped split')
     lab = metrics.get('test_by_label_source', {}).get('lab')
@@ -229,10 +262,16 @@ def promote_genome(run_id, out_dir, dry_run=False):
 
     commit, dirty = git_state()
     t = metrics['test']
+    if gcfg:
+        algorithm = 'LightGBM on AMRFinderPlus resistance genes and mutations' + (
+            f" and {kcfg.get('k', 4)}-mers" if kcfg else '') + ' of the complete genome'
+    else:
+        algorithm = f"LightGBM on {kcfg.get('k', 4)}-mers of the complete genome"
     report = {
-        'schema': METRICS_SCHEMA, 'model': 'genome_kmer_lightgbm', 'page': '/predict',
+        'schema': METRICS_SCHEMA, 'model': 'genome_genes_lightgbm' if gcfg else 'genome_kmer_lightgbm',
+        'page': '/predict',
         'run_id': run_id, 'description': metrics.get('description', ''),
-        'algorithm': f"LightGBM on {kcfg.get('k', 4)}-mers of the complete genome",
+        'algorithm': algorithm,
         'trained_at': metrics.get('finished_at'),
         'promoted_at': datetime.now(timezone.utc).isoformat(timespec='seconds'),
         'git_commit': commit, 'git_dirty': dirty,
@@ -262,15 +301,30 @@ def promote_genome(run_id, out_dir, dry_run=False):
         },
     }
     # threshold off a linspace grid (0.43000000000000005) -> the value a person reads
-    bundle = dict(meta, run_id=run_id, kmer_k=int(kcfg.get('k', 4)),
+    bundle = dict(meta, run_id=run_id, kmer_k=int((kcfg or {}).get('k', 4)),
                   threshold=round(float(meta['threshold']), 4))
+    if gcfg:
+        # What genome_predictor.py needs to build the drug-aware features from
+        # one genome's AMRFinderPlus hits exactly as genes.py built them
+        sys.path.insert(0, os.path.join(HERE, 'genome'))
+        import genes
+        bundle['gene_features'] = {
+            'class_to_amrfinder': {k: sorted(v) for k, v in genes.CLASS_TO_AMRFINDER.items()},
+            'key_determinants': genes.KEY_DETERMINANTS,
+            'efflux_classes': ['EFFLUX', 'MULTIDRUG'],
+            'point_subtypes': ['POINT', 'POINT_DISRUPT'],
+            'hits_kept': 'Scope = core and Type = AMR (build_gene_matrix.py)',
+        }
     print(f"[promote] {run_id}: lab AUC {report['test']['auc_roc']} {report['test']['auc_roc_ci']} "
           f"on {lab['n']:,} rows of {lab.get('genomes')} genomes (all rows {rnd(t['auc_roc'])})")
     if dry_run:
         print('[promote] dry run, nothing written')
         return
-    target = os.path.join(out_dir, 'genome')
+    target = os.path.join(out_dir, 'genome_genes' if gcfg else 'genome')
     os.makedirs(target, exist_ok=True)
+    if gcfg:
+        import numpy as np
+        np.savez_compressed(os.path.join(target, 'species_profiles.npz'), **species_profiles())
     shutil.copyfile(os.path.join(model_dir, 'model.txt'), os.path.join(target, 'model.txt'))
     with open(os.path.join(target, 'feature_meta.json'), 'w', encoding='utf-8') as fh:
         json.dump(bundle, fh, indent=2)
@@ -287,7 +341,8 @@ def main():
                     help='also copy into the amrpredict package, whose loader '
                          '(amrpredict/lgbm.py) matches the backend loader since v0.2.0')
     ap.add_argument('--genome', action='store_true',
-                    help='promote a Track B k-mer run for /predict (genome_predictor.py)')
+                    help='promote a Track B genome run for /predict (genome_predictor.py): '
+                         'a k-mer run to genome/, a gene run to genome_genes/')
     ap.add_argument('--out', default=BACKEND_DIR,
                     help='target folder (default backend/trained_models); use a temp folder to test')
     args = ap.parse_args()
