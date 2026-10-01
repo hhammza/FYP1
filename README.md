@@ -513,6 +513,8 @@ docker run -p 8000:8000 -e SECRET_KEY=... -e ALLOWED_HOSTS=localhost -e ADMIN_TO
 
 The image holds `backend/` only (about 21 MB of code and models, plus AMRFinderPlus from bioconda for the gene model); the root `.dockerignore` keeps `Data/`, `experiments/` and the other folders out. It runs gunicorn on `$PORT` (8000 by default). Training is not available inside it (no `Data/`), so `/api/train/` answers 503 there.
 
+AMRFinderPlus's database is pinned to **2026-08-07.1**, the version the gene model was trained with, instead of the newest one `amrfinder -u` would fetch: `backend/docker/fetch_amrfinder_db.py` downloads exactly that version from NCBI (43 files, about 130 MB) and the build stops if a file is missing or the version differs; `AMRFINDER_DATABASE` points at it. To move to a newer database, change `AMRFINDER_DB_VERSION` in the Dockerfile together with a gene model retrained on it. With AMRFinderPlus in the image, `/predict` serves the gene model; check `/api/health/` → `models.kmer_resistance.searches_genes` is `true`.
+
 ### Deployment (Railway, two services)
 
 | | Backend | Frontend |
