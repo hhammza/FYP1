@@ -18,7 +18,7 @@ amrpredict status
 
 ```json
 {
-  "version": "0.1.0",
+  "version": "0.2.0",
   "lgbm_forecasting":  { "trained": true,  "model_type": "LightGBM Gradient Boosting" },
   "kmer_resistance":   { "trained": true,  "antibiotics_known": 62 },
   "mutation_timeline": { "trained": false, "model_type": "Biological Simulation" }
@@ -76,8 +76,8 @@ else:
 
 | Threshold | Effect | Use when |
 |---|---|---|
-| 0.3 | More resistance calls; higher sensitivity | Missing resistance is costly |
-| 0.4 | Default for `forecast()` | General use |
+| 0.15 | Default for `forecast()` (the bundled model's own: very major error <= 10% on validation genomes) | Missing resistance is costly |
+| 0.3 | Fewer resistance calls than the default | Fewer false alarms |
 | 0.5 | Default for `predict_fasta()` | Balanced |
 | 0.7 | Fewer, higher-confidence calls | False alarms are costly |
 

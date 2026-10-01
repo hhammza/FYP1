@@ -28,17 +28,20 @@ amrpredict forecast ciprofloxacin --taxon-id 562 --mic-value 4
 
 ```json
 {
-  "prediction": "Susceptible",
-  "probability": 0.1005,
-  "confidence": 89.9,
+  "prediction": "Resistant",
+  "probability": 0.7055,
+  "confidence": 70.6,
   "antibiotic": "ciprofloxacin",
   "drug_class": "fluoroquinolone",
+  "threshold": 0.15,
   "model_used": "LightGBM (trained)",
-  "threshold": 0.4
+  "model_run": "D3_forecaster_deploy_v7",
+  "calibrated": true,
+  "evidence": { "level": "full", "label": "Isolate-level estimate", "...": "..." }
 }
 ```
 
-Default threshold `0.40`.
+Default threshold: the bundled model's own (0.15 in 0.2.0).
 
 ## `predict`
 

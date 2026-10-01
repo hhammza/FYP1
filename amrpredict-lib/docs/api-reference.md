@@ -19,7 +19,7 @@ Resistance from organism metadata and MIC values, via LightGBM.
 | `mic_sign` | `str` | `None` | MIC comparator: `'='`, `'>'`, `'<='`, … |
 | `genus` | `str` | `'unknown'` | e.g. `'Escherichia'`. |
 | `species` | `str` | `'unknown'` | e.g. `'coli'`. |
-| `threshold` | `float` | `0.40` | Probability at/above which the call is Resistant. |
+| `threshold` | `float` | `None` | Probability at/above which the call is Resistant. `None`: the bundled model's own threshold (`status()['lgbm_forecasting']['default_threshold']`, 0.15 in 0.2.0). |
 | `model_dir` | `str` | `None` | Directory of alternative artifacts. |
 
 **Returns** `dict`
@@ -27,12 +27,15 @@ Resistance from organism metadata and MIC values, via LightGBM.
 | Key | Type | Meaning |
 |---|---|---|
 | `prediction` | `str` | `'Resistant'` or `'Susceptible'` |
-| `probability` | `float` | Probability of resistance, 0–1 |
+| `probability` | `float` | Probability of resistance, 0–1, calibrated when the model carries a calibration |
 | `confidence` | `float` | Confidence in the call, **percent** |
 | `antibiotic` | `str` | Echoed, lowercased |
 | `drug_class` | `str` | e.g. `'fluoroquinolone'`, or `'other'` if unrecognised |
 | `model_used` | `str` | `'LightGBM (trained)'` |
-| `threshold` | `float` | Echoed |
+| `threshold` | `float` | The threshold used |
+| `model_run` | `str` | Experiment run the bundled model came from |
+| `calibrated` | `bool` | Whether `probability` went through the calibration |
+| `evidence` | `dict` | Per input: used, missing or not recognised, and the estimate's level (`full`, `mic`, `organism`, `drug_only`) |
 
 **Notes**
 
@@ -154,7 +157,9 @@ them as all-zero.
 ## `status(model_dir=None)`
 
 `dict` with `version` plus a per-model block carrying `trained`, `model_type`
-and `description`. Useful as a health check.
+and `description`. Useful as a health check. The forecaster's block also has
+`run_id`, `default_threshold`, `calibration`, `taxon_level` and `metrics` (the
+promoted run's measured test numbers, `lgbm_metrics.json`).
 
 ---
 

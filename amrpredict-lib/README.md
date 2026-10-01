@@ -57,13 +57,23 @@ r = amrpredict.forecast(
     mic_sign='=',           # '=', '>', '<=' ...
     genus='Escherichia',
     species='coli',
-    threshold=0.40,         # probability at/above which the call is Resistant
+    # threshold=None: the bundled model's own (0.15, chosen to keep very
+    # major errors <= 10% on validation genomes); pass a number to override
 )
 
-print(r['prediction'])      # 'Susceptible'
-print(r['probability'])     # 0.1005
-print(r['confidence'])      # 89.9
+print(r['prediction'])      # 'Resistant'
+print(r['probability'])     # 0.9619, calibrated
+print(r['model_run'])       # 'D3_forecaster_deploy_v7'
+print(r['evidence']['label'])  # 'Isolate-level estimate': which inputs counted
 ```
+
+Since 0.2.0 the bundled forecaster is the model the web app serves
+(`D3_forecaster_deploy_v7`, cleaning v7 of the BV-BRC export) and is scored the
+same way: isotonic-calibrated probabilities, strain Taxon IDs read as their
+species, and the run's own threshold. On 1,569,432 test rows from genomes it
+never saw: AUC 0.774 [0.772–0.775], recall 91.4%, very major error 8.6%,
+major error 60.8% at that threshold. `status()['lgbm_forecasting']['metrics']`
+carries the full set.
 
 Every argument except `antibiotic` is optional and keyword-only. With fewer
 inputs the model falls back to population-level resistance rates, so accuracy
@@ -118,8 +128,9 @@ Despite the name, `resistant_fraction` and its siblings are **percentages
 
 ```python
 amrpredict.status()
-# {'version': '0.1.0',
-#  'lgbm_forecasting':   {'trained': True,  ...},
+# {'version': '0.2.0',
+#  'lgbm_forecasting':   {'trained': True, 'run_id': 'D3_forecaster_deploy_v7',
+#                         'metrics': {...}, ...},
 #  'kmer_resistance':    {'trained': True,  ...},
 #  'mutation_timeline':  {'trained': False, ...}}
 
@@ -181,13 +192,10 @@ amrpredict.registry.reset()
 
 ## scikit-learn version
 
-The k-mer model is a pickled scikit-learn estimator, so the dependency is
-pinned to `>=1.3,<2.0`. Unpickling across a major version is not supported and
-would silently produce wrong numbers rather than failing.
-
-The artifacts were built with scikit-learn **1.6.1**. Installing a different
-1.x will still work but raises `InconsistentVersionWarning`. To silence it,
-pin `scikit-learn==1.6.1`, or retrain the model against your version.
+The k-mer model is a pickled scikit-learn estimator built with scikit-learn
+**1.6.1**, so since 0.2.0 the dependency is pinned to `>=1.6.1,<1.7`.
+scikit-learn does not support unpickling an estimator in another release (it
+warns with `InconsistentVersionWarning` and makes no promise about the numbers).
 
 The LightGBM model is unaffected — it uses LightGBM's own version-stable text
 format.

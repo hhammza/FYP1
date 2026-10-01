@@ -4,6 +4,24 @@ Read this before quoting numbers from this library in a report or thesis.
 
 ---
 
+## Fixed in 0.2.0
+
+### `forecast()` disagreed with the web app
+
+**Severity: high. Fixed in 0.2.0.**
+
+0.1.0 bundled the July model and its own loader. The web app's loader had
+since gained isotonic calibration, species-level Taxon IDs, the promoted run's
+threshold and drug-class map, and the shared antibiotic-name table, so the same
+input gave a different probability (uncalibrated) and could give a different
+call (fixed 0.40 threshold) than `/forecast`. 0.2.0 ships the served model
+(`D3_forecaster_deploy_v7`) with `lgbm.py` ported from
+`backend/ml_models/lgbm_predictor.py` and the names from a copy of
+`backend/amr_constants.py` (a backend test fails if the copy goes stale).
+Checked: identical probabilities and calls to the backend on the same inputs.
+
+---
+
 ## Fixed during extraction
 
 ### The k-mer model never actually ran
@@ -91,16 +109,18 @@ templates, so the names stand and the docs state the scale.
 under a different 1.x works but emits `InconsistentVersionWarning`, and the
 maintainers make no guarantee the numbers are identical.
 
-Mitigated by pinning `scikit-learn>=1.3,<2.0` — a 2.x install would be an
-outright failure rather than silently wrong output. For byte-identical results,
-pin `scikit-learn==1.6.1`. The durable fix is retraining and saving via
+Mitigated in 0.2.0 by pinning `scikit-learn>=1.6.1,<1.7` (0.1.0 allowed any
+1.x). The durable fix is retraining and saving via
 [skops](https://skops.readthedocs.io/) or ONNX.
 
 LightGBM is unaffected — its text format is version-stable.
 
 ### Model metrics are not shipped
 
-**Severity: low. Open.**
+**Severity: low. Fixed in 0.2.0 for the forecaster.** `models/lgbm_metrics.json`
+is written by `experiments/promote.py --library` and returned by `status()`.
+The k-mer model still has none in the package (the web app's re-test is in
+`backend/trained_models/kmer_metrics.json`).
 
 `train_models.py` computes AUC and a classification report, prints them, and
 discards them. No metrics are stored in the artifacts, so the library cannot
