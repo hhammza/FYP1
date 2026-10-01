@@ -5,7 +5,9 @@
     genes_found == [..] -> genes linked to the drug's class first (`relevant`), then the rest
 #}
 {% macro chip(g, linked) -%}
-  <span class="gene-chip{% if linked %} gene-chip-linked{% endif %}" title="{{ g.drug_class or 'unknown class' }}">
+  {#- tooltip: the element's full name and subclass when the model sends them (format §2) -#}
+  <span class="gene-chip{% if linked %} gene-chip-linked{% endif %}"
+        title="{{ g.name or g.gene }}{% if g.subclass or g.drug_class %} ({{ g.subclass or g.drug_class }}){% endif %}">
     <span class="font-mono">{{ g.gene }}</span>
     <span class="gene-chip-meta">{{ 'mutation' if g.type == 'point_mutation' else 'gene' }}{% if g.drug_class %} · {{ g.drug_class }}{% endif %}</span>
   </span>

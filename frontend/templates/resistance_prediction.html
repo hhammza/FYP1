@@ -200,6 +200,14 @@ GCATGCATGCATGCATGCATGCATGCATGCAT
         so the result comes from a GC-content rule of thumb. Do not rely on it.
       </div>
       {% endif %}
+      {% if result.warning %}
+      {#- The gene model could not search this genome (AMRFinderPlus failed or
+          timed out), so the k-mer model answered: format §2 `warning` -#}
+      <div class="alert alert-warning-custom mb-3" role="status">
+        <i class="bi bi-exclamation-triangle me-2"></i><strong>Resistance genes were not searched for this genome.</strong>
+        {{ result.warning }}
+      </div>
+      {% endif %}
       {% if result.antibiotic_known is sameas false %}
       <div class="alert alert-warning-custom mb-3" role="status">
         <i class="bi bi-exclamation-triangle me-2"></i><strong>The model never saw {{ result.antibiotic }} in training.</strong>
@@ -227,6 +235,15 @@ GCATGCATGCATGCATGCATGCATGCATGCAT
             <div class="result-label">{{ 'K-mer Genome Analysis' if 'K-mer' in (result.model_used or '') else 'Genome Analysis' }}</div>
             <div class="result-main-label">{{ result.prediction }}</div>
             <div class="result-sub">{{ result.antibiotic }} | Confidence: {{ result.confidence }}%</div>
+            {% set found = result.species_detected %}
+            {% if found is mapping %}
+            <div class="result-sub mt-1" data-species>
+              <i class="bi bi-bacteria me-1"></i>
+              {%- if found.species %} Identified as <em>{{ found.species }}</em>
+              {%- elif found.genus %} Identified as <em>{{ found.genus }}</em> (species unclear)
+              {%- else %} Species not identified from the genome{% endif %}
+            </div>
+            {% endif %}
           </div>
           <div class="ms-auto text-end">
             <div class="result-prob-label">Resistance Probability</div>
@@ -261,8 +278,16 @@ GCATGCATGCATGCATGCATGCATGCATGCAT
               <tr><td class="text-muted">GC Content</td><td class="fw-500">{{ result.gc_content }}%</td></tr>
               <tr><td class="text-muted">Antibiotic</td><td class="fw-500 text-capitalize">{{ result.antibiotic }}</td></tr>
               <tr><td class="text-muted">Model</td><td class="fw-500 small">{{ result.model_used }}</td></tr>
+              {% if result.species_detected is mapping %}
+              <tr><td class="text-muted">Species (from the genome)</td><td class="fw-500 small">
+                {%- if result.species_detected.species %}<em>{{ result.species_detected.species }}</em>
+                {%- elif result.species_detected.genus %}<em>{{ result.species_detected.genus }}</em> (species unclear)
+                {%- else %}Not identified{% endif %}</td></tr>
+              {% endif %}
               {% if result.genes_found is not defined or result.genes_found is none %}
-              <tr><td class="text-muted">Resistance genes</td><td class="small text-muted">Not searched: this model reads the genome's k-mer composition, not its genes</td></tr>
+              <tr><td class="text-muted">Resistance genes</td><td class="small text-muted">
+                {%- if result.warning %}Not searched: the gene search failed on this genome, so the k-mer model answered
+                {%- else %}Not searched: this model reads the genome's k-mer composition, not its genes{% endif %}</td></tr>
               {% endif %}
             </table>
 
