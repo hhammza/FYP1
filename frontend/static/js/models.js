@@ -258,7 +258,10 @@
     const all = Array.isArray(report.genome_runs) ? report.genome_runs : [];
     const labelVersion = r => r.label_version || r.clean_version;
     const version = all.map(labelVersion).sort().pop();
-    const runs = all.filter(r => labelVersion(r) === version && typeof r.auc_roc_lab === 'number');
+    const shown = all.filter(r => labelVersion(r) === version && typeof r.auc_roc_lab === 'number');
+    /* A run re-done on v7 is the same experiment: keep the v7 copy only (as the template) */
+    const v7 = new Set(shown.filter(r => r.clean_version === 'v7').map(r => r.id.replace('_v7', '')));
+    const runs = shown.filter(r => r.clean_version === 'v7' || !v7.has(r.id.replace('_v6', '')));
     if (!runs.length || !document.getElementById('genomeChart')) return;
     const servedId = shipped && shipped.kmer && shipped.kmer.run_id;
     const p = palette();

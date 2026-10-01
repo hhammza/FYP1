@@ -425,6 +425,11 @@
   {% for r in gr_all %}{% if r.label_version is not defined %}{% set _ = r.update({'label_version': r.clean_version}) %}{% endif %}{% endfor %}
   {% set gr_version = (gr_all | map(attribute='label_version') | max) if gr_all else none %}
   {% set gr_runs = gr_all | selectattr('label_version', 'equalto', gr_version) | selectattr('auc_roc_lab', 'number') | list %}
+  {#- A run re-done on v7 (e.g. B6L_genes_v6 and B6L_genes_v7) is the same experiment: keep the v7 copy only -#}
+  {% set v7_bases = gr_runs | selectattr('clean_version', 'equalto', 'v7') | map(attribute='id') | map('replace', '_v7', '') | list %}
+  {% set gr_ns = namespace(keep=[]) %}
+  {% for r in gr_runs %}{% if r.clean_version == 'v7' or r.id | replace('_v6', '') not in v7_bases %}{% set gr_ns.keep = gr_ns.keep + [r] %}{% endif %}{% endfor %}
+  {% set gr_runs = gr_ns.keep %}
   {% set gr_has_v7 = gr_runs | selectattr('clean_version', 'equalto', 'v7') | list | length > 0 %}
   {% set served_id = report.shipped.kmer.run_id if report.shipped and report.shipped.kmer else none %}
   {% if gr_runs %}
