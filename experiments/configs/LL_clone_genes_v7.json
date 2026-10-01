@@ -1,0 +1,36 @@
+{
+  "description": "Lineage check at scale, near-identical isolates held out: genes + antibiotic, drug class, genus [cleaning v7, plasmid-only records (< 500 kb) excluded]",
+  "data": {
+    "genomes": "gene_matrix",
+    "min_genome_bp": 500000
+  },
+  "split": {
+    "strategy": "lineage",
+    "lineage_cut": "clone",
+    "test_size": 0.2,
+    "seed": 42
+  },
+  "features": {
+    "target_encoding": "none",
+    "base": [
+      "Antibiotic",
+      "drug_class",
+      "genus"
+    ],
+    "genes": {
+      "raw": true,
+      "min_genomes": 50,
+      "drug_aware": true
+    }
+  },
+  "model": {
+    "type": "lightgbm"
+  },
+  "threshold": {
+    "strategy": "fixed",
+    "fixed": 0.5
+  },
+  "evaluation": {
+    "n_boot": 200
+  }
+}

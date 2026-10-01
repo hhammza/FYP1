@@ -1,0 +1,39 @@
+{
+  "description": "B7 on the 24,926 genomes : genes + 4-mers + antibiotic, drug class, genus [cleaning v7, plasmid-only records (< 500 kb) excluded]",
+  "data": {
+    "genomes": "genomes_full",
+    "min_genome_bp": 500000
+  },
+  "split": {
+    "strategy": "grouped",
+    "test_size": 0.2,
+    "seed": 42
+  },
+  "features": {
+    "target_encoding": "none",
+    "base": [
+      "Antibiotic",
+      "drug_class",
+      "genus"
+    ],
+    "kmers": {
+      "k": 4,
+      "extras": true
+    },
+    "genes": {
+      "raw": true,
+      "min_genomes": 50,
+      "drug_aware": true
+    }
+  },
+  "model": {
+    "type": "lightgbm"
+  },
+  "threshold": {
+    "strategy": "fixed",
+    "fixed": 0.5
+  },
+  "evaluation": {
+    "n_boot": 200
+  }
+}
