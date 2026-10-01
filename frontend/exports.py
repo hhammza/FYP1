@@ -68,6 +68,19 @@ def genes_text(result):
                      f"{', linked' if g.get('relevant') else ''})" for g in ordered)
 
 
+def species_text(result):
+    """The species the gene model identified from the genome ('' for the
+    k-mer model, which does not identify one)."""
+    found = result.get('species_detected')
+    if not isinstance(found, dict):
+        return ''
+    if found.get('species'):
+        return found['species']
+    if found.get('genus'):
+        return f"{found['genus']} (genus only)"
+    return 'not identified'
+
+
 def _csv(header, rows):
     buf = io.StringIO()
     w = csv.writer(buf)
@@ -97,11 +110,13 @@ def build_csv(page, result, inputs, model):
         kmers = ';'.join(f"{k.get('kmer')}:{k.get('frequency')}" for k in (result.get('top_kmers') or [])[:20])
         header = ['exported_at', 'antibiotic', 'antibiotic_known', 'prediction', 'probability_resistant',
                   'confidence_pct', 'threshold', 'sequence_length', 'gc_content_pct', 'model_used',
-                  'model_auc_unseen_genomes', 'resistance_genes', 'top_kmers', 'note']
+                  'model_auc_unseen_genomes', 'species_identified', 'resistance_genes', 'top_kmers',
+                  'warning', 'note']
         row = [stamp, result.get('antibiotic'), result.get('antibiotic_known'), result.get('prediction'),
                result.get('probability'), result.get('confidence'), result.get('threshold'),
                result.get('sequence_length'), result.get('gc_content'), result.get('model_used'),
-               model['auc_ci'], genes_text(result), kmers, DISCLAIMER]
+               model['auc_ci'], species_text(result), genes_text(result), kmers,
+               result.get('warning') or '', DISCLAIMER]
         return _csv(header, [row])
 
     if page == 'timeline':
@@ -184,7 +199,9 @@ def _result_rows(page, result, inputs):
                 ['GC content', f"{result['gc_content']}%" if result.get('gc_content') is not None
                  else 'not reported by this model'],
                 ['Model used', result.get('model_used')],
-                ['Resistance genes', genes_text(result)]]
+                *([['Identified as', species_text(result)]] if species_text(result) else []),
+                ['Resistance genes', genes_text(result)],
+                *([['Warning', result['warning']]] if result.get('warning') else [])]
     if page == 'timeline':
         fw = result.get('failure_week')
         return [['Antibiotic', result.get('antibiotic')],
