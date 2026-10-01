@@ -15,6 +15,7 @@ import logging
 import warnings
 
 from ._paths import default_model_dir
+from .amr_constants import normalize_antibiotic
 
 _log = logging.getLogger(__name__)
 from collections import Counter
@@ -23,9 +24,6 @@ warnings.filterwarnings('ignore')
 
 NUCLEOTIDES = ['A', 'T', 'C', 'G']
 
-# The library does not carry the backend's full alias map yet (T2.6); the one
-# spelling that picks a different profile is rifampin.
-ANTIBIOTIC_ALIASES = {'rifampin': 'rifampicin'}
 _STRIP = str.maketrans('', '', ''.join(
     c for c in map(chr, range(256)) if c not in 'ATCG'
 ))
@@ -208,8 +206,8 @@ class MutationTimelinePredictor:
             return {'error': 'FASTA sequence too short (minimum 50 bp)'}
 
         gc = compute_gc_content(sequence)
-        ab = antibiotic.lower().strip()
-        ab = ANTIBIOTIC_ALIASES.get(ab, ab)   # 'rifampin' gets the rifampicin profile
+        # Same spelling map as the predictors: 'rifampin' gets the rifampicin profile
+        antibiotic = ab = normalize_antibiotic(antibiotic)
         profile = ANTIBIOTIC_MUTATION_PROFILES.get(ab, ANTIBIOTIC_MUTATION_PROFILES['default'])
 
         rng = np.random.default_rng(seed)   # same inputs and seed, same response
