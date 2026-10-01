@@ -95,12 +95,17 @@ def run(cfg, verbose=True):
     if scfg.get('strategy') == 'lineage':
         df = attach_lineage(df, scfg.get('lineage_cut', 'clone'), verbose)
         group_col = 'lineage_group'
+    # data.require_year keeps the same genomes under another split, so a
+    # temporal run has a grouped twin on identical rows
+    if scfg.get('strategy') == 'temporal' or dcfg.get('require_year'):
+        df = attach_year(df, verbose)
     train_mask, test_mask = splits.make_split(
         df,
         strategy=scfg.get('strategy', 'grouped'),
         test_size=scfg.get('test_size', 0.2),
         seed=scfg.get('seed', 42),
         holdout_genus=scfg.get('holdout_genus'),
+        cutoff_year=scfg.get('cutoff_year'),
         verbose=verbose)
 
     # ── Features ─────────────────────────────────────────────────────────
@@ -384,6 +389,32 @@ def metrics_by_label_source(y, score, rows, threshold, ecfg, group_col='Genome I
     return out
 
 
+GENOME_META = os.path.join(os.path.dirname(HERE), 'Data', 'genome_meta', 'genome_meta.csv')
+
+
+def attach_year(df, verbose=True):
+    """Add collection_year from Ali's genome metadata (Data/genome_meta/,
+    scripts/bvbrc_download/download_genome_meta.py) and drop genomes without
+    one, for the temporal split. The year is collection_year, or else the year
+    written in collection_date (the file's "year" column)."""
+    if not os.path.exists(GENOME_META):
+        raise FileNotFoundError(f'{GENOME_META} missing: run scripts/bvbrc_download/'
+                                'download_genome_meta.py or take genome_meta.csv from Drive')
+    # Genome IDs as text: as numbers, 195.304 and 195.3040 become one genome
+    meta = pd.read_csv(GENOME_META, dtype={'genome_id': str}, usecols=['genome_id', 'year'])
+    meta = meta.dropna(subset=['year'])
+    years = df['Genome ID'].astype(str).map(dict(zip(meta['genome_id'], meta['year'].astype(int))))
+    keep = years.notna().to_numpy()
+    out = df.loc[keep].copy()
+    out['collection_year'] = years[keep].astype(int).to_numpy()
+    if verbose:
+        print(f'[temporal] {out["Genome ID"].nunique():,} of {df["Genome ID"].nunique():,} genomes '
+              f'have a collection year ({keep.sum():,} of {len(df):,} rows kept); '
+              f'years {out["collection_year"].min()}-{out["collection_year"].max()}, '
+              f'median {int(out["collection_year"].median())}')
+    return out.reset_index(drop=True)
+
+
 def attach_lineage(df, cut='clone', verbose=True):
     """Add lineage_group: the genome's lineage cluster at one of lineage.CUTS."""
     sys.path.insert(0, os.path.join(HERE, 'genome'))
@@ -497,6 +528,9 @@ def append_registry(payload):
         'auc_pr': round(payload['test']['auc_pr'], 4),
         'f1': round(payload['test']['f1'], 4),
         'balanced_acc': round(payload['test']['balanced_acc'], 4),
+        'accuracy': round(payload['test']['accuracy'], 4),
+        'sensitivity': round(payload['test']['sensitivity'], 4),
+        'specificity': round(payload['test']['specificity'], 4),
         'brier': round(payload['test']['brier'], 4),
         'very_major_error': round(payload['test']['very_major_error'], 4),
         'major_error': round(payload['test']['major_error'], 4),

@@ -10,7 +10,7 @@ from sklearn.model_selection import StratifiedGroupKFold, train_test_split
 
 
 def make_split(df, strategy='grouped', test_size=0.2, seed=42,
-               group_col='Genome ID', holdout_genus=None, verbose=True):
+               group_col='Genome ID', holdout_genus=None, cutoff_year=None, verbose=True):
     """Return boolean masks (train, test) over df's rows."""
     y = df['target'].to_numpy()
 
@@ -36,6 +36,18 @@ def make_split(df, strategy='grouped', test_size=0.2, seed=42,
             raise ValueError(f'no rows for genus {holdout_genus!r}')
         te = np.flatnonzero(is_holdout.to_numpy())
         tr = np.flatnonzero(~is_holdout.to_numpy())
+
+    elif strategy == 'temporal':
+        # Train on genomes collected up to cutoff_year, test on later ones: a
+        # forecast of bacteria the model could not have seen (run.py adds the
+        # collection_year column and drops genomes without a year)
+        if cutoff_year is None:
+            raise ValueError('temporal needs cutoff_year')
+        later = (df['collection_year'] > int(cutoff_year)).to_numpy()
+        if not later.any() or later.all():
+            raise ValueError(f'cutoff_year {cutoff_year} leaves one side empty')
+        te = np.flatnonzero(later)
+        tr = np.flatnonzero(~later)
 
     else:
         raise ValueError(f'unknown split strategy {strategy!r}')
