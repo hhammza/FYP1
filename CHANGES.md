@@ -18,6 +18,24 @@ Baseline is commit **`52ae361`** *(Add amrpredict library and macOS launcher, 20
 
 ---
 
+## v7 forecaster served, library 0.2.0, significance tests and a temporal split (2026-09-30)
+
+| File | Change |
+|---|---|
+| `backend/trained_models/` | `D3_forecaster_deploy_v7` (Ali's run of the D3 config on cleaning v7) promoted in place of D4: AUC 0.774 [0.772–0.775], lab rows 0.908, threshold 0.15 (VME 8.6%, ME 60.8%, recall 91.4%). `evaluate_shipped.py` rebuilt the split exactly (1,569,432 rows); through the backend's form inputs 0.762 [0.760–0.764] |
+| [amrpredict-lib](amrpredict-lib/) | **0.2.0.** Bundles the served forecaster; `lgbm.py` ported from the backend predictor (calibration, species-level taxa with a bundled `taxon_species.csv`, the run's threshold and drug-class map, `evidence`), so `forecast()` returns the backend's probabilities and calls (checked); `forecast()` threshold defaults to the model's own (0.15) instead of 0.40; `status()` returns the run's metrics; antibiotic names from `amrpredict/amr_constants.py`, a copy of `backend/amr_constants.py` guarded by a backend test; scikit-learn pinned `>=1.6.1,<1.7` (the k-mer pickle's release). 34 tests pass; the wheel installs in a clean venv. Docs and `known-issues.md` updated |
+| [promote.py](experiments/promote.py) | `--library` is no longer held back, and also copies `taxon_species.csv` |
+| [significance.py](experiments/lib/significance.py), [compare.py](experiments/compare.py) | New: paired DeLong, McNemar at each run's threshold, and a paired genome bootstrap (rows cluster by genome, so it is the one to quote when they disagree). `compare.py A B [--lab]` or `--pairs` for the report's comparisons |
+| [calibration_plot.py](experiments/calibration_plot.py) | New: reliability diagram from a run's `metrics.json` → `experiments/results/figures/` (served forecaster: Brier 0.193 raw → 0.160 isotonic) |
+| [report.py](experiments/report.py), [run.py](experiments/run.py) | Accuracy, recall and specificity columns in `RESULTS.md`; new runs write them to `registry.csv`, older rows read them from `metrics.json` |
+| [splits.py](experiments/lib/splits.py), [run.py](experiments/run.py) | New `temporal` split (`split.cutoff_year`): train on genomes collected up to the year, test on later ones, years from Ali's `Data/genome_meta/genome_meta.csv` (Genome ID as text; genomes without a year dropped). `data.require_year` gives a grouped twin on the same rows |
+| `experiments/configs/` | `T0_grouped_withyear_v7`, `T1_temporal_{2012,2014,2015}_v7` (A6 on lab rows); `*_v7` copies of the 30 genome configs; split seeds 1 and 2 (`*_v7_s1`, `*_v7_s2`) for A2, A6, A6b, A10, drug-only and `B6L_genes_v7` |
+| [TEMPORAL_RESULTS.md](experiments/TEMPORAL_RESULTS.md) | New: A6 on lab rows trained up to 2012 / 2014 / 2015 and tested on later genomes scores 0.878 / 0.857 / 0.857 against 0.928 for a random genome split of the same rows; the loss is within-genus drift in 2017–2018 (*Shigella*, *Neisseria*, *Salmonella*), not steady decay |
+| [backend/tests/test_amr_constants.py](backend/tests/test_amr_constants.py) | Fails if the library's copy of the names goes stale |
+| READMEs, trackers | Served-model text and figures; Hamza's answers to Ali in his Handovers |
+
+Local environment: Windows Smart App Control started blocking scikit-learn 1.9.1's `_cyutility` DLL on 2026-09-30; the project venv now has scikit-learn 1.8.0 (the release the system Python already runs). Results are unaffected: the served forecaster's calibration is stored as numbers, not a pickled estimator.
+
 ## Data audit and cleaning v7 (2026-09-29)
 
 | File | Change |
