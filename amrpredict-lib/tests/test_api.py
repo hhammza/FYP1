@@ -100,3 +100,15 @@ def test_strain_taxon_is_read_as_its_species():
     r = amrpredict.forecast('ciprofloxacin', taxon_id=1045010)   # an E. coli strain
     taxon = [i for i in r['evidence']['inputs'] if i['field'] == 'Taxon ID'][0]
     assert 'species 562' in taxon['detail']
+
+
+def test_spelling_variants_reach_the_same_model_input():
+    """Every model reads names through the shared alias table (amr_constants),
+    as the web app does: 'Rifampin' is rifampicin everywhere."""
+    fasta = '>x\n' + 'ACGTTGCAAT' * 400
+    assert (amrpredict.predict_fasta(fasta, 'Rifampin')['probability']
+            == amrpredict.predict_fasta(fasta, 'rifampicin')['probability'])
+    t = amrpredict.simulate_timeline(fasta, 'Rifampin')
+    assert t['antibiotic'] == 'rifampicin'
+    assert t == amrpredict.simulate_timeline(fasta, 'rifampicin')
+    assert amrpredict.forecast('Rifampin')['antibiotic'] == 'rifampicin'
