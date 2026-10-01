@@ -1,12 +1,12 @@
 {
   "id": "A_ablation_drug_only_v7",
   "description": "A_ablation_drug_only on cleaning v7 (the complete BV-BRC export); compare with the v5 run A_ablation_drug_only",
-  "finished_at": "2026-09-29T05:32:06+00:00",
-  "runtime_seconds": 195.5,
-  "fit_seconds": 12.4,
+  "finished_at": "2026-10-01T03:37:08+00:00",
+  "runtime_seconds": 493.7,
+  "fit_seconds": 58.4,
   "environment": {
-    "python": "3.14.5",
-    "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O"
+    "python": "3.13.12",
+    "platform": "Windows-11-10.0.26200-SP0"
   },
   "dataset": {
     "clean_version": "v7",

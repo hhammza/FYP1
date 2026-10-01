@@ -1,0 +1,26 @@
+{
+  "description": "A6_lab_only_v7 with split seed 1 (seed 42 is A6_lab_only_v7): seed variation for T2.5",
+  "data": {
+    "label_sources": [
+      "lab"
+    ],
+    "source": "amr_full"
+  },
+  "split": {
+    "strategy": "grouped",
+    "test_size": 0.2,
+    "seed": 1
+  },
+  "features": {
+    "target_encoding": "oof"
+  },
+  "model": {
+    "type": "lightgbm"
+  },
+  "threshold": {
+    "strategy": "fixed",
+    "fixed": 0.4
+  },
+  "id": "A6_lab_only_v7_s1",
+  "evaluation": {}
+}

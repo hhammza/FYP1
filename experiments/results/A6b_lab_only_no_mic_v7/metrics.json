@@ -1,12 +1,12 @@
 {
   "id": "A6b_lab_only_no_mic_v7",
   "description": "A6b_lab_only_no_mic on cleaning v7 (the complete BV-BRC export); compare with the v5 run A6b_lab_only_no_mic",
-  "finished_at": "2026-09-29T05:28:49+00:00",
-  "runtime_seconds": 38.9,
-  "fit_seconds": 7.1,
+  "finished_at": "2026-10-01T03:21:51+00:00",
+  "runtime_seconds": 135.9,
+  "fit_seconds": 9.3,
   "environment": {
-    "python": "3.14.5",
-    "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O"
+    "python": "3.13.12",
+    "platform": "Windows-11-10.0.26200-SP0"
   },
   "dataset": {
     "clean_version": "v7",
