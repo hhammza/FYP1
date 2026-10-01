@@ -3,6 +3,13 @@
     python experiments/genome/kmers.py            # build the cache (~10-20 min)
     python experiments/genome/kmers.py --limit 5  # quick test
 
+    # genomes somewhere else, gzipped or not, in subfolders (e.g. on Google
+    # Drive from notebooks/download_genomes_to_drive.ipynb), saved in parts
+    # so a stopped run resumes, then merged with the existing cache:
+    python kmers.py --genomes DIR --parts PARTS_DIR \
+        --merge kmer6_counts.npz --out kmer6_counts_all.npz
+    (notebooks/build_kmers_on_drive.ipynb runs this in Colab)
+
 Reads every Data/genomes_full/<genome_id>.fna once and stores its 6-mer counts
 in experiments/cache/kmer6_counts.npz. Shorter k-mers are derived from those
 counts (kmer_matrix below), so k = 3, 4, 5 and 6 cost one pass over the 11 GB.
@@ -23,6 +30,7 @@ The shipped K-mer model read the truncated FASTAs in Data/fasta_output/ (about
 """
 import argparse
 import glob
+import gzip
 import os
 import sys
 import time
@@ -33,7 +41,6 @@ import numpy as np
 HERE = os.path.dirname(os.path.abspath(__file__))
 EXPERIMENTS = os.path.dirname(HERE)
 sys.path.insert(0, EXPERIMENTS)
-from lib import data_prep  # noqa: E402
 
 K_MAX = 6
 N_MAX = 4 ** K_MAX
@@ -48,13 +55,27 @@ for _i, _c in enumerate(BASES):
 
 
 def genomes_dir():
+    from lib import data_prep   # only here, so the file also runs on its own (Colab)
     return os.path.join(data_prep.data_root(), 'genomes_full')
+
+
+def genome_id(path):
+    name = os.path.basename(path)
+    return name[:-len('.fna.gz')] if name.endswith('.fna.gz') else name[:-len('.fna')]
+
+
+def genome_files(folder):
+    """Every finished assembly under `folder`: .fna or .fna.gz, any depth
+    (unfinished downloads end in .part and are left out)."""
+    return sorted(glob.glob(os.path.join(folder, '**', '*.fna'), recursive=True)
+                  + glob.glob(os.path.join(folder, '**', '*.fna.gz'), recursive=True))
 
 
 def contigs(path):
     """Yield each contig of a FASTA file as raw bytes."""
     chunks = []
-    with open(path, 'rb') as fh:
+    opener = gzip.open if path.endswith('.gz') else open
+    with opener(path, 'rb') as fh:
         for line in fh:
             if line.startswith(b'>'):
                 if chunks:
@@ -84,7 +105,7 @@ def count_6mers(seq_codes):
 
 def genome_features(path):
     """(genome_id, 6-mer counts, length in ACGT bases, GC fraction)."""
-    gid = os.path.basename(path)[:-len('.fna')]
+    gid = genome_id(path)
     counts = np.zeros(N_MAX, dtype=np.int64)
     acgt = gc = 0
     for raw in contigs(path):
@@ -119,6 +140,56 @@ def build(limit=None, workers=4):
     print(f'[kmers] wrote {os.path.relpath(out, os.path.dirname(EXPERIMENTS))} '
           f'in {time.time() - t0:.0f}s')
     return out
+
+
+def save(path, ids, counts, lengths, gcs):
+    os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)
+    tmp = path + '.tmp.npz'
+    np.savez_compressed(tmp, genome_id=np.array(ids, dtype=str), counts=np.stack(counts),
+                        length=np.array(lengths, dtype=np.int64), gc=np.array(gcs))
+    os.replace(tmp, path)       # a part exists only once it is complete
+
+
+def build_parts(folder, parts, part_size=2000, workers=4):
+    """Count every genome under `folder` not yet in a part file in `parts`,
+    `part_size` genomes per part. Run again to resume or to add genomes that
+    arrived since (a download still in progress)."""
+    os.makedirs(parts, exist_ok=True)
+    done = set()
+    existing = sorted(glob.glob(os.path.join(parts, 'part_*.npz')))
+    for f in existing:
+        done |= set(np.load(f)['genome_id'].astype(str))
+    paths = [p for p in genome_files(folder) if genome_id(p) not in done]
+    print(f'[kmers] {len(done):,} genomes already in {len(existing)} parts, {len(paths):,} to count')
+    t0, n_part = time.time(), len(existing)
+    with Pool(workers) as pool:
+        for start in range(0, len(paths), part_size):
+            batch = paths[start:start + part_size]
+            rows = list(pool.imap(genome_features, batch, chunksize=4))
+            n_part += 1
+            out = os.path.join(parts, f'part_{n_part:04d}.npz')
+            save(out, *zip(*rows))
+            n = start + len(batch)
+            rate = n / (time.time() - t0)
+            print(f'[kmers] {n:,}/{len(paths):,} counted, {os.path.basename(out)} saved, '
+                  f'about {(len(paths) - n) / rate / 60:.0f} min left')
+
+
+def merge(parts, out, existing=None):
+    """One cache from the parts (and an existing cache): the format
+    load_counts() reads. A genome in more than one file is kept once."""
+    files = ([existing] if existing else []) + sorted(glob.glob(os.path.join(parts, 'part_*.npz')))
+    ids, counts, lengths, gcs, seen = [], [], [], [], set()
+    for f in files:
+        z = np.load(f)
+        keep = [i for i, g in enumerate(z['genome_id'].astype(str)) if g not in seen]
+        seen |= set(z['genome_id'].astype(str)[keep])
+        ids += list(z['genome_id'].astype(str)[keep])
+        counts.append(z['counts'][keep])
+        lengths.append(z['length'][keep])
+        gcs.append(z['gc'][keep])
+    save(out, ids, list(np.concatenate(counts)), np.concatenate(lengths), np.concatenate(gcs))
+    print(f'[kmers] {len(ids):,} genomes from {len(files)} files written to {out}')
 
 
 def load_counts(path=CACHE):
@@ -168,5 +239,16 @@ if __name__ == '__main__':
     ap = argparse.ArgumentParser(description='Build the 6-mer count cache')
     ap.add_argument('--limit', type=int, help='only the first N genomes (test)')
     ap.add_argument('--workers', type=int, default=4)
+    ap.add_argument('--genomes', help='folder of .fna / .fna.gz files, any depth (with --parts)')
+    ap.add_argument('--parts', help='folder for resumable part files; counts --genomes into it')
+    ap.add_argument('--part-size', type=int, default=2000)
+    ap.add_argument('--merge', help='an existing cache to merge the parts with')
+    ap.add_argument('--out', help='merged cache to write from --parts (and --merge)')
     args = ap.parse_args()
-    build(args.limit, args.workers)
+    if args.parts:
+        if args.genomes:
+            build_parts(args.genomes, args.parts, args.part_size, args.workers)
+        if args.out:
+            merge(args.parts, args.out, args.merge)
+    else:
+        build(args.limit, args.workers)
