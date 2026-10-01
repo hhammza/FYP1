@@ -23,6 +23,23 @@ class FrontendCopy(unittest.TestCase):
                          'frontend/antibiotic_names.json is stale: run python backend/amr_constants.py')
 
 
+class LibraryCopy(unittest.TestCase):
+    """amrpredict installs without backend/, so it carries its own copy."""
+
+    def test_library_copy_matches(self):
+        import importlib.util
+        path = os.path.join(os.path.dirname(os.path.dirname(c.FRONTEND_COPY)), 'amrpredict-lib',
+                            'src', 'amrpredict', 'amr_constants.py')
+        spec = importlib.util.spec_from_file_location('amrpredict_constants', path)
+        lib = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(lib)
+        for name in ('DRUG_CLASS_MAP', 'ANTIBIOTIC_ALIASES', 'PHENOTYPE_MAP', 'MIC_SIGN_ALIASES',
+                     'UI_ANTIBIOTICS', 'LGBM_TRAIN_PHENOTYPES', 'KMER_TRAIN_PHENOTYPES'):
+            self.assertEqual(getattr(lib, name), getattr(c, name),
+                             f'amrpredict-lib/src/amrpredict/amr_constants.py {name} is stale: '
+                             'copy it from backend/amr_constants.py')
+
+
 class Names(unittest.TestCase):
     def test_alias_targets_are_canonical_and_classed(self):
         for variant, canonical in c.ANTIBIOTIC_ALIASES.items():
