@@ -476,7 +476,7 @@
         <div class="how-num">04</div>
         <div>
           <div class="how-title">Class Imbalance Correction</div>
-          <div class="how-desc">Training data is typically imbalanced (more Susceptible than Resistant isolates). LightGBM uses <code class="code-pill">is_unbalance=True</code> and the K-mer RandomForest uses <code class="code-pill">class_weight='balanced'</code>, improving recall for resistant strains without synthetic oversampling.</div>
+          <div class="how-desc">Training data is typically imbalanced (more Susceptible than Resistant isolates). Both models are LightGBM with <code class="code-pill">is_unbalance=True</code>, and each one's decision threshold is set on validation genomes to miss at most 10% of resistant isolates, without synthetic oversampling.</div>
         </div>
       </div>
     </div>

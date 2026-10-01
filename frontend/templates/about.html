@@ -124,22 +124,22 @@
 
         <h6 class="about-method-h6 mt-3 mb-2">Phase 1: Data Collection and Preprocessing</h6>
         <p class="about-method-text">
-          AMR phenotype data including Resistant, Susceptible, and Intermediate labels, MIC values, and organism metadata was downloaded from the BVBRC database across {{ metrics.lgbm.genera }} bacterial genera. FASTA genome sequences were collected for {{ metrics.kmer.genomes_total }} isolates. The data was then cleaned to remove duplicates, parse MIC strings, extract genus and species from genome names, and merge Intermediate labels into Resistant for binary classification.
+          AMR phenotype data including Resistant, Susceptible, and Intermediate labels, MIC values, and organism metadata was downloaded from the BVBRC database across {{ metrics.lgbm.genera }} bacterial genera. Complete genome assemblies were downloaded for {{ metrics.kmer.genomes_total }} of the isolates. The data was then cleaned to remove duplicates, parse MIC strings, extract genus and species from genome names, and merge Intermediate labels into Resistant for binary classification.
         </p>
 
         <h6 class="about-method-h6 mt-3 mb-2">Phase 2: Feature Engineering</h6>
         <p class="about-method-text">
-          Two separate feature sets were built: (1) <strong>14 tabular features</strong> for LightGBM, including MIC value, log, and sign, drug class, genus and species, as well as target-encoded resistance rates per antibiotic, taxon-antibiotic pair, and genus-antibiotic pair; and (2) <strong>256+ k-mer features</strong> for RandomForest, extracted from the 4-mer frequency spectrum of raw FASTA sequences along with GC content and antibiotic one-hot encoding.
+          Two separate feature sets were built: (1) <strong>14 tabular features</strong> for LightGBM, including MIC value, log, and sign, drug class, genus and species, as well as target-encoded resistance rates per antibiotic, taxon-antibiotic pair, and genus-antibiotic pair; and (2) <strong>256 k-mer features</strong> for the genome model, the 4-mer frequency spectrum of the complete genome assembly counted within each contig, along with GC content, genome length and the antibiotic.
         </p>
 
         <h6 class="about-method-h6 mt-3 mb-2">Phase 3: Model Training and Evaluation</h6>
         <p class="about-method-text">
-          LightGBM was trained with <code class="font-mono">is_unbalance=True</code> and early stopping (30 rounds) on an 80/20 stratified train-test split. The K-mer RandomForest used <code class="font-mono">class_weight='balanced'</code> to handle class imbalance (no SMOTE required for RF). Both models were evaluated on held-out test sets using AUC-ROC as the primary metric.
+          Both models are LightGBM, trained with <code class="font-mono">is_unbalance=True</code> and early stopping (30 rounds). The data is split <strong>by genome</strong>, 80/20: every genome is either in training or in the test set, never both, so the scores are on isolates the model never saw. The decision threshold is chosen on validation genomes, as the highest that misses at most 10% of resistant isolates (very major error), and the forecaster's probabilities are calibrated (isotonic). Each model is reported with AUC-ROC and its 95% confidence interval, AUPRC, F1, recall, and the very major and major error rates; the genome model is scored on lab-confirmed results only, because BV-BRC's computer-predicted labels were made from the genome itself.
         </p>
 
         <h6 class="about-method-h6 mt-3 mb-2">Phase 4: Deployment</h6>
         <p class="about-method-text">
-          The trained models are saved to disk as LightGBM .txt and RandomForest .pkl files and loaded when the Django backend starts up through a model registry. The Flask frontend forwards all prediction requests to the Django REST API. All three models include fallback logic so the system keeps working even if a model file is missing.
+          The trained models are saved to disk as LightGBM .txt files with their metrics, and loaded when the Django backend starts up through a model registry; every number the site shows is read from those metrics files. The Flask frontend forwards all prediction requests to the Django REST API. If a model file is missing, the forecaster falls back to a heuristic and <code class="font-mono">/predict</code> to the original K-mer RandomForest, and the page says so; the genome model refuses a partial genome (under 100,000 bp) rather than guess.
         </p>
       </div>
 
