@@ -1,0 +1,27 @@
+{
+  "description": "Grouped twin of the T1 temporal runs: A6 on the same rows (lab, genomes with a collection year), random genome-grouped split [cleaning v7]",
+  "data": {
+    "label_sources": [
+      "lab"
+    ],
+    "source": "amr_full",
+    "require_year": true
+  },
+  "split": {
+    "strategy": "grouped",
+    "test_size": 0.2,
+    "seed": 42
+  },
+  "features": {
+    "target_encoding": "oof"
+  },
+  "model": {
+    "type": "lightgbm"
+  },
+  "threshold": {
+    "strategy": "fixed",
+    "fixed": 0.4
+  },
+  "id": "T0_grouped_withyear_v7",
+  "evaluation": {}
+}

@@ -1,0 +1,26 @@
+{
+  "description": "Temporal test (RESEARCH_PLAN section 8): A6 (lab rows, OOF rate features) trained on genomes collected up to 2014, tested on genomes collected after 2014; genomes without a collection year dropped [cleaning v7]",
+  "data": {
+    "label_sources": [
+      "lab"
+    ],
+    "source": "amr_full"
+  },
+  "split": {
+    "strategy": "temporal",
+    "cutoff_year": 2014,
+    "seed": 42
+  },
+  "features": {
+    "target_encoding": "oof"
+  },
+  "model": {
+    "type": "lightgbm"
+  },
+  "threshold": {
+    "strategy": "fixed",
+    "fixed": 0.4
+  },
+  "id": "T1_temporal_2014_v7",
+  "evaluation": {}
+}
