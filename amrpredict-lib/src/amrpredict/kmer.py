@@ -12,6 +12,7 @@ import logging
 import warnings
 
 from ._paths import default_model_dir
+from .amr_constants import normalize_antibiotic
 
 _log = logging.getLogger(__name__)
 from itertools import product
@@ -86,9 +87,10 @@ def extract_features(sequence, antibiotic, ab_list):
 
     N_AB = len(ab_list)
     ab_vec = np.zeros(N_AB, dtype=np.float32)
-    ab_lower = antibiotic.lower().strip()
+    # Names compared through the shared alias table, as the backend does
+    ab_norm = normalize_antibiotic(antibiotic)
     for i, a in enumerate(ab_list):
-        if a.lower() == ab_lower:
+        if normalize_antibiotic(a) == ab_norm:
             ab_vec[i] = 1.0
             break
 
@@ -126,7 +128,7 @@ class KmerResistancePredictor:
     def _heuristic_predict(self, sequence, antibiotic):
         """Heuristic based on GC content and antibiotic profile."""
         gc = compute_gc_content(sequence)
-        ab = antibiotic.lower().strip()
+        ab = normalize_antibiotic(antibiotic)
 
         profile = ANTIBIOTIC_RESISTANCE_PROFILES.get(ab, {'gc_weight': 1.0, 'base': 0.35})
         base = profile['base']
@@ -141,8 +143,8 @@ class KmerResistancePredictor:
             entropy_norm = entropy / np.log(N_KMERS + 1)
             adjustment += (entropy_norm - 0.5) * 0.15
 
-        noise = np.random.uniform(-0.04, 0.04)
-        prob = float(np.clip(base + adjustment + noise, 0.03, 0.97))
+        # No random noise: the same input must give the same answer, even here
+        prob = float(np.clip(base + adjustment, 0.03, 0.97))
         return prob
 
     def predict(self, fasta_text, antibiotic, threshold=0.5):
