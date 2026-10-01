@@ -73,3 +73,30 @@ def test_registry_reset_rebuilds():
     first = amrpredict.registry.lgbm()
     amrpredict.registry.reset()
     assert amrpredict.registry.lgbm() is not first
+
+
+def test_forecast_uses_the_promoted_threshold_and_calibration():
+    """v0.2.0: the bundled forecaster is a promoted run, scored as the web app
+    scores it (calibrated, species-level taxa, the run's own threshold)."""
+    st = amrpredict.status()['lgbm_forecasting']
+    assert st['run_id']
+    r = amrpredict.forecast('ciprofloxacin', taxon_id=562, mic_value=4)
+    assert r['threshold'] == st['default_threshold']
+    assert r['model_run'] == st['run_id']
+    assert r['calibrated'] is (st['calibration'] is not None)
+
+
+def test_status_carries_measured_metrics():
+    m = amrpredict.status()['lgbm_forecasting']['metrics']
+    assert m['run_id'] == amrpredict.status()['lgbm_forecasting']['run_id']
+    assert 0.5 < m['test']['auc_roc'] <= 1.0
+
+
+def test_strain_taxon_is_read_as_its_species():
+    """A strain-level Taxon ID gets its species' rates when the model was
+    trained on species-level taxa."""
+    if amrpredict.status()['lgbm_forecasting']['taxon_level'] != 'species':
+        pytest.skip('bundled model uses strain-level taxa')
+    r = amrpredict.forecast('ciprofloxacin', taxon_id=1045010)   # an E. coli strain
+    taxon = [i for i in r['evidence']['inputs'] if i['field'] == 'Taxon ID'][0]
+    assert 'species 562' in taxon['detail']
