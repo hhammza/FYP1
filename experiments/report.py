@@ -14,6 +14,7 @@ import json
 import os
 
 import pandas as pd
+import lib  # noqa: E402,F401  (UTF-8 output on Windows; see lib/__init__.py)
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 REGISTRY = os.path.join(HERE, 'results', 'registry.csv')
