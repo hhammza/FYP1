@@ -31,9 +31,9 @@ All data comes from BV-BRC, a free public database of bacteria and their test re
 ### Data (Ali)
 
 - Cleaned the BV-BRC resistance table: all **17.6 M** records. Cleaning v7 has **7,847,110 rows, 439,542 genomes, 649,944 lab rows on 87,325 genomes**. Along the way we found and fixed real problems in the data (section 3).
-- Downloaded the complete DNA of **24,926 genomes**, 22,475 of them with a real lab result. The complete export has 87,325 lab-tested genomes; the DNA of the other 64,850 is being downloaded to Google Drive (started 2026-10-01), so the genome models can use all of them.
+- Downloaded the complete DNA of **24,926 genomes**, 22,475 of them with a real lab result. The complete export has 87,325 lab-tested genomes; the DNA of the other 64,850 was downloaded to Google Drive on 2026-10-01 (64,812 kept; 38 failed the length check), so the genome models can use all of them.
 - Ran AMRFinderPlus (a US government tool that finds resistance genes) on every genome. The result is a **gene table of 24,926 genomes x 2,733 genes and mutations**.
-- Built the **k-mer file** (`kmer6_counts.npz`): a count of every 6-letter DNA pattern in each genome, for Hamza's models.
+- Built the **k-mer file** (`kmer6_counts.npz`): a count of every 6-letter DNA pattern in each genome, for Hamza's models. Now **89,738 genomes** (`kmer6_counts_all.npz`, 2026-10-01); AMRFinderPlus on the new genomes is running.
 
 ### Models (Hamza)
 
