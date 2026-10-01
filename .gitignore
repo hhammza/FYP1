@@ -207,6 +207,9 @@ backend/trained_models/*
 !backend/trained_models/*_metrics.json
 # The complete-genome model /predict serves (promote.py --genome), 3.6 MB
 !backend/trained_models/genome/
+# The gene model /predict serves where AMRFinderPlus runs (promote.py --genome
+# on a gene run): booster, gene rules and species profiles, 4.9 MB
+!backend/trained_models/genome_genes/
 # AMRFinderPlus summary and per-genome genes for /genes, built by
 # experiments/genome/features/export_gene_report.py (Data/ is not deployed)
 !backend/trained_models/gene_report.json
