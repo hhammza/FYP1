@@ -170,6 +170,11 @@ Built against the real files (`backend/trained_models/lgbm_metrics.json`, `kmer_
 
 - [x] After Hamza's genome model is on `/predict`: on `/datasets`, label Dataset 2 *"Superseded by Dataset 3, kept to reproduce the original K-mer model"*. Don't remove it *Done 2026-09-29: the label as a note at the top of the Dataset 2 section and a "Superseded" badge in the overview. Also fixed: Dataset 2's boxes showed the new model's training rows (287,774, from Dataset 3) because `metrics.kmer` is now the served model; they give the original model's 6,002 and AUC 0.695. The `/predict` model card says K-mer LightGBM on Dataset 3. 3 tests (`test_datasets_page.py`)*
 
+### `/forecast` form (my own, 2026-10-02)
+
+- [x] **Linked organism lists:** genus dropdown first, then species of that genus only, then the taxon IDs of that species (the genus's when no species is chosen); MIC suggestions for the chosen drug and organism. *Done 2026-10-02: `backend/api/organisms.py` builds the tree from the forecaster's vocabulary and `taxon_species.csv` (38 genera, 85 species pairs, 69 of 70 taxon IDs; "coli" under Escherichia and Campylobacter; Aliarcobacter/Stutzerimonas mapped back to the names the model learned). MIC values recorded in BV-BRC per species, genus and drug in `backend/api/mic_values.json` (`scripts/build_mic_values.py`, from `Data/amr_output/`; re-run on the complete export to refresh), served by `/api/mic-values/`; the hint says which level answered. Choices kept after a submit; antibiotic tooltip reads 126, not 62. Checked in Edge end to end. 12 tests (`test_organisms.py` 8, `test_forecast_organisms.py` 4)*
+- [ ] **Genome ID field: discuss with the team.** The forecaster does not use Genome ID: it is the key of the genome-grouped split, so as an input it could only memorise known genomes. Proposed instead: a "fill from Genome ID" helper that fills genus, species and taxon ID, shows the genome's real lab result for the drug, links its genes on `/genes`, and says whether the model saw it in training (needs Hamza's test-genome list and the complete export from Ali). *Raised 2026-10-02*
+
 ---
 
 ## Week 4: RL panel and tests
@@ -274,6 +279,7 @@ Newest first. One line per work session: date, what I did, what is next, anythin
 
 | Date | Done | Next | Blockers |
 | --- | --- | --- | --- |
+| 2026-10-02 | `/forecast` organism lists linked: genus dropdown → species of that genus only → taxon IDs of that species (genus-wide without a species), all from the model's vocabulary and `taxon_species.csv` (69 of 70 IDs placed; renamed genera Aliarcobacter/Stutzerimonas mapped back); MIC field suggests values recorded in BV-BRC for the drug and organism (species, genus or all organisms; `scripts/build_mic_values.py` → `backend/api/mic_values.json`, 118 kB). New `/api/mic-values/`. Checked in Edge end to end. 12 tests | GitHub Actions | None |
 | 2026-10-01 | AMRFinderPlus database pinned in the Dockerfile to the training version (2026-08-07.1) with a checked download; tested the download, the image not built | Docker build (needs Docker), Dataset 2 decision with the team | Docker on a machine; Hamza's trained gene model |
 | 2026-10-01 | Reviewed Ali's edits to `/models`, `/compare`, `/datasets`: fine; fixed one duplicate in Section 5 (`B6L_genes` v6 and v7). 1 test | AMRFinderPlus database pin; Dataset 2 decision with the team | Hamza's trained gene model |
 | 2026-10-01 | Stale text (Hamza's review): `/about` Methodology and the home imbalance card describe today's models (genome-grouped split, VME-constrained threshold, calibration, metrics reported); `/datasets` input guide fixed for `/predict` | Review Ali's page edits, AMRFinderPlus database pin | Hamza's trained gene model |
