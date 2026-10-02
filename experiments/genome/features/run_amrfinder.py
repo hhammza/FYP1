@@ -21,6 +21,12 @@ notebooks/download_genomes_to_drive.ipynb), with results written there too:
 (notebooks/amrfinder_on_drive.ipynb runs this in Colab). A gzipped genome is
 unpacked to a temporary file for AMRFinderPlus and deleted afterwards.
 
+Several machines can share one --out folder (Colab sessions of different
+people, a Mac reading Drive for desktop): give each a --worker name. Each
+worker then goes through the list in its own random order, skips a genome
+whose .tsv already exists or that another worker has claimed (a <id>.claim
+file under two hours old), and writes its own run_summary_<worker>.csv.
+
 --organism turns on point-mutation detection (for example gyrA_S83L) and
 species-specific filtering. Each genome gets it only when its NCBI species or
 genus is on AMRFinderPlus's list; other genomes (Mycobacterium tuberculosis,
@@ -55,6 +61,8 @@ MANIFEST = os.path.join(GENOME_DIR, 'manifest.csv')
 OUT_DIR = os.path.join(DATA, 'amrfinder_output')
 SUMMARY = os.path.join(OUT_DIR, 'run_summary.csv')
 TAXA = os.path.join(ROOT, 'backend', 'taxon_species.csv')
+WORKER = None                  # set by --worker
+CLAIM_HOURS = 2                # a claim older than this is from a stopped run
 
 # Genera AMRFinderPlus covers as one organism; Shigella is part of Escherichia
 GENUS_ALIASES = {'Shigella': 'Escherichia'}
@@ -133,7 +141,22 @@ def run_one(amrfinder, env, row, threads):
         # Colab lost Google Drive: writing now would land on its temporary disk
         raise SystemExit('Google Drive is no longer connected. Runtime → Disconnect and delete '
                          'runtime, then Run all: finished genomes are skipped.')
-    tmp = out + '.part'
+    if WORKER:
+        claim = os.path.join(OUT_DIR, f'{row.genome_id}.claim')
+        if os.path.exists(out) or (os.path.exists(claim) and
+                                   time.time() - os.path.getmtime(claim) < CLAIM_HOURS * 3600):
+            return None        # finished or being run by another worker
+        with open(claim, 'w') as fh:
+            fh.write(WORKER)
+    try:
+        return run_genome(amrfinder, env, row, threads, out)
+    finally:
+        if WORKER and os.path.exists(claim):
+            os.remove(claim)
+
+
+def run_genome(amrfinder, env, row, threads, out):
+    tmp = out + (f'.{WORKER}.part' if WORKER else '.part')
     fna, unpacked = row.fna, None
     if fna.endswith('.gz'):    # AMRFinderPlus reads plain FASTA: unpack to local disk first
         unpacked = os.path.join(tempfile.gettempdir(), f'{row.genome_id}.fna')
@@ -170,10 +193,14 @@ def main():
     ap.add_argument('--out', help='folder for the .tsv results (default Data/amrfinder_output/)')
     ap.add_argument('--skip-genus', action='append', default=[],
                     help='leave out a genus, e.g. Mycobacterium (repeatable)')
+    ap.add_argument('--worker', help='a name for this machine when several share one --out folder')
     args = ap.parse_args()
-    global OUT_DIR, SUMMARY
+    global OUT_DIR, SUMMARY, WORKER
     if args.out:
         OUT_DIR, SUMMARY = args.out, os.path.join(args.out, 'run_summary.csv')
+    if args.worker:
+        WORKER = ''.join(c for c in args.worker if c.isalnum() or c in '-_')
+        SUMMARY = os.path.join(OUT_DIR, f'run_summary_{WORKER}.csv')
     if args.genomes and not args.list:
         ap.error('--genomes needs --list (genome_id, taxon_id)')
     os.makedirs(OUT_DIR, exist_ok=True)
@@ -196,13 +223,18 @@ def main():
         genomes = genomes.head(args.limit)
     done = genomes['genome_id'].map(lambda g: os.path.exists(os.path.join(OUT_DIR, f'{g}.tsv')))
     todo = genomes[~done]
+    if WORKER:                 # each worker its own order, so workers rarely meet
+        todo = todo.sample(frac=1, random_state=sum(map(ord, WORKER)))
     print(f'[amrfinder] {len(genomes):,} genomes downloaded, {done.sum():,} already run, '
           f'{len(todo):,} to run; {genomes["organism"].isna().sum()} without --organism')
 
     previous = pd.read_csv(SUMMARY, dtype={'genome_id': str}) if os.path.exists(SUMMARY) else pd.DataFrame()
     # Genomes finished by a run that was stopped before it saved the summary
     # have a .tsv but no summary row; recover their organism and hit count.
-    known = set(previous['genome_id']) if len(previous) else set()
+    # Rows in any worker's summary count as known.
+    known = set()
+    for path in glob.glob(os.path.join(OUT_DIR, 'run_summary*.csv')):
+        known |= set(pd.read_csv(path, dtype={'genome_id': str}, usecols=['genome_id'])['genome_id'])
     orphans = genomes[done & ~genomes['genome_id'].isin(known)]
     recovered = [{'genome_id': r.genome_id, 'organism': r.organism,
                   'hits': sum(1 for _ in open(os.path.join(OUT_DIR, f'{r.genome_id}.tsv'))) - 1,
@@ -224,14 +256,19 @@ def main():
     t0 = time.time()
     with ThreadPoolExecutor(args.jobs) as pool:
         jobs = [pool.submit(run_one, amrfinder, env, row, args.threads) for row in todo.itertuples()]
+        skipped = 0
         for n, job in enumerate(as_completed(jobs), 1):
             r = job.result()
-            results.append(r)
-            if r['error']:
-                print(f'  FAILED {r["genome_id"]}: {r["error"]}')
+            if r is None:      # another worker has it
+                skipped += 1
+            else:
+                results.append(r)
+                if r['error']:
+                    print(f'  FAILED {r["genome_id"]}: {r["error"]}')
             if n % 25 == 0 or n == len(jobs):
                 left = (len(jobs) - n) / (n / (time.time() - t0)) / 3600
-                print(f'  {n:,} / {len(jobs):,}, about {left:.1f} h left', flush=True)
+                note = f', {skipped:,} left to other workers' if skipped else ''
+                print(f'  {n:,} / {len(jobs):,}, about {left:.1f} h left{note}', flush=True)
                 save_summary(results)
 
     summary = save_summary(results)
