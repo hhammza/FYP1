@@ -18,67 +18,113 @@
     });
   }
 
+  /* ── Linked organism lists: genus → species → taxon ID ────────
+     Built from /api/vocabulary's `organisms` (backend/api/organisms.py):
+     only genera, species and taxon IDs the model was trained on, and a
+     species is offered only under the genus it really belongs to ('coli'
+     is Escherichia coli or Campylobacter coli). */
+  const genusSel   = document.getElementById('genusSelect');
+  const speciesSel = document.getElementById('speciesSelect');
+  const taxonSel   = document.getElementById('taxonSelect');
+  const abSel      = document.querySelector('#forecastForm [name=antibiotic]');
+  const micInput   = document.getElementById('micInput');
+  const preview    = document.getElementById('evidencePreview');
+  const previewText = document.getElementById('evidencePreviewText');
+  let tree = [];
+
+  function setHint(hintId, text) {
+    const hint = document.getElementById(hintId);
+    if (hint) hint.textContent = text;
+  }
+
+  function option(value, label) {
+    const o = document.createElement('option');
+    o.value = value;
+    o.textContent = label;
+    return o;
+  }
+
+  function fillSelect(sel, placeholder, items, wanted) {
+    sel.innerHTML = '';
+    sel.appendChild(option('', placeholder));
+    items.forEach(([value, label]) => sel.appendChild(option(value, label)));
+    sel.disabled = items.length === 0;
+    const match = items.find(([v]) => String(v).toLowerCase() === String(wanted || '').toLowerCase());
+    sel.value = match ? match[0] : '';
+  }
+
+  const currentGenus = () => tree.find(g => g.genus === genusSel.value);
+
+  function fillSpecies(wanted) {
+    const g = currentGenus();
+    /* the genus is already shown beside it, so the species name alone fits the narrow box */
+    const items = g ? g.species.map(s => [s.name, s.name]) : [];
+    fillSelect(speciesSel, !g ? '-- Choose a genus first --'
+                         : items.length ? '-- Any species --' : '-- None listed for this genus --', items, wanted);
+    setHint('speciesHint', g && items.length ? `${items.length} species of ${g.genus}` : '');
+  }
+
+  function fillTaxa(wanted) {
+    const g = currentGenus();
+    let items = [];
+    if (g) {
+      const sp = g.species.find(s => s.name === speciesSel.value);
+      const ofSpecies = s => s.taxon_ids.map(id => [String(id), `${id} · ${s.label}`]);
+      items = sp ? ofSpecies(sp)
+                 : g.species.flatMap(ofSpecies).concat(g.other_taxon_ids.map(o => [String(o.id), `${o.id} · ${o.label}`]));
+    }
+    fillSelect(taxonSel, !g ? '-- Choose a genus first --'
+                       : items.length ? '-- None --' : '-- No ID for this choice --', items, wanted);
+    setHint('taxonHint', items.length ? 'Only IDs the model has a resistance rate for' : '');
+  }
+
+  /* ── MIC suggestions for the chosen drug and organism ─────── */
+  const LEVEL = { species: 'this species', genus: 'this genus', antibiotic: 'all organisms' };
+  let micRequest = 0;
+  function refreshMic() {
+    const ab = abSel ? abSel.value : '';
+    const list = document.getElementById('micList');
+    if (!ab || !list) { if (list) list.innerHTML = ''; setHint('micHint', ''); return; }
+    const q = new URLSearchParams({ antibiotic: ab, genus: genusSel.value, species: speciesSel.value });
+    const mine = ++micRequest;
+    fetch('/api/mic-values?' + q)
+      .then(r => r.json())
+      .then(d => {
+        if (mine !== micRequest) return;               /* a newer choice was made meanwhile */
+        list.innerHTML = '';
+        (d.values || []).forEach(v => list.appendChild(option(v, `${v} mg/L`)));
+        const who = d.level === 'species' && speciesSel.value
+          ? `${genusSel.value} ${speciesSel.value}` : d.level === 'genus' ? genusSel.value : LEVEL.antibiotic;
+        setHint('micHint', d.values && d.values.length
+          ? `Suggested: MICs recorded in BV-BRC for ${who} and ${d.antibiotic}. Any value can be typed.`
+          : 'No recorded MICs to suggest for this choice; any value can be typed.');
+      })
+      .catch(() => setHint('micHint', ''));
+  }
+
+  if (genusSel) genusSel.addEventListener('change', () => { fillSpecies(); fillTaxa(); refreshMic(); refreshRecognition(); });
+  if (speciesSel) speciesSel.addEventListener('change', () => { fillTaxa(); refreshMic(); refreshRecognition(); });
+  if (taxonSel) taxonSel.addEventListener('change', refreshRecognition);
+  if (abSel) abSel.addEventListener('change', refreshMic);
+  if (micInput) micInput.addEventListener('input', refreshRecognition);
+
   /* ── Quick-fill organism ──────────────────────────────────── */
   window.fillOrganism = function (val) {
-    if (!val) return;
-    const parts = val.split(':');
-    document.querySelector('[name=genus]').value    = parts[0] || '';
-    document.querySelector('[name=species]').value  = parts[1] || '';
-    /* Taxon ID is deliberately not filled: the species-level IDs people
-       recognise (562 for E. coli) are absent from the training data, so
-       filling one would look meaningful while changing nothing. */
+    if (!val || !genusSel) return;
+    const [genus, species] = val.split(':');
+    const g = tree.find(x => x.genus.toLowerCase() === (genus || '').toLowerCase());
+    genusSel.value = g ? g.genus : '';
+    fillSpecies(species);
+    fillTaxa();
+    refreshMic();
     refreshRecognition();
   };
 
-  /* ── Input recognition: say up front what the model can use ──
-     The model only has categories for the values it saw in training. A
-     genus it does not know behaves exactly like a blank field, so the
-     form says so before the user submits rather than after. */
-  const genusInput   = document.getElementById('genusInput');
-  const speciesInput = document.getElementById('speciesInput');
-  const taxonInput   = document.getElementById('taxonInput');
-  const micInput     = document.querySelector('[name=mic_value]');
-  const preview      = document.getElementById('evidencePreview');
-  const previewText  = document.getElementById('evidencePreviewText');
-  let vocab = null;
-
-  function setHint(el, hintId, ok, text) {
-    const hint = document.getElementById(hintId);
-    if (!hint) return;
-    hint.textContent = text;
-    hint.classList.toggle('hint-ok', ok === true);
-    hint.classList.toggle('hint-warn', ok === false);
-  }
-
-  function inVocab(list, value) {
-    if (!list || !value) return null;
-    return list.some(v => String(v).toLowerCase() === value.trim().toLowerCase());
-  }
-
   function refreshRecognition() {
-    if (!vocab) return;
-
-    const g = genusInput ? genusInput.value.trim() : '';
-    const gOk = inVocab(vocab.genera, g);
-    setHint(genusInput, 'genusHint', gOk,
-      !g ? '' : gOk ? 'Recognised — will be used' : 'Not in the training data — will be ignored');
-
-    const sp = speciesInput ? speciesInput.value.trim() : '';
-    const sOk = inVocab(vocab.species, sp);
-    setHint(speciesInput, 'speciesHint', sOk,
-      !sp ? '' : sOk ? 'Recognised — will be used' : 'Not in the training data — will be ignored');
-
-    const t = taxonInput ? taxonInput.value.trim() : '';
-    const tOk = t ? (vocab.taxon_ids || []).includes(parseInt(t, 10)) : null;
-    setHint(taxonInput, 'taxonHint', tOk,
-      !t ? 'Only IDs present in the training data change the result'
-         : tOk ? 'Recognised — organism-specific rate will be used'
-               : 'Not in the training data — will be ignored');
-
     /* Headline: what the result will actually represent */
     if (!preview || !previewText) return;
     const hasMic = micInput && micInput.value.trim() !== '';
-    const hasOrg = gOk === true || tOk === true;
+    const hasOrg = !!(genusSel && genusSel.value) || !!(taxonSel && taxonSel.value);
     let msg = '';
     if (!hasMic && !hasOrg) {
       msg = 'With no MIC value and no recognised organism, the result will be the ' +
@@ -94,31 +140,31 @@
     preview.classList.toggle('d-none', msg === '');
   }
 
-  [genusInput, speciesInput, taxonInput, micInput].forEach(el => {
-    if (el) el.addEventListener('input', refreshRecognition);
-  });
-
   fetch('/api/vocabulary')
     .then(r => r.json())
     .then(data => {
-      vocab = data && data.lgbm;
-      if (!vocab) return;
-      fillDatalist('genusList', vocab.genera);
-      fillDatalist('speciesList', vocab.species);
-      fillDatalist('taxonList', (vocab.taxon_ids || []).slice(0, 50));
+      const vocab = data && data.lgbm;
+      tree = (vocab && vocab.organisms) || [];
+      if (!genusSel) return;
+      if (!tree.length) {
+        setHint('genusHint', 'The organism lists need the backend; the result uses population rates without them.');
+        return;
+      }
+      /* After a submit the page comes back with the choices made: keep them */
+      fillSelect(genusSel, '-- Any genus --', tree.map(g => [g.genus, g.genus]), genusSel.dataset.selected);
+      fillSpecies(speciesSel.dataset.selected);
+      fillTaxa(taxonSel.dataset.selected);
+      setHint('genusHint', `${tree.length} genera the model was trained on`);
+      refreshMic();
       refreshRecognition();
     })
     .catch(() => {});
 
-  function fillDatalist(id, values) {
-    const dl = document.getElementById(id);
-    if (!dl || !values) return;
-    dl.innerHTML = '';
-    values.forEach(v => {
-      const opt = document.createElement('option');
-      opt.value = v;
-      dl.appendChild(opt);
-    });
+  /* The antibiotic list is filled by dropdowns.js, so the MIC suggestions
+     for a restored choice wait until it has a value */
+  if (abSel && !abSel.value) {
+    const watch = new MutationObserver(() => { if (abSel.value) { watch.disconnect(); refreshMic(); } });
+    watch.observe(abSel, { childList: true });
   }
 
   /* ── Probability bar (width set from data-prob attribute) ──── */
