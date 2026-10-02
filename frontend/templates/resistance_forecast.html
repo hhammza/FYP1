@@ -83,7 +83,7 @@
           <div class="mb-3">
             <label class="form-label-custom">Antibiotic <span class="required">*</span>
               <i class="bi bi-info-circle text-muted ms-1" data-bs-toggle="tooltip" data-bs-placement="right"
-                 data-bs-title="Select the antibiotic to test resistance against. The model supports 62 antibiotics across 11 drug classes."></i>
+                 data-bs-title="Select the antibiotic to test resistance against. Only the {{ metrics.lgbm.antibiotics }} antibiotics the model was trained on are listed."></i>
             </label>
             <select name="antibiotic" class="form-select form-select-custom" required
                     data-populate="antibiotics-lgbm" data-selected="{{ form_data.antibiotic }}">
@@ -91,16 +91,44 @@
             </select>
           </div>
 
+          {#- Genus first: species and taxon ID offer only what belongs to it, and the
+              MIC suggestions follow the organism and drug (forecast.js, /api/vocabulary
+              `organisms`, /api/mic-values). Everything offered is known to the model. -#}
+          <div class="row g-2 mb-3">
+            <div class="col-6">
+              <label class="form-label-custom" for="genusSelect">Genus
+                <i class="bi bi-info-circle text-muted ms-1" data-bs-toggle="tooltip" data-bs-placement="right"
+                   data-bs-title="Bacterial genus. Only genera the model was trained on are listed; choosing one fills the species and taxon ID lists."></i>
+              </label>
+              <select name="genus" id="genusSelect" class="form-select form-select-custom"
+                      data-selected="{{ form_data.get('genus', '') if form_data.get('genus') != 'unknown' else '' }}">
+                <option value="">-- Any genus --</option>
+              </select>
+              <div class="form-hint" id="genusHint"></div>
+            </div>
+            <div class="col-6">
+              <label class="form-label-custom" for="speciesSelect">Species
+                <i class="bi bi-info-circle text-muted ms-1" data-bs-toggle="tooltip" data-bs-placement="right"
+                   data-bs-title="Only the species of the chosen genus that the model was trained on."></i>
+              </label>
+              <select name="species" id="speciesSelect" class="form-select form-select-custom" disabled
+                      data-selected="{{ form_data.get('species', '') if form_data.get('species') != 'unknown' else '' }}">
+                <option value="">-- Choose a genus first --</option>
+              </select>
+              <div class="form-hint" id="speciesHint"></div>
+            </div>
+          </div>
+
           <div class="mb-3">
-            <label class="form-label-custom">Taxon ID <span class="text-muted">(optional)</span>
+            <label class="form-label-custom" for="taxonSelect">Taxon ID <span class="text-muted">(optional)</span>
               <i class="bi bi-info-circle text-muted ms-1" data-bs-toggle="tooltip" data-bs-placement="right"
-                 data-bs-title="NCBI Taxonomy ID for the organism (e.g. 562 for E. coli). Optional but improves accuracy using species-specific resistance rates."></i>
+                 data-bs-title="NCBI Taxonomy ID of the organism (e.g. 562 for E. coli). Only IDs the model has a resistance rate for, for the chosen genus and species."></i>
             </label>
-            <input type="number" name="taxon_id" id="taxonInput" class="form-control form-control-custom"
-                   placeholder="Leave blank unless you have a training-set ID"
-                   value="{{ form_data.get('taxon_id', '') }}" list="taxonList">
-            <datalist id="taxonList"></datalist>
-            <div class="form-hint" id="taxonHint">Only IDs present in the training data change the result</div>
+            <select name="taxon_id" id="taxonSelect" class="form-select form-select-custom" disabled
+                    data-selected="{{ form_data.get('taxon_id', '') }}">
+              <option value="">-- Choose a genus first --</option>
+            </select>
+            <div class="form-hint" id="taxonHint"></div>
           </div>
 
           <div class="row g-2 mb-3">
@@ -119,34 +147,11 @@
                 <i class="bi bi-info-circle text-muted ms-1" data-bs-toggle="tooltip" data-bs-placement="right"
                    data-bs-title="Minimum Inhibitory Concentration in mg/L: the lowest antibiotic concentration that prevents visible bacterial growth."></i>
               </label>
-              <input type="number" step="0.01" name="mic_value" class="form-control form-control-custom"
-                     placeholder="e.g. 4.0" value="{{ form_data.get('mic_value', '') }}">
+              <input type="number" step="any" min="0" name="mic_value" id="micInput" class="form-control form-control-custom"
+                     placeholder="e.g. 4.0" value="{{ form_data.get('mic_value', '') }}" list="micList" autocomplete="off">
+              <datalist id="micList"></datalist>
             </div>
-          </div>
-
-          <div class="row g-2 mb-3">
-            <div class="col-6">
-              <label class="form-label-custom">Genus
-                <i class="bi bi-info-circle text-muted ms-1" data-bs-toggle="tooltip" data-bs-placement="right"
-                   data-bs-title="Bacterial genus (e.g. Escherichia, Klebsiella). Used to look up population-level resistance rates."></i>
-              </label>
-              <input type="text" name="genus" id="genusInput" class="form-control form-control-custom"
-                     placeholder="e.g. Escherichia" value="{{ form_data.get('genus', '') }}"
-                     list="genusList" autocomplete="off">
-              <datalist id="genusList"></datalist>
-              <div class="form-hint" id="genusHint"></div>
-            </div>
-            <div class="col-6">
-              <label class="form-label-custom">Species
-                <i class="bi bi-info-circle text-muted ms-1" data-bs-toggle="tooltip" data-bs-placement="right"
-                   data-bs-title="Bacterial species name (e.g. coli, pneumoniae). Combined with genus for species-encoded model features."></i>
-              </label>
-              <input type="text" name="species" id="speciesInput" class="form-control form-control-custom"
-                     placeholder="e.g. coli" value="{{ form_data.get('species', '') }}"
-                     list="speciesList" autocomplete="off">
-              <datalist id="speciesList"></datalist>
-              <div class="form-hint" id="speciesHint"></div>
-            </div>
+            <div class="col-12"><div class="form-hint" id="micHint"></div></div>
           </div>
 
           {% set thr = form_data.get('threshold') or metrics.lgbm.threshold or 0.5 %}
@@ -166,7 +171,7 @@
           <div class="mb-3">
             <label class="form-label-custom">Quick Select Organism
               <i class="bi bi-info-circle text-muted ms-1" data-bs-toggle="tooltip" data-bs-placement="right"
-                 data-bs-title="Pre-fills Genus, Species, and Taxon ID for common clinical pathogens. You can then adjust individual fields manually."></i>
+                 data-bs-title="Pre-fills Genus and Species for common clinical pathogens. You can then change any of the lists."></i>
             </label>
             <select class="form-select form-select-custom" id="orgSelect" onchange="fillOrganism(this.value)">
               <option value="">-- Organisms the model was trained on --</option>
@@ -180,8 +185,7 @@
               <option value="Shigella:flexneri">Shigella flexneri</option>
               <option value="Mycobacterium:tuberculosis">Mycobacterium tuberculosis</option>
             </select>
-            <div class="form-hint">Other organisms can be typed above, but the model has no
-              category for them and they will not change the result</div>
+            <div class="form-hint">Fills the genus and species lists above</div>
           </div>
 
           <div class="alert alert-warning-custom mb-3 d-none" id="evidencePreview" role="status" aria-live="polite">
