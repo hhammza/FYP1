@@ -491,6 +491,18 @@ def vocabulary_api():
     return jsonify(vocab)
 
 
+@app.route('/api/mic-values')
+def mic_values_api():
+    """MIC suggestions for /forecast's MIC field, from the backend
+    (antibiotic, genus, species in the query string)."""
+    params = {k: request.args.get(k, '') for k in ('antibiotic', 'genus', 'species')}
+    try:
+        r = requests.get(f'{BACKEND_URL}/mic-values/', params=params, headers=_forward_headers(), timeout=10)
+        return jsonify(r.json()), r.status_code
+    except (requests.exceptions.RequestException, ValueError):
+        return jsonify({'values': [], 'level': None}), 200
+
+
 @app.route('/api/organisms')
 def organisms_api():
     return jsonify(BACTERIA_LIST)
