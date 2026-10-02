@@ -16,7 +16,7 @@ from django.http import HttpResponse, JsonResponse
 from django.views import View
 from django_ratelimit.core import is_ratelimited
 from amr_constants import UI_ANTIBIOTICS
-from api import model_registry
+from api import model_registry, organisms
 
 
 def json_error(message, status=400):
@@ -477,10 +477,36 @@ class VocabularyView(View):
     def get(self, request):
         lgbm = model_registry.get_lgbm()
         kmer = model_registry.get_kmer()
+        lgbm_vocab = None
+        if lgbm and lgbm.is_trained:
+            lgbm_vocab = dict(lgbm.vocabulary)
+            # genus -> species -> taxon IDs, for the linked dropdowns on /forecast
+            lgbm_vocab['organisms'] = organisms.organism_tree(lgbm_vocab)
         return JsonResponse({
-            'lgbm': lgbm.vocabulary if lgbm and lgbm.is_trained else None,
+            'lgbm': lgbm_vocab,
             'kmer': {'antibiotics': sorted(kmer.ab_list)} if kmer and kmer.ab_list else None,
         })
+
+
+class MicValuesView(View):
+    """MIC values recorded in BV-BRC for an antibiotic and organism, the
+    suggestions under /forecast's MIC field (api/mic_values.json, built by
+    scripts/build_mic_values.py). The most specific level with data answers:
+    species, then genus, then every organism for the drug."""
+    def get(self, request):
+        try:
+            antibiotic = text_field(request.GET, 'antibiotic')
+            genus = text_field(request.GET, 'genus')
+            species = text_field(request.GET, 'species')
+        except BadInput as e:
+            return json_error(str(e), 400)
+        if not antibiotic:
+            return json_error('antibiotic is required')
+        lgbm = model_registry.get_lgbm()
+        ab = lgbm._normalize_antibiotic(antibiotic) if lgbm else antibiotic.lower()
+        values, level = organisms.mic_values(ab, genus, species)
+        return JsonResponse({'antibiotic': ab, 'genus': genus, 'species': species,
+                             'values': values, 'level': level})
 
 
 class GeneReportView(View):
