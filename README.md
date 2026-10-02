@@ -386,13 +386,16 @@ The bundled artifacts are **byte-identical** to `backend/trained_models/` (verif
 | `/api/health` | GET | `health/` | JSON passthrough |
 | `/api/antibiotics` | GET | n/a | JSON, 48 names (hardcoded list) |
 | `/api/organisms` | GET | n/a | JSON, 15 species |
+| `/api/vocabulary` | GET | `vocabulary/` | JSON, what each model can tell apart; `lgbm.organisms` is the genus → species → taxon ID tree for `/forecast` |
+| `/api/mic-values` | GET | `mic-values/` | JSON, MIC suggestions for an antibiotic and organism (`?antibiotic=&genus=&species=`), with the `level` they came from |
 
 ### How the pages are built
 
-- **One base template.** `base.html` holds the nav, footer, toast container, theme bootstrap and the CDN links (Bootstrap 5.3, Bootstrap Icons, Inter + JetBrains Mono, Plotly 2.26). Every page extends it and fills `{% block content %}` + `{% block scripts %}`.
+- **One base template.** `base.html` holds the nav, footer, toast container, theme bootstrap and the libraries (Bootstrap 5.3, Bootstrap Icons and Plotly 2.26 from `static/vendor/`, so the site works offline; only the Inter and JetBrains Mono fonts come from Google). Every page extends it and fills `{% block content %}` + `{% block scripts %}`.
 - **CSS is layered, not monolithic:** `tokens` (colour/spacing variables) → `layout` → `components` → `utilities` → `charts` → `animations` → `dark`. Dark mode is a `data-theme="dark"` attribute on `<html>`, set before first paint by an inline script so there's no flash, and persisted in `localStorage`.
 - **JS is one file per page** plus `main.js` (the global `window.AMR` helper: Plotly theme fragment, toasts) and `dropdowns.js`.
 - **Dropdowns populate themselves.** Any `<select data-populate="antibiotics">` is filled by `dropdowns.js` from `/api/antibiotics`, cached in `sessionStorage` for the tab, with `data-selected="…"` restoring the choice after a POST. That's why the antibiotic list lives in exactly one place per source.
+- **Organism lists on `/forecast` are linked.** Genus, species and taxon ID are dropdowns of what the forecaster was trained on: choosing a genus fills the species list with that genus's species only (from `backend/taxon_species.csv`, so "coli" is offered under both *Escherichia* and *Campylobacter*), and the taxon ID list with that species' IDs (the whole genus's when no species is chosen). The MIC field suggests the values recorded in BV-BRC for the drug and organism, at the most specific level with data (species, then genus, then all organisms), from `backend/api/mic_values.json`, built by `python scripts/build_mic_values.py`; any value can still be typed.
 - **Charts are server-data → inline JSON → Plotly.** The template writes `<script type="application/json" id="kmer-chart-data">{{ result.top_kmers | tojson }}</script>` and the page script parses it. No API call, no template-inlined JavaScript data.
 
 ### Downloads and batch upload

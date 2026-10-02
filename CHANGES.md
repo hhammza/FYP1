@@ -18,6 +18,22 @@ Baseline is commit **`52ae361`** *(Add amrpredict library and macOS launcher, 20
 
 ---
 
+## Linked organism lists and MIC suggestions on /forecast (2026-10-02, Suleman)
+
+| File | Change |
+|---|---|
+| [frontend/templates/resistance_forecast.html](frontend/templates/resistance_forecast.html), [static/js/forecast.js](frontend/static/js/forecast.js) | Genus, species and taxon ID are dropdowns in that order: a genus fills the species list with its own species only, and the taxon ID list with that species' IDs (the genus's when no species is chosen). The MIC field suggests recorded values and says from which level; any value can still be typed. Choices are kept after a submit. The antibiotic tooltip reads the model's count (126), not "62" |
+| [backend/api/organisms.py](backend/api/organisms.py) | New: the genus → species → taxon ID tree from the forecaster's vocabulary and `backend/taxon_species.csv` (only values the model can use; "coli" under Escherichia and Campylobacter; NCBI's renamed Aliarcobacter and Stutzerimonas mapped back; 69 of 70 taxon IDs placed), and the MIC lookup (species, then genus, then all organisms) |
+| [backend/api/views.py](backend/api/views.py), [urls.py](backend/api/urls.py), [frontend/app.py](frontend/app.py) | `/api/vocabulary/` adds `lgbm.organisms`; new `GET /api/mic-values/?antibiotic=&genus=&species=` (and the frontend's `/api/mic-values`) |
+| [scripts/build_mic_values.py](scripts/build_mic_values.py), [backend/api/mic_values.json](backend/api/mic_values.json) | The MIC values recorded in BV-BRC (mg/L) per species, genus and antibiotic, the 12 most common seen at least 3 times; 118 kB, from `Data/amr_output/` (re-run on the complete export to refresh). Suggestions only: the model does not read it |
+| [backend/tests/test_organisms.py](backend/tests/test_organisms.py), [frontend/tests/test_forecast_organisms.py](frontend/tests/test_forecast_organisms.py) | New: 8 and 4 tests |
+
+Checked in Edge with both servers: Escherichia → coli → 562, Campylobacter → coli, jejuni, MIC suggestions for E. coli + ciprofloxacin, the prediction runs and the choices stay. Documents: [README.md](README.md) (routes, "Organism lists on /forecast are linked"; the libraries are served from `static/vendor/`).
+
+**Open for the team:** a Genome ID field. The forecaster does not use Genome ID (it is the split key, so as an input it would only memorise known genomes); proposed instead as a "fill from Genome ID" helper (organism, the genome's real lab results, its genes on `/genes`, and whether the model saw it in training).
+
+---
+
 ## Gene model promoted, seeds, significance and lineage results (2026-10-01)
 
 | File | Change |
