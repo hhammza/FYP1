@@ -272,3 +272,28 @@ Errors about the whole file (no `antibiotic` column, not UTF-8, no rows, too man
 Suggested grouping on the page: the B6 table (`B6L_*_v6`, `B4L_*_v6`, `B1L_*_v6`, `B7L_*_v6`), the unseen-genus table (`B8_*_v6`, genes vs no genes per genus), the lineage table (`LL_*_v6`). The same tables, with commentary, are in `experiments/GENOME_RESULTS.md`.
 
 The model `/predict` serves is not in this list twice: its re-test is `shipped.kmer` (as for the old model), and its metrics file is `backend/trained_models/genome/genome_metrics.json` (format §1), which `/api/health/` returns as `models.kmer_resistance.metrics`.
+
+---
+
+## 7. Training genomes of the served models
+
+**Written by** `experiments/promote.py` whenever a model is promoted (or `promote.py <run> --split-only`, with `--genome` for a genome model); **read by** `backend/ml_models/training_genomes.py`. Added 2026-10-04 for the "fill from Genome ID" helper on `/forecast` (Suleman).
+
+| File | Model | Train genomes | Test genomes |
+|---|---|---|---|
+| `backend/trained_models/lgbm_split_genomes.json.gz` | `/forecast`, `D3_forecaster_deploy_v7` | 351,442 | 88,100 |
+| `backend/trained_models/genome/split_genomes.json.gz` | `/predict` k-mer model, `G_kmer_deploy` | 19,804 | 4,915 |
+| `backend/trained_models/genome_genes/split_genomes.json.gz` | `/predict` gene model, `G_genes_deploy` | 19,804 | 4,915 |
+
+Gzipped JSON: `{"run_id", "split", "clean_version", "train": [Genome IDs], "test": [Genome IDs]}`, IDs as text. Rebuilt from the run's config and checked against its test-row count; `train` includes the validation genomes (used to stop training and pick the threshold and calibration, so not a fair test either).
+
+```python
+from ml_models.training_genomes import genome_status
+genome_status(settings.TRAINED_MODELS_DIR, '562.1234')
+# {'forecast': {'run_id': 'D3_forecaster_deploy_v7', 'role': 'test',
+#               'detail': 'not used in training: a fair test of the model'},
+#  'genome_kmers': {...}, 'genome_genes': {...}}      # a model with no file is left out
+```
+
+`role`: `'test'` = a fair test; `'train'` = the model learned from it, so its prediction looks better than on a new genome (show a caution); `None` = not in that model's data (e.g. no lab label, or no complete assembly for the genome models). First call reads the file (0.16 s), later calls take microseconds.
+
