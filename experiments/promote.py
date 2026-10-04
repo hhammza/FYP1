@@ -197,6 +197,67 @@ def build_metrics(run_id, run_dir, metrics, meta, promoted_at):
     }
 
 
+LGBM_SPLIT_FILE = 'lgbm_split_genomes.json.gz'
+GENOME_SPLIT_FILE = 'split_genomes.json.gz'
+
+
+def split_genomes(run_id):
+    """Genome IDs on each side of a run's train/test split, rebuilt from its
+    config exactly as run.py made it (same export, filters and seed), and
+    checked against the run's own test-row count.
+
+    For the website: a genome in `test` is a fair test of the served model,
+    one in `train` was used to fit it (or to tune it on validation genomes,
+    which also sit on the training side), and one in neither was never in its
+    data. Genome IDs are text, as everywhere ('195.304' != '195.3040')."""
+    from lib import splits
+    from run import (apply_taxon_level, attach_genome_features, attach_lineage, attach_year,
+                     compact, select_rows)
+    run_dir = os.path.join(RESULTS, run_id)
+    with open(os.path.join(run_dir, 'config.snapshot.json')) as fh:
+        cfg = json.load(fh)
+    with open(os.path.join(run_dir, 'metrics.json')) as fh:
+        metrics = json.load(fh)
+    dcfg, scfg = cfg.get('data', {}), cfg.get('split', {})
+    version = metrics.get('dataset', {}).get('clean_version')
+    df = data_prep.get_clean(source=data_prep.source_of(version), verbose=False)
+    df = compact(df, verbose=False)
+    df = select_rows(df, dcfg, verbose=False)
+    df = apply_taxon_level(df, dcfg.get('taxon_level', 'strain'), verbose=False)
+    df, _ = attach_genome_features(df, dcfg, cfg.get('features', {}), verbose=False)
+    if scfg.get('strategy') == 'lineage':
+        df = attach_lineage(df, scfg.get('lineage_cut', 'clone'), verbose=False)
+    if scfg.get('strategy') == 'temporal' or dcfg.get('require_year'):
+        df = attach_year(df, verbose=False)
+    tr, te = splits.make_split(df, strategy=scfg.get('strategy', 'grouped'),
+                               test_size=scfg.get('test_size', 0.2), seed=scfg.get('seed', 42),
+                               holdout_genus=scfg.get('holdout_genus'),
+                               cutoff_year=scfg.get('cutoff_year'), verbose=False)
+    expected = metrics['dataset']['test_rows']
+    if int(te.sum()) != expected:
+        sys.exit(f'cannot export the split of {run_id}: rebuilt {int(te.sum()):,} test rows, '
+                 f'the run had {expected:,}')
+    ids = df['Genome ID'].astype(str)
+    return {
+        'run_id': run_id,
+        'split': scfg.get('strategy', 'grouped'),
+        'clean_version': version,
+        'train': sorted(set(ids[tr])),
+        'test': sorted(set(ids[te])),
+    }
+
+
+def write_split(run_id, path):
+    """split_genomes() as gzipped JSON at `path` (read by
+    backend/ml_models/training_genomes.py)."""
+    import gzip
+    split = split_genomes(run_id)
+    with gzip.open(path, 'wt', encoding='utf-8') as fh:
+        json.dump(split, fh)
+    print(f"[promote] split genomes: {len(split['train']):,} train, {len(split['test']):,} test "
+          f"-> {os.path.relpath(path, ROOT)} ({os.path.getsize(path) / 1e6:.1f} MB)")
+
+
 def species_profiles():
     """Mean 6-mer profile of each species in the k-mer cache, so the server can
     tell an upload's species (and so AMRFinderPlus's --organism) from its
@@ -331,6 +392,7 @@ def promote_genome(run_id, out_dir, dry_run=False):
         json.dump(bundle, fh, indent=2)
     with open(os.path.join(target, 'genome_metrics.json'), 'w', encoding='utf-8') as fh:
         json.dump(report, fh, indent=2)
+    write_split(run_id, os.path.join(target, GENOME_SPLIT_FILE))
     print(f'[promote] wrote {os.path.relpath(target, ROOT)}')
 
 
@@ -344,10 +406,22 @@ def main():
     ap.add_argument('--genome', action='store_true',
                     help='promote a Track B genome run for /predict (genome_predictor.py): '
                          'a k-mer run to genome/, a gene run to genome_genes/')
+    ap.add_argument('--split-only', action='store_true',
+                    help='only (re)write the split-genome list of the served model (with --genome for '
+                         'a genome model), e.g. for a model promoted before this file existed')
     ap.add_argument('--out', default=BACKEND_DIR,
                     help='target folder (default backend/trained_models); use a temp folder to test')
     args = ap.parse_args()
 
+    if args.split_only:
+        if args.genome:
+            with open(os.path.join(RESULTS, args.run_id, 'config.snapshot.json')) as fh:
+                genes = json.load(fh).get('features', {}).get('genes')
+            folder = 'genome_genes' if genes else 'genome'
+            write_split(args.run_id, os.path.join(args.out, folder, GENOME_SPLIT_FILE))
+        else:
+            write_split(args.run_id, os.path.join(args.out, LGBM_SPLIT_FILE))
+        return
     if args.genome:
         promote_genome(args.run_id, args.out, args.dry_run)
         return
@@ -396,6 +470,7 @@ def main():
             shutil.copyfile(os.path.join(ROOT, 'backend', 'taxon_species.csv'),
                             os.path.join(target, 'taxon_species.csv'))
         print(f'[promote] wrote {os.path.relpath(target, ROOT)}')
+    write_split(args.run_id, os.path.join(BACKEND_DIR, LGBM_SPLIT_FILE))
     print('[promote] next: restart the backend (or POST /api/reload/), then run '
           'experiments/evaluate_shipped.py and experiments/export_report.py')
 
