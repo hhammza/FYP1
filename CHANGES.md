@@ -34,6 +34,18 @@ Checked in Edge with both servers: Escherichia → coli → 562, Campylobacter �
 
 ---
 
+## Training genomes of the served models (2026-10-04)
+
+For Suleman's "fill from Genome ID" helper on `/forecast`, so the page can say whether the model saw a genome in training.
+
+| File | Change |
+|---|---|
+| [promote.py](experiments/promote.py) | Writes each promoted model's train/test Genome IDs (`split_genomes()`), rebuilt from the run's config and checked against its test-row count; `--split-only` for models promoted earlier |
+| `backend/trained_models/lgbm_split_genomes.json.gz`, `genome/` and `genome_genes/split_genomes.json.gz` | /forecast: 351,442 train, 88,100 test genomes (all 439,542 of v7); /predict: 19,804 and 4,915 (test list identical to the gene run's predictions) |
+| [training_genomes.py](backend/ml_models/training_genomes.py) | `genome_status(model_dir, genome_id)`: `train`, `test` or not in the data, per served model, with a sentence for the page |
+| [test_training_genomes.py](backend/tests/test_training_genomes.py) | 4 tests: roles, IDs as text, a re-promoted file is re-read, served lists never overlap |
+| [formats/README.md](progress/formats/README.md) §7, [.gitignore](.gitignore) | File format; the forecaster's list is committed |
+
 ## Gene model promoted, seeds, significance and lineage results (2026-10-01)
 
 | File | Change |
