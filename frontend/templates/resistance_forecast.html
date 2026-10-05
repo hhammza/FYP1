@@ -91,6 +91,25 @@
             </select>
           </div>
 
+          {#- "Fill from Genome ID" (forecast.js, /api/genome/<id>): fills the organism,
+              shows the genome's lab results and whether the model trained on it.
+              The Genome ID itself is never sent to the model. -#}
+          <div class="mb-3" id="genomeFill">
+            <label class="form-label-custom" for="genomeIdInput">Fill from Genome ID <span class="text-muted">(optional)</span>
+              <i class="bi bi-info-circle text-muted ms-1" data-bs-toggle="tooltip" data-bs-placement="right"
+                 data-bs-title="A BV-BRC Genome ID, e.g. 106654.148. Fills genus, species and taxon ID, and shows the genome's laboratory results. The model does not use the ID itself."></i>
+            </label>
+            <div class="input-group">
+              <input type="text" name="genome_id" id="genomeIdInput" class="form-control form-control-custom font-mono"
+                     placeholder="e.g. 106654.148" value="{{ form_data.get('genome_id', '') }}"
+                     inputmode="decimal" autocomplete="off" spellcheck="false" aria-describedby="genomeInfo">
+              <button type="button" class="btn btn-outline-custom" id="genomeFillBtn">
+                <i class="bi bi-search me-1"></i>Fill
+              </button>
+            </div>
+            <div id="genomeInfo" class="genome-info mt-2 d-none" role="status" aria-live="polite"></div>
+          </div>
+
           {#- Genus first: species and taxon ID offer only what belongs to it, and the
               MIC suggestions follow the organism and drug (forecast.js, /api/vocabulary
               `organisms`, /api/mic-values). Everything offered is known to the model. -#}
