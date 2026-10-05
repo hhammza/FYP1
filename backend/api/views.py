@@ -16,7 +16,7 @@ from django.http import HttpResponse, JsonResponse
 from django.views import View
 from django_ratelimit.core import is_ratelimited
 from amr_constants import UI_ANTIBIOTICS
-from api import model_registry, organisms
+from api import genome_lookup, model_registry, organisms
 
 
 def json_error(message, status=400):
@@ -507,6 +507,24 @@ class MicValuesView(View):
         values, level = organisms.mic_values(ab, genus, species)
         return JsonResponse({'antibiotic': ab, 'genus': genus, 'species': species,
                              'values': values, 'level': level})
+
+
+class GenomeLookupView(View):
+    """The "fill from Genome ID" helper on /forecast (api/genome_lookup.py):
+    the organism to fill, the genome's laboratory results (for `antibiotic`
+    too, if given) and whether each served model trained on it. Genome ID is
+    never passed to a model."""
+    def get(self, request, genome_id):
+        if not genome_lookup.valid(genome_id):
+            return json_error('A BV-BRC Genome ID looks like 562.1234 (taxon ID, a dot, a number).')
+        try:
+            antibiotic = text_field(request.GET, 'antibiotic')
+        except BadInput as e:
+            return json_error(str(e), 400)
+        lgbm = model_registry.get_lgbm()
+        vocab = lgbm.vocabulary if lgbm and lgbm.is_trained else {}
+        ab = lgbm._normalize_antibiotic(antibiotic) if (lgbm and antibiotic) else antibiotic.lower()
+        return JsonResponse(genome_lookup.lookup(genome_id, ab, vocab))
 
 
 class GeneReportView(View):
