@@ -388,6 +388,7 @@ The bundled artifacts are **byte-identical** to `backend/trained_models/` (verif
 | `/api/organisms` | GET | n/a | JSON, 15 species |
 | `/api/vocabulary` | GET | `vocabulary/` | JSON, what each model can tell apart; `lgbm.organisms` is the genus → species → taxon ID tree for `/forecast` |
 | `/api/mic-values` | GET | `mic-values/` | JSON, MIC suggestions for an antibiotic and organism (`?antibiotic=&genus=&species=`), with the `level` they came from |
+| `/api/genome/<genome_id>` | GET | `genome/<genome_id>/` | JSON for `/forecast`'s "Fill from Genome ID": the organism to fill, the genome's lab results (`?antibiotic=` picks one drug's), and whether each served model trained on it |
 
 ### How the pages are built
 
@@ -396,6 +397,7 @@ The bundled artifacts are **byte-identical** to `backend/trained_models/` (verif
 - **JS is one file per page** plus `main.js` (the global `window.AMR` helper: Plotly theme fragment, toasts) and `dropdowns.js`.
 - **Dropdowns populate themselves.** Any `<select data-populate="antibiotics">` is filled by `dropdowns.js` from `/api/antibiotics`, cached in `sessionStorage` for the tab, with `data-selected="…"` restoring the choice after a POST. That's why the antibiotic list lives in exactly one place per source.
 - **Organism lists on `/forecast` are linked.** Genus, species and taxon ID are dropdowns of what the forecaster was trained on: choosing a genus fills the species list with that genus's species only (from `backend/taxon_species.csv`, so "coli" is offered under both *Escherichia* and *Campylobacter*), and the taxon ID list with that species' IDs (the whole genus's when no species is chosen). The MIC field suggests the values recorded in BV-BRC for the drug and organism, at the most specific level with data (species, then genus, then all organisms), from `backend/api/mic_values.json`, built by `python scripts/build_mic_values.py`; any value can still be typed.
+- **"Fill from Genome ID" on `/forecast`.** A BV-BRC Genome ID starts with its taxon ID (`562.1234` is taxon 562), so the helper fills genus, species and taxon ID from it (only values the model knows). It shows the genome's **laboratory** result for the chosen drug (never BV-BRC's computer-predicted labels; `backend/api/genome_lab_results.json.gz`, 37,573 genomes, built by `python scripts/build_genome_lab_results.py`), offers "Use this MIC" when it is a single value in mg/L, links the genome's genes on `/genes`, and says whether the forecaster trained on it (Hamza's `ml_models/training_genomes.py`, format §7): a training genome gets a caution, because its prediction looks better than a new genome's would. After a prediction it says whether the model agrees with the lab. **The Genome ID is never sent to the model**: it is the key of the genome-grouped split, so as an input it could only memorise known genomes.
 - **Charts are server-data → inline JSON → Plotly.** The template writes `<script type="application/json" id="kmer-chart-data">{{ result.top_kmers | tojson }}</script>` and the page script parses it. No API call, no template-inlined JavaScript data.
 
 ### Downloads and batch upload
