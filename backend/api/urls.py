@@ -10,6 +10,7 @@ urlpatterns = [
     path('antibiotics/', views.AntibioticListView.as_view(), name='antibiotics'),
     path('vocabulary/', views.VocabularyView.as_view(), name='vocabulary'),
     path('mic-values/', views.MicValuesView.as_view(), name='mic-values'),
+    path('genome/<str:genome_id>/', views.GenomeLookupView.as_view(), name='genome-lookup'),
     path('train/', views.TrainModelView.as_view(), name='train'),
     path('models/', views.ModelReportView.as_view(), name='models'),
     path('genes/', views.GeneReportView.as_view(), name='genes'),
