@@ -223,8 +223,10 @@ def resistance_forecast():
             'species': request.form.get('species', 'unknown'),
             # Empty = let the backend use the model's validated threshold.
             'threshold': request.form.get('threshold', ''),
+            # Only for the "fill from Genome ID" helper; never sent to the model
+            'genome_id': request.form.get('genome_id', '').strip(),
         }
-        payload = {k: v for k, v in form_data.items() if v and v != 'unknown'}
+        payload = {k: v for k, v in form_data.items() if v and v != 'unknown' and k != 'genome_id'}
         data, status = backend_post('forecast/', json_data=payload)
         if status == 200:
             result = data
@@ -489,6 +491,19 @@ def vocabulary_api():
     if not vocab:
         return jsonify({'lgbm': None, 'kmer': None})
     return jsonify(vocab)
+
+
+@app.route('/api/genome/<genome_id>')
+def genome_lookup_api(genome_id):
+    """The "fill from Genome ID" helper on /forecast: the backend's organism,
+    lab results and training status for one BV-BRC genome."""
+    try:
+        r = requests.get(f'{BACKEND_URL}/genome/{genome_id}/',
+                         params={'antibiotic': request.args.get('antibiotic', '')},
+                         headers=_forward_headers(), timeout=10)
+        return jsonify(r.json()), r.status_code
+    except (requests.exceptions.RequestException, ValueError):
+        return jsonify({'error': 'The backend is not reachable, so the genome cannot be looked up.'}), 503
 
 
 @app.route('/api/mic-values')
