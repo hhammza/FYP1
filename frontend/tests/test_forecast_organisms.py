@@ -45,6 +45,25 @@ class ForecastOrganisms(unittest.TestCase):
         self.assertIn('data-selected="coli"', h)
         self.assertIn('data-selected="562"', h)
 
+    def test_genome_id_is_kept_but_never_sent_to_the_model(self):
+        sent = {}
+
+        def fake_post(endpoint, **kw):
+            sent.update(kw.get('json_data') or {})
+            return {'error': 'x'}, 400
+        with mock.patch.object(app, 'model_health', return_value={}), \
+                mock.patch.object(app, 'backend_post', side_effect=fake_post):
+            h = app.app.test_client().post('/forecast', data={'antibiotic': 'gentamicin',
+                                                              'genome_id': '106654.148'}).get_data(as_text=True)
+        self.assertNotIn('genome_id', sent)
+        self.assertEqual(sent['antibiotic'], 'gentamicin')
+        self.assertIn('value="106654.148"', h)
+
+    def test_genome_route_without_a_backend(self):
+        r = app.app.test_client().get('/api/genome/106654.148?antibiotic=gentamicin')
+        self.assertEqual(r.status_code, 503)
+        self.assertIn('not reachable', r.get_json()['error'])
+
     def test_mic_route_without_a_backend(self):
         r = app.app.test_client().get('/api/mic-values?antibiotic=ciprofloxacin')
         self.assertEqual(r.status_code, 200)
