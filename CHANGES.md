@@ -18,6 +18,21 @@ Baseline is commit **`52ae361`** *(Add amrpredict library and macOS launcher, 20
 
 ---
 
+## "Fill from Genome ID" on /forecast (2026-10-05, Suleman)
+
+Agreed with Hamza and Ali: Genome ID is never a model input, only a helper.
+
+| File | Change |
+|---|---|
+| [backend/api/genome_lookup.py](backend/api/genome_lookup.py), [views.py](backend/api/views.py), [urls.py](backend/api/urls.py) | New `GET /api/genome/<id>/?antibiotic=`: the organism from the ID's taxon prefix (only values the forecaster knows), the genome's laboratory results (a MIC only if mg/L and one number, so not trimethoprim/sulfamethoxazole's `1/19` or a disk zone), whether each served model trained on it (Hamza's `genome_status`, format §7), and its `/genes` link. A malformed ID is a 400 |
+| [scripts/build_genome_lab_results.py](scripts/build_genome_lab_results.py), [backend/api/genome_lab_results.json.gz](backend/api/genome_lab_results.json.gz) | Lab results only (`Evidence = Laboratory Method`) per genome: 417,700 lab rows, 37,573 genomes, 0.6 MB, from `Data/amr_output/` (re-run on the complete export to refresh) |
+| [frontend/templates/resistance_forecast.html](frontend/templates/resistance_forecast.html), [static/js/forecast.js](frontend/static/js/forecast.js), [static/css/components.css](frontend/static/css/components.css), [frontend/app.py](frontend/app.py) | The "Fill from Genome ID" box under the antibiotic: fills the lists, shows the lab result for the chosen drug with "Use this MIC", a caution for a training genome ("its prediction will look better than on a new genome"), and after a prediction whether the model agrees with the lab. The ID is kept after a submit but never sent to the model |
+| [backend/tests/test_genome_lookup.py](backend/tests/test_genome_lookup.py), [frontend/tests/test_forecast_organisms.py](frontend/tests/test_forecast_organisms.py), [backend/tests/test_security.py](backend/tests/test_security.py) | New: 6 backend and 2 frontend tests. The rate-limit test holds the limiter's clock still, since requests crossing a minute boundary started a fresh count (a rare false failure) |
+
+Checked in Edge: `106654.148` (a test genome) fills Acinetobacter / nosocomialis / 106654, gentamicin lab result Resistant (MIC ≥ 16 mg/L), and after the prediction "The model agrees"; `1001988.3` (a training genome) gets the caution. 6,876 of the forecaster's test genomes have a lab result here, for demos.
+
+---
+
 ## Linked organism lists and MIC suggestions on /forecast (2026-10-02, Suleman)
 
 | File | Change |
