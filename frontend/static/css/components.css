@@ -180,6 +180,17 @@
 @media (max-width: 575.98px) { .stat-mini-value { font-size: 17px; } }
 .stat-mini-label { font-size: 11px; color: var(--text-3); margin-top: 5px; }
 
+/* ── GENOME ID HELPER (/forecast "Fill from Genome ID") ─────── */
+.genome-info {
+  border: 1px solid var(--border); border-radius: var(--r-sm);
+  background: var(--bg-input); padding: 8px 10px; font-size: 12px; color: var(--text-2);
+}
+.genome-info-line { margin-bottom: 4px; line-height: 1.45; }
+.genome-info-warn { color: var(--amber2); }
+.genome-info-ok { color: var(--emerald2); }
+.genome-info-link { font-size: 12px; }
+.genome-use-mic { font-size: 12px; vertical-align: baseline; }
+
 /* ── INSIGHT CARDS (/models key findings) ──────────────────── */
 .insight-card { display: flex; flex-direction: column; }
 .insight-card .caption-text { margin-top: auto; }
