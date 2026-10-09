@@ -1,0 +1,102 @@
+# Continuous integration (Suleman, T2.7)
+#
+#   tests   every push and pull request: backend, frontend, the RL converter
+#           and the amrpredict library
+#   docker  pushes to main (and by hand): builds backend/Dockerfile with
+#           AMRFinderPlus and its pinned database, starts it, and checks it
+#           serves the gene model on a genome it never trained on
+#           (scripts/ci_docker_smoke.py, Hamza's check)
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  tests:
+    name: Tests (backend, frontend, RL, library)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      # Python 3.12 as in the Docker image; scikit-learn 1.6.1 as the image and
+      # the library pin (the K-mer model was pickled with it). No PyTorch: no
+      # test uses stable-baselines3, so experiments/requirements.txt is not needed
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: |
+            backend/requirements.txt
+            frontend/requirements.txt
+
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r backend/requirements.txt -r frontend/requirements.txt \
+            "scikit-learn==1.6.1" "gymnasium>=1.0" "pytest>=7.0" pillow
+
+      - name: Backend tests
+        run: python -m unittest discover -s backend/tests -v
+
+      - name: Frontend tests
+        run: python -m unittest discover -s frontend/tests -v
+
+      - name: RL converter tests
+        run: python -m unittest discover -s experiments/evolution -p "test_*.py" -v
+
+      - name: amrpredict library tests
+        working-directory: amrpredict-lib
+        env:
+          PYTHONPATH: src
+        run: python -m pytest -q
+
+  docker:
+    name: Docker image serves the gene model
+    needs: tests
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      # The conda layer (AMRFinderPlus and its 130 MB database) is cached
+      # between runs, so only a code change rebuilds the rest
+      - name: Build backend/Dockerfile
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: backend/Dockerfile
+          tags: amr-backend:ci
+          load: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Start the backend (production settings)
+        run: |
+          docker run -d --name amr-backend -p 8000:8000 \
+            -e SECRET_KEY=ci-only-secret -e ALLOWED_HOSTS=127.0.0.1,localhost -e ADMIN_TOKEN=ci-only-token \
+            amr-backend:ci
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Gene model check (searches_genes, one unseen genome through /api/predict/)
+        run: python scripts/ci_docker_smoke.py --wait 600
+
+      - name: Backend log
+        if: always()
+        run: docker logs amr-backend 2>&1 | tail -n 200
