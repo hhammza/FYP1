@@ -1,5 +1,7 @@
 # AMR Intelligence Platform
 
+[![CI](https://github.com/hhammza/FYP1/actions/workflows/ci.yml/badge.svg)](https://github.com/hhammza/FYP1/actions/workflows/ci.yml)
+
 *A walkthrough of how the whole system fits together, written from the code as it stands on 2026-09-24 (commit `52ae361`).*
 
 > **Updated 2026-09-24.** The training data is now in `data/`, and a model
@@ -508,6 +510,17 @@ python train_models.py --model lgbm --max-files 500  # seeded random subset of f
 python train_models.py --model lgbm --model-dir /tmp/out   # write somewhere else
 ```
 Windows: `scripts\train_all.bat`. The trainer finds the data in `Data/` itself. With all files, the LightGBM trains in about 4 minutes on 1.56 M rows (cleaning v5); the K-mer model takes about an hour, because it computes GC content row by row. Training writes to `backend/trained_models/candidates/<model>/` (the same place `/api/train/` uses) and never touches the deployed models; a model is served only after `experiments/promote.py`, which also writes its `metrics.json`.
+
+### Continuous integration (GitHub Actions)
+
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs on every push and pull request:
+
+| Job | When | What |
+|---|---|---|
+| `tests` | every push and PR | Python 3.12, scikit-learn 1.6.1 (as the image and the library pin): backend, frontend and RL-converter tests (`unittest`), and the `amrpredict` library (`pytest`). No PyTorch: no test uses stable-baselines3 |
+| `docker` | pushes to `main`, or by hand | Builds `backend/Dockerfile` (AMRFinderPlus with its pinned database; the conda layer is cached between runs), starts it with production settings, and runs [`scripts/ci_docker_smoke.py`](scripts/ci_docker_smoke.py): `/api/health/` must say `searches_genes: true`, and one complete genome from the gene model's **test** list, downloaded from BV-BRC, must come back from `/api/predict/` with `genes_found` and `species_detected` within the page's 120 s |
+
+The same commands locally: `python -m unittest discover -s backend/tests` (and `-s frontend/tests`, `-s experiments/evolution -p "test_*.py"`), and `PYTHONPATH=src python -m pytest -q` in `amrpredict-lib/`.
 
 ### Docker (backend)
 

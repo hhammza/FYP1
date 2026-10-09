@@ -18,6 +18,18 @@ Baseline is commit **`52ae361`** *(Add amrpredict library and macOS launcher, 20
 
 ---
 
+## Continuous integration (2026-10-06, Suleman, T2.7)
+
+| File | Change |
+|---|---|
+| [.github/workflows/ci.yml](.github/workflows/ci.yml) | New. `tests` (every push and PR): backend, frontend, RL converter and `amrpredict` library tests on Python 3.12 with scikit-learn 1.6.1. `docker` (pushes to `main`, by hand): builds the backend image with AMRFinderPlus (cached conda layer), starts it, runs the gene-model check |
+| [scripts/ci_docker_smoke.py](scripts/ci_docker_smoke.py) | New: Hamza's check in the image: `searches_genes` true, then one complete genome from `G_genes_deploy`'s test list (downloaded from BV-BRC with a project User-Agent; Cloudflare refuses Python's default one) through `/api/predict/`, with `genes_found`, `species_detected`, no `warning`, under 120 s. Standard library only |
+| [README.md](README.md) | CI badge, a "Continuous integration" section |
+
+Checked here: the workflow parses, the download fetches test genome `1001744.3` (2.1 MB), and against the local backend (no AMRFinderPlus) the check stops at `searches_genes` as it should. The first run on GitHub is the real test of the image.
+
+---
+
 ## "Fill from Genome ID" on /forecast (2026-10-05, Suleman)
 
 Agreed with Hamza and Ali: Genome ID is never a model input, only a helper.
