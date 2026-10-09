@@ -196,7 +196,7 @@ Built against the real files (`backend/trained_models/lgbm_metrics.json`, `kmer_
 
 - [ ] End-to-end checklist: start both servers, submit each form, download each export
 
-- [ ] GitHub Actions: library and backend tests on every push
+- [~] GitHub Actions: library and backend tests on every push *Written 2026-10-06: `.github/workflows/ci.yml`, job `tests` (backend, frontend, RL converter, library; Python 3.12, scikit-learn 1.6.1, no PyTorch) on every push and PR, and job `docker` on `main`: builds the image with AMRFinderPlus and runs `scripts/ci_docker_smoke.py` (Hamza's gene-model check on a test genome from BV-BRC). README badge. Ticked once the first run on GitHub is green*
 
 - **Done when:** CI is green on `main`
 
@@ -281,6 +281,7 @@ Newest first. One line per work session: date, what I did, what is next, anythin
 
 | Date | Done | Next | Blockers |
 | --- | --- | --- | --- |
+| 2026-10-06 | GitHub Actions written: tests on every push and PR; Docker image build + gene-model check on `main` (`scripts/ci_docker_smoke.py`, download tested, stops correctly without AMRFinderPlus). README badge | First green run; then fill the test gaps (5 endpoints, missing pages), RL panel | The first CI run (GitHub) |
 | 2026-10-05 | "Fill from Genome ID" on `/forecast` (agreed with Hamza and Ali): organism, lab result with "Use this MIC", training-genome caution, model vs lab after a prediction, `/genes` link; ID never sent to the model. Rate-limit test no longer flaky. 8 tests | GitHub Actions (tests + Docker build + Hamza's gene-model check); GitHub profile README | None |
 | 2026-10-02 | `/forecast` organism lists linked: genus dropdown → species of that genus only → taxon IDs of that species (genus-wide without a species), all from the model's vocabulary and `taxon_species.csv` (69 of 70 IDs placed; renamed genera Aliarcobacter/Stutzerimonas mapped back); MIC field suggests values recorded in BV-BRC for the drug and organism (species, genus or all organisms; `scripts/build_mic_values.py` → `backend/api/mic_values.json`, 118 kB). New `/api/mic-values/`. Checked in Edge end to end. 12 tests | GitHub Actions | None |
 | 2026-10-01 | AMRFinderPlus database pinned in the Dockerfile to the training version (2026-08-07.1) with a checked download; tested the download, the image not built | Docker build (needs Docker), Dataset 2 decision with the team | Docker on a machine; Hamza's trained gene model |
