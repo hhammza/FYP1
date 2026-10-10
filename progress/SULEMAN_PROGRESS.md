@@ -196,9 +196,9 @@ Built against the real files (`backend/trained_models/lgbm_metrics.json`, `kmer_
 
 - [ ] End-to-end checklist: start both servers, submit each form, download each export
 
-- [~] GitHub Actions: library and backend tests on every push *Written 2026-10-06: `.github/workflows/ci.yml`, job `tests` (backend, frontend, RL converter, library; Python 3.12, scikit-learn 1.6.1, no PyTorch) on every push and PR, and job `docker` on `main`: builds the image with AMRFinderPlus and runs `scripts/ci_docker_smoke.py` (Hamza's gene-model check on a test genome from BV-BRC). README badge. Ticked once the first run on GitHub is green*
+- [x] GitHub Actions: library and backend tests on every push *Green 2026-10-09, run #1 (`85e41d0a`): `tests` passed on Linux, and `docker` built the image and passed Hamza's gene-model check (searches_genes true, an unseen test genome through `/api/predict/` with `genes_found`, under 120 s), so the gene model is verified in the container.* *Written 2026-10-06: `.github/workflows/ci.yml`, job `tests` (backend, frontend, RL converter, library; Python 3.12, scikit-learn 1.6.1, no PyTorch) on every push and PR, and job `docker` on `main`: builds the image with AMRFinderPlus and runs `scripts/ci_docker_smoke.py` (Hamza's gene-model check on a test genome from BV-BRC). README badge. Ticked once the first run on GitHub is green*
 
-- **Done when:** CI is green on `main`
+- **Done when:** CI is green on `main` *Met 2026-10-09 for GitHub Actions; the backend/frontend test gaps and the end-to-end checklist are still open*
 
 ---
 
