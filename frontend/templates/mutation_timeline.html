@@ -204,6 +204,13 @@ ATGCATGCATGCATGCATGC..."></textarea>
       <div class="alert alert-danger-custom"><i class="bi bi-exclamation-circle me-2"></i>{{ result.error }}</div>
       {% else %}
 
+      {% if sample %}
+      <div class="alert alert-warning-custom mb-3" role="status">
+        <i class="bi bi-eye me-2"></i><strong>Sample response, not a real simulation.</strong>
+        This is <code>progress/formats/timeline_response.sample.json</code>, shown to preview the layout and the RL panel.
+      </div>
+      {% endif %}
+
       <!-- Summary Header -->
       <div class="timeline-summary-card mb-4">
         <div class="row g-3 align-items-center">
@@ -246,6 +253,8 @@ ATGCATGCATGCATGCATGC..."></textarea>
 
       {% set page = 'timeline' %}{% set chart_id = 'timelineChart' %}{% set export_result = result %}
       {% include '_export_bar.html' %}
+
+      {% include '_rl_panel.html' %}
 
       <div class="row g-4 mb-4">
         <!-- Mutation Hotspots -->
@@ -535,6 +544,9 @@ ATGCATGCATGCATGCATGC..."></textarea>
 {% if result and result.timeline %}
 <script type="application/json" id="timeline-chart-data">{{ result.timeline | tojson }}</script>
 <script type="application/json" id="timeline-fail-week">{{ result.failure_week | tojson }}</script>
+{% endif %}
+{% if result and result.rl and result.rl.policies %}
+<script type="application/json" id="rl-data">{{ result.rl | tojson }}</script>
 {% endif %}
 <script src="{{ url_for('static', filename='js/timeline.js') }}"></script>
 {% endblock %}
