@@ -1,0 +1,62 @@
+{#
+  The RL panel on /timeline (progress/formats/README.md §4, "RL panel").
+    result.rl absent -> RL was not run (agent not trained, or not for this drug): no panel
+    result.rl         -> the agent and the fixed baselines on the same simulation
+  Charts and chips are drawn by timeline.js from the rl-data island; the
+  comparison table is plain HTML so it reads without JavaScript.
+#}
+{% set rl = result.rl %}
+{% if rl and rl.policies %}
+{% set n = rl.n_weeks or result.n_weeks %}
+<div class="info-card mb-4" id="rlPanel">
+  <h6 class="card-section-title mb-1">
+    <i class="bi bi-shuffle text-accent me-2"></i>Simulation + RL policy <span class="text-muted fw-normal">(not trained on patient data)</span>
+  </h6>
+  <p class="small text-muted mb-3">
+    Which drug to give each week so that one of them keeps working longest. The
+    {% if rl.agent %}agent ({{ rl.agent }}){% else %}fixed baselines{% endif %} and the policies it is compared with run on the
+    same simulation, from the same starting resistance: {{ rl.drugs | join(', ') }}. A week fails when the drug given is at
+    50% resistance or more. Weeks and resistance levels are illustrative, not a treatment plan.
+  </p>
+
+  <div class="rl-chart-wrap mb-2">
+    <div class="small fw-600 mb-1">Resistance to the drug given each week</div>
+    <div id="rlChart" class="chart-300" role="img" aria-label="Resistance to the drug given each week, one line per policy"></div>
+  </div>
+
+  <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+    <label class="small text-muted mb-0" for="rlPolicySelect">Drugs given by</label>
+    <select id="rlPolicySelect" class="form-select form-select-custom form-select-sm w-auto">
+      {% for p in rl.policies %}
+      <option value="{{ loop.index0 }}"{% if p.name == rl.best %} selected{% endif %}>{{ p.label }}{% if p.name == rl.best %} (best){% endif %}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div id="rlChips" class="rl-chips mb-3" aria-label="Drug given each week"></div>
+  <div id="rlDrugChart" class="chart-250 mb-3" role="img" aria-label="Resistance to each drug under the selected policy"></div>
+
+  <div class="table-responsive">
+    <table class="table table-custom table-sm mb-0 rl-table">
+      <thead><tr>
+        <th>Policy</th><th>First failed week</th>
+        <th>Effective weeks</th><th>Mean resistance of the drug given</th><th>Reward</th>
+      </tr></thead>
+      <tbody>
+      {% for p in rl.policies %}
+        <tr{% if p.name == rl.best %} class="report-best-row"{% endif %}>
+          <td class="small">{{ p.label }}{% if p.name == rl.best %} <span class="status-badge trained ms-1">Best</span>{% endif %}</td>
+          <td class="small">{% if p.failure_week is none %}Never in {{ n }} weeks{% else %}Week {{ p.failure_week }}{% endif %}</td>
+          <td class="font-mono small">{% if p.effective_weeks is defined and p.effective_weeks is not none %}{{ p.effective_weeks }} / {{ n }}{% else %}—{% endif %}</td>
+          <td class="font-mono small">{% if p.mean_burden is defined and p.mean_burden is not none %}{{ "%.1f" | format(p.mean_burden) }}%{% else %}—{% endif %}</td>
+          <td class="font-mono small">{{ "%.2f" | format(p.total_reward) if p.total_reward is number else '—' }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="caption-text mt-2">
+    Best: the latest first failure (never failing beats any week), then the higher reward. Effective weeks: weeks the drug
+    given was under 50% resistance.
+  </div>
+</div>
+{% endif %}
