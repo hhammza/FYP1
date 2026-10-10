@@ -180,6 +180,18 @@
 @media (max-width: 575.98px) { .stat-mini-value { font-size: 17px; } }
 .stat-mini-label { font-size: 11px; color: var(--text-3); margin-top: 5px; }
 
+/* ── RL PANEL (/timeline, format §4) ───────────────────────── */
+.rl-chips { display: flex; flex-wrap: wrap; gap: 4px; }
+.rl-chip {
+  display: inline-flex; flex-direction: column; align-items: center; min-width: 44px;
+  padding: 3px 6px; border-radius: var(--r-sm); border: 1px solid var(--border);
+  font-size: 11px; line-height: 1.25; color: var(--text-1);
+  border-left-width: 3px;
+}
+.rl-chip-week { font-size: 10px; color: var(--text-3); }
+.rl-chip-failed { background: rgba(239, 68, 68, 0.12); }
+.rl-table td { vertical-align: middle; }
+
 /* ── GENOME ID HELPER (/forecast "Fill from Genome ID") ─────── */
 .genome-info {
   border: 1px solid var(--border); border-radius: var(--r-sm);
