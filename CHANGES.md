@@ -18,6 +18,17 @@ Baseline is commit **`52ae361`** *(Add amrpredict library and macOS launcher, 20
 
 ---
 
+## End-to-end checklist (2026-10-10, Suleman, T2.7)
+
+| File | Change |
+|---|---|
+| [docs/E2E_CHECKLIST.md](docs/E2E_CHECKLIST.md) | New: every page, form and download to check by hand, before a demo or after a deploy, plus admin and offline checks |
+| [scripts/e2e_check.py](scripts/e2e_check.py) | New: the same in a real browser (Playwright). `--start` runs both servers, `--base` checks another site (the deployed one in Week 5). 23 steps, including a complete test genome downloaded from BV-BRC through `/predict` and every CSV/PDF/PNG download checked by its first bytes |
+
+23 of 23 steps passed, twice, on a local run. With it, T2.7 (automated tests) is done: unit tests for every route and page, CI on every push, and this browser check.
+
+---
+
 ## RL panel on /timeline (2026-10-10, Suleman)
 
 | File | Change |

@@ -523,6 +523,8 @@ Windows: `scripts\train_all.bat`. The trainer finds the data in `Data/` itself. 
 
 The same commands locally: `python -m unittest discover -s backend/tests` (and `-s frontend/tests`, `-s experiments/evolution -p "test_*.py"`), and `PYTHONPATH=src python -m pytest -q` in `amrpredict-lib/`.
 
+**End to end, in a real browser:** `python scripts/e2e_check.py --start` opens every page, submits every form and checks every download (23 steps; needs `python -m pip install playwright`). The same steps by hand, and how to run it against the deployed site: [docs/E2E_CHECKLIST.md](docs/E2E_CHECKLIST.md).
+
 ### Docker (backend)
 
 ```bash
