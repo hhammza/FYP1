@@ -304,6 +304,24 @@ def predict_sample():
                            form_data={'antibiotic': result.get('antibiotic', ''), 'threshold': ''})
 
 
+SAMPLE_TIMELINE_RESPONSE = os.path.join(os.path.dirname(SAMPLE_GENOME_RESPONSE), 'timeline_response.sample.json')
+
+
+@app.route('/timeline/sample')
+def timeline_sample():
+    """/timeline filled with the agreed sample response (format §4), to preview
+    the RL panel before Ali's agent sends `rl`. Local runs only."""
+    if os.environ.get('PORT') or not os.path.exists(SAMPLE_TIMELINE_RESPONSE):
+        return render_template('mutation_timeline.html', result=None, form_data={'antibiotic': '', 'n_weeks': '8'},
+                               error='The sample preview is only available on a local run.'), 404
+    with open(SAMPLE_TIMELINE_RESPONSE, encoding='utf-8') as fh:
+        result = json.load(fh)
+    result.pop('_comment', None)
+    return render_template('mutation_timeline.html', result=result, error=None, sample=True,
+                           form_data={'antibiotic': result.get('antibiotic', ''),
+                                      'n_weeks': str(result.get('n_weeks', 8))})
+
+
 @app.route('/timeline', methods=['GET', 'POST'])
 def mutation_timeline():
     result = None
