@@ -18,6 +18,19 @@ Baseline is commit **`52ae361`** *(Add amrpredict library and macOS launcher, 20
 
 ---
 
+## RL panel on /timeline (2026-10-10, Suleman)
+
+| File | Change |
+|---|---|
+| [frontend/templates/_rl_panel.html](frontend/templates/_rl_panel.html), [mutation_timeline.html](frontend/templates/mutation_timeline.html) | New panel "Simulation + RL policy (not trained on patient data)", shown only when the response has `rl` (format §4): agent, drugs and the 50% rule; comparison table (first failed week or "Never in N weeks", `effective_weeks` and `mean_burden` when sent, reward, the `best` row marked) |
+| [frontend/static/js/timeline.js](frontend/static/js/timeline.js), [static/css/components.css](frontend/static/css/components.css) | A chart of every policy (resistance of the drug given each week, end of week, with the 50% line); for the chosen policy, week chips with the drug given and a chart of every drug's resistance |
+| [frontend/app.py](frontend/app.py) | `/timeline/sample`: the page filled with `progress/formats/timeline_response.sample.json`, local runs only |
+| [frontend/tests/test_rl_panel.py](frontend/tests/test_rl_panel.py) | New: 8 tests |
+
+Checked in Edge at 1366 px and 390 px (no page-wide scroll). Live data comes when Ali's agent fills `rl` in `/api/timeline/`; one open question for him, in his tracker: whether a week fails on resistance at the start or the end of the week.
+
+---
+
 ## Every endpoint and page tested (2026-10-10, Suleman, T2.7)
 
 | File | Change |
