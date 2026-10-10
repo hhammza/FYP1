@@ -374,6 +374,7 @@ The bundled artifacts are **byte-identical** to `backend/trained_models/` (verif
 | `/export/<page>.csv`, `.pdf` | POST | n/a | download of the result on `/forecast`, `/predict`, `/timeline` (batch: CSV only) |
 | `/predict` | GET, POST | `predict/` | `resistance_prediction.html`, with the resistance-genes panel |
 | `/predict/sample` | GET | n/a | local runs only: `/predict` filled with `progress/formats/genome_response.sample.json`, to preview the genes panel |
+| `/timeline/sample` | GET | n/a | local runs only: `/timeline` filled with `progress/formats/timeline_response.sample.json`, to preview the RL panel ("Simulation + RL policy (not trained on patient data)"), shown only when a response has `rl` |
 | `/timeline` | GET, POST | `timeline/` | `mutation_timeline.html` |
 | `/train` | GET, POST | `train/` | `train.html` |
 | `/datasets` | GET | n/a | `datasets.html`, the five datasets explained |
