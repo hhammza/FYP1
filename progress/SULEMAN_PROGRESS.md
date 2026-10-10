@@ -184,9 +184,9 @@ Built against the real files (`backend/trained_models/lgbm_metrics.json`, `kmer_
 - [x] Remove the "CNN-LSTM deep-learning model is available for training" claim (`mutation_timeline.html:164`, `train.html:142, 147, 154`): `/train` only trains `lgbm` and `kmer`, and the format drops the CNN-LSTM label *Done 2026-09-27, with the "results are accurate" claims on the same cards*
 
 - [x] **Converter from Ali's RL environment to format §4** (his question 4, 2026-09-30). *Done: `experiments/evolution/rl_output.py` turns `rl_env.py`'s episodes into the `rl` block: percent 0–100, `failure_week` null when never failed, plus optional `effective_weeks` and `mean_burden` (added to §4). His `rl_env.py` untouched. 8 tests (`test_rl_output.py`), matched against his `run_episode`. Questions for Ali in his Handovers table: horizon 104 vs a 1–52 week request; the env's curve vs the main timeline's*
-- [ ] Panel labelled **"Simulation + RL policy (not trained on patient data)"**, built against Ali's agreed response format
+- [x] Panel labelled **"Simulation + RL policy (not trained on patient data)"**, built against Ali's agreed response format *Built 2026-10-10 against the §4 sample (`templates/_rl_panel.html`): shown only when the response has `rl`; the agent's name (or "fixed baselines" when there is none), the drugs, the 50% failure rule and "weeks are illustrative"; a comparison table (first failed week, "Never in N weeks" for `null`, effective weeks and mean resistance when sent, reward; the `best` row marked); the policy as a row of week chips. Preview at `/timeline/sample` on a local run. Goes live when Ali's agent fills `rl` in `/api/timeline/`*
 
-- [ ] Chart of the RL policy against the fixed baselines
+- [x] Chart of the RL policy against the fixed baselines *Built 2026-10-10 (`timeline.js`): one line per policy, the resistance of the drug given each week, with the 50% line; and, for the policy chosen in the list, one line per drug. Checked in Edge at desktop and phone width. 8 tests (`test_rl_panel.py`)*
 
 ### T2.7 Automated tests
 
@@ -281,6 +281,7 @@ Newest first. One line per work session: date, what I did, what is next, anythin
 
 | Date | Done | Next | Blockers |
 | --- | --- | --- | --- |
+| 2026-10-10 | RL panel on `/timeline` (§4): policy comparison chart, per-drug chart for the chosen policy, week chips, comparison table with the best marked; `/timeline/sample` preview; checked at desktop and phone width. 8 tests | End-to-end checklist | Ali's agent filling `rl`; his answer on start- vs end-of-week failure |
 | 2026-10-10 | T2.7 test gaps filled: every API route and every page now has a test (9 backend: antibiotics, model report, gene report and its CSVs, gene lookup; 18 frontend: all pages with the backend up and down, batch page, reload, small routes, export content types). 84 backend, 66 frontend | RL panel against the §4 sample; end-to-end checklist | Ali's trained RL agent (for live data) |
 | 2026-10-06 | GitHub Actions written: tests on every push and PR; Docker image build + gene-model check on `main` (`scripts/ci_docker_smoke.py`, download tested, stops correctly without AMRFinderPlus). README badge | First green run; then fill the test gaps (5 endpoints, missing pages), RL panel | The first CI run (GitHub) |
 | 2026-10-05 | "Fill from Genome ID" on `/forecast` (agreed with Hamza and Ali): organism, lab result with "Use this MIC", training-genome caution, model vs lab after a prediction, `/genes` link; ID never sent to the model. Rate-limit test no longer flaky. 8 tests | GitHub Actions (tests + Docker build + Hamza's gene-model check); GitHub profile README | None |
