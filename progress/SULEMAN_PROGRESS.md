@@ -190,9 +190,9 @@ Built against the real files (`backend/trained_models/lgbm_metrics.json`, `kmer_
 
 ### T2.7 Automated tests
 
-- [ ] Backend (Django test client): every endpoint, valid input 200, missing fields 400, oversized upload 413, train/reload without token 401
+- [x] Backend (Django test client): every endpoint, valid input 200, missing fields 400, oversized upload 413, train/reload without token 401 *Done 2026-10-10: all 18 API routes have tests. The last five in `backend/tests/test_endpoints.py` (9): `/api/antibiotics/` (sorted, unique), `/api/models/` (report + `live`, 404 with the fix when missing), `/api/genes/` (and its 404), the matrix CSV (one row per genome, one 0/1 column per gene, the 1s match `gene_hits.json`) and info CSV (every column named), `/api/genes/<id>/` (searched vs not searched). 400/413/401 were already in `test_bad_input.py` and `test_security.py`. 84 backend tests*
 
-- [ ] Frontend (Flask test client, backend mocked): every page renders; export routes return the right `Content-Type`
+- [x] Frontend (Flask test client, backend mocked): every page renders; export routes return the right `Content-Type` *Done 2026-10-10, `frontend/tests/test_pages.py` (18): all 11 pages render with the backend up and down (`/models`, `/compare`, `/genes` say why), the batch result page, `/reload` (token passed on, caches cleared, 401 passed on), favicon, `/api/antibiotics`, `/api/vocabulary`, `/api/organisms`, the gene CSV and lookup passthroughs, and every export: CSV `text/csv` with a dated file name (4 pages), PDF `application/pdf` starting `%PDF` (3), batch PDF refused. 66 frontend tests*
 
 - [ ] End-to-end checklist: start both servers, submit each form, download each export
 
@@ -281,6 +281,7 @@ Newest first. One line per work session: date, what I did, what is next, anythin
 
 | Date | Done | Next | Blockers |
 | --- | --- | --- | --- |
+| 2026-10-10 | T2.7 test gaps filled: every API route and every page now has a test (9 backend: antibiotics, model report, gene report and its CSVs, gene lookup; 18 frontend: all pages with the backend up and down, batch page, reload, small routes, export content types). 84 backend, 66 frontend | RL panel against the §4 sample; end-to-end checklist | Ali's trained RL agent (for live data) |
 | 2026-10-06 | GitHub Actions written: tests on every push and PR; Docker image build + gene-model check on `main` (`scripts/ci_docker_smoke.py`, download tested, stops correctly without AMRFinderPlus). README badge | First green run; then fill the test gaps (5 endpoints, missing pages), RL panel | The first CI run (GitHub) |
 | 2026-10-05 | "Fill from Genome ID" on `/forecast` (agreed with Hamza and Ali): organism, lab result with "Use this MIC", training-genome caution, model vs lab after a prediction, `/genes` link; ID never sent to the model. Rate-limit test no longer flaky. 8 tests | GitHub Actions (tests + Docker build + Hamza's gene-model check); GitHub profile README | None |
 | 2026-10-02 | `/forecast` organism lists linked: genus dropdown → species of that genus only → taxon IDs of that species (genus-wide without a species), all from the model's vocabulary and `taxon_species.csv` (69 of 70 IDs placed; renamed genera Aliarcobacter/Stutzerimonas mapped back); MIC field suggests values recorded in BV-BRC for the drug and organism (species, genus or all organisms; `scripts/build_mic_values.py` → `backend/api/mic_values.json`, 118 kB). New `/api/mic-values/`. Checked in Edge end to end. 12 tests | GitHub Actions | None |

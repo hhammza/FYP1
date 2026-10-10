@@ -18,6 +18,17 @@ Baseline is commit **`52ae361`** *(Add amrpredict library and macOS launcher, 20
 
 ---
 
+## Every endpoint and page tested (2026-10-10, Suleman, T2.7)
+
+| File | Change |
+|---|---|
+| [backend/tests/test_endpoints.py](backend/tests/test_endpoints.py) | New, 9 tests: the API routes no other file covered: `/api/antibiotics/`, `/api/models/` (and 404 when the report is missing), `/api/genes/` (and its 404), `/api/genes/matrix.csv` (24,926 rows × 2,733 0/1 columns, checked against `gene_hits.json`), `/api/genes/info.csv`, `/api/genes/<id>/` |
+| [frontend/tests/test_pages.py](frontend/tests/test_pages.py) | New, 18 tests: all 11 pages with the backend up and down, the batch result page, `/reload`, favicon, `/api/antibiotics`, `/api/vocabulary`, `/api/organisms`, the gene CSV and lookup passthroughs, and the Content-Type and file name of every CSV and PDF export |
+
+All 18 API routes and 25 frontend routes now have at least one test; 84 backend and 66 frontend tests, run by CI on every push.
+
+---
+
 ## Continuous integration (2026-10-06, Suleman, T2.7)
 
 | File | Change |
