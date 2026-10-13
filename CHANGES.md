@@ -107,6 +107,7 @@ The supervisor asked for the model code as notebooks; the original notebooks are
 | [03_evaluation.ipynb](notebooks/03_evaluation.ipynb) | New: seen vs never-seen genomes, seeds, significance, lineage split, temporal test, calibration, from the saved runs |
 | [notebooks/README.md](notebooks/README.md) | New: which notebook is which, how to run them |
 | `notebooks/forecasting_formulation.ipynb` | Removed: an empty file (0 bytes) since the initial upload |
+| `notebooks/archive/` | The three July notebooks moved here (history); `notebooks/` now opens with the current models and Ali's Colab tools. Paths updated in `README.md`, `notebooks/README.md`, `experiments/HANDBOOK.md`; README's closing tip no longer says `/predict` answers from a fallback heuristic. Suleman's `mutation_timeline.html` and `train.html` still show the old path (his Handovers) |
 
 ## amrpredict 0.2.0 on TestPyPI (2026-10-13)
 
