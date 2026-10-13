@@ -96,6 +96,18 @@ Checked in Edge with both servers: Escherichia → coli → 562, Campylobacter �
 
 ---
 
+## Project brought up to date with the served gene model (2026-10-12)
+
+The gene model `G_genes_deploy` (lab AUC 0.977) was promoted on 2026-10-01 and verified with real AMRFinderPlus in the Docker image by Suleman's GitHub Actions on 2026-10-09; the documents still described it as coming later.
+
+| File | Change |
+|---|---|
+| [README.md](README.md) | Engine table, the /predict section and the current figures describe both genome models: the gene model (0.977, `genes_found`, served by the Docker image, CI-verified) and the k-mer model (0.935, where AMRFinderPlus is not installed) |
+| [experiments/README.md](experiments/README.md) | "Currently served": the gene model and the train/test genome lists |
+| [GENOME_RESULTS.md](experiments/GENOME_RESULTS.md) | Section 5: the served gene model |
+| [HAMZA_PROGRESS.md](progress/HAMZA_PROGRESS.md) | Summary: weeks 3 and 4 done (TestPyPI upload waits on a token; the library switch is postponed until after the demo), research track done on the 24,926 genomes; B6–B8 item ticked |
+| Handovers | Suleman: his two week-3 items in progress are complete by his own CI run; Ali: the research-track deliverables, and the `RESEARCH_PLAN.md` boxes that can be ticked |
+
 ## Training genomes of the served models (2026-10-04)
 
 For Suleman's "fill from Genome ID" helper on `/forecast`, so the page can say whether the model saw a genome in training.
