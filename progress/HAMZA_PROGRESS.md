@@ -2,7 +2,7 @@
 
 **Role:** models
 **Plan:** the split by skill (Ali: data + evolution, Hamza: models, Suleman: platform), based on [FYP_Completion_Roadmap.md](../docs/FYP_Completion_Roadmap.md)
-**Started:** 2026-09-25 · **Last updated:** 2026-10-12 (Weeks 3 and 4 done; gene model verified in Docker by CI)
+**Started:** 2026-09-25 · **Last updated:** 2026-10-13 (Week 4 done: library on TestPyPI)
 
 Status key: `[ ]` not started · `[~]` in progress · `[x]` done · `[!]` blocked (say why in the log)
 
@@ -25,7 +25,7 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done · `[!]` blocke
 | 1 | 28 Sep to 2 Oct | K-mer fix, promote the best model, threshold, calibration, `metrics.json` | Done 2026-09-25 (UI side by Suleman, done 2026-09-26) |
 | 2 | 5 Oct to 9 Oct | Genome experiments B0 to B4 (k-mers) | Done 2026-09-27 (plus a first B6) |
 | 3 | 12 Oct to 16 Oct | Gene-feature models B6/B7, deploy the best genome model | **Done.** B6 0.979, B8 0.82–0.94 on unseen genera; `/predict`: k-mer model (0.935, since 2026-09-29) and **gene model `G_genes_deploy` (0.977, `genes_found`)**, promoted 2026-10-01, verified with real AMRFinderPlus in the Docker image by CI 2026-10-09. Optional suggestions (section D) left open |
-| 4 | 19 Oct to 23 Oct | Library v0.2.0, statistics and seeds | **Done** (early, 2026-09-30 to 10-01) except the **TestPyPI upload** (built and tested; needs Hamza's token). Statistics: seeds, DeLong/McNemar, calibration plot, accuracy columns. Backend switch to `amrpredict` postponed until after the demo (agreed with Suleman) |
+| 4 | 19 Oct to 23 Oct | Library v0.2.0, statistics and seeds | **Done** (early, 2026-09-30 to 10-13): library 0.2.0 on TestPyPI and installs in a clean venv; statistics: seeds, DeLong/McNemar, calibration plot, accuracy columns. Backend switch to `amrpredict` postponed until after the demo (agreed with Suleman) |
 | 5 | 26 Oct to 30 Oct | Results chapters | Not started |
 | Research | alongside weeks 3 to 5 | Lab-genome runs B6 to B8, lineage split for all models, seeds and tests, calibration plot, temporal split ([Research track](#research-track-added-by-ali-2026-09-28), added by Ali) | **Done on the 24,926 genomes** (2026-10-01). Next: rerun on all 87,325 lab-tested genomes when Ali's merged gene matrix is ready (his k-mers for 89,738 genomes are on Drive) |
 
@@ -172,8 +172,8 @@ All figures on **cleaning v6**, plasmid-only records excluded (`*_v6` runs; the 
 - [x] `amrpredict.status()` returns the metrics (`lgbm_forecasting.metrics`, the promoted run's `lgbm_metrics.json`)
 - [x] Version `0.1.0` → `0.2.0` in `amrpredict-lib/pyproject.toml`; `README.md`, `docs/` and `known-issues.md` updated; `forecast()` threshold defaults to the model's own (0.15) instead of 0.40
 - [x] Pin `scikit-learn` to the version used for training. *Library: `>=1.6.1,<1.7` (the k-mer pickle is 1.6.1). Backend left at `>=1.3`: its forecaster has no pickled scikit-learn object (calibration is stored as numbers), and the k-mer RandomForest is no longer served*
-- [~] `python -m build`, then `twine upload --repository testpypi dist/*`. *Built 2026-09-30 (`twine check` passes); the wheel installs in a clean venv (scikit-learn 1.6.1) and gives the backend's numbers; 34 tests pass. Upload needs Hamza's TestPyPI token*
-- **Done when:** `pip install` from TestPyPI works in a clean venv
+- [x] `python -m build`, then `twine upload --repository testpypi dist/*`. *Done 2026-10-13: `amrpredict 0.2.0` (wheel and source) on TestPyPI, https://test.pypi.org/project/amrpredict/0.2.0/. Installed from TestPyPI into a clean venv (`C:\amrtest`, Python 3.13): forecast `Resistant 0.7055` as on the website, model `D3_forecaster_deploy_v7`, test AUC 0.7737, k-mer model and timeline run, `Rifampin` read as rifampicin*
+- **Done when:** `pip install` from TestPyPI works in a clean venv *Met 2026-10-13*
 
 ### T2.5 Evaluation completeness
 - [x] Accuracy, recall and specificity columns in `experiments/lib/metrics.py` and `RESULTS.md`. *2026-09-30: `report.py` columns (from the registry, or each run's `metrics.json` for older rows); `run.py` writes them to `registry.csv`*
@@ -269,6 +269,7 @@ Newest first. One line per work session: date, what I did, what is next, anythin
 
 | Date | Done | Next | Blockers |
 |---|---|---|---|
+| 2026-10-13 | **Week 4 done:** `amrpredict 0.2.0` uploaded to TestPyPI (after a 403: the token had gone in as the username instead of the password) and checked from a clean venv outside the project: same forecast as the website (0.7055). The token printed in the failed attempt's log was deleted on test.pypi.org (confirmed 2026-10-13). Docs brought in line with the release: install command from TestPyPI in the library README and quickstart (`pip install amrpredict` from the real PyPI fails until the final release), `CITATION.cff` 0.2.0, README §7 (release, parity with the backend, test counts) and stale §11.1 / §11.3 sentences, roadmap checklist ticked where the code shows it done (security step 12, exports, batch CSV, labelling, library). Test script kept at `Desktop/vibe/test_library/test_amrpredict.py`; re-run by Hamza from that folder with the clean venv: version 0.2.0, forecast Resistant 0.7055, `D3_forecaster_deploy_v7`, test AUC 0.7737, k-mer model and timeline run, installed in `C:\amrtest\Lib\site-packages` (not the project) | Week 5: results chapters; Colab 4- vs 6-mer comparison | Ali's merged gene matrix |
 | 2026-10-12 | Brought the project up to date: summary rows (Weeks 1, 3, 4, Research), research item B6–B8 ticked, library switch marked postponed; README, `experiments/README.md` and `GENOME_RESULTS.md` now describe the served gene model (0.977, Docker, CI-verified) beside the k-mer model; CHANGES entry; Handovers to Suleman and Ali | TestPyPI upload (token); Colab 4- vs 6-mer comparison; Week 5 results chapters | TestPyPI token |
 | 2026-10-12 | Pulled Suleman's work: GitHub Actions (tests on every push; Docker build + gene-model check on `main`), RL panel on `/timeline`, page and endpoint tests, end-to-end browser check. **Gene model verified in the Docker image by CI** (real AMRFinderPlus, unseen genome, `genes_found`). Tried the Genome ID helper: `106654.148` (test genome for /forecast, lab gentamicin R) and `1001988.3` (training genome, caution shown). Demo note: a genome can be a test genome for /forecast but a training genome for /predict (e.g. `106654.148`) | Colab 4- vs 6-mer comparison | Ali's merged gene matrix |
 | 2026-10-04 | Answered the team's messages in their Handovers. Suleman: gene model pushed (test it in Docker on a `'test'` genome), Dataset 2 stays "Superseded", CI needs no AMRFinderPlus. Ali: storing 6-mers is right, the models use 4-mers summed from them, a 4-vs-6 LightGBM comparison planned in Colab, counts as int32 to save memory, search the new *Mycobacterium* genomes as before | Colab notebook for the 89,738-genome k-mer runs | Ali's merged gene matrix |
