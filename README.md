@@ -328,6 +328,14 @@ Two things follow from this table:
 
 This is the newest layer (commit `52ae361`, September) and the most polished code in the repo. It takes the three engines out of Django and makes them a standalone library.
 
+**Version 0.2.0 is on TestPyPI** (https://test.pypi.org/project/amrpredict/0.2.0/, 2026-10-13) and installs in a clean environment (dependencies from the real PyPI):
+
+```bash
+pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ amrpredict==0.2.0
+```
+
+0.2.0 bundles the forecaster the website serves (`D3_forecaster_deploy_v7`) and runs it with the backend's own loader (calibration, species-level taxa, the model's threshold), so `amrpredict.forecast()` gives the website's numbers; `backend/tests/test_library_parity.py` fails if the two drift. `predict_fasta()` still uses the original k-mer RandomForest (the genome models are not in the library yet). The real-PyPI release (`pip install amrpredict`) comes with the final version.
+
 ```python
 import amrpredict
 amrpredict.forecast('ciprofloxacin', taxon_id=562, mic_value=4)
@@ -351,11 +359,12 @@ amrpredict antibiotics --compact | jq
 | Model loading | Eager, at Django startup | Lazy + thread-locked singleton (`registry.py`), nothing read until first call |
 | Diagnostics | `print()` | `logging`, so `amrpredict antibiotics \| jq` isn't corrupted by stray output |
 | Model dir | Required constructor arg | Defaults to models bundled inside the wheel (`_paths.py` via `importlib.resources`) |
-| K-mer scaling | **Broken** (§11.1) | **Fixed**, scales only `feat[:256]` |
+| K-mer scaling | Fixed 2026-09-25 (§11.1) | Fixed, scales only `feat[:256]` |
+| Forecaster loader | `ml_models/lgbm_predictor.py` | Ported from it in 0.2.0, same outputs (parity test) |
 | Import cost | numpy/pandas/lightgbm at import | Deferred via module `__getattr__` |
-| Tests | none | 30 pytest tests |
+| Tests | 84 (`unittest`, in CI) | 35 pytest tests (in CI) |
 
-The bundled artifacts are **byte-identical** to `backend/trained_models/` (verified by MD5 on all six files), so the library and the web app carry the same models, they just don't run them the same way.
+The bundled forecaster files are the ones `experiments/promote.py --library` wrote to `backend/trained_models/` (the same run), so the library and the web app carry the same forecaster and, since 0.2.0, run it the same way.
 
 `docs/known-issues.md` in that folder is required reading before you quote any number from this project. It is unusually candid and it is where the k-mer bug is documented.
 
@@ -660,7 +669,7 @@ The fix is one line, and it is already written and tested in the library (`amrpr
 feat[:N_KMERS] = self.scaler.transform(feat[:N_KMERS].reshape(1, -1))[0]
 ```
 
-Porting it to `backend/ml_models/resistance_predictor.py` is the highest-value change available in this repo. It is not applied here because this document was asked to explain the project, not change it, say the word and it is a two-minute edit plus a re-check.
+It was ported to `backend/ml_models/resistance_predictor.py` on 2026-09-25, and on 2026-09-29 `/predict` moved to the genome models, so this model now only answers when no genome model is promoted.
 
 ### 11.2 Training could not run from a fresh clone (fixed 2026-09-25)
 
@@ -672,7 +681,7 @@ Now `resolve_data_dir()` in `train_models.py` accepts the project root or the da
 
 Once the susceptible pool emptied (~week 7 at default settings), `susceptible` clamped at 0, `intermediate` pinned at 25.0, and `resistant` kept growing, so the three summed to 106% by week 8. Now `intermediate` can never exceed the non-resistant share and `susceptible` takes the rest, so the three add up to exactly 100 (checked on every drug profile at 1 to 52 weeks). The resistant curve and `failure_week` are unchanged; only late-week `intermediate` and `susceptible` values move.
 
-The library keeps its own copy (`amrpredict-lib/src/amrpredict/timeline.py`), which still has the bug. Its strict `xfail` (`test_timeline_compartments_partition_the_population_throughout`) stays until that copy is synced, so the fix can't land there silently.
+The library's copy (`amrpredict-lib/src/amrpredict/timeline.py`) was synced by Ali on 2026-09-29 and its strict `xfail` removed, so the test now must pass in both.
 
 ### 11.4 Security (hardened 2026-09-26)
 
