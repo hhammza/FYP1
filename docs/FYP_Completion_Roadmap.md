@@ -525,7 +525,7 @@ A suggested split, based on the proposal's roles (Ali: data; Hamza: models; Sule
 
 **Documentation**
 - [ ] Report with a Deviations chapter
-- [ ] README/CHANGES updated; empty notebook resolved
+- [x] README/CHANGES updated; empty notebook resolved *(2026-10-13: removed; the current models are in `notebooks/01`–`03`)*
 - [ ] Git tag `v1.0-submission`
 
 ---
