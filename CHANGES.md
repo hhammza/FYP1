@@ -96,6 +96,18 @@ Checked in Edge with both servers: Escherichia → coli → 562, Campylobacter �
 
 ---
 
+## Notebooks of the current models (2026-10-13)
+
+The supervisor asked for the model code as notebooks; the original notebooks are the July versions, not the served models.
+
+| File | Change |
+|---|---|
+| [01_forecaster_model.ipynb](notebooks/01_forecaster_model.ipynb) | New: trains the served forecaster `D3_forecaster_deploy_v7` step by step with the project's code; reproduces the published run exactly (AUC 0.77367, confusion counts, threshold 0.15) |
+| [02_genome_models.ipynb](notebooks/02_genome_models.ipynb) | New: trains the gene model (lab AUC 0.9772) and the k-mer model (0.9345), identical to the published runs; significance test; the website's feature code gives the training run's probability |
+| [03_evaluation.ipynb](notebooks/03_evaluation.ipynb) | New: seen vs never-seen genomes, seeds, significance, lineage split, temporal test, calibration, from the saved runs |
+| [notebooks/README.md](notebooks/README.md) | New: which notebook is which, how to run them |
+| `notebooks/forecasting_formulation.ipynb` | Removed: an empty file (0 bytes) since the initial upload |
+
 ## amrpredict 0.2.0 on TestPyPI (2026-10-13)
 
 | File | Change |
