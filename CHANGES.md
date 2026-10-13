@@ -96,6 +96,18 @@ Checked in Edge with both servers: Escherichia → coli → 562, Campylobacter �
 
 ---
 
+## amrpredict 0.2.0 on TestPyPI (2026-10-13)
+
+| File | Change |
+|---|---|
+| TestPyPI | `amrpredict 0.2.0` (wheel and source) published: https://test.pypi.org/project/amrpredict/0.2.0/. Installed from there into a clean venv outside the project, it gives the website's forecast (ciprofloxacin, taxon 562, MIC 4: Resistant 0.7055, `D3_forecaster_deploy_v7`) |
+| [amrpredict-lib/README.md](amrpredict-lib/README.md) | Install from TestPyPI (dependencies from PyPI); `pip install amrpredict` from the real PyPI only after the final release |
+| [HAMZA_PROGRESS.md](progress/HAMZA_PROGRESS.md) | Week 4 done |
+| [quickstart.md](amrpredict-lib/docs/quickstart.md), [CITATION.cff](amrpredict-lib/CITATION.cff) | Install from TestPyPI; citation version 0.2.0, released 2026-10-13 |
+| [README.md](README.md) | §7: the TestPyPI release, the forecaster run as the backend runs it (parity test), current test counts (backend 84, library 35); §11.1 and §11.3 no longer say the k-mer fix and the library timeline sync are still to do |
+| [FYP_Completion_Roadmap.md](docs/FYP_Completion_Roadmap.md) | Security step 12 and the submission checklist ticked where the code shows it done; deployment, supervisor reply, report and tag stay open |
+| Handovers | Suleman: `library.html` still shows `pip install amrpredict`; Ali: FYI |
+
 ## Project brought up to date with the served gene model (2026-10-12)
 
 The gene model `G_genes_deploy` (lab AUC 0.977) was promoted on 2026-10-01 and verified with real AMRFinderPlus in the Docker image by Suleman's GitHub Actions on 2026-10-09; the documents still described it as coming later.
