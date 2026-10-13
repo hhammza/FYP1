@@ -120,7 +120,7 @@ FYP1/
 │   └── fasta_output/            Genome assemblies (4 GB)
 │
 ├── progress/                    Team trackers, research plan, handover formats
-├── notebooks/                   Research notebooks (§6)
+├── notebooks/                   The current models step by step (01–03), Ali's Colab tools, archive/ (July notebooks) (§6)
 ├── docs/                        Roadmap, experiment plan, the long reference doc, data links
 ├── scripts/                     fasta_amr_map.py (CSV to FASTA join), train_all.bat,
 │                                bvbrc_download/ (the scripts that built Data/)
@@ -308,14 +308,16 @@ behind it in [EXPERIMENT_PLAN.md](docs/EXPERIMENT_PLAN.md).
 
 ## 6. The notebooks, where the models came from
 
-All four are in `notebooks/`.
+**The current models** are in `notebooks/01_forecaster_model.ipynb`, `02_genome_models.ipynb` and `03_evaluation.ipynb` (2026-10-13): each trains or checks a served model with the project's own code, saved with its outputs, and reproduces the published run exactly. `notebooks/README.md` describes them.
+
+The **July notebooks** below, where the first models came from, are kept as history in `notebooks/archive/`.
 
 | Notebook | Cells | State | What it contains |
 |---|---|---|---|
-| `LightGBM_Model_Improved.ipynb` | 10 | ✅ with outputs | The real LightGBM development run, audit, cleaning, 5-fold CV, pseudo-labelling, final retrain |
-| `resistance_prediction_model.ipynb` | 38 | outputs cleared | A **two-branch Keras MLP** (k-mer branch + antibiotic-embedding branch), the deep-learning design that the production RandomForest replaced |
-| `bacterial_mutation_timeline.ipynb` | 43 | partial outputs | A **CNN-LSTM** with three heads (nucleotide, position, mutation probability), trained against per-antibiotic consensus genomes |
-| `forecasting_formulation.ipynb` | n/a | **empty file (0 bytes)** | Nothing in it |
+| `archive/LightGBM_Model_Improved.ipynb` | 10 | ✅ with outputs | The real LightGBM development run, audit, cleaning, 5-fold CV, pseudo-labelling, final retrain |
+| `archive/resistance_prediction_model.ipynb` | 38 | outputs cleared | A **two-branch Keras MLP** (k-mer branch + antibiotic-embedding branch), the deep-learning design that the production RandomForest replaced |
+| `archive/bacterial_mutation_timeline.ipynb` | 43 | partial outputs | A **CNN-LSTM** with three heads (nucleotide, position, mutation probability), trained against per-antibiotic consensus genomes |
+| `forecasting_formulation.ipynb` | n/a | removed 2026-10-13 | It was an empty file (0 bytes) |
 
 Two things follow from this table:
 
@@ -704,7 +706,7 @@ Limits worth saying out loud: rate-limit counts are per worker process, and a di
 
 ### 11.5 Smaller things
 
-- `notebooks/forecasting_formulation.ipynb` is a 0-byte file.
+- `notebooks/forecasting_formulation.ipynb`, a 0-byte file, was removed on 2026-10-13.
 - `*_fraction` fields in the timeline are on a **0 to 100** scale despite the name; renaming would break the templates, so the name stands.
 - `kmer_resistance_model.pkl` was pickled with scikit-learn 1.6.1; loading under a different 1.x warns and is not guaranteed identical. The library pins `<2.0` so a 2.x install fails loudly instead of being quietly wrong. The backend has no such pin (`scikit-learn>=1.3`).
 - `docs/PROJECT_DOCUMENTATION.md:726` states the scaler "is applied identically at inference time." That was the intent; §11.1 is what the code does.
@@ -739,7 +741,7 @@ Limits worth saying out loud: rate-limit counts are per worker process, and a di
 5. `experiments/HANDBOOK.md`: the training setup, data fields and measured results
 6. The `/models` and `/compare` pages in the running app: every model's results and training data, with charts
 7. `amrpredict-lib/docs/known-issues.md`: the account of what is broken
-8. `notebooks/LightGBM_Model_Improved.ipynb`, the research story, with outputs intact
+8. `notebooks/01_forecaster_model.ipynb` to `03_evaluation.ipynb`, the current models step by step; `notebooks/archive/LightGBM_Model_Improved.ipynb` for the July research story
 9. `docs/PROJECT_DOCUMENTATION.md`: the deep reference, once you know the shape
 
-If you only have ten minutes before a demo: know that engine 3 is a simulation and say so unprompted, and know that `/predict` is currently answering from a fallback heuristic (§11.1).
+If you only have ten minutes before a demo: know that engine 3 is a simulation and say so unprompted, and know that the July model's 0.93 was measured on genomes it had already seen: on new genomes it scored 0.64, which is why every number now comes from a split by genome.

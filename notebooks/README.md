@@ -14,13 +14,13 @@ The notebooks call the project's own code (`experiments/run.py`, `experiments/li
 
 To run them: from the project root, `.venv\Scripts\python.exe -m pip install -r experiments/requirements.txt jupyter`, then open them in Jupyter or VS Code. They need the cleaned data (`experiments/cache/clean_v7_amr_full_norm.pkl`), the k-mer cache (`experiments/cache/kmer6_counts.npz`) and the gene matrix (in git); notebook 03 also needs `Data/genome_meta/genome_meta.csv`. The first two files are on the team's Google Drive (`docs/DATA_LINKS.md`).
 
-## The original notebooks (July 2026, kept as history)
+## The original notebooks (July 2026, in `archive/`, kept as history)
 
 | Notebook | What it was |
 |---|---|
-| [LightGBM_Model_Improved.ipynb](LightGBM_Model_Improved.ipynb) | The first forecaster (Colab): a random row split, which put the same genomes in training and test. Its AUC 0.93 fell to 0.64 on genomes it had never seen; notebook 03, section 1 |
-| [resistance_prediction_model.ipynb](resistance_prediction_model.ipynb) | A deep-learning k-mer model, planned but never run (no outputs) |
-| [bacterial_mutation_timeline.ipynb](bacterial_mutation_timeline.ipynb) | The timeline research, including a CNN-LSTM that was explored and not deployed; the timeline is a labelled biological simulation |
+| [archive/LightGBM_Model_Improved.ipynb](archive/LightGBM_Model_Improved.ipynb) | The first forecaster (Colab): a random row split, which put the same genomes in training and test. Its AUC 0.93 fell to 0.64 on genomes it had never seen; notebook 03, section 1 |
+| [archive/resistance_prediction_model.ipynb](archive/resistance_prediction_model.ipynb) | A two-branch deep-learning k-mer model (Keras); saved without outputs, so no results are in it. The k-mer RandomForest replaced it, and the current genome models replaced that |
+| [archive/bacterial_mutation_timeline.ipynb](archive/bacterial_mutation_timeline.ipynb) | The timeline research, including a CNN-LSTM whose training cell was stopped by hand and never deployed; the timeline is a labelled biological simulation |
 
 ## Data pipeline notebooks (Ali, Colab)
 
