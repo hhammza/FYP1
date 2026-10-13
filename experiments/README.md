@@ -234,9 +234,11 @@ Docker image), splits that are not genome- or lineage-grouped, and runs without
 lab test rows. `evaluate_shipped.py` then re-tests it on the run's lab test
 genomes and keeps the old RandomForest's re-test as `kmer_previous`.
 
-Currently served (2026-09-30):
+Currently served (2026-10-12):
 
 - `/forecast`: **`D3_forecaster_deploy_v7`** (Ali's run of the D3 config on **cleaning v7**, the complete export with mm values no longer read as MICs, 7.85 M rows): A10 + species taxa + isotonic calibration; threshold **0.15** for VME ≤ 10% (VME 8.6%, ME 60.8%, recall 91.4%). All test rows AUC 0.774 [0.772–0.775], lab-confirmed rows 0.908; `evaluate_shipped.py` through the backend's form inputs 0.762 [0.760–0.764]. Also bundled in `amrpredict` 0.2.0 (`promote.py --library`). Reliability diagram: `calibration_plot.py` → `results/figures/`. History: `D1` (v3), `D2` (v4, 54 more drug classes), `D3` (v5, Genome ID as text; 0.804 on the v5 test set), `D4` (v6, served 2026-09-29), `D3_forecaster_deploy_v7`. The drop from D3 is the data, not the model: v6 adds millions of *E. coli* and *M. tuberculosis* rows, mostly computational labels without an MIC.
-- `/predict`: **`G_kmer_deploy`**: LightGBM on 4-mers of the complete genome, v6, plasmid-only records excluded, threshold 0.43 for VME ≤ 10%; lab AUC **0.935 [0.931–0.939]**. Replaced the K-mer RandomForest (0.695, partial genomes). The gene model (0.979) replaces it once the Docker image with AMRFinderPlus is ready.
+- `/predict`: **`G_kmer_deploy`**: LightGBM on 4-mers of the complete genome, v6, plasmid-only records excluded, threshold 0.43 for VME ≤ 10%; lab AUC **0.935 [0.931–0.939]**. Replaced the K-mer RandomForest (0.695, partial genomes). Served where AMRFinderPlus is not installed.
+- `/predict` with AMRFinderPlus (the Docker image): **`G_genes_deploy`**: LightGBM on AMRFinderPlus genes and drug-aware gene counts + antibiotic and drug class (no genus), v7, plasmid-only records excluded, threshold 0.58 for VME ≤ 10% (VME 10.2%, ME 5.1%); lab AUC **0.977 [0.975–0.979]**; returns `genes_found`. Promoted 2026-10-01 (`promote.py G_genes_deploy --genome` → `trained_models/genome_genes/`); verified with real AMRFinderPlus in the Docker image by CI (2026-10-09).
+- Each served model's train/test genome lists are written by `promote.py` (`split_genomes()`), so the site can say whether a genome was in training (formats §7).
 
 D1–D3 keep their original results as a record of what was served.

@@ -46,7 +46,7 @@ And **three prediction engines**, of which only two are machine learning:
 | Engine | Type | Input | Output | Trained? |
 |---|---|---|---|---|
 | LightGBM forecaster | Gradient-boosted trees | Antibiotic + taxonomy + MIC metadata | Resistant / Susceptible + probability | ✅ `D3_forecaster_deploy_v7`, cleaning v7, calibrated; AUC 0.774 on unseen genomes (lab rows 0.908) |
-| Genome k-mer model | LightGBM on 4-mers of the complete genome | Genome FASTA + antibiotic | Resistant / Susceptible + probability | ✅ `G_kmer_deploy` (since 2026-09-29), lab AUC 0.935 on unseen genomes; replaced a RandomForest on partial genomes (0.695). A gene model (0.979) follows once AMRFinderPlus runs on the server |
+| Genome models | LightGBM on AMRFinderPlus resistance genes (where AMRFinderPlus runs) or on 4-mers of the complete genome | Genome FASTA + antibiotic | Resistant / Susceptible + probability (+ the genes found) | ✅ gene model `G_genes_deploy`, lab AUC 0.977 on unseen genomes, served by the Docker image (checked by CI); k-mer model `G_kmer_deploy`, lab AUC 0.935, where AMRFinderPlus is not installed. Replaced a RandomForest on partial genomes (0.695) |
 | Mutation timeline | Logistic-growth simulation | Genome FASTA + antibiotic | Week-by-week resistance curve | ❌ not a model, no AUC, by design |
 
 The honesty about engine 3, labelling it a simulation everywhere in the UI rather than dressing it up as deep learning, is one of the stronger points of the project, and worth defending in a viva rather than hiding.
@@ -193,13 +193,13 @@ The target encodings are the interesting part and the most likely viva question.
 
 ### 4.2 Genome k-mer model - `ml_models/genome_predictor.py`
 
-**Input:** FASTA text (a complete assembly) + antibiotic. **Model:** LightGBM, promoted by `experiments/promote.py <run> --genome` into `backend/trained_models/genome/`; `api/model_registry.py` serves it whenever that folder exists.
+**Input:** FASTA text (a complete assembly) + antibiotic. **Model:** LightGBM, promoted by `experiments/promote.py <run> --genome`: a gene model into `backend/trained_models/genome_genes/`, a k-mer model into `backend/trained_models/genome/`. `backend/ml_models/genome_predictor.py` serves the gene model when AMRFinderPlus is installed (the Docker image) and the k-mer model otherwise (a laptop without it); if AMRFinderPlus fails on one upload, the k-mer model answers with a `warning`.
 
 **Features (259):** 256 4-mer frequencies of the whole genome, counted inside each contig over A/C/G/T windows only (exactly as `experiments/genome/kmers.py` counted them for training), the antibiotic (a native categorical), GC content and genome length. A *k-mer* is a substring of length k; with k = 4 there are 256 possible words, and their frequencies are a fixed-size fingerprint of the genome, with no alignment or reference needed.
 
 **Served run `G_kmer_deploy`:** trained on 24,719 complete genomes (cleaning v6, plasmid-only records dropped), threshold 0.43 chosen on validation for at most 10% very major error. **Lab AUC 0.935 [0.931–0.939]** on 40,356 lab-confirmed test rows from genomes it never saw. Uploads under 100,000 bp are refused (a partial or plasmid-only file is not a genome).
 
-**Why not the genes?** A gene model on AMRFinderPlus hits scores 0.979 and transfers to unseen genera (0.82–0.94 against 0.46–0.75 without genes), but it needs AMRFinderPlus on every upload (10–45 s), which needs the Docker image. It replaces this model then. All genome results: `experiments/GENOME_RESULTS.md`.
+**Served gene model `G_genes_deploy`** (promoted 2026-10-01): AMRFinderPlus genes and mutations + drug-aware gene counts + antibiotic and drug class, trained on the same 24,719 genomes; threshold 0.58 for at most 10% very major error. **Lab AUC 0.977 [0.975–0.979]** (very major error 10.2%, major error 5.1%, against 9.6% and 19.5% for k-mers), and it names the genes it found (`genes_found`). Per upload it identifies the species from the 6-mer profile (98.0% right species, 99.8% right genus on held-out genomes), runs AMRFinderPlus 4.2.7 (database 2026-08-07.1, as in training) with that `--organism`, and builds the gene features exactly as in training. Verified with real AMRFinderPlus in the Docker image by GitHub Actions on every push to `main` (2026-10-09). All genome results: `experiments/GENOME_RESULTS.md`.
 
 **The old engine** (`resistance_predictor.py`, a 100-tree RandomForest on the first 500 kb of partial FASTAs) stays as the fallback when no genome model is promoted. Re-tested on genomes outside its training files it scored 0.695, no better than the antibiotic alone; its scaler bug (§11.1) is fixed.
 
@@ -555,13 +555,14 @@ Leave `DEBUG` unset in production. Without `SECRET_KEY` or `ALLOWED_HOSTS` the b
 
 There are several AUC figures in circulation in this project. They are not contradictory, they come from different runs on different data, but you should know which is which before a viva.
 
-**Current figures (2026-09-30; forecaster cleaning v7, genome models v6).** Quote these; the tables below are the history that led to them.
+**Current figures (2026-10-12; forecaster cleaning v7; genome models v6, identical on v7).** Quote these; the tables below are the history that led to them.
 
 | Model | Served on | Test | AUC [95% CI] |
 |---|---|---|---|
 | `D3_forecaster_deploy_v7` (LightGBM, metadata + MIC) | `/forecast` | 1.57 M rows of unseen genomes | **0.774** [0.772–0.775]; lab-confirmed rows 0.908; 0.762 as `/forecast` scores it (form inputs) |
-| `G_kmer_deploy` (LightGBM, 4-mers of the complete genome) | `/predict` | 40,356 lab rows, 4,481 unseen genomes | **0.935** [0.931–0.939] |
-| `B6L_genes_v6` (LightGBM, AMRFinderPlus genes) | next on `/predict` | same | **0.979** [0.977–0.981] |
+| `G_kmer_deploy` (LightGBM, 4-mers of the complete genome) | `/predict` without AMRFinderPlus | 40,356 lab rows, 4,481 unseen genomes | **0.935** [0.931–0.939] |
+| `G_genes_deploy` (LightGBM, AMRFinderPlus genes, no genus) | `/predict` where AMRFinderPlus runs (Docker image) | same | **0.977** [0.975–0.979] |
+| `B6L_genes_v6` (genes + genus, the best experiment) | experiment | same | **0.979** [0.977–0.981]; 0.9789 ± 0.0004 over 3 split seeds |
 | `B8_*_v6` (genes, one genus held out) | experiment | 7 genera | 0.82–0.94 with genes, 0.46–0.75 without |
 
 Genome models are judged on lab-confirmed rows (computational labels were predicted from the genome). Details: `experiments/GENOME_RESULTS.md`, `experiments/RESULTS.md`, and the "Currently served" note in `experiments/README.md`.

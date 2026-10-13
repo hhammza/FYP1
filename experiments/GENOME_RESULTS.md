@@ -105,7 +105,9 @@ Genes barely move as related bacteria are held out; k-mers lose 0.035 at the bro
 
 ## 5. The model on /predict
 
-**`G_kmer_deploy`**: `B4L_kmer4_lgbm_v6` with the threshold chosen on validation for at most 10% very major error: **lab AUC 0.935 [0.931–0.939]**, threshold 0.43 (all test rows: VME 9.6%, ME 19.5%). Served by `backend/ml_models/genome_predictor.py` (whole genome, k-mers per contig as in training) since 2026-09-29, replacing the old K-mer RandomForest (0.695 on unseen genomes, trained on partial FASTAs). The gene model (B6, 0.979) is better but needs AMRFinderPlus on the server (10–45 s per genome, Ali's measurement), which needs the Docker image; it replaces the k-mer model once that is ready.
+**`G_kmer_deploy`**: `B4L_kmer4_lgbm_v6` with the threshold chosen on validation for at most 10% very major error: **lab AUC 0.935 [0.931–0.939]**, threshold 0.43 (all test rows: VME 9.6%, ME 19.5%). Served by `backend/ml_models/genome_predictor.py` (whole genome, k-mers per contig as in training) since 2026-09-29, replacing the old K-mer RandomForest (0.695 on unseen genomes, trained on partial FASTAs). It is served where AMRFinderPlus is not installed.
+
+**`G_genes_deploy`** (promoted 2026-10-01): the B6 design without genus (an upload does not come with one; `B6L_genes_only` scored 0.977 against 0.979 with genus), cleaning v7, threshold 0.58 for VME ≤ 10%: **lab AUC 0.977 [0.975–0.979]**, VME 10.2%, ME 5.1%. Served wherever AMRFinderPlus runs (the Docker image); the website's predictor reproduces the run's probabilities exactly (400 test rows) and builds the gene features exactly as training did (3,600 genome-drug rows). Verified with real AMRFinderPlus in the Docker image by CI on 2026-10-09.
 
 ## 6. Earlier results
 
