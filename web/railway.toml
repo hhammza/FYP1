@@ -1,0 +1,16 @@
+# The React frontend as its own Railway service (root directory: web/).
+# Nixpacks runs npm ci and npm run build (type check, then Vite to dist/);
+# npm start runs server.mjs (plain Node, no packages), which hands out dist/
+# and answers every other path with index.html, so /forecast and the other
+# pages open from a link too.
+#
+# Set on this service:   VITE_API_URL = https://<backend>.up.railway.app/api   (read at build time)
+# Set on the backend:    CORS_ALLOWED_ORIGINS = https://<this service>.up.railway.app
+[build]
+builder = "NIXPACKS"
+
+[deploy]
+startCommand = "npm start"
+healthcheckPath = "/"
+healthcheckTimeout = 60
+restartPolicyType = "ON_FAILURE"
