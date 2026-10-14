@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, re_path
 from api import views
 
 urlpatterns = [
@@ -18,4 +18,6 @@ urlpatterns = [
     path('genes/info.csv', views.GeneInfoCSVView.as_view(), name='gene-info-csv'),
     path('genes/<str:genome_id>/', views.GeneLookupView.as_view(), name='gene-lookup'),
     path('reload/', views.ReloadModelsView.as_view(), name='reload'),
+    re_path(r'^export/(?P<page>forecast|predict|timeline|batch)\.(?P<fmt>csv|pdf)$',
+            views.ExportView.as_view(), name='export'),
 ]
