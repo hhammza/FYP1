@@ -90,7 +90,7 @@ export function SimulationGuides() {
               <div className="arch-layer">Week-by-Week Timeline Output</div>
             </div>
             <div className="mt-3 pt-2 border-top-subtle fs-11 text-3">{' '}
-              No trained model is used here. A CNN-LSTM was explored in the research notebook (<code>notebooks/bacterial_mutation_timeline.ipynb</code>) but not deployed.
+              No trained model is used here. A CNN-LSTM was explored in the research notebook (<code>notebooks/archive/bacterial_mutation_timeline.ipynb</code>) but not deployed.
             </div>
             <div className="mt-2 fs-11 text-3">{' '}
               <strong>Checked against published data:</strong> the logistic shape fits 15 published resistance curves
