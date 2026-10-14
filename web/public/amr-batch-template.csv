@@ -1,0 +1,5 @@
+antibiotic,genus,species,taxon_id,mic_value,mic_sign
+ciprofloxacin,Escherichia,coli,562,4,>=
+ampicillin,Klebsiella,pneumoniae,573,,
+meropenem,Pseudomonas,aeruginosa,287,0.5,<=
+tetracycline,Salmonella,enterica,28901,,

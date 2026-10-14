@@ -85,7 +85,8 @@
   transition: opacity 0.15s, box-shadow 0.15s;
   letter-spacing: 0.1px;
 }
-.btn-primary-custom:hover { opacity: 0.88; color: white; box-shadow: 0 4px 14px rgba(79,70,229,0.35); }
+/* the background again: Bootstrap's .btn:hover would make it transparent (white on white) */
+.btn-primary-custom:hover { background: var(--primary); opacity: 0.88; color: white; box-shadow: 0 4px 14px rgba(79,70,229,0.35); }
 
 .btn-success-custom { background: var(--success) !important; }
 .btn-success-custom:hover { background: #15803d !important; box-shadow: 0 4px 14px rgba(22,163,74,0.30); }

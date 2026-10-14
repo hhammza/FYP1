@@ -2,6 +2,8 @@
 #
 #   tests   every push and pull request: backend, frontend, the RL converter
 #           and the amrpredict library
+#   web     every push and pull request: the React frontend in web/
+#           (type check, unit tests, production build)
 #   docker  pushes to main (and by hand): builds backend/Dockerfile with
 #           AMRFinderPlus and its pinned database, starts it, and checks it
 #           serves the gene model on a genome it never trained on
@@ -10,7 +12,8 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    # frontend-react: the React frontend is checked before it is merged
+    branches: [main, frontend-react]
   pull_request:
   workflow_dispatch:
 
@@ -61,10 +64,43 @@ jobs:
           PYTHONPATH: src
         run: python -m pytest -q
 
+  web:
+    name: Web (React + TypeScript)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+
+      # Vite 7 needs Node 20.19+ or 22.12+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install (exactly the lock file)
+        run: npm ci
+
+      - name: Type check
+        run: npm run typecheck
+
+      - name: Unit tests
+        run: npm test
+
+      - name: Production build
+        run: npm run build
+
+      - name: Known vulnerabilities in the site's own dependencies
+        run: npm audit --omit=dev --audit-level=high
+
   docker:
     name: Docker image serves the gene model
     needs: tests
-    if: github.event_name != 'pull_request'
+    # main and runs by hand only: the image is the same on a branch, and takes long
+    if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:

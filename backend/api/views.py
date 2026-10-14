@@ -1,22 +1,23 @@
-"""The JSON API behind the Flask frontend.
+"""The JSON API behind the Flask frontend (frontend/) and the React one (web/).
 
 No CSRF protection is needed, and none is installed: CSRF abuses credentials a
 browser sends by itself (cookies), and this API uses none. It is called by the
-Flask server, and its two admin endpoints need an X-Admin-Token header, which
-a browser never adds on its own.
+Flask server or straight from the browser (web/), and its two admin endpoints
+need an X-Admin-Token header, which a browser never adds on its own.
 """
 import csv
 import hmac
 import io
 import json
 import os
+import time
 import traceback
 from django.conf import settings
 from django.http import HttpResponse, JsonResponse
 from django.views import View
 from django_ratelimit.core import is_ratelimited
-from amr_constants import UI_ANTIBIOTICS
-from api import genome_lookup, model_registry, organisms
+from amr_constants import ANTIBIOTIC_ALIASES, UI_ANTIBIOTICS
+from api import exports, genome_lookup, model_registry, organisms
 
 
 def json_error(message, status=400):
@@ -463,8 +464,26 @@ class MutationTimelineView(View):
 
 
 class AntibioticListView(View):
-    """Return list of supported antibiotics."""
+    """Antibiotics for a dropdown.
+
+    ?model=lgbm | kmer returns only the names that model was trained on, each
+    once under its canonical name: picking anything else silently degrades the
+    prediction to a population average, so those names are never offered.
+    Names the cleaning drops (drug classes such as 'carbapenem') are left out.
+    Without ?model, or with no trained model, every antibiotic the UI knows.
+    """
     def get(self, request):
+        model = request.GET.get('model', '')
+        names = None
+        if model == 'lgbm':
+            lgbm = model_registry.get_lgbm()
+            names = lgbm.vocabulary.get('antibiotics') if lgbm and lgbm.is_trained else None
+        elif model == 'kmer':
+            kmer = model_registry.get_kmer()
+            names = sorted(kmer.ab_list) if kmer and kmer.ab_list else None
+        if names:
+            canonical = [ANTIBIOTIC_ALIASES.get(n, n) for n in names]
+            return JsonResponse({'antibiotics': list(dict.fromkeys(n for n in canonical if n))})
         return JsonResponse({'antibiotics': sorted(UI_ANTIBIOTICS)})
 
 
@@ -732,3 +751,55 @@ class ModelReportView(View):
             'kmer_loaded': bool(kmer and kmer.is_trained),
         }
         return JsonResponse(report)
+
+
+# ── Downloads ────────────────────────────────────────────────────────────
+# The page posts back the result it showed; the model details are added from
+# the metrics files here (api/exports.py), so they cannot be edited on the way.
+
+EXPORT_MODEL = {'forecast': 'lgbm', 'batch': 'lgbm', 'predict': 'kmer', 'timeline': None}
+
+
+def _json_form_field(data, name):
+    try:
+        value = json.loads(data.get(name) or '{}')
+    except ValueError:
+        return None
+    return value if isinstance(value, dict) else None
+
+
+class ExportView(View):
+    """POST /api/export/<page>.<fmt>: the result shown on /forecast, /predict,
+    /timeline or a batch, as CSV or PDF. Form fields: result and inputs
+    (JSON), and for a PDF optionally chart (a PNG data URL)."""
+
+    def post(self, request, page, fmt):
+        limited = rate_limited(request, 'export')
+        if limited:
+            return limited
+        result = _json_form_field(request.POST, 'result')
+        inputs = _json_form_field(request.POST, 'inputs') or {}
+        if not result:
+            return json_error('Nothing to export: run a prediction first.')
+        if page == 'batch' and fmt == 'pdf':
+            return json_error('Batch results export as CSV only.')
+        key = EXPORT_MODEL[page]
+        predictor = (model_registry.get_lgbm() if key == 'lgbm'
+                     else model_registry.get_kmer() if key == 'kmer' else None)
+        model = exports.summarize_metrics(predictor.status if predictor else None)
+        name = f"amr-{page}-{time.strftime('%Y%m%d-%H%M')}.{fmt}"
+        try:
+            if fmt == 'csv':
+                body, content_type = exports.build_csv(page, result, inputs, model), 'text/csv'
+            else:
+                body = exports.build_pdf(page, result, inputs, model,
+                                         exports.decode_chart(request.POST.get('chart')))
+                content_type = 'application/pdf'
+        except (KeyError, TypeError, ValueError, AttributeError) as e:
+            print(f'export failed: {e}')
+            return json_error('Could not build the file from this result.')
+        response = HttpResponse(body, content_type=content_type)
+        response['Content-Disposition'] = f'attachment; filename="{name}"'
+        # lets a page on another origin (web/, deployed) read the file name
+        response['Access-Control-Expose-Headers'] = 'Content-Disposition'
+        return response

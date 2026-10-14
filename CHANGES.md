@@ -18,6 +18,35 @@ Baseline is commit **`52ae361`** *(Add amrpredict library and macOS launcher, 20
 
 ---
 
+## React + TypeScript frontend finished (2026-10-15, Suleman; branch `frontend-react`)
+
+| File | Change |
+|---|---|
+| [web/src/pages/](web/src/pages/) | `/models`, `/compare`, `/genes`, `/train`: every page of the Flask site is now in React. Compared with Flask in a browser: the same text and page height, every chart's Plotly figure identical |
+| [web/src/lib/metrics.ts](web/src/lib/metrics.ts) | `pyFixed`: numbers rounded as Python rounds them, so a tie such as 23.25 shows 23.2 as on the Flask pages, not 23.3 |
+| [.github/workflows/ci.yml](.github/workflows/ci.yml) | Job `web`: type check, 74 unit tests, production build and `npm audit` on every push and pull request; pushes to `frontend-react` run CI too (the Docker job stays on `main`) |
+| [scripts/e2e_check.py](scripts/e2e_check.py), [docs/E2E_CHECKLIST.md](docs/E2E_CHECKLIST.md) | `--site react` (and `--api` for a deployed React site): the same 23 steps; 23 of 23 on the dev site and on the production build with CORS, and still on Flask |
+| [web/server.mjs](web/server.mjs), [web/railway.toml](web/railway.toml) | The deploy: a plain Node static server (no packages; deep links get the page, missing files a 404) and the Railway service config |
+| [frontend/templates/](frontend/templates/) (from `main`) | Hamza's handover: the archived notebook's path on `/timeline` and `/train` |
+
+---
+
+## React + TypeScript frontend, first pages (2026-10-14, Suleman; branch `frontend-react`)
+
+A new frontend in `web/` (React 18, TypeScript, Vite, React Router), replacing the Flask one page by page. `frontend/` is untouched and stays the deployed site until every page is moved and checked. Same Bootstrap, icon and Plotly versions and the same stylesheets, so the pages look the same; everything is bundled, so it works offline.
+
+| File | Change |
+|---|---|
+| [web/](web/) | New. Done: layout (navbar, footer, theme, toasts), `/`, `/about`, `/datasets`, `/library`, `/forecast` (linked lists, MIC suggestions, Genome ID helper, batch CSV), `/predict` (upload or paste, the gene model's species and genes), `/timeline` (simulation, RL panel). Still Flask: `/models`, `/compare`, `/genes`, `/train`. 58 unit tests (Vitest). [web/README.md](web/README.md) says how to run it |
+| [backend/api/exports.py](backend/api/exports.py), [views.py](backend/api/views.py), [urls.py](backend/api/urls.py) | New `POST /api/export/<page>.<fmt>`: the CSV/PDF downloads, the same code as `frontend/exports.py`, so a frontend with no server of its own can offer them. Rate limit `export` 30/min (`settings.py`); `reportlab` added to `backend/requirements.txt` |
+| [backend/api/views.py](backend/api/views.py) | `/api/antibiotics/?model=lgbm` or `kmer`: only the drugs that model was trained on, each once under its canonical name (the rule Flask's `/api/antibiotics` applied). Without `?model`, unchanged |
+| [backend/tests/test_export_api.py](backend/tests/test_export_api.py) | New: 13 tests (CSV and PDF contents, refusals, rate limit, the antibiotic lists). 97 backend tests |
+| [frontend/static/css/components.css](frontend/static/css/components.css) | Fix on the live site: hovering a plain purple button ("Start Predicting", "Predict Resistance", `/train`) turned it white on white, because Bootstrap's `.btn:hover` cleared its background |
+
+Each moved page was checked against the Flask one in a real browser: the same text, the same page height, no console errors, light and dark, phone width; on `/forecast`, `/predict` and `/timeline` the same inputs give the same result line for line, every download works and the RL panel matches on the sample. Found on the way: `/library` showed v0.1.0 while the package is 0.2.0 (the React page reads `amrpredict-lib/pyproject.toml`).
+
+---
+
 ## End-to-end checklist (2026-10-10, Suleman, T2.7)
 
 | File | Change |

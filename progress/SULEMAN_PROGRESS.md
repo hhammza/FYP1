@@ -2,7 +2,7 @@
 
 **Role:** platform (web app, API, security, testing, deployment)
 **Plan:** the split by skill (Ali: data + evolution, Hamza: models, Suleman: platform), based on [FYP_Completion_Roadmap.md](../docs/FYP_Completion_Roadmap.md)
-**Started:** 2026-09-25 · **Last updated:** 2026-09-28 (research track added by Ali; genes panel on `/predict`, UI fixes, Ali's Week 3 handovers)
+**Started:** 2026-09-25 · **Last updated:** 2026-10-14 (React + TypeScript frontend started on branch `frontend-react`)
 
 Status key: `[ ]` not started · `[~]` in progress · `[x]` done · `[!]` blocked (say why in the log)
 
@@ -218,6 +218,20 @@ Built against the real files (`backend/trained_models/lgbm_metrics.json`, `kmer_
 
 ---
 
+## React + TypeScript frontend (my own, started 2026-10-14, branch `frontend-react`)
+
+Moving the website from Flask + Jinja to React + TypeScript (`web/`), page by page, alongside Week 5. `main` keeps the Flask site until every page passes the same checks; the submission is not waiting on this.
+
+- [x] Set-up: React 18, TypeScript, Vite, React Router; the Flask site's Bootstrap, icons, Plotly and stylesheets; `npm audit` clean *Done 2026-10-14*
+- [x] Layout, `/`, `/about`, `/datasets`, `/library` *Done 2026-10-14: same text and page height as Flask, light and dark*
+- [x] `/forecast`, `/predict`, `/timeline` with downloads and the RL panel *Done 2026-10-14: same inputs give the same result as Flask; the downloads come from the new `POST /api/export/<page>.<fmt>` in Django*
+- [x] `/models`, `/compare`, `/genes`, `/train` *Done 2026-10-15: the same text and page height as Flask, and every chart's Plotly figure identical (one axis range differs by the font load); train and reload checked with an admin token. Numbers rounded as Python rounds them (`pyFixed`: 23.25 → 23.2, not 23.3)*
+- [x] CI job for `web/` (type check, tests, build, `npm audit`); `scripts/e2e_check.py --site react` *Done 2026-10-15: 23 of 23 on the Vite dev site and on the production build (`server.mjs` on one port, Django on another, CORS); still 23 of 23 on Flask*
+- [x] `main` merged into the branch *2026-10-15: Hamza's notebook commits and the handover fix, no conflicts; every suite passes after*
+- [~] Deploy `web/` on Railway (`web/railway.toml`, `VITE_API_URL`; backend `CORS_ALLOWED_ORIGINS`), then retire `frontend/` *Ready; with the Week 5 deploy, after Hamza and Ali agree*
+
+---
+
 ## Research track (added by Ali 2026-09-28)
 
 Alongside weeks 4 and 5, not instead of them. What the papers are and why: [RESEARCH_PLAN.md](RESEARCH_PLAN.md). Paper C is the `amrpredict` library for JOSS, and Paper A quotes numbers that must match the repo.
@@ -284,6 +298,8 @@ Newest first. One line per work session: date, what I did, what is next, anythin
 
 | Date | Done | Next | Blockers |
 | --- | --- | --- | --- |
+| 2026-10-15 | Hamza's handover: notebook path on `/timeline` and `/train` (on `main`). React frontend finished: `/models`, `/compare`, `/genes`, `/train` (11 of 11 pages); CI job `web`; `e2e_check.py --site react` 23 of 23 (dev and production build); `web/server.mjs` and `web/railway.toml` for the deploy; `main` merged in. 74 web tests | Week 5 deploy: Railway with `web/` or `frontend/`, agreed with Hamza and Ali | None |
+| 2026-10-14 | React + TypeScript frontend started (`web/`, branch `frontend-react`): layout and 7 of 11 pages (`/`, `/about`, `/datasets`, `/library`, `/forecast`, `/predict`, `/timeline` with the RL panel), each checked against Flask in a browser. Downloads moved into Django (`POST /api/export/`, 13 tests); `/api/antibiotics/?model=`. Fixed on the live site: blank purple buttons on hover. 58 web tests, 97 backend | `/models`, `/compare`, `/genes`, `/train`; then CI and the end-to-end check for `web/` | None |
 | 2026-10-10 | End-to-end checklist: `docs/E2E_CHECKLIST.md` and `scripts/e2e_check.py` (Playwright, 23 steps, 23 passed twice). Week 4 done | Week 5: Railway deploy, then the checklist against the live URLs | None |
 | 2026-10-10 | RL panel on `/timeline` (§4): policy comparison chart, per-drug chart for the chosen policy, week chips, comparison table with the best marked; `/timeline/sample` preview; checked at desktop and phone width. 8 tests | End-to-end checklist | Ali's agent filling `rl`; his answer on start- vs end-of-week failure |
 | 2026-10-10 | T2.7 test gaps filled: every API route and every page now has a test (9 backend: antibiotics, model report, gene report and its CSVs, gene lookup; 18 frontend: all pages with the backend up and down, batch page, reload, small routes, export content types). 84 backend, 66 frontend | RL panel against the §4 sample; end-to-end checklist | Ali's trained RL agent (for live data) |

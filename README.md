@@ -38,6 +38,7 @@ You built a full-stack antimicrobial-resistance (AMR) prediction system with **f
 |---|---|---|---|
 | 1 | **Django REST API** | `backend/` | 14 endpoints, loads 3 prediction engines into memory at startup |
 | 2 | **Flask web app** | `frontend/` | 22 routes, 11 pages, calls the Django API over HTTP |
+| 2b | **React + TypeScript web app** (in progress, branch `frontend-react`) | `web/` | The same pages, page by page; calls the Django API straight from the browser. Flask stays the deployed site until it is finished ([web/README.md](web/README.md)) |
 | 3 | **`amrpredict` Python package** | `amrpredict-lib/` | The same three engines, cleaned up, pip-installable, with a CLI and tests |
 | 4 | **Research notebooks** | `*.ipynb` | Where the models were originally designed and trained (Colab) |
 
@@ -96,6 +97,11 @@ FYP1/
 │       ├── css/                 8 files: tokens → layout → components → … → dark
 │       └── js/                  10 files, one per page + main.js + dropdowns.js
 │                                + report-charts.js (shared by /models and /compare)
+│
+├── web/                         React + TypeScript frontend, replacing frontend/ page by page
+│   ├── src/pages/               one folder per tool page (forecast/, predict/, timeline/)
+│   ├── src/components/          navbar, footer, charts (Plot), downloads, FASTA input
+│   └── src/lib/                 API calls, model numbers, theme; *.test.ts(x) beside the code
 │
 ├── amrpredict-lib/              The packaged library (see §7)
 │   ├── src/amrpredict/          Flat API, CLI, 3 predictors, bundled models
@@ -416,7 +422,7 @@ The bundled forecaster files are the ones `experiments/promote.py --library` wro
 
 ### Downloads and batch upload
 
-Each tool page has a **Download this result** bar under its result. The page posts back the result it rendered, and `frontend/exports.py` builds the file:
+Each tool page has a **Download this result** bar under its result. The page posts back the result it rendered, and `frontend/exports.py` builds the file. The same code also runs in the backend as `POST /api/export/<page>.<fmt>` (`backend/api/exports.py`, 30 per minute per IP), which the React frontend in `web/` uses, since it has no server of its own:
 
 | Format | Contents |
 |---|---|
@@ -554,11 +560,13 @@ AMRFinderPlus's database is pinned to **2026-08-07.1**, the version the gene mod
 | Start | `gunicorn backend.wsgi:application --workers 2 --timeout 120` | `gunicorn app:app --workers 2 --timeout 120` |
 | Health check | `/api/health/` | `/` |
 | Required env vars | `SECRET_KEY`, `ALLOWED_HOSTS` (its Railway domain, plus `healthcheck.railway.app` for the health check), `ADMIN_TOKEN` | `BACKEND_URL` |
-| Optional env vars | `CORS_ALLOWED_ORIGINS` (not needed: the browser never calls the API), `RATELIMIT_ENABLE=False` | `PORT` (Railway sets it), `LIB_VERSION`, `SECRET_KEY` (unused: no sessions) |
+| Optional env vars | `CORS_ALLOWED_ORIGINS` (not needed for the Flask site, whose browser never calls the API; **needed** for the React site in `web/`, set to its address), `RATELIMIT_ENABLE=False` | `PORT` (Railway sets it), `LIB_VERSION`, `SECRET_KEY` (unused: no sessions) |
 
 Leave `DEBUG` unset in production. Without `SECRET_KEY` or `ALLOWED_HOSTS` the backend refuses to start and says which is missing. Generate a key with `python -c "import secrets; print(secrets.token_urlsafe(50))"`.
 
 `frontend/app.py` infers its mode from `PORT`: if Railway sets it, `debug=False`; locally with no `PORT`, debug is on and the server listens on 127.0.0.1 only, since the debugger can run code.
+
+**The React frontend instead of Flask** (`web/`, branch `frontend-react`): a service with root directory `web/` (`web/railway.toml`). Nixpacks builds it; `npm start` runs `web/server.mjs`, a plain Node static server. Set `VITE_API_URL` (the backend's `/api` address, read at build time) on it, and `CORS_ALLOWED_ORIGINS` (its address) on the backend. Check it with `python scripts/e2e_check.py --site react --base <web> --api <backend>/api`.
 
 ---
 
