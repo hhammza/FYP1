@@ -1,0 +1,35 @@
+{
+  "name": "amr-web",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "bootstrap": "5.3.2",
+    "bootstrap-icons": "1.11.3",
+    "plotly.js-dist-min": "2.26.0",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "react-router": "7.18.4"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "6.6.3",
+    "@testing-library/react": "16.1.0",
+    "@types/bootstrap": "5.2.10",
+    "@types/node": "22.20.4",
+    "@types/plotly.js-dist-min": "2.3.4",
+    "@types/react": "18.3.12",
+    "@types/react-dom": "18.3.1",
+    "@vitejs/plugin-react": "5.2.0",
+    "jsdom": "26.1.0",
+    "typescript": "5.6.3",
+    "vite": "7.3.6",
+    "vitest": "4.1.11"
+  }
+}
