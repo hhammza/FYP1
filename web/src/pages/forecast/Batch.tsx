@@ -4,7 +4,7 @@ import { useCallback, useRef, useState, type FormEvent } from 'react';
 import type { Data } from 'plotly.js-dist-min';
 import ExportBar from '../../components/ExportBar';
 import Plot, { type Figure, type PlotElement, type PlotTheme } from '../../components/Plot';
-import { thousands } from '../../lib/metrics';
+import { pyFixed, thousands } from '../../lib/metrics';
 import type { BatchResult as Result } from './types';
 
 const SHOWN_ROWS = 200;
@@ -113,7 +113,7 @@ export function BatchResult({ batch }: { batch: Result }) {
                   ) : (
                     <>
                       <td className={(r.prediction === 'Resistant' ? 'text-rose2' : 'text-emerald2') + ' fw-500'}>{r.prediction}</td>
-                      <td className="font-mono">{((r.probability ?? 0) * 100).toFixed(1)}%</td>
+                      <td className="font-mono">{pyFixed((r.probability ?? 0) * 100, 1)}%</td>
                     </>
                   )}
                 </tr>

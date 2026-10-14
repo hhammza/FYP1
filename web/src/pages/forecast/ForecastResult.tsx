@@ -3,7 +3,7 @@
 import { Fragment, useCallback, useRef } from 'react';
 import type { Data } from 'plotly.js-dist-min';
 import ExportBar from '../../components/ExportBar';
-import { pyFloat } from '../../lib/metrics';
+import { pyFixed, pyFloat } from '../../lib/metrics';
 import Plot, { type Figure, type PlotElement, type PlotTheme } from '../../components/Plot';
 import type { EvidenceInput, ForecastInputs, ForecastResult as Result } from './types';
 
@@ -94,7 +94,7 @@ export default function ForecastResult({ result, inputs }: { result: Result; inp
           </div>
           <div className="ms-auto text-end">
             <div className="result-prob-label">Resistance Probability</div>
-            <div className="result-prob-val">{(result.probability * 100).toFixed(1)}%</div>
+            <div className="result-prob-val">{pyFixed(result.probability * 100, 1)}%</div>
             <div className="small text-muted">Threshold: {result.threshold}</div>
           </div>
         </div>

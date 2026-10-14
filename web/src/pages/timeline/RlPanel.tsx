@@ -7,6 +7,7 @@
 import { useCallback, useState } from 'react';
 import type { Data, Layout } from 'plotly.js-dist-min';
 import Plot, { type Figure, type PlotTheme } from '../../components/Plot';
+import { pyFixed } from '../../lib/metrics';
 import type { RlBlock, RlPolicy } from './types';
 
 const DRUG_COLOURS = ['#6366f1', '#f59e0b', '#10b981', '#ec4899', '#0ea5e9', '#a855f7'];
@@ -133,8 +134,8 @@ export default function RlPanel({ rl, nWeeks }: { rl: RlBlock | null | undefined
                 <td className="small">{q.label}{q.name === rl.best && <> <span className="status-badge trained ms-1">Best</span></>}</td>
                 <td className="small">{q.failure_week == null ? `Never in ${n} weeks` : `Week ${q.failure_week}`}</td>
                 <td className="font-mono small">{q.effective_weeks != null ? `${q.effective_weeks} / ${n}` : '—'}</td>
-                <td className="font-mono small">{q.mean_burden != null ? `${q.mean_burden.toFixed(1)}%` : '—'}</td>
-                <td className="font-mono small">{typeof q.total_reward === 'number' ? q.total_reward.toFixed(2) : '—'}</td>
+                <td className="font-mono small">{q.mean_burden != null ? `${pyFixed(q.mean_burden, 1)}%` : '—'}</td>
+                <td className="font-mono small">{typeof q.total_reward === 'number' ? pyFixed(q.total_reward, 2) : '—'}</td>
               </tr>
             ))}
           </tbody>

@@ -4,7 +4,7 @@ import { useCallback, useRef, useState } from 'react';
 import type { Data, Shape } from 'plotly.js-dist-min';
 import ExportBar from '../../components/ExportBar';
 import Plot, { type Figure, type PlotElement, type PlotTheme } from '../../components/Plot';
-import { jinjaTitle, pyFloat, thousands } from '../../lib/metrics';
+import { jinjaTitle, pyFixed, pyFloat, thousands } from '../../lib/metrics';
 import RlPanel from './RlPanel';
 import type { TimelineInputs, TimelineResult as Result, Week } from './types';
 
@@ -168,7 +168,7 @@ export default function TimelineResult({ result, inputs, sample }: Props) {
                 {cal ? (
                   <>
                     Checked against <span className="text-white">{cal.curves} published curves</span>{' '}
-                    (fit error &plusmn;{cal.rmse.toFixed(1)} points on {cal.surveillance_curves} hospital series).{' '}
+                    (fit error &plusmn;{pyFixed(cal.rmse, 1)} points on {cal.surveillance_curves} hospital series).{' '}
                     {!cal.drugs.includes(result.antibiotic) && `${jinjaTitle(result.antibiotic)} was not among the drugs fitted. `}
                     Weeks are illustrative.
                   </>

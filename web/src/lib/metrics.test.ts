@@ -1,4 +1,4 @@
-import { compact, pct, summarizeMetrics } from './metrics';
+import { compact, pct, pyFixed, summarizeMetrics } from './metrics';
 
 const LGBM = {
   trained: true,
@@ -65,5 +65,25 @@ describe('number helpers', () => {
     expect(pct(0.0951)).toBe('9.5%');
     expect(pct('0.1')).toBe('not measured');
     expect(pct(NaN)).toBe('not measured');
+  });
+});
+
+describe('pyFixed', () => {
+  it('rounds an exact tie to the even digit, as Python does', () => {
+    expect(pyFixed(23.25, 1)).toBe('23.2');      // toFixed gives 23.3
+    expect(pyFixed(23.35, 1)).toBe('23.4');      // 23.35 is not exact in binary: above the tie
+    expect(pyFixed(0.125, 2)).toBe('0.12');
+    expect(pyFixed(0.375, 2)).toBe('0.38');
+    expect(pyFixed(2.5, 0)).toBe('2');
+    expect(pyFixed(3.5, 0)).toBe('4');
+    expect(pyFixed(9.95, 1)).toBe('9.9');        // binary 9.9499…: below the tie, both agree
+    expect(pyFixed(99.5, 0)).toBe('100');
+    expect(pyFixed(-0.125, 2)).toBe('-0.12');
+  });
+
+  it('agrees with toFixed away from ties', () => {
+    for (const x of [0.7741, 0.0951, 12.3456, 1e-7, 6271378 / 1e6]) {
+      for (const d of [0, 1, 3]) expect(pyFixed(x, d)).toBe(x.toFixed(d));
+    }
   });
 });

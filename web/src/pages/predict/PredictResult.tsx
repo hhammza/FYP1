@@ -4,7 +4,7 @@
 import { useCallback, useRef } from 'react';
 import ExportBar from '../../components/ExportBar';
 import Plot, { type Figure, type PlotElement, type PlotTheme } from '../../components/Plot';
-import { pyFloat, thousands } from '../../lib/metrics';
+import { pyFixed, pyFloat, thousands } from '../../lib/metrics';
 import GenesPanel from './GenesPanel';
 import type { PredictInputs, PredictResult as Result } from './types';
 
@@ -93,7 +93,7 @@ export default function PredictResult({ result, inputs, sample }: Props) {
           </div>
           <div className="ms-auto text-end">
             <div className="result-prob-label">Resistance Probability</div>
-            <div className="result-prob-val">{(result.probability * 100).toFixed(1)}%</div>
+            <div className="result-prob-val">{pyFixed(result.probability * 100, 1)}%</div>
             <div className="small text-muted">{result.model_used}</div>
           </div>
         </div>
@@ -163,7 +163,7 @@ export default function PredictResult({ result, inputs, sample }: Props) {
                     <div className="kmer-bar-wrap">
                       <div className="kmer-bar" style={{ width: `${Math.trunc(km.frequency / kmers[0].frequency * 100)}%` }}></div>
                     </div>
-                    <span className="kmer-freq">{km.frequency.toFixed(4)}</span>
+                    <span className="kmer-freq">{pyFixed(km.frequency, 4)}</span>
                   </div>
                 ))}
               </div>

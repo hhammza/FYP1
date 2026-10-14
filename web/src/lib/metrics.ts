@@ -28,13 +28,13 @@ export interface ModelSummary {
 
 const isNum = (x: unknown): x is number => typeof x === 'number' && Number.isFinite(x);
 
-export const pct = (x: unknown): string => (isNum(x) ? `${(x * 100).toFixed(1)}%` : 'not measured');
+export const pct = (x: unknown): string => (isNum(x) ? `${pyFixed(x * 100, 1)}%` : 'not measured');
 
 /** 1217307 -> '1.2M', 6002 -> '6.0K', for tiles too narrow for the full count. */
 export function compact(n: number | undefined): string {
   if (!n) return 'n/a';
   for (const [size, unit] of [[1_000_000, 'M'], [1_000, 'K']] as const) {
-    if (n >= size) return `${(n / size).toFixed(1)}${unit}`;
+    if (n >= size) return `${pyFixed(n / size, 1)}${unit}`;
   }
   return String(n);
 }
@@ -71,8 +71,8 @@ export function summarizeMetrics(status: ModelStatus | undefined | null): ModelS
       ? thousands(data.train_genomes + data.test_genomes) : 'n/a',
   };
   if (isNum(auc)) {
-    out.auc = auc.toFixed(3);
-    out.auc_ci = ci.length === 2 ? `${auc.toFixed(3)} [${ci[0].toFixed(3)}–${ci[1].toFixed(3)}]` : out.auc;
+    out.auc = pyFixed(auc, 3);
+    out.auc_ci = ci.length === 2 ? `${out.auc} [${pyFixed(ci[0], 3)}–${pyFixed(ci[1], 3)}]` : out.auc;
   }
   return out;
 }
@@ -85,3 +85,23 @@ export const pyFloat = (n: number): string => (Number.isInteger(n) ? n.toFixed(1
     'a/b' -> 'A/b'). */
 export const jinjaTitle = (s: string): string =>
   s.split(/([-\s({[<]+)/).map(w => (w ? w.charAt(0).toUpperCase() + w.slice(1).toLowerCase() : w)).join('');
+
+/** x with d decimals, rounded as Python's format does: an exact tie goes to
+    the even digit (23.25 -> '23.2'), where toFixed would round it up ('23.3').
+    For every number the Flask templates formatted. */
+export function pyFixed(x: number, d: number): string {
+  if (!Number.isFinite(x)) return String(x);
+  const exact = Math.abs(x).toFixed(Math.min(100, d + 30));      // the double's own decimal digits
+  const dot = exact.indexOf('.');
+  const rest = exact.slice(dot + 1 + d);
+  if (!/^50*$/.test(rest)) return x.toFixed(d);                    // not a tie: toFixed agrees with Python
+  // a tie: keep the digits if the last is even, else add one to the last digit
+  let digits = exact.slice(0, dot + 1 + d).replace('.', '');
+  if (Number(digits.slice(-1)) % 2 === 1) {
+    const up = (BigInt(digits) + 1n).toString();
+    digits = up.padStart(digits.length, '0');
+  }
+  const int = digits.slice(0, digits.length - d) || '0';
+  const out = d ? `${int}.${digits.slice(digits.length - d)}` : int;
+  return (x < 0 && /[1-9]/.test(out) ? '-' : '') + out;
+}
