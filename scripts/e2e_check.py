@@ -6,6 +6,12 @@ user would, and prints a tick or a cross per step.
     python scripts/e2e_check.py --start                 # start both servers here, check, stop them
     python scripts/e2e_check.py                         # servers already running (start.bat)
     python scripts/e2e_check.py --base https://...      # the deployed site (Week 5)
+    python scripts/e2e_check.py --site react --start    # the React frontend (web/), with Vite
+    python scripts/e2e_check.py --site react --base https://<web> --api https://<backend>/api
+
+The React site (web/) does the same steps without page reloads: a form shows
+its result in place, the downloads are buttons, and the browser calls the
+Django API itself (--api; locally Vite passes /api through to it).
 
 Needs Playwright: python -m pip install playwright, then
 python -m playwright install chromium (or use --browser msedge on Windows).
@@ -66,15 +72,22 @@ def wait_for(url, seconds):
     return False
 
 
-def start_servers():
+def start_servers(site='flask'):
     env = dict(os.environ, DEBUG='True')
     env.pop('PORT', None)
     py = sys.executable
     back = subprocess.Popen([py, 'manage.py', 'runserver', '8000', '--noreload'], cwd=os.path.join(ROOT, 'backend'),
                             env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    front = subprocess.Popen([py, 'app.py'], cwd=os.path.join(ROOT, 'frontend'), env=env,
-                             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    if not (wait_for('http://127.0.0.1:8000/api/health/', 180) and wait_for('http://127.0.0.1:5001/', 60)):
+    if site == 'react':
+        # npx is a .cmd on Windows, so through the shell there
+        front = subprocess.Popen('npx vite --strictPort', cwd=os.path.join(ROOT, 'web'), env=env, shell=True,
+                                 stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        front_url = 'http://127.0.0.1:5173/'
+    else:
+        front = subprocess.Popen([py, 'app.py'], cwd=os.path.join(ROOT, 'frontend'), env=env,
+                                 stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        front_url = 'http://127.0.0.1:5001/'
+    if not (wait_for('http://127.0.0.1:8000/api/health/', 180) and wait_for(front_url, 60)):
         stop_servers([back, front])
         sys.exit('the servers did not start (is the venv set up? try start.bat once)')
     return [back, front]
@@ -94,6 +107,9 @@ def main(a):
     from playwright.sync_api import sync_playwright
 
     base = a.base.rstrip('/')
+    react = a.site == 'react'
+    # the Django API: Flask passes its routes through; the React site's browser calls it itself
+    api = (a.api or base + '/api').rstrip('/')
     genome = None
     if not a.no_genome:
         try:
@@ -141,22 +157,38 @@ def main(a):
             return f'{info.value.suggested_filename}, {os.path.getsize(path):,} bytes'
 
         def downloads(page_name, png=True, pdf=True):
-            bar = f'form.export-bar[data-export-page="{page_name}"]'
-            got = [download(lambda: page.click(f'{bar} button[formaction$=".csv"]'), b'', 'CSV')]
+            if react:
+                buttons = {'csv': '.export-bar button:has-text("CSV")', 'pdf': '.export-bar button:has-text("PDF report")',
+                           'png': '.export-bar button:has-text("Chart (PNG)")'}
+            else:
+                bar = f'form.export-bar[data-export-page="{page_name}"]'
+                buttons = {'csv': f'{bar} button[formaction$=".csv"]', 'pdf': f'{bar} [data-export="pdf"]',
+                           'png': f'{bar} [data-export="png"]'}
+            got = [download(lambda: page.click(buttons['csv']), b'', 'CSV')]
             if pdf:
-                got.append(download(lambda: page.click(f'{bar} [data-export="pdf"]'), b'%PDF', 'PDF'))
+                got.append(download(lambda: page.click(buttons['pdf']), b'%PDF', 'PDF'))
             if png:
-                got.append(download(lambda: page.click(f'{bar} [data-export="png"]'), b'\x89PNG', 'PNG'))
+                got.append(download(lambda: page.click(buttons['png']), b'\x89PNG', 'PNG'))
             return '; '.join(got)
 
-        print(f'\nChecking {base}')
+        def submit(selector, timeout_ms, result_selector):
+            """Send a form: Flask answers with a new page, React shows the result in place."""
+            if react:
+                page.click(selector)
+            else:
+                with page.expect_navigation(timeout=timeout_ms):
+                    page.click(selector)
+            page.wait_for_selector(result_selector, timeout=timeout_ms)
+
+        print(f'\nChecking {base} ({a.site}' + (f', API {api}' if react else '') + ')')
 
         @step('Backend health: every model loaded')
         def health():
             # a few tries: Flask's debug server restarts itself once just after it starts
             for attempt in range(5):
                 try:
-                    r = page.request.get(base + '/api/health', timeout=30_000)
+                    # Django's own route, or Flask's pass-through (no trailing slash)
+                    r = page.request.get(api + '/health/' if react else base + '/api/health', timeout=30_000)
                     if r.ok:
                         break
                 except Exception:
@@ -206,9 +238,7 @@ def main(a):
         @step('/forecast: a prediction comes back')
         def forecast_submit():
             page.fill('#micInput', '16')
-            with page.expect_navigation(timeout=60_000):
-                page.click('#predictBtn')
-            page.wait_for_selector('.result-main-label')
+            submit('#predictBtn', 60_000, '.result-main-label')
             return page.inner_text('.result-main-label')
         forecast_submit()
 
@@ -221,15 +251,16 @@ def main(a):
         @step('/forecast: batch CSV template downloads, uploads and returns results')
         def batch():
             goto('/forecast')
-            page.click('button[data-bs-target="#batchPane"]')
-            template = download(lambda: page.click('a[href="/forecast/template.csv"]'), b'antibiotic', 'template')
+            page.click('button[role=tab]:has-text("Upload CSV")' if react else 'button[data-bs-target="#batchPane"]')
+            template_path = '/amr-batch-template.csv' if react else '/forecast/template.csv'
+            template = download(lambda: page.click(f'a[href="{template_path}"]'), b'antibiotic', 'template')
             path = os.path.join(tempfile.gettempdir(), 'e2e_batch.csv')
-            with urllib.request.urlopen(base + '/forecast/template.csv', timeout=30) as r, open(path, 'wb') as fh:
+            with urllib.request.urlopen(base + template_path, timeout=30) as r, open(path, 'wb') as fh:
                 fh.write(r.read())
             page.set_input_files('#batchFile', path)
-            with page.expect_navigation(timeout=120_000):
-                page.click('#batchForm [type=submit]')
-            check(page.locator('form.export-bar[data-export-page="batch"]').count() == 1, 'no batch result')
+            submit('#batchForm [type=submit]', 120_000, '.export-bar')
+            check(page.locator('.export-bar' if react else 'form.export-bar[data-export-page="batch"]').count() == 1,
+                  'no batch result')
             got = downloads('batch', png=False, pdf=False)
             return f'template {template}; results {got}'
         batch()
@@ -240,8 +271,7 @@ def main(a):
             select_when_ready('#predictForm [name=antibiotic]', 'ciprofloxacin')
             page.click('#fastaTab .nav-link >> nth=1')
             page.click('text=Load Sample')
-            with page.expect_navigation(timeout=60_000):
-                page.click('#predictForm [type=submit]')
+            submit('#predictForm [type=submit]', 60_000, '.alert-danger-custom:visible')
             text = page.locator('.alert-danger-custom:visible').first.inner_text()   # not the hidden form hint
             check('complete assembly' in text or 'too short' in text, f'unexpected message: {text[:200]}')
             return text.strip()[:90]
@@ -254,9 +284,7 @@ def main(a):
                 select_when_ready('#predictForm [name=antibiotic]', 'ciprofloxacin')
                 page.set_input_files('#fastaFile', genome)
                 start = time.time()
-                with page.expect_navigation(timeout=150_000):
-                    page.click('#predictForm [type=submit]')
-                page.wait_for_selector('.result-main-label', timeout=30_000)
+                submit('#predictForm [type=submit]', 150_000, '.result-main-label')
                 genes = page.locator('.gene-chip').count()
                 return f"{page.inner_text('.result-main-label')} in {time.time() - start:.0f} s" + \
                        (f', {genes} genes shown' if genes else '')
@@ -274,9 +302,7 @@ def main(a):
             select_when_ready('#timelineForm [name=antibiotic]', 'ciprofloxacin')
             page.click('#fastaTab2 .nav-link >> nth=1')
             page.click('text=Load Sample')
-            with page.expect_navigation(timeout=60_000):
-                page.click('#timelineForm [type=submit]')
-            page.wait_for_selector('#timelineChart .main-svg')
+            submit('#timelineForm [type=submit]', 60_000, '#timelineChart .main-svg')
             return 'RL panel shown' if page.locator('#rlPanel').count() else 'no RL block in the response yet'
         timeline_submit()
 
@@ -290,7 +316,7 @@ def main(a):
             goto('/genes')
             got = []
             for name in ('matrix.csv', 'info.csv'):
-                with urllib.request.urlopen(f'{base}/genes/{name}', timeout=120) as r:
+                with urllib.request.urlopen(f'{api}/genes/{name}' if react else f'{base}/genes/{name}', timeout=120) as r:
                     head = r.read(64)
                     check(r.headers.get_content_type() == 'text/csv', f'{name} is {r.headers.get_content_type()}')
                 check(head.startswith(b'Genome ID') or head.startswith(b'symbol'), f'{name} starts {head[:20]!r}')
@@ -310,13 +336,17 @@ def main(a):
 
 if __name__ == '__main__':
     ap = argparse.ArgumentParser(description=__doc__.split('\n')[0])
-    ap.add_argument('--base', default='http://127.0.0.1:5001', help='the website to check')
+    ap.add_argument('--site', choices=['flask', 'react'], default='flask',
+                    help='which frontend: flask (frontend/, port 5001) or react (web/, port 5173)')
+    ap.add_argument('--base', help='the website to check (default: this computer, the port of --site)')
+    ap.add_argument('--api', help="the Django API, e.g. https://<backend>/api (default: the site's own /api)")
     ap.add_argument('--start', action='store_true', help='start both servers here first, stop them at the end')
     ap.add_argument('--browser', default='msedge' if os.name == 'nt' else 'chromium',
                     help='msedge, chrome or chromium (Playwright\'s own)')
     ap.add_argument('--no-genome', action='store_true', help='skip /predict with a complete genome')
     a = ap.parse_args()
-    procs = start_servers() if a.start else []
+    a.base = a.base or ('http://127.0.0.1:5173' if a.site == 'react' else 'http://127.0.0.1:5001')
+    procs = start_servers(a.site) if a.start else []
     try:
         ok = main(a)
     finally:
