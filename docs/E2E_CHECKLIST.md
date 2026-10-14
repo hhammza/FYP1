@@ -11,11 +11,15 @@ python -m playwright install chromium       # once (or use --browser msedge on W
 python scripts/e2e_check.py --start         # starts both servers, checks, stops them
 python scripts/e2e_check.py                 # servers already running (start.bat / start.sh)
 python scripts/e2e_check.py --base https://<frontend>.up.railway.app   # the deployed site
+
+# the React frontend (web/): the same steps
+python scripts/e2e_check.py --site react --start
+python scripts/e2e_check.py --site react --base https://<web>.up.railway.app --api https://<backend>.up.railway.app/api
 ```
 
 It prints ✓ or ✗ for each step below and exits 0 only if all pass. For `/predict` it downloads one complete genome the served model never trained on (from its test list, BV-BRC); `--no-genome` skips that step when offline.
 
-Last run: **2026-10-10, 23 of 23 steps passed** (local, Windows, Edge), twice in a row.
+Last run: **2026-10-15, 23 of 23 steps passed** on Flask, on the React dev site and on the React production build (local, Windows, Edge).
 
 ## By hand: the same steps
 

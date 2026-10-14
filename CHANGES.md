@@ -18,6 +18,19 @@ Baseline is commit **`52ae361`** *(Add amrpredict library and macOS launcher, 20
 
 ---
 
+## React + TypeScript frontend finished (2026-10-15, Suleman; branch `frontend-react`)
+
+| File | Change |
+|---|---|
+| [web/src/pages/](web/src/pages/) | `/models`, `/compare`, `/genes`, `/train`: every page of the Flask site is now in React. Compared with Flask in a browser: the same text and page height, every chart's Plotly figure identical |
+| [web/src/lib/metrics.ts](web/src/lib/metrics.ts) | `pyFixed`: numbers rounded as Python rounds them, so a tie such as 23.25 shows 23.2 as on the Flask pages, not 23.3 |
+| [.github/workflows/ci.yml](.github/workflows/ci.yml) | Job `web`: type check, 74 unit tests, production build and `npm audit` on every push and pull request; pushes to `frontend-react` run CI too (the Docker job stays on `main`) |
+| [scripts/e2e_check.py](scripts/e2e_check.py), [docs/E2E_CHECKLIST.md](docs/E2E_CHECKLIST.md) | `--site react` (and `--api` for a deployed React site): the same 23 steps; 23 of 23 on the dev site and on the production build with CORS, and still on Flask |
+| [web/server.mjs](web/server.mjs), [web/railway.toml](web/railway.toml) | The deploy: a plain Node static server (no packages; deep links get the page, missing files a 404) and the Railway service config |
+| [frontend/templates/](frontend/templates/) (from `main`) | Hamza's handover: the archived notebook's path on `/timeline` and `/train` |
+
+---
+
 ## React + TypeScript frontend, first pages (2026-10-14, Suleman; branch `frontend-react`)
 
 A new frontend in `web/` (React 18, TypeScript, Vite, React Router), replacing the Flask one page by page. `frontend/` is untouched and stays the deployed site until every page is moved and checked. Same Bootstrap, icon and Plotly versions and the same stylesheets, so the pages look the same; everything is bundled, so it works offline.
