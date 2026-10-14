@@ -76,7 +76,7 @@ cache/clean_v7_amr_full_norm.pkl      7,847,110 rows × 15 columns
 |---|---|
 | `data/amr_full/` | The complete BV-BRC AMR export (2026-09-29): all 17,585,506 records in 500,000-row parts, lab and computational, with `manifest.json` (counts and dates). Not in git; `scripts/bvbrc_download/download_amr_full.py` fetches it in about 35 minutes. **This is what the harness reads (cleaning v6 and later).** |
 | `data/amr_output/*.csv` | Earlier AMR files from **BV-BRC** (formerly PATRIC), one file per taxon, e.g. `amr_taxon_562_Escherichia_coli.csv`. Cleanings v1 to v5 read them; kept so v5 runs rebuild exactly (`data_prep.source_of`). |
-| `data/BVBRC_genome_amr.csv` | A single 30 MB export, the source used by `notebooks/LightGBM_Model_Improved.ipynb`. Not used here. |
+| `data/BVBRC_genome_amr.csv` | A single 30 MB export, the source used by `notebooks/archive/LightGBM_Model_Improved.ipynb`. Not used here. |
 | `data/mapped_output/*.csv` | The same rows joined to FASTA paths by `scripts/fasta_amr_map.py`. For the genome model (Track B). |
 | `data/fasta_output/taxon_*/` | 4 GB of genome assemblies. Track B. |
 | `data/sample_*` | Small fixtures for notebook development. **Not a representative sample**, do not train on them. |

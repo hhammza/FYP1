@@ -16,9 +16,17 @@ amrpredict.forecast('ciprofloxacin', taxon_id=562, mic_value=4)
 
 ## Install
 
+Version 0.2.0 is on **TestPyPI**, the Python Package Index's test site
+([test.pypi.org/project/amrpredict](https://test.pypi.org/project/amrpredict/0.2.0/)).
+TestPyPI does not host the dependencies (LightGBM, scikit-learn, pandas), so
+they come from the real PyPI:
+
 ```bash
-pip install amrpredict
+pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ amrpredict==0.2.0
 ```
+
+The release on the real PyPI (`pip install amrpredict`) comes with the final
+version, once the whole project is merged.
 
 From a checkout:
 

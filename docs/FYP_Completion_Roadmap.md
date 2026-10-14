@@ -346,18 +346,18 @@ Keep the ML vs. simulation labelling in the exports too: a timeline PDF must say
 - Frontend: show a summary table (counts R/S, per-antibiotic breakdown chart) + "Download results CSV".
 - Limits: max rows (e.g. 10,000) and max file size, enforced server-side.
 
-#### Step 12. Security hardening (T2.4)
+#### Step 12. Security hardening (T2.4) *(done 2026-09-26, checked against the code 2026-10-13)*
 
 In `backend/backend/settings.py` and `backend/api/views.py`:
 
-- [ ] `SECRET_KEY` from env **only**; crash at startup if missing when `DEBUG=False`
-- [ ] `ALLOWED_HOSTS` from env, no `*` default in production
-- [ ] Replace `CORS_ALLOW_ALL_ORIGINS=True` with `CORS_ALLOWED_ORIGINS=[<frontend URL>]`
-- [ ] Protect `/api/train/` and `/api/reload/` with a token header (`X-Admin-Token` from env) at minimum; hide the Train page behind a password in the frontend
-- [ ] `DATA_UPLOAD_MAX_MEMORY_SIZE` / `FILE_UPLOAD_MAX_MEMORY_SIZE` limits; reject FASTA > e.g. 20 MB
-- [ ] Rate limiting on predict endpoints (`django-ratelimit`) to avoid abuse of the public deployment
-- [ ] Remove the unused `db.sqlite3` and `migrate` release step, **or** start using a database (next step)
-- [ ] Pin `scikit-learn==1.6.1` in `backend/requirements.txt` (or retrain and pin whatever you use)
+- [x] `SECRET_KEY` from env **only**; crash at startup if missing when `DEBUG=False`
+- [x] `ALLOWED_HOSTS` from env, no `*` default in production
+- [x] Replace `CORS_ALLOW_ALL_ORIGINS=True` with `CORS_ALLOWED_ORIGINS=[<frontend URL>]`
+- [x] Protect `/api/train/` and `/api/reload/` with a token header (`X-Admin-Token` from env) at minimum; hide the Train page behind a password in the frontend
+- [x] `DATA_UPLOAD_MAX_MEMORY_SIZE` / `FILE_UPLOAD_MAX_MEMORY_SIZE` limits; reject FASTA > e.g. 20 MB
+- [x] Rate limiting on predict endpoints (`django-ratelimit`) to avoid abuse of the public deployment
+- [x] Remove the unused `db.sqlite3` and `migrate` release step, **or** start using a database (next step)
+- [x] Pin `scikit-learn==1.6.1` in `backend/requirements.txt` (or retrain and pin whatever you use) *(pinned in the Docker image, `backend/Dockerfile`; `requirements.txt` keeps `>=1.3` because the served forecaster stores no pickled scikit-learn object)*
 
 #### Step 13 (optional). Database for prediction history
 
@@ -503,29 +503,29 @@ A suggested split, based on the proposal's roles (Ali: data; Hamza: models; Sule
 - [ ] DeLong/McNemar for the key comparisons; 3 seeds for key runs
 
 **Proposal items**
-- [ ] Ablations and cross-dataset/species hold-out in the report ✅ (already have)
-- [ ] Evolution component: simulation fixed, sensitivity analysis, (calibration), (RL agent)
+- [x] Ablations and cross-dataset/species hold-out in the report ✅ (already have) *(runs done; the report chapter is Week 5)*
+- [~] Evolution component: simulation fixed, sensitivity analysis, (calibration), (RL agent) *(fix, sensitivity and calibration done; RL agent in progress with Ali, its panel built by Suleman)*
 - [ ] GAN experiment run **or** descoped in writing
 - [ ] Drug design prototype **or** descoped in writing
 - [ ] Images descoped in writing
 - [ ] Supervisor email confirming the scope decisions
 
 **Platform**
-- [ ] CSV / PDF / PNG export on all three tool pages
-- [ ] Batch CSV upload with template
-- [ ] Security checklist (§6.3 Step 12) complete
+- [x] CSV / PDF / PNG export on all three tool pages
+- [x] Batch CSV upload with template
+- [x] Security checklist (§6.3 Step 12) complete
 - [ ] No hardcoded metrics anywhere in templates
-- [ ] ML vs. simulation labelling preserved in UI **and** exports
+- [x] ML vs. simulation labelling preserved in UI **and** exports
 - [ ] Deployed on Railway, live URL works, demo video recorded
 
 **Library**
-- [ ] v0.2.0 with new models + metrics; backend imports it
-- [ ] Published to TestPyPI (or PyPI); install instructions verified in a clean venv
-- [ ] Tests pass; no `xfail` left for the timeline bug
+- [~] v0.2.0 with new models + metrics; backend imports it *(0.2.0 done; the backend switch is postponed until after the demo, a parity test keeps the copies in step)*
+- [x] Published to TestPyPI (or PyPI); install instructions verified in a clean venv *(TestPyPI 2026-10-13, https://test.pypi.org/project/amrpredict/0.2.0/)*
+- [x] Tests pass; no `xfail` left for the timeline bug *(35 library tests, run in CI)*
 
 **Documentation**
 - [ ] Report with a Deviations chapter
-- [ ] README/CHANGES updated; empty notebook resolved
+- [x] README/CHANGES updated; empty notebook resolved *(2026-10-13: removed; the current models are in `notebooks/01`–`03`)*
 - [ ] Git tag `v1.0-submission`
 
 ---

@@ -112,6 +112,43 @@ Checked in Edge with both servers: Escherichia → coli → 562, Campylobacter �
 
 ---
 
+## Notebooks of the current models (2026-10-13)
+
+The supervisor asked for the model code as notebooks; the original notebooks are the July versions, not the served models.
+
+| File | Change |
+|---|---|
+| [01_forecaster_model.ipynb](notebooks/01_forecaster_model.ipynb) | New: trains the served forecaster `D3_forecaster_deploy_v7` step by step with the project's code; reproduces the published run exactly (AUC 0.77367, confusion counts, threshold 0.15) |
+| [02_genome_models.ipynb](notebooks/02_genome_models.ipynb) | New: trains the gene model (lab AUC 0.9772) and the k-mer model (0.9345), identical to the published runs; significance test; the website's feature code gives the training run's probability |
+| [03_evaluation.ipynb](notebooks/03_evaluation.ipynb) | New: seen vs never-seen genomes, seeds, significance, lineage split, temporal test, calibration, from the saved runs |
+| [notebooks/README.md](notebooks/README.md) | New: which notebook is which, how to run them |
+| `notebooks/forecasting_formulation.ipynb` | Removed: an empty file (0 bytes) since the initial upload |
+| `notebooks/archive/` | The three July notebooks moved here (history); `notebooks/` now opens with the current models and Ali's Colab tools. Paths updated in `README.md`, `notebooks/README.md`, `experiments/HANDBOOK.md`; README's closing tip no longer says `/predict` answers from a fallback heuristic. Suleman's `mutation_timeline.html` and `train.html` still show the old path (his Handovers) |
+
+## amrpredict 0.2.0 on TestPyPI (2026-10-13)
+
+| File | Change |
+|---|---|
+| TestPyPI | `amrpredict 0.2.0` (wheel and source) published: https://test.pypi.org/project/amrpredict/0.2.0/. Installed from there into a clean venv outside the project, it gives the website's forecast (ciprofloxacin, taxon 562, MIC 4: Resistant 0.7055, `D3_forecaster_deploy_v7`) |
+| [amrpredict-lib/README.md](amrpredict-lib/README.md) | Install from TestPyPI (dependencies from PyPI); `pip install amrpredict` from the real PyPI only after the final release |
+| [HAMZA_PROGRESS.md](progress/HAMZA_PROGRESS.md) | Week 4 done |
+| [quickstart.md](amrpredict-lib/docs/quickstart.md), [CITATION.cff](amrpredict-lib/CITATION.cff) | Install from TestPyPI; citation version 0.2.0, released 2026-10-13 |
+| [README.md](README.md) | §7: the TestPyPI release, the forecaster run as the backend runs it (parity test), current test counts (backend 84, library 35); §11.1 and §11.3 no longer say the k-mer fix and the library timeline sync are still to do |
+| [FYP_Completion_Roadmap.md](docs/FYP_Completion_Roadmap.md) | Security step 12 and the submission checklist ticked where the code shows it done; deployment, supervisor reply, report and tag stay open |
+| Handovers | Suleman: `library.html` still shows `pip install amrpredict`; Ali: FYI |
+
+## Project brought up to date with the served gene model (2026-10-12)
+
+The gene model `G_genes_deploy` (lab AUC 0.977) was promoted on 2026-10-01 and verified with real AMRFinderPlus in the Docker image by Suleman's GitHub Actions on 2026-10-09; the documents still described it as coming later.
+
+| File | Change |
+|---|---|
+| [README.md](README.md) | Engine table, the /predict section and the current figures describe both genome models: the gene model (0.977, `genes_found`, served by the Docker image, CI-verified) and the k-mer model (0.935, where AMRFinderPlus is not installed) |
+| [experiments/README.md](experiments/README.md) | "Currently served": the gene model and the train/test genome lists |
+| [GENOME_RESULTS.md](experiments/GENOME_RESULTS.md) | Section 5: the served gene model |
+| [HAMZA_PROGRESS.md](progress/HAMZA_PROGRESS.md) | Summary: weeks 3 and 4 done (TestPyPI upload waits on a token; the library switch is postponed until after the demo), research track done on the 24,926 genomes; B6–B8 item ticked |
+| Handovers | Suleman: his two week-3 items in progress are complete by his own CI run; Ali: the research-track deliverables, and the `RESEARCH_PLAN.md` boxes that can be ticked |
+
 ## Training genomes of the served models (2026-10-04)
 
 For Suleman's "fill from Genome ID" helper on `/forecast`, so the page can say whether the model saw a genome in training.
