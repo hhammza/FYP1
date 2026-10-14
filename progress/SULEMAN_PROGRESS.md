@@ -225,9 +225,10 @@ Moving the website from Flask + Jinja to React + TypeScript (`web/`), page by pa
 - [x] Set-up: React 18, TypeScript, Vite, React Router; the Flask site's Bootstrap, icons, Plotly and stylesheets; `npm audit` clean *Done 2026-10-14*
 - [x] Layout, `/`, `/about`, `/datasets`, `/library` *Done 2026-10-14: same text and page height as Flask, light and dark*
 - [x] `/forecast`, `/predict`, `/timeline` with downloads and the RL panel *Done 2026-10-14: same inputs give the same result as Flask; the downloads come from the new `POST /api/export/<page>.<fmt>` in Django*
-- [ ] `/models`, `/compare`, `/genes`, `/train`
-- [ ] CI job for `web/` (type check, tests, build); `scripts/e2e_check.py` against the React site
-- [ ] Deploy `web/` on Railway (static site; backend `CORS_ALLOWED_ORIGINS` set to it), then retire `frontend/` (with Hamza and Ali)
+- [x] `/models`, `/compare`, `/genes`, `/train` *Done 2026-10-15: the same text and page height as Flask, and every chart's Plotly figure identical (one axis range differs by the font load); train and reload checked with an admin token. Numbers rounded as Python rounds them (`pyFixed`: 23.25 → 23.2, not 23.3)*
+- [x] CI job for `web/` (type check, tests, build, `npm audit`); `scripts/e2e_check.py --site react` *Done 2026-10-15: 23 of 23 on the Vite dev site and on the production build (`server.mjs` on one port, Django on another, CORS); still 23 of 23 on Flask*
+- [x] `main` merged into the branch *2026-10-15: Hamza's notebook commits and the handover fix, no conflicts; every suite passes after*
+- [~] Deploy `web/` on Railway (`web/railway.toml`, `VITE_API_URL`; backend `CORS_ALLOWED_ORIGINS`), then retire `frontend/` *Ready; with the Week 5 deploy, after Hamza and Ali agree*
 
 ---
 
@@ -297,6 +298,7 @@ Newest first. One line per work session: date, what I did, what is next, anythin
 
 | Date | Done | Next | Blockers |
 | --- | --- | --- | --- |
+| 2026-10-15 | Hamza's handover: notebook path on `/timeline` and `/train` (on `main`). React frontend finished: `/models`, `/compare`, `/genes`, `/train` (11 of 11 pages); CI job `web`; `e2e_check.py --site react` 23 of 23 (dev and production build); `web/server.mjs` and `web/railway.toml` for the deploy; `main` merged in. 74 web tests | Week 5 deploy: Railway with `web/` or `frontend/`, agreed with Hamza and Ali | None |
 | 2026-10-14 | React + TypeScript frontend started (`web/`, branch `frontend-react`): layout and 7 of 11 pages (`/`, `/about`, `/datasets`, `/library`, `/forecast`, `/predict`, `/timeline` with the RL panel), each checked against Flask in a browser. Downloads moved into Django (`POST /api/export/`, 13 tests); `/api/antibiotics/?model=`. Fixed on the live site: blank purple buttons on hover. 58 web tests, 97 backend | `/models`, `/compare`, `/genes`, `/train`; then CI and the end-to-end check for `web/` | None |
 | 2026-10-10 | End-to-end checklist: `docs/E2E_CHECKLIST.md` and `scripts/e2e_check.py` (Playwright, 23 steps, 23 passed twice). Week 4 done | Week 5: Railway deploy, then the checklist against the live URLs | None |
 | 2026-10-10 | RL panel on `/timeline` (§4): policy comparison chart, per-drug chart for the chosen policy, week chips, comparison table with the best marked; `/timeline/sample` preview; checked at desktop and phone width. 8 tests | End-to-end checklist | Ali's agent filling `rl`; his answer on start- vs end-of-week failure |
