@@ -1,6 +1,6 @@
 /* A Plotly chart. Plotly is large, so it loads with the first chart, not with
    the site; the chart redraws when its figure or the theme changes. */
-import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState, type CSSProperties } from 'react';
 import type { Config, Data, Layout } from 'plotly.js-dist-min';
 import { plotTheme, useDarkTheme } from '../lib/theme';
 
@@ -16,14 +16,18 @@ export const loadPlotly = () => (plotly ??= import('plotly.js-dist-min').then(m 
 interface Props {
   id?: string;
   className?: string;
+  style?: CSSProperties;
   /** the chart for the current theme's colours; keep it stable (useCallback) */
   figure: (t: PlotTheme) => Figure;
   config?: Partial<Config>;
 }
 
-const Plot = forwardRef<PlotElement | null, Props>(function Plot({ id, className, figure, config }, ref) {
+const Plot = forwardRef<PlotElement | null, Props>(function Plot({ id, className, style, figure, config }, ref) {
   const el = useRef<PlotElement>(null);
   const dark = useDarkTheme();
+  // drawn again once the web fonts load: Plotly sizes legends with the font it has
+  const [fonts, setFonts] = useState(false);
+  useEffect(() => { document.fonts?.ready.then(() => setFonts(true)).catch(() => {}); }, []);
   useImperativeHandle(ref, () => el.current as PlotElement, []);
 
   useEffect(() => {
@@ -34,14 +38,14 @@ const Plot = forwardRef<PlotElement | null, Props>(function Plot({ id, className
       P.react(el.current, data, layout, { responsive: true, displayModeBar: false, ...config });
     }).catch(() => {});
     return () => { alive = false; };
-  }, [figure, config, dark]);
+  }, [figure, config, dark, fonts]);
 
   useEffect(() => () => {
     const node = el.current;
     if (node) loadPlotly().then(P => P.purge(node)).catch(() => {});
   }, []);
 
-  return <div id={id} className={className} ref={el}></div>;
+  return <div id={id} className={className} style={style} ref={el}></div>;
 });
 
 export default Plot;
