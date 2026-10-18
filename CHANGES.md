@@ -125,6 +125,16 @@ Checked in Edge with both servers: Escherichia → coli → 562, Campylobacter �
 
 ---
 
+## Final sprint planned (2026-10-17)
+
+The supervisor asked for the timeline as an ML model and for the missing RL agent and GAN; the team has 3 days (17 to 19 October).
+
+| File | Change |
+|---|---|
+| [HAMZA_PROGRESS.md](progress/HAMZA_PROGRESS.md) | "Final sprint" section: day-by-day plan and owners. Hamza: timeline ML model (186 yearly resistance series from 553,223 dated lab results), GAN experiment (CTGAN, `A13_ctgan`), results chapter. Ali: RL agent, data chapters. Suleman: deploy, `/timeline` page, system design, demo video, tag. Moved to future work: retraining on 87,325 genomes, 4- vs 6-mer comparison, backend switch to the library, real-PyPI release |
+| [formats/README.md](progress/formats/README.md) §8 | Proposed `ml_forecast` block of `/api/timeline/` |
+| Handovers | Ali and Suleman: their sprint tasks |
+
 ## Notebooks of the current models (2026-10-13)
 
 The supervisor asked for the model code as notebooks; the original notebooks are the July versions, not the served models.
