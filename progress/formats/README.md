@@ -297,3 +297,21 @@ genome_status(settings.TRAINED_MODELS_DIR, '562.1234')
 
 `role`: `'test'` = a fair test; `'train'` = the model learned from it, so its prediction looks better than on a new genome (show a caution); `None` = not in that model's data (e.g. no lab label, or no complete assembly for the genome models). First call reads the file (0.16 s), later calls take microseconds.
 
+---
+
+## 8. Timeline ML forecast (proposed 2026-10-17)
+
+The `/api/timeline/` response gains an `ml_forecast` block beside the simulation. Written by Hamza (`backend/ml_models/timeline_ml.py`), shown by Suleman on `/timeline`. Absent when the organism and antibiotic have too little history (the page then shows only the simulation, with one line saying so).
+
+| Field | Type | Meaning |
+|---|---|---|
+| `ml_forecast.model_run` | string | Run id of the timeline model |
+| `ml_forecast.organism` | string | Genus the series is for, e.g. `Escherichia` |
+| `ml_forecast.antibiotic` | string | Canonical name |
+| `ml_forecast.history` | list | Observed yearly resistant share: `{year, resistant_pct, n}` (`n` = lab results that year) |
+| `ml_forecast.forecast` | list | `{year, resistant_pct, lo, hi}` for the next years (`lo`/`hi` = an interval from the held-out errors) |
+| `ml_forecast.metrics` | object | Held-out error: `mae_pct` (percentage points) with CI, and the same for the baselines (last value, linear trend) |
+| `ml_forecast.label` | string | "ML model trained on BV-BRC laboratory results" (show it; the simulation keeps its own label) |
+
+Units: percentages 0 to 100, like the simulation's `*_fraction` fields.
+
