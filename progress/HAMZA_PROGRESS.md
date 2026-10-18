@@ -2,7 +2,7 @@
 
 **Role:** models
 **Plan:** the split by skill (Ali: data + evolution, Hamza: models, Suleman: platform), based on [FYP_Completion_Roadmap.md](../docs/FYP_Completion_Roadmap.md)
-**Started:** 2026-09-25 · **Last updated:** 2026-10-13 (Week 4 done: library on TestPyPI)
+**Started:** 2026-09-25 · **Last updated:** 2026-10-17 (final sprint planned: timeline ML model, GAN, RL agent, report in 3 days)
 
 Status key: `[ ]` not started · `[~]` in progress · `[x]` done · `[!]` blocked (say why in the log)
 
@@ -26,7 +26,8 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done · `[!]` blocke
 | 2 | 5 Oct to 9 Oct | Genome experiments B0 to B4 (k-mers) | Done 2026-09-27 (plus a first B6) |
 | 3 | 12 Oct to 16 Oct | Gene-feature models B6/B7, deploy the best genome model | **Done.** B6 0.979, B8 0.82–0.94 on unseen genera; `/predict`: k-mer model (0.935, since 2026-09-29) and **gene model `G_genes_deploy` (0.977, `genes_found`)**, promoted 2026-10-01, verified with real AMRFinderPlus in the Docker image by CI 2026-10-09. Optional suggestions (section D) left open |
 | 4 | 19 Oct to 23 Oct | Library v0.2.0, statistics and seeds | **Done** (early, 2026-09-30 to 10-13): library 0.2.0 on TestPyPI and installs in a clean venv; statistics: seeds, DeLong/McNemar, calibration plot, accuracy columns. Backend switch to `amrpredict` postponed until after the demo (agreed with Suleman) |
-| 5 | 26 Oct to 30 Oct | Results chapters | Not started |
+| Sprint | 17 to 19 Oct | Timeline ML model, GAN experiment, results chapter ([Final sprint](#final-sprint-17-to-19-october-added-2026-10-17)) | Planned 2026-10-17 |
+| 5 | 26 Oct to 30 Oct | Results chapters | Brought forward into the final sprint (17 to 19 Oct) |
 | Research | alongside weeks 3 to 5 | Lab-genome runs B6 to B8, lineage split for all models, seeds and tests, calibration plot, temporal split ([Research track](#research-track-added-by-ali-2026-09-28), added by Ali) | **Done on the 24,926 genomes** (2026-10-01). Next: rerun on all 87,325 lab-tested genomes when Ali's merged gene matrix is ready (his k-mers for 89,738 genomes are on Drive) |
 
 **Files I own:** `experiments/` (except `lib/data_prep.py`, `genome/features/`, `evolution/`), `backend/ml_models/lgbm_predictor.py`, `backend/ml_models/resistance_predictor.py`, `backend/trained_models/`, `amrpredict-lib/`.
@@ -184,6 +185,35 @@ All figures on **cleaning v6**, plasmid-only records excluded (`*_v6` runs; the 
 
 ---
 
+## Final sprint: 17 to 19 October (added 2026-10-17)
+
+The supervisor asked for (1) the timeline as an **ML model** instead of the simulation's equations, and (2) the RL agent and the GAN part, which were still missing. The team finishes the project in 3 days. Assignments follow each person's area; the GAN moves from Ali to Hamza because it runs through Hamza's training code (`run.py`) and Ali has the RL agent.
+
+**Day 1, Fri 17 Oct: build the three missing parts**
+- [ ] **Timeline ML model (Hamza).** A model trained on real resistance trends: from the 553,223 BV-BRC lab results with a collection year (2000 to 2022), the yearly resistant share of each organism and antibiotic: 186 series with at least 5 years, 110 with 10 or more (2,619 year points with at least 20 lab results each). LightGBM regression predicts next year's resistant share from the previous years (lags, trend), the drug class and the organism; tested on the last 3 years of every series (a temporal holdout), against naive baselines (last value, linear trend); external check on the ECDC *K. pneumoniae* carbapenem series (`Data/evolution_curves/`). Files: `experiments/timeline_ml/` (build the series, train, evaluate), promoted to `backend/trained_models/timeline_ml/` with a `metrics.json`. *Done when: a held-out error (MAE, in percentage points) with a CI, and better than both baselines, or stated honestly if not*
+- [ ] **Agree the response format with Suleman (Hamza):** formats §8 (`ml_forecast` block of `/api/timeline/`), written 2026-10-17
+- [ ] **GAN experiment (Hamza).** `A13_ctgan`: CTGAN trained on the training rows only, synthetic rows only for rare antibiotics and genera, added to A2's training data; evaluated on the real test set with CIs and a significance test against A2. Synthetic data quality reported (column distributions, a real-vs-synthetic classifier). Never committed: the synthetic rows. *Done when: the result is in `registry.csv`, gain or not*
+
+**Day 2, Sat 18 Oct: wire into the website, deploy**
+- [ ] `backend/ml_models/timeline_ml.py` serves the forecast; `/api/timeline/` returns `ml_forecast` beside the simulation (Hamza; the view is Suleman's, the wiring agreed in his Handovers)
+- [ ] Notebook `notebooks/04_timeline_and_gan.ipynb`, executed with outputs, for the supervisor (Hamza)
+- [ ] Ali: RL agent results into `/api/timeline/` (`rl` block, his converter `rl_output.py`); Suleman: page and deploy (their Handovers)
+
+**Day 3, Sun 19 Oct: report and hand-in**
+- [ ] Results chapter (Hamza): forecaster, genome models, timeline ML, GAN, statistics, deployed-system evaluation
+- [ ] `CHANGES.md`, README current figures, trackers final (Hamza)
+- [ ] With the team: demo video, tag `v1.0-submission`
+
+**Moved to future work** (stated in the report): retraining the genome models on all 87,325 lab-tested genomes (Ali's merged gene matrix is not ready), the 4-mer vs 6-mer comparison, the backend switch to `amrpredict`, the real-PyPI release.
+
+| Who | Day 1 (Fri 17) | Day 2 (Sat 18) | Day 3 (Sun 19) |
+|---|---|---|---|
+| **Hamza** | Timeline ML model; GAN (CTGAN) experiment | Timeline model in the backend; notebook 04 | Results chapter; final docs |
+| **Ali** | RL agent training (PPO/DQN or Q-learning) vs the fixed policies | RL output into `/api/timeline/`; yearly-series check for the timeline model | Data and methods chapters |
+| **Suleman** | Deploy backend (Docker) and `web/` on Railway | `/timeline` page: ML forecast and live RL panel | System-design chapter; demo video; tag |
+
+---
+
 ## Week 5: report
 
 - [ ] **Results chapters:** comparison table, ablations, learning curve, species hold-out, threshold trade-off, calibration, genome B-track
@@ -269,6 +299,7 @@ Newest first. One line per work session: date, what I did, what is next, anythin
 
 | Date | Done | Next | Blockers |
 |---|---|---|---|
+| 2026-10-17 | Final sprint planned (3 days): the supervisor wants the timeline as an ML model, plus the missing RL agent and GAN. Checked the data: 553,223 lab results with a collection year give 186 yearly resistance series (>= 5 years) for a real timeline ML model. Assignments: Hamza timeline ML model, GAN experiment, results chapter; Ali RL agent, data chapters; Suleman deploy, `/timeline` page, demo, system design. Formats §8 written. Retraining on 87,325 genomes and the 4- vs 6-mer comparison moved to future work | Day 1: timeline ML model and CTGAN | None |
 | 2026-10-13 | July notebooks (`LightGBM_Model_Improved`, `resistance_prediction_model`, `bacterial_mutation_timeline`) moved to `notebooks/archive/`, so `notebooks/` opens with the current models (`01`–`03`) and Ali's Colab tools; paths updated in `README.md` §6 and §13, `notebooks/README.md`, `experiments/HANDBOOK.md`; README §11.5 (the removed empty notebook) and a stale closing tip (`/predict` on a fallback heuristic) corrected. Suleman asked to update the path on two pages | — | None |
 | 2026-10-13 | Notebooks of the current models for the supervisor: `notebooks/01_forecaster_model.ipynb` (served forecaster, step by step; AUC, confusion counts and threshold identical to the published run), `02_genome_models.ipynb` (gene and k-mer models; lab AUC identical; website code gives the training probability), `03_evaluation.ipynb` (seen vs unseen, seeds, significance, lineage, temporal, calibration); all executed with outputs saved. `notebooks/README.md` says which notebook is which; the empty `forecasting_formulation.ipynb` (0 bytes since May) removed | Share them with the supervisor | None |
 | 2026-10-13 | **Week 4 done:** `amrpredict 0.2.0` uploaded to TestPyPI (after a 403: the token had gone in as the username instead of the password) and checked from a clean venv outside the project: same forecast as the website (0.7055). The token printed in the failed attempt's log was deleted on test.pypi.org (confirmed 2026-10-13). Docs brought in line with the release: install command from TestPyPI in the library README and quickstart (`pip install amrpredict` from the real PyPI fails until the final release), `CITATION.cff` 0.2.0, README §7 (release, parity with the backend, test counts) and stale §11.1 / §11.3 sentences, roadmap checklist ticked where the code shows it done (security step 12, exports, batch CSV, labelling, library). Test script kept at `Desktop/vibe/test_library/test_amrpredict.py`; re-run by Hamza from that folder with the clean venv: version 0.2.0, forecast Resistant 0.7055, `D3_forecaster_deploy_v7`, test AUC 0.7737, k-mer model and timeline run, installed in `C:\amrtest\Lib\site-packages` (not the project) | Week 5: results chapters; Colab 4- vs 6-mer comparison | Ali's merged gene matrix |
