@@ -213,6 +213,9 @@ backend/trained_models/*
 # The gene model /predict serves where AMRFinderPlus runs (promote.py --genome
 # on a gene run): booster, gene rules and species profiles, 4.9 MB
 !backend/trained_models/genome_genes/
+# The timeline ML model behind /api/timeline/'s ml_forecast (experiments/timeline_ml/),
+# with every series' yearly history, 0.3 MB
+!backend/trained_models/timeline_ml/
 # AMRFinderPlus summary and per-genome genes for /genes, built by
 # experiments/genome/features/export_gene_report.py (Data/ is not deployed)
 !backend/trained_models/gene_report.json

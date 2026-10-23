@@ -454,6 +454,16 @@ class MutationTimelineView(View):
                 return json_error('Model not initialized', 503)
 
             result = model.predict(fasta_text, antibiotic, n_weeks=n_weeks)
+            # The timeline ML model (format §8): the organism's observed yearly
+            # resistance and a forecast, beside the simulation; absent when the
+            # organism or its history is unknown
+            if 'error' not in result:
+                from ml_models.timeline_ml import get_forecaster
+                genus = fields.get('genus') if hasattr(fields, 'get') else None
+                ml = get_forecaster(str(settings.TRAINED_MODELS_DIR)).for_request(
+                    fasta_text, antibiotic, genus if isinstance(genus, str) else None)
+                if ml:
+                    result['ml_forecast'] = ml
             return JsonResponse(result)
 
         except BadInput as e:
