@@ -7,3 +7,5 @@ matplotlib>=3.8
 openpyxl>=3.1
 gymnasium>=1.0
 stable-baselines3>=2.3
+# GAN experiment only (experiments/gan/, not in CI: it pulls in PyTorch):
+#   pip install ctgan --extra-index-url https://download.pytorch.org/whl/cpu
