@@ -107,6 +107,10 @@ def run(cfg, verbose=True):
         holdout_genus=scfg.get('holdout_genus'),
         cutoff_year=scfg.get('cutoff_year'),
         verbose=verbose)
+    # data.synthetic: rows made by a generative model (experiments/gan/), added
+    # to the training side only, so the test set stays real
+    if dcfg.get('synthetic'):
+        df, train_mask, test_mask = add_synthetic(df, train_mask, test_mask, dcfg['synthetic'], verbose)
 
     # ── Features ─────────────────────────────────────────────────────────
     fcfg = cfg['features']
@@ -390,6 +394,34 @@ def metrics_by_label_source(y, score, rows, threshold, ecfg, group_col='Genome I
 
 
 GENOME_META = os.path.join(os.path.dirname(HERE), 'Data', 'genome_meta', 'genome_meta.csv')
+
+
+def add_synthetic(df, train_mask, test_mask, path, verbose=True):
+    """Append synthetic rows (a parquet file, relative to the project root) to the
+    training side. Each row gets its own Genome ID (syn_<n>), so grouped folds
+    keep treating it as its own genome, and label_source 'synthetic'."""
+    full = path if os.path.isabs(path) else os.path.join(os.path.dirname(HERE), path)
+    syn = pd.read_parquet(full)
+    syn['Genome ID'] = [f'syn_{i}' for i in range(len(syn))]
+    syn['label_source'] = 'synthetic'
+    for col in df.columns:
+        if col not in syn:
+            syn[col] = np.nan
+    syn = syn[df.columns]
+    cats = [c for c in df.columns if str(df[c].dtype) == 'category']
+    base = df.copy()
+    for c in cats:
+        base[c] = base[c].astype(object)
+        syn[c] = syn[c].astype(object)
+    out = pd.concat([base, syn], ignore_index=True)
+    for c in cats:
+        out[c] = out[c].astype('category')
+    tr = np.concatenate([np.asarray(train_mask), np.ones(len(syn), bool)])
+    te = np.concatenate([np.asarray(test_mask), np.zeros(len(syn), bool)])
+    if verbose:
+        print(f'[synthetic] +{len(syn):,} rows from {path} on the training side '
+              f'(train {int(tr.sum()):,}, test {int(te.sum()):,}, unchanged)')
+    return out, tr, te
 
 
 def attach_year(df, verbose=True):
