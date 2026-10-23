@@ -2,13 +2,14 @@
 
 ## The current models (start here)
 
-Run in order, from this folder, with the project's environment. Each one was executed on 2026-10-13 and saved with its outputs, so it can be read without running it.
+Run in order, from this folder, with the project's environment. Each one was executed (01–03 on 2026-10-13, 04 on 2026-10-22) and saved with its outputs, so it can be read without running it.
 
 | Notebook | What it does | Checks against the published run | Run time |
 |---|---|---|---|
 | [01_forecaster_model.ipynb](01_forecaster_model.ipynb) | Trains the forecaster served on `/forecast` (`D3_forecaster_deploy_v7`) step by step: data, split by genome, out-of-fold resistance rates, LightGBM with a monotone MIC effect, isotonic calibration, threshold for at most 10% missed resistant isolates, evaluation, calibration plot, one prediction through the website's code | AUC 0.7737, the four confusion counts and the threshold: identical | about 25 min |
 | [02_genome_models.ipynb](02_genome_models.ipynb) | Trains the two genome models served on `/predict`: the gene model on AMRFinderPlus genes (`G_genes_deploy`) and the k-mer model (`G_kmer_deploy`); a significance test between them; how the website builds the features from an uploaded genome (species from its 6-mer profile, gene features) | Lab AUC 0.9772 and 0.9345: identical; the website's code gives the training run's probability | about 8 min |
 | [03_evaluation.ipynb](03_evaluation.ipynb) | The checks behind the reported numbers, from the saved runs: seen vs never-seen genomes (the July 0.93 vs 0.64), seeds, significance tests, lineage split, temporal test, calibration | reads `experiments/results/` | about 10 s |
+| [04_timeline_ml_and_gan.ipynb](04_timeline_ml_and_gan.ipynb) | The timeline ML model (yearly resistance series, trained up to 2016, tested on 2017–2022 against three baselines, ECDC check, the forecast the website shows) and the GAN experiment (CTGAN code, quality of the synthetic rows, effect on the model) | Timeline model retrained in the notebook equals the saved run; GAN results read from `experiments/gan/results/` | about 1 min |
 
 The notebooks call the project's own code (`experiments/run.py`, `experiments/lib/`, `experiments/genome/`, `backend/ml_models/`) and print each library function's source where it is first used, so the steps can be read in place. They write nothing to `experiments/results/`.
 
