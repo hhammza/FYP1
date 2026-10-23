@@ -125,6 +125,17 @@ Checked in Edge with both servers: Escherichia → coli → 562, Campylobacter �
 
 ---
 
+## Timeline ML model, GAN experiment, results chapter (2026-10-22)
+
+| File | Change |
+|---|---|
+| [timeline_model.py](experiments/timeline_ml/timeline_model.py), [series.csv](experiments/timeline_ml/series.csv) | New **timeline ML model**: yearly resistant share per genus and antibiotic from the 553,223 BV-BRC lab results with a collection year (467 series, 2,619 year points); LightGBM predicts a year from the years before it. Trained up to 2016, tested on 2017–2022: MAE 13.98 pp [11.84, 16.33], better than last value (14.33), linear trend (16.75) and historical mean (17.25); ECDC *K. pneumoniae*/carbapenem check: 2.32 pp vs last value 1.89 (a limitation) |
+| [timeline_ml.py](backend/ml_models/timeline_ml.py), `backend/trained_models/timeline_ml/`, [views.py](backend/api/views.py), [test_timeline_ml.py](backend/tests/test_timeline_ml.py) | The model is served: `/api/timeline/` returns `ml_forecast` (history, 5-year forecast with an 80% band, held-out errors) beside the simulation; the organism comes from the request's `genus` or the genome's 6-mer profile; 5 tests |
+| [ctgan_augment.py](experiments/gan/ctgan_augment.py), [A13_ctgan_v7.json](experiments/configs/A13_ctgan_v7.json), [run.py](experiments/run.py) `data.synthetic`, [GAN_RESULTS.md](experiments/gan/results/GAN_RESULTS.md) | **GAN experiment**: CTGAN fitted on A6's training rows of 62 rare antibiotics and 21 rare genera; 21,030 synthetic rows on A13's training side, real test set. Negative: AUC −0.0005 on all rows, **−0.0080** on the rare rows (both significant); detection AUC 0.9999. Synthetic rows stay in `experiments/cache/` (not committed) |
+| [04_timeline_ml_and_gan.ipynb](notebooks/04_timeline_ml_and_gan.ipynb) | New notebook, executed: the timeline model step by step (equals the saved run) and the GAN code and results |
+| [Chapter_Results.md](docs/report/Chapter_Results.md) | New: the results chapter of the report |
+| README, experiments README, formats §8, roadmap, trackers | Timeline model in the current figures; §8 live; GAN item ticked; Hamza's sprint done; Handovers for Suleman (show the forecast) and Ali |
+
 ## Final sprint planned (2026-10-17)
 
 The supervisor asked for the timeline as an ML model and for the missing RL agent and GAN; the team has 3 days (17 to 19 October).
