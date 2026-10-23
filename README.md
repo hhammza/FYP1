@@ -49,6 +49,7 @@ And **three prediction engines**, of which only two are machine learning:
 | LightGBM forecaster | Gradient-boosted trees | Antibiotic + taxonomy + MIC metadata | Resistant / Susceptible + probability | ✅ `D3_forecaster_deploy_v7`, cleaning v7, calibrated; AUC 0.774 on unseen genomes (lab rows 0.908) |
 | Genome models | LightGBM on AMRFinderPlus resistance genes (where AMRFinderPlus runs) or on 4-mers of the complete genome | Genome FASTA + antibiotic | Resistant / Susceptible + probability (+ the genes found) | ✅ gene model `G_genes_deploy`, lab AUC 0.977 on unseen genomes, served by the Docker image (checked by CI); k-mer model `G_kmer_deploy`, lab AUC 0.935, where AMRFinderPlus is not installed. Replaced a RandomForest on partial genomes (0.695) |
 | Mutation timeline | Logistic-growth simulation | Genome FASTA + antibiotic | Week-by-week resistance curve | ❌ not a model, no AUC, by design |
+| Timeline ML model | LightGBM regression on yearly resistance series | Organism (given, or identified from the genome) + antibiotic | Observed yearly % resistant and a 5-year forecast with an 80% band | ✅ `TL_timeline_ml` (2026-10-22): trained on 467 series from 553,223 dated lab results; error 13.98 pp on 2017–2022, beating last value, trend and mean; shown beside the simulation |
 
 The honesty about engine 3, labelling it a simulation everywhere in the UI rather than dressing it up as deep learning, is one of the stronger points of the project, and worth defending in a viva rather than hiding.
 
@@ -574,12 +575,13 @@ Leave `DEBUG` unset in production. Without `SECRET_KEY` or `ALLOWED_HOSTS` the b
 
 There are several AUC figures in circulation in this project. They are not contradictory, they come from different runs on different data, but you should know which is which before a viva.
 
-**Current figures (2026-10-12; forecaster cleaning v7; genome models v6, identical on v7).** Quote these; the tables below are the history that led to them.
+**Current figures (2026-10-22; forecaster cleaning v7; genome models v6, identical on v7).** Quote these; the tables below are the history that led to them.
 
 | Model | Served on | Test | AUC [95% CI] |
 |---|---|---|---|
 | `D3_forecaster_deploy_v7` (LightGBM, metadata + MIC) | `/forecast` | 1.57 M rows of unseen genomes | **0.774** [0.772–0.775]; lab-confirmed rows 0.908; 0.762 as `/forecast` scores it (form inputs) |
 | `G_kmer_deploy` (LightGBM, 4-mers of the complete genome) | `/predict` without AMRFinderPlus | 40,356 lab rows, 4,481 unseen genomes | **0.935** [0.931–0.939] |
+| `TL_timeline_ml` (LightGBM, yearly resistance series) | `/timeline` (`ml_forecast`) | 411 forecasts of 2017–2022 | mean absolute error **13.98 pp** [11.84–16.33]; last value 14.33, trend 16.75, mean 17.25 |
 | `G_genes_deploy` (LightGBM, AMRFinderPlus genes, no genus) | `/predict` where AMRFinderPlus runs (Docker image) | same | **0.977** [0.975–0.979] |
 | `B6L_genes_v6` (genes + genus, the best experiment) | experiment | same | **0.979** [0.977–0.981]; 0.9789 ± 0.0004 over 3 split seeds |
 | `B8_*_v6` (genes, one genus held out) | experiment | 7 genera | 0.82–0.94 with genes, 0.46–0.75 without |

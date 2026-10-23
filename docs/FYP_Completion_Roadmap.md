@@ -505,7 +505,7 @@ A suggested split, based on the proposal's roles (Ali: data; Hamza: models; Sule
 **Proposal items**
 - [x] Ablations and cross-dataset/species hold-out in the report ✅ (already have) *(runs done; the report chapter is Week 5)*
 - [~] Evolution component: simulation fixed, sensitivity analysis, (calibration), (RL agent) *(fix, sensitivity and calibration done; RL agent in progress with Ali, its panel built by Suleman)*
-- [ ] GAN experiment run **or** descoped in writing
+- [x] GAN experiment run **or** descoped in writing *(run 2026-10-22, `A13_ctgan_v7`: negative, `experiments/gan/results/GAN_RESULTS.md`)*
 - [ ] Drug design prototype **or** descoped in writing
 - [ ] Images descoped in writing
 - [ ] Supervisor email confirming the scope decisions

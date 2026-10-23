@@ -299,9 +299,9 @@ genome_status(settings.TRAINED_MODELS_DIR, '562.1234')
 
 ---
 
-## 8. Timeline ML forecast (proposed 2026-10-17)
+## 8. Timeline ML forecast (proposed 2026-10-17; live in `/api/timeline/` since 2026-10-22)
 
-The `/api/timeline/` response gains an `ml_forecast` block beside the simulation. Written by Hamza (`backend/ml_models/timeline_ml.py`), shown by Suleman on `/timeline`. Absent when the organism and antibiotic have too little history (the page then shows only the simulation, with one line saying so).
+The `/api/timeline/` response gains an `ml_forecast` block beside the simulation. Written by Hamza (`backend/ml_models/timeline_ml.py`), shown by Suleman on `/timeline`. Absent when the organism and antibiotic have too little history (the page then shows only the simulation, with one line saying so). The organism is the request's optional `genus` field, or else the genus identified from the uploaded genome's 6-mer profile (genomes of 100,000 bp or more). `metrics` holds `model`, `last_value`, `linear_trend`, `historical_mean`, each `{mae_pct, ci}`.
 
 | Field | Type | Meaning |
 |---|---|---|
