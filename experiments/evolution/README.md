@@ -93,3 +93,21 @@ A Gymnasium environment for choosing one drug a week. The drug given moves one w
 `results/rl_baselines.md` scores the policies the agent has to beat (always one drug, cycling every week or every 4 weeks, and greedy: the drug with the lowest resistance now) over 100 seeded episodes, for fitness costs of 0%, 2% and 5% a week, since the real cost is not known. With no cost every mixed policy gets about 36 effective weeks; with 2%, cycling every week gets the most effective weeks (57) and greedy the lowest burden; with 5%, greedy never fails.
 
 Simplifications: three drugs from different classes (ciprofloxacin, gentamicin, imipenem), no cross-resistance, hand-set curves and an illustrative time scale. The policy is learned on a simulation, not on patient data.
+
+## 4. RL agent (`rl_train.py`, T3.1c)
+
+```bash
+.venv/bin/python experiments/evolution/rl_train.py              # 9 agents, about 5 minutes
+.venv/bin/python experiments/evolution/rl_train.py --from-saved # re-evaluate the agents in models/
+.venv/bin/python -m unittest experiments/evolution/test_rl_agent.py
+```
+
+PPO (stable-baselines3, MLP 64-64, 300,000 steps) learns the weekly drug choice in `rl_env.CyclingEnv`, one agent per fitness cost (0%, 2%, 5%) from three training seeds each. It is scored on the same 100 episodes as the baselines (seeds 1000 on, never used in training), picking its most likely drug each week. `results/rl_agent.md` has the full table and a paired comparison on the same episodes; `results/rl_agent.csv` the numbers.
+
+What it shows (5% fitness cost, the served setting; the other costs agree):
+
+- **The agent beats every fixed schedule.** Against cycling every week its first failure comes 48.7 weeks later [47.6 to 49.9] with 15.5 more effective weeks; against always imipenem, 62.1 weeks later. Its reward is higher than every fixed schedule's.
+- **It ties the greedy rule on the reward it was trained for and loses on failure.** Greedy (give the drug with the lowest resistance now) never fails in 104 weeks; the agent's reward is 0.5 higher [0.5 to 0.5], but its first failure comes 23.7 weeks earlier. The reward counts burden and resistance growth week by week and has no term for "a week failed", so the agent trades an occasional failed week for less resistance growth. To make it delay failure the reward has to say so: a stated limitation, and the next step if the RL part is extended.
+- **Stable across training seeds:** the seed means differ by under 3 weeks on every measure.
+
+**Served** since 2026-10-24 as the `rl` block of `/api/timeline/` (format §4) for ciprofloxacin, gentamicin and imipenem: the 5% agent from the training seed with the best reward on separate check episodes, exported to `backend/trained_models/rl_agent/` as plain arrays. `backend/ml_models/rl_agent.py` runs it with numpy (the backend image has no gymnasium or torch) and keeps a numpy copy of the environment; `test_rl_agent.py` checks the backend block equals `rl_output.rl_block()` with the same agent, number for number. The agent sees each week against its 104-week training horizon, so a 1 to 52 week request is the start of the episode it was trained on. `rl.best` follows §4 (latest failure week, then reward). In the 1 to 52 weeks the website asks for, neither the agent nor greedy fails at the served seed, so reward decides: the agent is named best in 8 of 12 sample requests (3 drugs × 8, 12, 26, 52 weeks) and greedy in the other 4.

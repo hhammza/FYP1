@@ -223,6 +223,9 @@ backend/trained_models/*
 # Timeline calibration summary served by /api/timeline/, written by
 # experiments/evolution/calibrate.py
 !backend/trained_models/timeline_calibration.json
+# The RL agent behind /api/timeline/'s rl block (experiments/evolution/rl_train.py):
+# policy weights as numpy arrays, 44 KB
+!backend/trained_models/rl_agent/
 
 
 # ------------------------------------------------------------
@@ -235,6 +238,10 @@ backend/trained_models/*
 #   model/           44 MB — trained artifacts + rate tables
 # To reproduce a model: python experiments/run.py experiments/configs/<id>.json
 # ------------------------------------------------------------
+
+# Trained RL agents (stable-baselines3 zips); rebuilt by experiments/evolution/rl_train.py.
+# The served one ships as backend/trained_models/rl_agent/
+experiments/evolution/models/
 
 # CatBoost writes a training log folder into the working directory
 catboost_info/

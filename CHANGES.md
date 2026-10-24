@@ -18,6 +18,20 @@ Baseline is commit **`52ae361`** *(Add amrpredict library and macOS launcher, 20
 
 ---
 
+## RL agent trained and served (2026-10-24, Ali)
+
+| File | Change |
+|---|---|
+| [experiments/evolution/rl_train.py](experiments/evolution/rl_train.py) | New. PPO (stable-baselines3) on `rl_env.CyclingEnv`: 9 agents (fitness cost 0%, 2%, 5% × 3 training seeds), scored on the baselines' 100 episodes with paired bootstrap intervals; exports the served agent |
+| [experiments/evolution/results/rl_agent.md](experiments/evolution/results/rl_agent.md) | New. The agent beats every fixed schedule (5%: first failure 48.7 weeks after weekly cycling); it edges greedy on reward but fails earlier, since the reward has no term for a failed week |
+| [backend/ml_models/rl_agent.py](backend/ml_models/rl_agent.py) | New. numpy copy of the environment and the policy network, so the backend image needs no gymnasium or torch; weights in `backend/trained_models/rl_agent/` (44 KB) |
+| [backend/ml_models/mutation_timeline.py](backend/ml_models/mutation_timeline.py) | Adds the `rl` block (format §4) for ciprofloxacin, gentamicin and imipenem; no longer reports itself trained if a `.pkl` appears (Hamza's code review) |
+| [experiments/evolution/test_rl_agent.py](experiments/evolution/test_rl_agent.py), [backend/tests/test_rl_block.py](backend/tests/test_rl_block.py) | New. Backend block equals the experiment code number for number; endpoint tests |
+| [progress/formats/README.md](progress/formats/README.md) | §4: `rl` served; `failure_week` counts the start of the week; answers to Suleman's horizon and curve questions |
+| [experiments/evolution/README.md](experiments/evolution/README.md) | Section 4, the RL agent |
+
+---
+
 ## React + TypeScript frontend finished (2026-10-15, Suleman; branch `frontend-react`)
 
 | File | Change |

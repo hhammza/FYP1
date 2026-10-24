@@ -8,7 +8,6 @@ in progress/formats/README.md section 4.
 import json
 import os
 import re
-import pickle
 import numpy as np
 import warnings
 from collections import Counter
@@ -167,20 +166,13 @@ class MutationTimelinePredictor:
         self.artifacts = None
         self.is_trained = False
         self.calibration = None
+        self.rl_agent = None
         self._load()
 
     def _load(self):
-        model_path = os.path.join(self.model_dir, 'mutation_timeline_model.pkl')
-        if os.path.exists(model_path):
-            try:
-                with open(model_path, 'rb') as f:
-                    self.artifacts = pickle.load(f)
-                self.is_trained = True
-                print("[Timeline] Model loaded from disk.")
-            except Exception as e:
-                print(f"[Timeline] Could not load: {e}")
-        else:
-            print("[Timeline] No trained model. Using biological simulation.")
+        # The simulation is not a trained model and reads no model file, so a
+        # stray mutation_timeline_model.pkl must not make /api/health/ call it trained
+        print("[Timeline] Biological simulation (not a trained model).")
 
         # Fit against published curves (experiments/evolution/calibrate.py); a check of the
         # curve's shape, which does not change the constants above. Missing file: null.
@@ -191,6 +183,13 @@ class MutationTimelinePredictor:
                     self.calibration = json.load(f)
             except Exception as e:
                 print(f"[Timeline] Could not read calibration: {e}")
+
+        # The RL agent for the `rl` block (format §4), trained by
+        # experiments/evolution/rl_train.py. Missing folder: no `rl` block.
+        from ml_models import rl_agent
+        self.rl_agent = rl_agent.load(self.model_dir)
+        if self.rl_agent:
+            print(f"[Timeline] RL agent loaded ({', '.join(self.rl_agent.drugs)}).")
 
     def predict(self, fasta_text, antibiotic, n_weeks=8, seed=42):
         sequence = read_fasta_sequence(fasta_text)
@@ -228,7 +227,7 @@ class MutationTimelinePredictor:
                 ),
             })
 
-        return {
+        result = {
             'antibiotic': antibiotic,
             'antibiotic_class': profile['type'],
             'sequence_length': len(sequence),
@@ -240,13 +239,19 @@ class MutationTimelinePredictor:
             'failure_week': failure_week,
             'final_resistant_percent': final_week['resistant_fraction'],
             'peak_resistance': profile['peak'] * 100,
-            # No trained model exists; a pickle on disk is loaded but never used
+            # A simulation, not a trained model
             'model_used': 'Biological Simulation',
             'simulation': True,
             'seed': seed,
             'calibration': dict(self.calibration) if self.calibration else None,
             'summary': self._generate_summary(antibiotic, timeline, failure_week, profile),
         }
+        # Which drug to give each week (format §4); absent when the agent was
+        # not trained with this drug, and the panel is hidden then
+        rl = self.rl_agent.block(antibiotic, n_weeks, seed=seed) if self.rl_agent else None
+        if rl:
+            result['rl'] = rl
+        return result
 
     def _generate_summary(self, antibiotic, timeline, failure_week, profile):
         final = timeline[-1]['resistant_fraction']

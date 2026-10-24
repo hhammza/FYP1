@@ -1,0 +1,22 @@
+{
+ "agent": "PPO (stable-baselines3)",
+ "drugs": [
+  "ciprofloxacin",
+  "gentamicin",
+  "imipenem"
+ ],
+ "train_weeks": 104,
+ "decay": 0.05,
+ "training_seed": 0,
+ "layers": 3,
+ "activation": "tanh",
+ "observation": "resistant share per drug (0 to 1) in `drugs` order, then week / train_weeks",
+ "numpy_agrees_with_sb3": 1.0,
+ "evaluation": {
+  "effective_weeks": 92.5,
+  "failure_week": 77.14,
+  "reward": -35.304,
+  "mean_burden": 0.3
+ },
+ "built_by": "experiments/evolution/rl_train.py"
+}

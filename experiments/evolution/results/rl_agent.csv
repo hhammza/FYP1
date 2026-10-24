@@ -1,0 +1,22 @@
+decay,policy,effective_weeks,failure_week,reward,mean_burden
+0.0,PPO agent,35.847,35.37,-53.089,0.496
+0.0,always ciprofloxacin,6.95,7.95,-90.385,0.861
+0.0,always gentamicin,11.27,12.27,-71.779,0.684
+0.0,always imipenem,18.24,19.24,-59.931,0.571
+0.0,cycle every week,36.49,21.95,-61.391,0.57
+0.0,cycle every 4 weeks,36.48,18.29,-61.769,0.573
+0.0,lowest resistance (greedy),36.59,37.59,-52.959,0.492
+0.02,PPO agent,49.27,40.143,-47.867,0.438
+0.02,always ciprofloxacin,6.95,7.95,-90.385,0.861
+0.02,always gentamicin,11.27,12.27,-71.779,0.684
+0.02,always imipenem,18.24,19.24,-59.931,0.571
+0.02,cycle every week,56.61,25.03,-52.735,0.47
+0.02,cycle every 4 weeks,53.43,20.84,-53.243,0.475
+0.02,lowest resistance (greedy),48.01,48.71,-47.988,0.427
+0.05,PPO agent,95.0,81.313,-35.32,0.3
+0.05,always ciprofloxacin,6.95,7.95,-90.385,0.861
+0.05,always gentamicin,11.27,12.27,-71.779,0.684
+0.05,always imipenem,18.24,19.24,-59.931,0.571
+0.05,cycle every week,79.53,32.59,-39.719,0.333
+0.05,cycle every 4 weeks,74.47,23.94,-40.506,0.341
+0.05,lowest resistance (greedy),104.0,105.0,-35.8,0.299

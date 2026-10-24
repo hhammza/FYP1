@@ -175,10 +175,12 @@ A new `rl` object. **Field absent = RL not run** (Week 1 to 3, or the agent is n
 | `rl.policies[].label` | string | For the legend, e.g. `RL agent`, `Always ciprofloxacin`, `Cycle A → B → C` |
 | `rl.policies[].policy` | list of strings, length `n_weeks` | Drug given in weeks 1 to `n_weeks` |
 | `rl.policies[].resistant_fraction` | object: drug → list of numbers 0–100, length `n_weeks + 1` | Resistant percent per drug, week 0 to `n_weeks`. One line per drug on the chart |
-| `rl.policies[].failure_week` | int or `null` | First week the drug given that week has `resistant_fraction` ≥ 50 |
+| `rl.policies[].failure_week` | int or `null` | First week whose drug **starts** the week at ≥ 50% resistance: week `w` fails when `resistant_fraction[drug][w - 1]` ≥ 50 (index `w - 1` is the start of week `w`, index `w` its end). `null` = never in the window. *Settled 2026-10-24 (Ali), see answer 4* |
 | `rl.policies[].total_reward` | number | Episode reward (higher is better). For the comparison table only |
 | `rl.policies[].effective_weeks` | int, optional | Weeks the drug given was under 50% resistance, out of `n_weeks`. *Added 2026-09-30 (Suleman)*: fairer than `failure_week` alone, since a policy can fail early yet work most weeks |
 | `rl.policies[].mean_burden` | number 0–100, optional | Resistant percent of the drug given, averaged over the weeks (lower is better). *Added 2026-09-30 (Suleman)* |
+
+**Served since 2026-10-24** by `backend/ml_models/rl_agent.py` (called from `mutation_timeline.py`, so `/api/timeline/` needs no change): the PPO agent from `experiments/evolution/rl_train.py` (`trained_models/rl_agent/`) for `ciprofloxacin`, `gentamicin` and `imipenem`; `rl` is absent for other drugs. It is a numpy copy of the code below, checked equal to it by `experiments/evolution/test_rl_agent.py`; endpoint tests in `backend/tests/test_rl_block.py`.
 
 **Built by** `experiments/evolution/rl_output.py` (`rl_block(antibiotic, n_weeks, seed, agent=...)`, Suleman 2026-09-30) from Ali's `rl_env.py`, which keeps its own units (0–1 shares, "never failed" = week `weeks + 1`); the conversion to this format happens only there. Every policy runs on the same seed. Baseline names: `always_<drug>`, `cycle`, `cycle_4`, `lowest_resistance`; the panel shows any name by its `label`. Tests: `experiments/evolution/test_rl_output.py`.
 
@@ -187,7 +189,7 @@ A new `rl` object. **Field absent = RL not run** (Week 1 to 3, or the agent is n
 ### Answers to Suleman's questions (2026-09-26)
 
 1. **Tie for `rl.best`.** Compare `failure_week` with `null` (never fails in the window) as later than any week. If several policies share the latest, the higher `total_reward` wins; if that ties too, the one earlier in `rl.policies` wins, so the RL agent wins a full tie. The backend applies this rule, so the UI can trust `rl.best` without re-deriving it.
-2. **Is the requested drug always in `rl.drugs`?** Yes, always first, and `rl.policies` always has an `always_<requested antibiotic>` baseline, which is the same curve as the main timeline. If the agent was not trained for the requested drug, `rl` is absent rather than answering for other drugs.
+2. **Is the requested drug always in `rl.drugs`?** Yes, always first, and `rl.policies` always has an `always_<requested antibiotic>` baseline (not the same curve as the main timeline: see answer 6). If the agent was not trained for the requested drug, `rl` is absent rather than answering for other drugs.
 3. **`calibration` types.**
 
 | Field | Type | Meaning |
@@ -209,6 +211,12 @@ Added 2026-09-28 (Ali), optional, so a reader of the three fields above is unaff
 | `calibration.note` | string | One sentence for the page: the weeks are illustrative |
 
 `drugs` holds the five lab drugs and `carbapenems` (a class, from the surveillance data), so most requested drugs are not in it; `/timeline` says so under the result.
+
+### Answers to Suleman's questions (2026-10-24, Ali)
+
+4. **Does a week fail at the start or the end?** At the **start**. The drug given in week `w` meets the bacteria as they are when it is given, so week `w` fails when that drug's resistance at the start of week `w` (index `w - 1` of `resistant_fraction`) is 50% or more. This is what `rl_env.py` and the served block compute (`failure_week`, `effective_weeks` and `mean_burden` all use the start-of-week value). The panel can keep plotting the end-of-week values; the failed week is then the week after the line crosses 50.
+5. **Horizon: 104 weeks of training against a 1 to 52 week request.** The agent was trained on 104-week episodes and is run on the requested window: it sees each week against its 104-week training horizon (week `t` as `t / 104`), so a 12-week request is the first 12 weeks of the episode it was trained on, never a squeezed copy of all 104. Baselines and agent share the seed, so they start from the same resistance.
+6. **Does the RL curve line up with the main timeline?** No, and it should not be drawn as if it did. Both use the drug's `speed` and `peak` from `ANTIBIOTIC_MUTATION_PROFILES`, but the main timeline is a curve in time with its midpoint fixed at 45% of the requested window and a start from the genome's GC content, while the RL environment grows resistance from wherever it is now, one week at a time (rate `2.5 × speed`, with noise), only in weeks the drug is given, and lets it fade (5% a week) when the drug rests. That is what makes switching drugs matter. So `always_<drug>` is the RL environment's own "never switch" baseline, not a copy of the main chart; show the panel with its own axis and the label "Simulation + RL policy (not trained on patient data)".
 
 ---
 
