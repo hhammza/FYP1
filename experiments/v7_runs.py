@@ -77,10 +77,55 @@ def finished(run_id):
     return os.path.exists(os.path.join(RESULTS, run_id, 'metrics.json'))
 
 
+def run_py_processes():
+    """(CPU %, memory in bytes, command line) of every running experiments/run.py.
+
+    pgrep and ps do not exist on Windows, so: psutil when it is installed,
+    else PowerShell's process list on Windows (no CPU % there: None), else ps.
+    A missing tool gives an empty list rather than a crash."""
+    try:
+        import psutil
+        out = []
+        for p in psutil.process_iter(['cmdline', 'memory_info']):
+            cmd = ' '.join(p.info['cmdline'] or [])
+            if 'run.py' in cmd:
+                out.append((p.cpu_percent(interval=0.1), p.info['memory_info'].rss, cmd))
+        return out
+    except ImportError:
+        pass
+    try:
+        if os.name == 'nt':
+            query = ("Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -like '*run.py*' } "
+                     "| Select-Object WorkingSetSize, CommandLine | ConvertTo-Csv -NoTypeInformation")
+            text = subprocess.run(['powershell', '-NoProfile', '-Command', query],
+                                  capture_output=True, text=True).stdout
+            return parse_powershell_csv(text)
+        text = subprocess.run(['ps', '-axo', 'pcpu,rss,command'], capture_output=True, text=True).stdout
+        return parse_ps(text)
+    except FileNotFoundError:
+        return []
+
+
+def parse_ps(text):
+    """ps -axo pcpu,rss,command output → [(cpu %, bytes, command)]; rss is in KB."""
+    out = []
+    for line in text.splitlines()[1:]:
+        parts = line.split(None, 2)
+        if len(parts) == 3 and 'run.py' in parts[2] and 'grep' not in parts[2]:
+            out.append((float(parts[0]), int(parts[1]) * 1024, parts[2]))
+    return out
+
+
+def parse_powershell_csv(text):
+    """PowerShell's CSV of WorkingSetSize, CommandLine → [(None, bytes, command)]."""
+    rows = csv.DictReader(text.strip().splitlines()) if text.strip() else []
+    return [(None, int(r['WorkingSetSize'] or 0), r['CommandLine']) for r in rows
+            if r.get('CommandLine') and 'Get-CimInstance' not in r['CommandLine']]
+
+
 def running_ids():
-    out = subprocess.run(['pgrep', '-fl', 'run.py'], capture_output=True, text=True).stdout
-    return {os.path.basename(tok)[:-5] for line in out.splitlines()
-            for tok in line.split() if tok.endswith('_v7.json')}
+    return {os.path.basename(tok)[:-5] for _, _, cmd in run_py_processes()
+            for tok in cmd.split() if tok.endswith('_v7.json')}
 
 
 def run():
@@ -189,12 +234,12 @@ def watch(every=10):
             out = [f'Experiments on cleaning v7   {datetime.now():%H:%M:%S}   '
                    f'{done} of {len(q)} done   {eta}',
                    f'({basis}; Ctrl+C closes this view only)', ''] + out
-            ps = subprocess.run(['ps', '-axo', 'pcpu,rss,command'], capture_output=True, text=True).stdout
-            procs = [l.split(None, 2) for l in ps.splitlines() if 'run.py' in l and 'grep' not in l]
+            procs = run_py_processes()
             if procs:
-                cpu = sum(float(p[0]) for p in procs)
-                mem = sum(int(p[1]) for p in procs) / 1e6
-                out += ['', f'Working: yes   CPU {cpu:.0f}%   memory {mem:.1f} GB']
+                cpus = [c for c, _, _ in procs if c is not None]
+                cpu = f'CPU {sum(cpus):.0f}%   ' if cpus else ''
+                mem = sum(m for _, m, _ in procs) / 1e9
+                out += ['', f'Working: yes   {cpu}memory {mem:.1f} GB']
             else:
                 out += ['', 'Working: no' + ('' if done == len(q) else
                                                '   (start or resume with the "run" command)')]
