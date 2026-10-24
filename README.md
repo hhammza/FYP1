@@ -1,5 +1,7 @@
 # AMR Intelligence Platform
 
+[![CI](https://github.com/hhammza/FYP1/actions/workflows/ci.yml/badge.svg)](https://github.com/hhammza/FYP1/actions/workflows/ci.yml)
+
 *A walkthrough of how the whole system fits together, written from the code as it stands on 2026-09-24 (commit `52ae361`).*
 
 > **Updated 2026-09-24.** The training data is now in `data/`, and a model
@@ -36,6 +38,7 @@ You built a full-stack antimicrobial-resistance (AMR) prediction system with **f
 |---|---|---|---|
 | 1 | **Django REST API** | `backend/` | 14 endpoints, loads 3 prediction engines into memory at startup |
 | 2 | **Flask web app** | `frontend/` | 22 routes, 11 pages, calls the Django API over HTTP |
+| 2b | **React + TypeScript web app** (in progress, branch `frontend-react`) | `web/` | The same pages, page by page; calls the Django API straight from the browser. Flask stays the deployed site until it is finished ([web/README.md](web/README.md)) |
 | 3 | **`amrpredict` Python package** | `amrpredict-lib/` | The same three engines, cleaned up, pip-installable, with a CLI and tests |
 | 4 | **Research notebooks** | `*.ipynb` | Where the models were originally designed and trained (Colab) |
 
@@ -44,8 +47,9 @@ And **three prediction engines**, of which only two are machine learning:
 | Engine | Type | Input | Output | Trained? |
 |---|---|---|---|---|
 | LightGBM forecaster | Gradient-boosted trees | Antibiotic + taxonomy + MIC metadata | Resistant / Susceptible + probability | ✅ `D3_forecaster_deploy_v7`, cleaning v7, calibrated; AUC 0.774 on unseen genomes (lab rows 0.908) |
-| Genome k-mer model | LightGBM on 4-mers of the complete genome | Genome FASTA + antibiotic | Resistant / Susceptible + probability | ✅ `G_kmer_deploy` (since 2026-09-29), lab AUC 0.935 on unseen genomes; replaced a RandomForest on partial genomes (0.695). A gene model (0.979) follows once AMRFinderPlus runs on the server |
+| Genome models | LightGBM on AMRFinderPlus resistance genes (where AMRFinderPlus runs) or on 4-mers of the complete genome | Genome FASTA + antibiotic | Resistant / Susceptible + probability (+ the genes found) | ✅ gene model `G_genes_deploy`, lab AUC 0.977 on unseen genomes, served by the Docker image (checked by CI); k-mer model `G_kmer_deploy`, lab AUC 0.935, where AMRFinderPlus is not installed. Replaced a RandomForest on partial genomes (0.695) |
 | Mutation timeline | Logistic-growth simulation | Genome FASTA + antibiotic | Week-by-week resistance curve | ❌ not a model, no AUC, by design |
+| Timeline ML model | LightGBM regression on yearly resistance series | Organism (given, or identified from the genome) + antibiotic | Observed yearly % resistant and a 5-year forecast with an 80% band | ✅ `TL_timeline_ml` (2026-10-22): trained on 467 series from 553,223 dated lab results; error 13.98 pp on 2017–2022, beating last value, trend and mean; shown beside the simulation |
 
 The honesty about engine 3, labelling it a simulation everywhere in the UI rather than dressing it up as deep learning, is one of the stronger points of the project, and worth defending in a viva rather than hiding.
 
@@ -95,6 +99,11 @@ FYP1/
 │       └── js/                  10 files, one per page + main.js + dropdowns.js
 │                                + report-charts.js (shared by /models and /compare)
 │
+├── web/                         React + TypeScript frontend, replacing frontend/ page by page
+│   ├── src/pages/               one folder per tool page (forecast/, predict/, timeline/)
+│   ├── src/components/          navbar, footer, charts (Plot), downloads, FASTA input
+│   └── src/lib/                 API calls, model numbers, theme; *.test.ts(x) beside the code
+│
 ├── amrpredict-lib/              The packaged library (see §7)
 │   ├── src/amrpredict/          Flat API, CLI, 3 predictors, bundled models
 │   ├── tests/                   30 pytest tests
@@ -118,7 +127,7 @@ FYP1/
 │   └── fasta_output/            Genome assemblies (4 GB)
 │
 ├── progress/                    Team trackers, research plan, handover formats
-├── notebooks/                   Research notebooks (§6)
+├── notebooks/                   The current models step by step (01–03), Ali's Colab tools, archive/ (July notebooks) (§6)
 ├── docs/                        Roadmap, experiment plan, the long reference doc, data links
 ├── scripts/                     fasta_amr_map.py (CSV to FASTA join), train_all.bat,
 │                                bvbrc_download/ (the scripts that built Data/)
@@ -191,13 +200,13 @@ The target encodings are the interesting part and the most likely viva question.
 
 ### 4.2 Genome k-mer model - `ml_models/genome_predictor.py`
 
-**Input:** FASTA text (a complete assembly) + antibiotic. **Model:** LightGBM, promoted by `experiments/promote.py <run> --genome` into `backend/trained_models/genome/`; `api/model_registry.py` serves it whenever that folder exists.
+**Input:** FASTA text (a complete assembly) + antibiotic. **Model:** LightGBM, promoted by `experiments/promote.py <run> --genome`: a gene model into `backend/trained_models/genome_genes/`, a k-mer model into `backend/trained_models/genome/`. `backend/ml_models/genome_predictor.py` serves the gene model when AMRFinderPlus is installed (the Docker image) and the k-mer model otherwise (a laptop without it); if AMRFinderPlus fails on one upload, the k-mer model answers with a `warning`.
 
 **Features (259):** 256 4-mer frequencies of the whole genome, counted inside each contig over A/C/G/T windows only (exactly as `experiments/genome/kmers.py` counted them for training), the antibiotic (a native categorical), GC content and genome length. A *k-mer* is a substring of length k; with k = 4 there are 256 possible words, and their frequencies are a fixed-size fingerprint of the genome, with no alignment or reference needed.
 
 **Served run `G_kmer_deploy`:** trained on 24,719 complete genomes (cleaning v6, plasmid-only records dropped), threshold 0.43 chosen on validation for at most 10% very major error. **Lab AUC 0.935 [0.931–0.939]** on 40,356 lab-confirmed test rows from genomes it never saw. Uploads under 100,000 bp are refused (a partial or plasmid-only file is not a genome).
 
-**Why not the genes?** A gene model on AMRFinderPlus hits scores 0.979 and transfers to unseen genera (0.82–0.94 against 0.46–0.75 without genes), but it needs AMRFinderPlus on every upload (10–45 s), which needs the Docker image. It replaces this model then. All genome results: `experiments/GENOME_RESULTS.md`.
+**Served gene model `G_genes_deploy`** (promoted 2026-10-01): AMRFinderPlus genes and mutations + drug-aware gene counts + antibiotic and drug class, trained on the same 24,719 genomes; threshold 0.58 for at most 10% very major error. **Lab AUC 0.977 [0.975–0.979]** (very major error 10.2%, major error 5.1%, against 9.6% and 19.5% for k-mers), and it names the genes it found (`genes_found`). Per upload it identifies the species from the 6-mer profile (98.0% right species, 99.8% right genus on held-out genomes), runs AMRFinderPlus 4.2.7 (database 2026-08-07.1, as in training) with that `--organism`, and builds the gene features exactly as in training. Verified with real AMRFinderPlus in the Docker image by GitHub Actions on every push to `main` (2026-10-09). All genome results: `experiments/GENOME_RESULTS.md`.
 
 **The old engine** (`resistance_predictor.py`, a 100-tree RandomForest on the first 500 kb of partial FASTAs) stays as the fallback when no genome model is promoted. Re-tested on genomes outside its training files it scored 0.695, no better than the antibiotic alone; its scaler bug (§11.1) is fixed.
 
@@ -306,14 +315,16 @@ behind it in [EXPERIMENT_PLAN.md](docs/EXPERIMENT_PLAN.md).
 
 ## 6. The notebooks, where the models came from
 
-All four are in `notebooks/`.
+**The current models** are in `notebooks/01_forecaster_model.ipynb`, `02_genome_models.ipynb` and `03_evaluation.ipynb` (2026-10-13): each trains or checks a served model with the project's own code, saved with its outputs, and reproduces the published run exactly. `notebooks/README.md` describes them.
+
+The **July notebooks** below, where the first models came from, are kept as history in `notebooks/archive/`.
 
 | Notebook | Cells | State | What it contains |
 |---|---|---|---|
-| `LightGBM_Model_Improved.ipynb` | 10 | ✅ with outputs | The real LightGBM development run, audit, cleaning, 5-fold CV, pseudo-labelling, final retrain |
-| `resistance_prediction_model.ipynb` | 38 | outputs cleared | A **two-branch Keras MLP** (k-mer branch + antibiotic-embedding branch), the deep-learning design that the production RandomForest replaced |
-| `bacterial_mutation_timeline.ipynb` | 43 | partial outputs | A **CNN-LSTM** with three heads (nucleotide, position, mutation probability), trained against per-antibiotic consensus genomes |
-| `forecasting_formulation.ipynb` | n/a | **empty file (0 bytes)** | Nothing in it |
+| `archive/LightGBM_Model_Improved.ipynb` | 10 | ✅ with outputs | The real LightGBM development run, audit, cleaning, 5-fold CV, pseudo-labelling, final retrain |
+| `archive/resistance_prediction_model.ipynb` | 38 | outputs cleared | A **two-branch Keras MLP** (k-mer branch + antibiotic-embedding branch), the deep-learning design that the production RandomForest replaced |
+| `archive/bacterial_mutation_timeline.ipynb` | 43 | partial outputs | A **CNN-LSTM** with three heads (nucleotide, position, mutation probability), trained against per-antibiotic consensus genomes |
+| `forecasting_formulation.ipynb` | n/a | removed 2026-10-13 | It was an empty file (0 bytes) |
 
 Two things follow from this table:
 
@@ -325,6 +336,14 @@ Two things follow from this table:
 ## 7. The `amrpredict` package
 
 This is the newest layer (commit `52ae361`, September) and the most polished code in the repo. It takes the three engines out of Django and makes them a standalone library.
+
+**Version 0.2.0 is on TestPyPI** (https://test.pypi.org/project/amrpredict/0.2.0/, 2026-10-13) and installs in a clean environment (dependencies from the real PyPI):
+
+```bash
+pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ amrpredict==0.2.0
+```
+
+0.2.0 bundles the forecaster the website serves (`D3_forecaster_deploy_v7`) and runs it with the backend's own loader (calibration, species-level taxa, the model's threshold), so `amrpredict.forecast()` gives the website's numbers; `backend/tests/test_library_parity.py` fails if the two drift. `predict_fasta()` still uses the original k-mer RandomForest (the genome models are not in the library yet). The real-PyPI release (`pip install amrpredict`) comes with the final version.
 
 ```python
 import amrpredict
@@ -349,11 +368,12 @@ amrpredict antibiotics --compact | jq
 | Model loading | Eager, at Django startup | Lazy + thread-locked singleton (`registry.py`), nothing read until first call |
 | Diagnostics | `print()` | `logging`, so `amrpredict antibiotics \| jq` isn't corrupted by stray output |
 | Model dir | Required constructor arg | Defaults to models bundled inside the wheel (`_paths.py` via `importlib.resources`) |
-| K-mer scaling | **Broken** (§11.1) | **Fixed**, scales only `feat[:256]` |
+| K-mer scaling | Fixed 2026-09-25 (§11.1) | Fixed, scales only `feat[:256]` |
+| Forecaster loader | `ml_models/lgbm_predictor.py` | Ported from it in 0.2.0, same outputs (parity test) |
 | Import cost | numpy/pandas/lightgbm at import | Deferred via module `__getattr__` |
-| Tests | none | 30 pytest tests |
+| Tests | 84 (`unittest`, in CI) | 35 pytest tests (in CI) |
 
-The bundled artifacts are **byte-identical** to `backend/trained_models/` (verified by MD5 on all six files), so the library and the web app carry the same models, they just don't run them the same way.
+The bundled forecaster files are the ones `experiments/promote.py --library` wrote to `backend/trained_models/` (the same run), so the library and the web app carry the same forecaster and, since 0.2.0, run it the same way.
 
 `docs/known-issues.md` in that folder is required reading before you quote any number from this project. It is unusually candid and it is where the k-mer bug is documented.
 
@@ -372,6 +392,7 @@ The bundled artifacts are **byte-identical** to `backend/trained_models/` (verif
 | `/export/<page>.csv`, `.pdf` | POST | n/a | download of the result on `/forecast`, `/predict`, `/timeline` (batch: CSV only) |
 | `/predict` | GET, POST | `predict/` | `resistance_prediction.html`, with the resistance-genes panel |
 | `/predict/sample` | GET | n/a | local runs only: `/predict` filled with `progress/formats/genome_response.sample.json`, to preview the genes panel |
+| `/timeline/sample` | GET | n/a | local runs only: `/timeline` filled with `progress/formats/timeline_response.sample.json`, to preview the RL panel ("Simulation + RL policy (not trained on patient data)"), shown only when a response has `rl` |
 | `/timeline` | GET, POST | `timeline/` | `mutation_timeline.html` |
 | `/train` | GET, POST | `train/` | `train.html` |
 | `/datasets` | GET | n/a | `datasets.html`, the five datasets explained |
@@ -386,18 +407,23 @@ The bundled artifacts are **byte-identical** to `backend/trained_models/` (verif
 | `/api/health` | GET | `health/` | JSON passthrough |
 | `/api/antibiotics` | GET | n/a | JSON, 48 names (hardcoded list) |
 | `/api/organisms` | GET | n/a | JSON, 15 species |
+| `/api/vocabulary` | GET | `vocabulary/` | JSON, what each model can tell apart; `lgbm.organisms` is the genus → species → taxon ID tree for `/forecast` |
+| `/api/mic-values` | GET | `mic-values/` | JSON, MIC suggestions for an antibiotic and organism (`?antibiotic=&genus=&species=`), with the `level` they came from |
+| `/api/genome/<genome_id>` | GET | `genome/<genome_id>/` | JSON for `/forecast`'s "Fill from Genome ID": the organism to fill, the genome's lab results (`?antibiotic=` picks one drug's), and whether each served model trained on it |
 
 ### How the pages are built
 
-- **One base template.** `base.html` holds the nav, footer, toast container, theme bootstrap and the CDN links (Bootstrap 5.3, Bootstrap Icons, Inter + JetBrains Mono, Plotly 2.26). Every page extends it and fills `{% block content %}` + `{% block scripts %}`.
+- **One base template.** `base.html` holds the nav, footer, toast container, theme bootstrap and the libraries (Bootstrap 5.3, Bootstrap Icons and Plotly 2.26 from `static/vendor/`, so the site works offline; only the Inter and JetBrains Mono fonts come from Google). Every page extends it and fills `{% block content %}` + `{% block scripts %}`.
 - **CSS is layered, not monolithic:** `tokens` (colour/spacing variables) → `layout` → `components` → `utilities` → `charts` → `animations` → `dark`. Dark mode is a `data-theme="dark"` attribute on `<html>`, set before first paint by an inline script so there's no flash, and persisted in `localStorage`.
 - **JS is one file per page** plus `main.js` (the global `window.AMR` helper: Plotly theme fragment, toasts) and `dropdowns.js`.
 - **Dropdowns populate themselves.** Any `<select data-populate="antibiotics">` is filled by `dropdowns.js` from `/api/antibiotics`, cached in `sessionStorage` for the tab, with `data-selected="…"` restoring the choice after a POST. That's why the antibiotic list lives in exactly one place per source.
+- **Organism lists on `/forecast` are linked.** Genus, species and taxon ID are dropdowns of what the forecaster was trained on: choosing a genus fills the species list with that genus's species only (from `backend/taxon_species.csv`, so "coli" is offered under both *Escherichia* and *Campylobacter*), and the taxon ID list with that species' IDs (the whole genus's when no species is chosen). The MIC field suggests the values recorded in BV-BRC for the drug and organism, at the most specific level with data (species, then genus, then all organisms), from `backend/api/mic_values.json`, built by `python scripts/build_mic_values.py`; any value can still be typed.
+- **"Fill from Genome ID" on `/forecast`.** A BV-BRC Genome ID starts with its taxon ID (`562.1234` is taxon 562), so the helper fills genus, species and taxon ID from it (only values the model knows). It shows the genome's **laboratory** result for the chosen drug (never BV-BRC's computer-predicted labels; `backend/api/genome_lab_results.json.gz`, 37,573 genomes, built by `python scripts/build_genome_lab_results.py`), offers "Use this MIC" when it is a single value in mg/L, links the genome's genes on `/genes`, and says whether the forecaster trained on it (Hamza's `ml_models/training_genomes.py`, format §7): a training genome gets a caution, because its prediction looks better than a new genome's would. After a prediction it says whether the model agrees with the lab. **The Genome ID is never sent to the model**: it is the key of the genome-grouped split, so as an input it could only memorise known genomes.
 - **Charts are server-data → inline JSON → Plotly.** The template writes `<script type="application/json" id="kmer-chart-data">{{ result.top_kmers | tojson }}</script>` and the page script parses it. No API call, no template-inlined JavaScript data.
 
 ### Downloads and batch upload
 
-Each tool page has a **Download this result** bar under its result. The page posts back the result it rendered, and `frontend/exports.py` builds the file:
+Each tool page has a **Download this result** bar under its result. The page posts back the result it rendered, and `frontend/exports.py` builds the file. The same code also runs in the backend as `POST /api/export/<page>.<fmt>` (`backend/api/exports.py`, 30 per minute per IP), which the React frontend in `web/` uses, since it has no server of its own:
 
 | Format | Contents |
 |---|---|
@@ -504,6 +530,19 @@ python train_models.py --model lgbm --model-dir /tmp/out   # write somewhere els
 ```
 Windows: `scripts\train_all.bat`. The trainer finds the data in `Data/` itself. With all files, the LightGBM trains in about 4 minutes on 1.56 M rows (cleaning v5); the K-mer model takes about an hour, because it computes GC content row by row. Training writes to `backend/trained_models/candidates/<model>/` (the same place `/api/train/` uses) and never touches the deployed models; a model is served only after `experiments/promote.py`, which also writes its `metrics.json`.
 
+### Continuous integration (GitHub Actions)
+
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs on every push and pull request:
+
+| Job | When | What |
+|---|---|---|
+| `tests` | every push and PR | Python 3.12, scikit-learn 1.6.1 (as the image and the library pin): backend, frontend and RL-converter tests (`unittest`), and the `amrpredict` library (`pytest`). No PyTorch: no test uses stable-baselines3 |
+| `docker` | pushes to `main`, or by hand | Builds `backend/Dockerfile` (AMRFinderPlus with its pinned database; the conda layer is cached between runs), starts it with production settings, and runs [`scripts/ci_docker_smoke.py`](scripts/ci_docker_smoke.py): `/api/health/` must say `searches_genes: true`, and one complete genome from the gene model's **test** list, downloaded from BV-BRC, must come back from `/api/predict/` with `genes_found` and `species_detected` within the page's 120 s |
+
+The same commands locally: `python -m unittest discover -s backend/tests` (and `-s frontend/tests`, `-s experiments/evolution -p "test_*.py"`), and `PYTHONPATH=src python -m pytest -q` in `amrpredict-lib/`.
+
+**End to end, in a real browser:** `python scripts/e2e_check.py --start` opens every page, submits every form and checks every download (23 steps; needs `python -m pip install playwright`). The same steps by hand, and how to run it against the deployed site: [docs/E2E_CHECKLIST.md](docs/E2E_CHECKLIST.md).
+
 ### Docker (backend)
 
 ```bash
@@ -522,11 +561,13 @@ AMRFinderPlus's database is pinned to **2026-08-07.1**, the version the gene mod
 | Start | `gunicorn backend.wsgi:application --workers 2 --timeout 120` | `gunicorn app:app --workers 2 --timeout 120` |
 | Health check | `/api/health/` | `/` |
 | Required env vars | `SECRET_KEY`, `ALLOWED_HOSTS` (its Railway domain, plus `healthcheck.railway.app` for the health check), `ADMIN_TOKEN` | `BACKEND_URL` |
-| Optional env vars | `CORS_ALLOWED_ORIGINS` (not needed: the browser never calls the API), `RATELIMIT_ENABLE=False` | `PORT` (Railway sets it), `LIB_VERSION`, `SECRET_KEY` (unused: no sessions) |
+| Optional env vars | `CORS_ALLOWED_ORIGINS` (not needed for the Flask site, whose browser never calls the API; **needed** for the React site in `web/`, set to its address), `RATELIMIT_ENABLE=False` | `PORT` (Railway sets it), `LIB_VERSION`, `SECRET_KEY` (unused: no sessions) |
 
 Leave `DEBUG` unset in production. Without `SECRET_KEY` or `ALLOWED_HOSTS` the backend refuses to start and says which is missing. Generate a key with `python -c "import secrets; print(secrets.token_urlsafe(50))"`.
 
 `frontend/app.py` infers its mode from `PORT`: if Railway sets it, `debug=False`; locally with no `PORT`, debug is on and the server listens on 127.0.0.1 only, since the debugger can run code.
+
+**The React frontend instead of Flask** (`web/`, branch `frontend-react`): a service with root directory `web/` (`web/railway.toml`). Nixpacks builds it; `npm start` runs `web/server.mjs`, a plain Node static server. Set `VITE_API_URL` (the backend's `/api` address, read at build time) on it, and `CORS_ALLOWED_ORIGINS` (its address) on the backend. Check it with `python scripts/e2e_check.py --site react --base <web> --api <backend>/api`.
 
 ---
 
@@ -534,13 +575,15 @@ Leave `DEBUG` unset in production. Without `SECRET_KEY` or `ALLOWED_HOSTS` the b
 
 There are several AUC figures in circulation in this project. They are not contradictory, they come from different runs on different data, but you should know which is which before a viva.
 
-**Current figures (2026-09-30; forecaster cleaning v7, genome models v6).** Quote these; the tables below are the history that led to them.
+**Current figures (2026-10-22; forecaster cleaning v7; genome models v6, identical on v7).** Quote these; the tables below are the history that led to them.
 
 | Model | Served on | Test | AUC [95% CI] |
 |---|---|---|---|
 | `D3_forecaster_deploy_v7` (LightGBM, metadata + MIC) | `/forecast` | 1.57 M rows of unseen genomes | **0.774** [0.772–0.775]; lab-confirmed rows 0.908; 0.762 as `/forecast` scores it (form inputs) |
-| `G_kmer_deploy` (LightGBM, 4-mers of the complete genome) | `/predict` | 40,356 lab rows, 4,481 unseen genomes | **0.935** [0.931–0.939] |
-| `B6L_genes_v6` (LightGBM, AMRFinderPlus genes) | next on `/predict` | same | **0.979** [0.977–0.981] |
+| `G_kmer_deploy` (LightGBM, 4-mers of the complete genome) | `/predict` without AMRFinderPlus | 40,356 lab rows, 4,481 unseen genomes | **0.935** [0.931–0.939] |
+| `TL_timeline_ml` (LightGBM, yearly resistance series) | `/timeline` (`ml_forecast`) | 411 forecasts of 2017–2022 | mean absolute error **13.98 pp** [11.84–16.33]; last value 14.33, trend 16.75, mean 17.25 |
+| `G_genes_deploy` (LightGBM, AMRFinderPlus genes, no genus) | `/predict` where AMRFinderPlus runs (Docker image) | same | **0.977** [0.975–0.979] |
+| `B6L_genes_v6` (genes + genus, the best experiment) | experiment | same | **0.979** [0.977–0.981]; 0.9789 ± 0.0004 over 3 split seeds |
 | `B8_*_v6` (genes, one genus held out) | experiment | 7 genera | 0.82–0.94 with genes, 0.46–0.75 without |
 
 Genome models are judged on lab-confirmed rows (computational labels were predicted from the genome). Details: `experiments/GENOME_RESULTS.md`, `experiments/RESULTS.md`, and the "Currently served" note in `experiments/README.md`.
@@ -638,7 +681,7 @@ The fix is one line, and it is already written and tested in the library (`amrpr
 feat[:N_KMERS] = self.scaler.transform(feat[:N_KMERS].reshape(1, -1))[0]
 ```
 
-Porting it to `backend/ml_models/resistance_predictor.py` is the highest-value change available in this repo. It is not applied here because this document was asked to explain the project, not change it, say the word and it is a two-minute edit plus a re-check.
+It was ported to `backend/ml_models/resistance_predictor.py` on 2026-09-25, and on 2026-09-29 `/predict` moved to the genome models, so this model now only answers when no genome model is promoted.
 
 ### 11.2 Training could not run from a fresh clone (fixed 2026-09-25)
 
@@ -650,7 +693,7 @@ Now `resolve_data_dir()` in `train_models.py` accepts the project root or the da
 
 Once the susceptible pool emptied (~week 7 at default settings), `susceptible` clamped at 0, `intermediate` pinned at 25.0, and `resistant` kept growing, so the three summed to 106% by week 8. Now `intermediate` can never exceed the non-resistant share and `susceptible` takes the rest, so the three add up to exactly 100 (checked on every drug profile at 1 to 52 weeks). The resistant curve and `failure_week` are unchanged; only late-week `intermediate` and `susceptible` values move.
 
-The library keeps its own copy (`amrpredict-lib/src/amrpredict/timeline.py`), which still has the bug. Its strict `xfail` (`test_timeline_compartments_partition_the_population_throughout`) stays until that copy is synced, so the fix can't land there silently.
+The library's copy (`amrpredict-lib/src/amrpredict/timeline.py`) was synced by Ali on 2026-09-29 and its strict `xfail` removed, so the test now must pass in both.
 
 ### 11.4 Security (hardened 2026-09-26)
 
@@ -673,7 +716,7 @@ Limits worth saying out loud: rate-limit counts are per worker process, and a di
 
 ### 11.5 Smaller things
 
-- `notebooks/forecasting_formulation.ipynb` is a 0-byte file.
+- `notebooks/forecasting_formulation.ipynb`, a 0-byte file, was removed on 2026-10-13.
 - `*_fraction` fields in the timeline are on a **0 to 100** scale despite the name; renaming would break the templates, so the name stands.
 - `kmer_resistance_model.pkl` was pickled with scikit-learn 1.6.1; loading under a different 1.x warns and is not guaranteed identical. The library pins `<2.0` so a 2.x install fails loudly instead of being quietly wrong. The backend has no such pin (`scikit-learn>=1.3`).
 - `docs/PROJECT_DOCUMENTATION.md:726` states the scaler "is applied identically at inference time." That was the intent; §11.1 is what the code does.
@@ -708,7 +751,7 @@ Limits worth saying out loud: rate-limit counts are per worker process, and a di
 5. `experiments/HANDBOOK.md`: the training setup, data fields and measured results
 6. The `/models` and `/compare` pages in the running app: every model's results and training data, with charts
 7. `amrpredict-lib/docs/known-issues.md`: the account of what is broken
-8. `notebooks/LightGBM_Model_Improved.ipynb`, the research story, with outputs intact
+8. `notebooks/01_forecaster_model.ipynb` to `03_evaluation.ipynb`, the current models step by step; `notebooks/archive/LightGBM_Model_Improved.ipynb` for the July research story
 9. `docs/PROJECT_DOCUMENTATION.md`: the deep reference, once you know the shape
 
-If you only have ten minutes before a demo: know that engine 3 is a simulation and say so unprompted, and know that `/predict` is currently answering from a fallback heuristic (§11.1).
+If you only have ten minutes before a demo: know that engine 3 is a simulation and say so unprompted, and know that the July model's 0.93 was measured on genomes it had already seen: on new genomes it scored 0.64, which is why every number now comes from a split by genome.

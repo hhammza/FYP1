@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, re_path
 from api import views
 
 urlpatterns = [
@@ -9,6 +9,8 @@ urlpatterns = [
     path('timeline/', views.MutationTimelineView.as_view(), name='timeline'),
     path('antibiotics/', views.AntibioticListView.as_view(), name='antibiotics'),
     path('vocabulary/', views.VocabularyView.as_view(), name='vocabulary'),
+    path('mic-values/', views.MicValuesView.as_view(), name='mic-values'),
+    path('genome/<str:genome_id>/', views.GenomeLookupView.as_view(), name='genome-lookup'),
     path('train/', views.TrainModelView.as_view(), name='train'),
     path('models/', views.ModelReportView.as_view(), name='models'),
     path('genes/', views.GeneReportView.as_view(), name='genes'),
@@ -16,4 +18,6 @@ urlpatterns = [
     path('genes/info.csv', views.GeneInfoCSVView.as_view(), name='gene-info-csv'),
     path('genes/<str:genome_id>/', views.GeneLookupView.as_view(), name='gene-lookup'),
     path('reload/', views.ReloadModelsView.as_view(), name='reload'),
+    re_path(r'^export/(?P<page>forecast|predict|timeline|batch)\.(?P<fmt>csv|pdf)$',
+            views.ExportView.as_view(), name='export'),
 ]

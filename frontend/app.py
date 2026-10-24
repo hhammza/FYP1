@@ -223,8 +223,10 @@ def resistance_forecast():
             'species': request.form.get('species', 'unknown'),
             # Empty = let the backend use the model's validated threshold.
             'threshold': request.form.get('threshold', ''),
+            # Only for the "fill from Genome ID" helper; never sent to the model
+            'genome_id': request.form.get('genome_id', '').strip(),
         }
-        payload = {k: v for k, v in form_data.items() if v and v != 'unknown'}
+        payload = {k: v for k, v in form_data.items() if v and v != 'unknown' and k != 'genome_id'}
         data, status = backend_post('forecast/', json_data=payload)
         if status == 200:
             result = data
@@ -300,6 +302,24 @@ def predict_sample():
     result.pop('_comment', None)
     return render_template('resistance_prediction.html', result=result, error=None, sample=True,
                            form_data={'antibiotic': result.get('antibiotic', ''), 'threshold': ''})
+
+
+SAMPLE_TIMELINE_RESPONSE = os.path.join(os.path.dirname(SAMPLE_GENOME_RESPONSE), 'timeline_response.sample.json')
+
+
+@app.route('/timeline/sample')
+def timeline_sample():
+    """/timeline filled with the agreed sample response (format §4), to preview
+    the RL panel before Ali's agent sends `rl`. Local runs only."""
+    if os.environ.get('PORT') or not os.path.exists(SAMPLE_TIMELINE_RESPONSE):
+        return render_template('mutation_timeline.html', result=None, form_data={'antibiotic': '', 'n_weeks': '8'},
+                               error='The sample preview is only available on a local run.'), 404
+    with open(SAMPLE_TIMELINE_RESPONSE, encoding='utf-8') as fh:
+        result = json.load(fh)
+    result.pop('_comment', None)
+    return render_template('mutation_timeline.html', result=result, error=None, sample=True,
+                           form_data={'antibiotic': result.get('antibiotic', ''),
+                                      'n_weeks': str(result.get('n_weeks', 8))})
 
 
 @app.route('/timeline', methods=['GET', 'POST'])
@@ -489,6 +509,31 @@ def vocabulary_api():
     if not vocab:
         return jsonify({'lgbm': None, 'kmer': None})
     return jsonify(vocab)
+
+
+@app.route('/api/genome/<genome_id>')
+def genome_lookup_api(genome_id):
+    """The "fill from Genome ID" helper on /forecast: the backend's organism,
+    lab results and training status for one BV-BRC genome."""
+    try:
+        r = requests.get(f'{BACKEND_URL}/genome/{genome_id}/',
+                         params={'antibiotic': request.args.get('antibiotic', '')},
+                         headers=_forward_headers(), timeout=10)
+        return jsonify(r.json()), r.status_code
+    except (requests.exceptions.RequestException, ValueError):
+        return jsonify({'error': 'The backend is not reachable, so the genome cannot be looked up.'}), 503
+
+
+@app.route('/api/mic-values')
+def mic_values_api():
+    """MIC suggestions for /forecast's MIC field, from the backend
+    (antibiotic, genus, species in the query string)."""
+    params = {k: request.args.get(k, '') for k in ('antibiotic', 'genus', 'species')}
+    try:
+        r = requests.get(f'{BACKEND_URL}/mic-values/', params=params, headers=_forward_headers(), timeout=10)
+        return jsonify(r.json()), r.status_code
+    except (requests.exceptions.RequestException, ValueError):
+        return jsonify({'values': [], 'level': None}), 200
 
 
 @app.route('/api/organisms')

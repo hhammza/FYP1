@@ -1,0 +1,158 @@
+{
+  "id": "TL_timeline_ml",
+  "description": "Timeline ML model: next-year resistant share per genus and antibiotic from earlier years (BV-BRC lab results with a collection year); trained on years up to 2016, tested on 2017-2022",
+  "data": {
+    "series": 467,
+    "year_points": 2619,
+    "lab_results": 534996,
+    "min_results_per_year": 20,
+    "train_targets": 1413,
+    "test_targets": 411,
+    "test_series": 191,
+    "train_until": 2016
+  },
+  "model_info": {
+    "algorithm": "LightGBM regression (L1) on the change from the last value",
+    "rounds": 73,
+    "features": [
+      "lag1",
+      "lag2",
+      "lag3",
+      "gap1",
+      "slope3",
+      "mean_past",
+      "n_past",
+      "log_n1",
+      "genus",
+      "Antibiotic",
+      "drug_class"
+    ],
+    "params": {
+      "objective": "regression_l1",
+      "learning_rate": 0.03,
+      "num_leaves": 15,
+      "min_data_in_leaf": 20,
+      "feature_fraction": 0.9,
+      "bagging_fraction": 0.9,
+      "bagging_freq": 1,
+      "lambda_l2": 1.0,
+      "seed": 42,
+      "deterministic": true,
+      "num_threads": 1,
+      "verbose": -1
+    }
+  },
+  "test_mae_pp": {
+    "model": [
+      13.976579134249437,
+      [
+        11.838514892831503,
+        16.332624485456783
+      ]
+    ],
+    "last value": [
+      14.32614598540146,
+      [
+        12.155403494338492,
+        16.728099814817053
+      ]
+    ],
+    "linear trend": [
+      16.74807842825748,
+      [
+        14.315303573559182,
+        19.299399623435974
+      ]
+    ],
+    "historical mean": [
+      17.253025854888328,
+      [
+        15.065475220243579,
+        19.668741052187954
+      ]
+    ]
+  },
+  "gain_over_baselines_pp": {
+    "last value": {
+      "gain_pp": 0.3495668511520229,
+      "ci": [
+        0.03475425482741597,
+        0.6697909613128599
+      ],
+      "p_no_gain": 0.013
+    },
+    "linear trend": {
+      "gain_pp": 2.7714992940080414,
+      "ci": [
+        1.7774640583547334,
+        3.7109993273669106
+      ],
+      "p_no_gain": 0.0
+    },
+    "historical mean": {
+      "gain_pp": 3.2764467206388908,
+      "ci": [
+        1.7995903069309875,
+        5.032067079640255
+      ],
+      "p_no_gain": 0.0
+    }
+  },
+  "share_within_pp": {
+    "5": 0.4793187347931874,
+    "10": 0.6253041362530414
+  },
+  "interval_abs_error_pp": {
+    "q80": 25.242855414283163,
+    "q95": 56.67933149284032
+  },
+  "ecdc_check": {
+    "points": 231,
+    "countries": 30,
+    "years": [
+      2017,
+      2024
+    ],
+    "model": [
+      2.318367644103508,
+      [
+        1.3072755938690976,
+        3.4996672110910003
+      ]
+    ],
+    "last value": [
+      1.8854082702164503,
+      [
+        1.0891845642365474,
+        2.8481407881303156
+      ]
+    ],
+    "linear trend": [
+      2.01626414123372,
+      [
+        1.1986433468389623,
+        2.9492862372553375
+      ]
+    ],
+    "historical mean": [
+      4.988078612173973,
+      [
+        2.455944652489434,
+        7.895503689977217
+      ]
+    ]
+  },
+  "feature_importance": {
+    "lag1": 59658,
+    "lag2": 15942,
+    "lag3": 16026,
+    "gap1": 0,
+    "slope3": 28010,
+    "mean_past": 13364,
+    "n_past": 8030,
+    "log_n1": 16583,
+    "genus": 12623,
+    "Antibiotic": 18196,
+    "drug_class": 1787
+  }
+}

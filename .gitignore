@@ -205,8 +205,17 @@ backend/trained_models/*
 !backend/trained_models/model_report.json
 # Measured numbers for each served model; the UI reads them, so they ship
 !backend/trained_models/*_metrics.json
+# Genomes on each side of the served forecaster's train/test split
+# (promote.py), so a page can say whether a genome was in training
+!backend/trained_models/lgbm_split_genomes.json.gz
 # The complete-genome model /predict serves (promote.py --genome), 3.6 MB
 !backend/trained_models/genome/
+# The gene model /predict serves where AMRFinderPlus runs (promote.py --genome
+# on a gene run): booster, gene rules and species profiles, 4.9 MB
+!backend/trained_models/genome_genes/
+# The timeline ML model behind /api/timeline/'s ml_forecast (experiments/timeline_ml/),
+# with every series' yearly history, 0.3 MB
+!backend/trained_models/timeline_ml/
 # AMRFinderPlus summary and per-genome genes for /genes, built by
 # experiments/genome/features/export_gene_report.py (Data/ is not deployed)
 !backend/trained_models/gene_report.json

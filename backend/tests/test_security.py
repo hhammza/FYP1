@@ -106,6 +106,17 @@ class RateLimit(unittest.TestCase):
 
     @override_settings(RATE_LIMITS={'forecast': '2/m', 'predict': '2/m', 'timeline': '2/m'})
     def test_forecast_is_limited_per_ip(self):
+        # django-ratelimit counts in fixed one-minute windows, so requests that
+        # happen to cross a minute boundary start a fresh count (a rare false
+        # failure). The limiter's clock is held at one instant for this test.
+        from types import SimpleNamespace
+        from unittest import mock
+        import django_ratelimit.core as ratelimit_core
+        frozen = SimpleNamespace(time=lambda t=ratelimit_core.time.time(): t)
+        with mock.patch.object(ratelimit_core, 'time', frozen):
+            self._check_limit()
+
+    def _check_limit(self):
         def forecast(ip):
             return Client().post('/api/forecast/', data=json.dumps({'antibiotic': 'ciprofloxacin'}),
                                  content_type='application/json', HTTP_X_FORWARDED_FOR=ip).status_code

@@ -219,10 +219,15 @@ def training_profiles(run_ids):
         key = json.dumps([source, data_cfg, split_cfg], sort_keys=True)
         if key not in cache:
             df = select_rows(full, data_cfg, verbose=False)
+            if split_cfg.get('strategy') == 'temporal' or data_cfg.get('require_year'):
+                # Same rows as the run: only genomes with a collection year
+                from run import attach_year
+                df = attach_year(df, verbose=False)
             tr, te = splits.make_split(df, strategy=split_cfg.get('strategy', 'grouped'),
                                        test_size=split_cfg.get('test_size', 0.2),
                                        seed=split_cfg.get('seed', 42),
-                                       holdout_genus=split_cfg.get('holdout_genus'), verbose=False)
+                                       holdout_genus=split_cfg.get('holdout_genus'),
+                                       cutoff_year=split_cfg.get('cutoff_year'), verbose=False)
             train = profile(df.loc[tr])
             train.update(test_rows=int(te.sum()),
                          test_genomes=int(df.loc[te, 'Genome ID'].nunique()),

@@ -1,0 +1,35 @@
+{
+  "description": "Deploy candidate for /predict: LightGBM on AMRFinderPlus genes and drug-aware gene features + antibiotic and drug class (no genus: an upload does not come with one), cleaning v7, no plasmid records, threshold for VME <= 10% on validation",
+  "data": {
+    "genomes": "gene_matrix",
+    "min_genome_bp": 500000
+  },
+  "split": {
+    "strategy": "grouped",
+    "test_size": 0.2,
+    "seed": 42
+  },
+  "features": {
+    "target_encoding": "none",
+    "base": [
+      "Antibiotic",
+      "drug_class"
+    ],
+    "genes": {
+      "raw": true,
+      "min_genomes": 50,
+      "drug_aware": true
+    }
+  },
+  "model": {
+    "type": "lightgbm"
+  },
+  "threshold": {
+    "strategy": "vme_constrained",
+    "vme_budget": 0.1
+  },
+  "evaluation": {
+    "n_boot": 200
+  },
+  "id": "G_genes_deploy"
+}

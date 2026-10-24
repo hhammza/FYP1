@@ -1,0 +1,27 @@
+{
+  "description": "GAN experiment: A6 (lab rows) plus CTGAN-made training rows for rare antibiotics and genera (experiments/gan/ctgan_augment.py), on the training side only; the test set is A6's, real [cleaning v7]",
+  "data": {
+    "label_sources": [
+      "lab"
+    ],
+    "source": "amr_full",
+    "synthetic": "experiments/cache/ctgan_synthetic_A13.parquet"
+  },
+  "split": {
+    "strategy": "grouped",
+    "test_size": 0.2,
+    "seed": 42
+  },
+  "features": {
+    "target_encoding": "oof"
+  },
+  "model": {
+    "type": "lightgbm"
+  },
+  "threshold": {
+    "strategy": "fixed",
+    "fixed": 0.4
+  },
+  "id": "A13_ctgan_v7",
+  "evaluation": {}
+}

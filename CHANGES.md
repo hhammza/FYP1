@@ -18,6 +18,196 @@ Baseline is commit **`52ae361`** *(Add amrpredict library and macOS launcher, 20
 
 ---
 
+## React + TypeScript frontend finished (2026-10-15, Suleman; branch `frontend-react`)
+
+| File | Change |
+|---|---|
+| [web/src/pages/](web/src/pages/) | `/models`, `/compare`, `/genes`, `/train`: every page of the Flask site is now in React. Compared with Flask in a browser: the same text and page height, every chart's Plotly figure identical |
+| [web/src/lib/metrics.ts](web/src/lib/metrics.ts) | `pyFixed`: numbers rounded as Python rounds them, so a tie such as 23.25 shows 23.2 as on the Flask pages, not 23.3 |
+| [.github/workflows/ci.yml](.github/workflows/ci.yml) | Job `web`: type check, 74 unit tests, production build and `npm audit` on every push and pull request; pushes to `frontend-react` run CI too (the Docker job stays on `main`) |
+| [scripts/e2e_check.py](scripts/e2e_check.py), [docs/E2E_CHECKLIST.md](docs/E2E_CHECKLIST.md) | `--site react` (and `--api` for a deployed React site): the same 23 steps; 23 of 23 on the dev site and on the production build with CORS, and still on Flask |
+| [web/server.mjs](web/server.mjs), [web/railway.toml](web/railway.toml) | The deploy: a plain Node static server (no packages; deep links get the page, missing files a 404) and the Railway service config |
+| [frontend/templates/](frontend/templates/) (from `main`) | Hamza's handover: the archived notebook's path on `/timeline` and `/train` |
+
+---
+
+## React + TypeScript frontend, first pages (2026-10-14, Suleman; branch `frontend-react`)
+
+A new frontend in `web/` (React 18, TypeScript, Vite, React Router), replacing the Flask one page by page. `frontend/` is untouched and stays the deployed site until every page is moved and checked. Same Bootstrap, icon and Plotly versions and the same stylesheets, so the pages look the same; everything is bundled, so it works offline.
+
+| File | Change |
+|---|---|
+| [web/](web/) | New. Done: layout (navbar, footer, theme, toasts), `/`, `/about`, `/datasets`, `/library`, `/forecast` (linked lists, MIC suggestions, Genome ID helper, batch CSV), `/predict` (upload or paste, the gene model's species and genes), `/timeline` (simulation, RL panel). Still Flask: `/models`, `/compare`, `/genes`, `/train`. 58 unit tests (Vitest). [web/README.md](web/README.md) says how to run it |
+| [backend/api/exports.py](backend/api/exports.py), [views.py](backend/api/views.py), [urls.py](backend/api/urls.py) | New `POST /api/export/<page>.<fmt>`: the CSV/PDF downloads, the same code as `frontend/exports.py`, so a frontend with no server of its own can offer them. Rate limit `export` 30/min (`settings.py`); `reportlab` added to `backend/requirements.txt` |
+| [backend/api/views.py](backend/api/views.py) | `/api/antibiotics/?model=lgbm` or `kmer`: only the drugs that model was trained on, each once under its canonical name (the rule Flask's `/api/antibiotics` applied). Without `?model`, unchanged |
+| [backend/tests/test_export_api.py](backend/tests/test_export_api.py) | New: 13 tests (CSV and PDF contents, refusals, rate limit, the antibiotic lists). 97 backend tests |
+| [frontend/static/css/components.css](frontend/static/css/components.css) | Fix on the live site: hovering a plain purple button ("Start Predicting", "Predict Resistance", `/train`) turned it white on white, because Bootstrap's `.btn:hover` cleared its background |
+
+Each moved page was checked against the Flask one in a real browser: the same text, the same page height, no console errors, light and dark, phone width; on `/forecast`, `/predict` and `/timeline` the same inputs give the same result line for line, every download works and the RL panel matches on the sample. Found on the way: `/library` showed v0.1.0 while the package is 0.2.0 (the React page reads `amrpredict-lib/pyproject.toml`).
+
+---
+
+## End-to-end checklist (2026-10-10, Suleman, T2.7)
+
+| File | Change |
+|---|---|
+| [docs/E2E_CHECKLIST.md](docs/E2E_CHECKLIST.md) | New: every page, form and download to check by hand, before a demo or after a deploy, plus admin and offline checks |
+| [scripts/e2e_check.py](scripts/e2e_check.py) | New: the same in a real browser (Playwright). `--start` runs both servers, `--base` checks another site (the deployed one in Week 5). 23 steps, including a complete test genome downloaded from BV-BRC through `/predict` and every CSV/PDF/PNG download checked by its first bytes |
+
+23 of 23 steps passed, twice, on a local run. With it, T2.7 (automated tests) is done: unit tests for every route and page, CI on every push, and this browser check.
+
+---
+
+## RL panel on /timeline (2026-10-10, Suleman)
+
+| File | Change |
+|---|---|
+| [frontend/templates/_rl_panel.html](frontend/templates/_rl_panel.html), [mutation_timeline.html](frontend/templates/mutation_timeline.html) | New panel "Simulation + RL policy (not trained on patient data)", shown only when the response has `rl` (format §4): agent, drugs and the 50% rule; comparison table (first failed week or "Never in N weeks", `effective_weeks` and `mean_burden` when sent, reward, the `best` row marked) |
+| [frontend/static/js/timeline.js](frontend/static/js/timeline.js), [static/css/components.css](frontend/static/css/components.css) | A chart of every policy (resistance of the drug given each week, end of week, with the 50% line); for the chosen policy, week chips with the drug given and a chart of every drug's resistance |
+| [frontend/app.py](frontend/app.py) | `/timeline/sample`: the page filled with `progress/formats/timeline_response.sample.json`, local runs only |
+| [frontend/tests/test_rl_panel.py](frontend/tests/test_rl_panel.py) | New: 8 tests |
+
+Checked in Edge at 1366 px and 390 px (no page-wide scroll). Live data comes when Ali's agent fills `rl` in `/api/timeline/`; one open question for him, in his tracker: whether a week fails on resistance at the start or the end of the week.
+
+---
+
+## Every endpoint and page tested (2026-10-10, Suleman, T2.7)
+
+| File | Change |
+|---|---|
+| [backend/tests/test_endpoints.py](backend/tests/test_endpoints.py) | New, 9 tests: the API routes no other file covered: `/api/antibiotics/`, `/api/models/` (and 404 when the report is missing), `/api/genes/` (and its 404), `/api/genes/matrix.csv` (24,926 rows × 2,733 0/1 columns, checked against `gene_hits.json`), `/api/genes/info.csv`, `/api/genes/<id>/` |
+| [frontend/tests/test_pages.py](frontend/tests/test_pages.py) | New, 18 tests: all 11 pages with the backend up and down, the batch result page, `/reload`, favicon, `/api/antibiotics`, `/api/vocabulary`, `/api/organisms`, the gene CSV and lookup passthroughs, and the Content-Type and file name of every CSV and PDF export |
+
+All 18 API routes and 25 frontend routes now have at least one test; 84 backend and 66 frontend tests, run by CI on every push.
+
+---
+
+## Continuous integration (2026-10-06, Suleman, T2.7)
+
+| File | Change |
+|---|---|
+| [.github/workflows/ci.yml](.github/workflows/ci.yml) | New. `tests` (every push and PR): backend, frontend, RL converter and `amrpredict` library tests on Python 3.12 with scikit-learn 1.6.1. `docker` (pushes to `main`, by hand): builds the backend image with AMRFinderPlus (cached conda layer), starts it, runs the gene-model check |
+| [scripts/ci_docker_smoke.py](scripts/ci_docker_smoke.py) | New: Hamza's check in the image: `searches_genes` true, then one complete genome from `G_genes_deploy`'s test list (downloaded from BV-BRC with a project User-Agent; Cloudflare refuses Python's default one) through `/api/predict/`, with `genes_found`, `species_detected`, no `warning`, under 120 s. Standard library only |
+| [README.md](README.md) | CI badge, a "Continuous integration" section |
+
+Checked here: the workflow parses, the download fetches test genome `1001744.3` (2.1 MB), and against the local backend (no AMRFinderPlus) the check stops at `searches_genes` as it should. The first run on GitHub is the real test of the image.
+
+---
+
+## "Fill from Genome ID" on /forecast (2026-10-05, Suleman)
+
+Agreed with Hamza and Ali: Genome ID is never a model input, only a helper.
+
+| File | Change |
+|---|---|
+| [backend/api/genome_lookup.py](backend/api/genome_lookup.py), [views.py](backend/api/views.py), [urls.py](backend/api/urls.py) | New `GET /api/genome/<id>/?antibiotic=`: the organism from the ID's taxon prefix (only values the forecaster knows), the genome's laboratory results (a MIC only if mg/L and one number, so not trimethoprim/sulfamethoxazole's `1/19` or a disk zone), whether each served model trained on it (Hamza's `genome_status`, format §7), and its `/genes` link. A malformed ID is a 400 |
+| [scripts/build_genome_lab_results.py](scripts/build_genome_lab_results.py), [backend/api/genome_lab_results.json.gz](backend/api/genome_lab_results.json.gz) | Lab results only (`Evidence = Laboratory Method`) per genome: 417,700 lab rows, 37,573 genomes, 0.6 MB, from `Data/amr_output/` (re-run on the complete export to refresh) |
+| [frontend/templates/resistance_forecast.html](frontend/templates/resistance_forecast.html), [static/js/forecast.js](frontend/static/js/forecast.js), [static/css/components.css](frontend/static/css/components.css), [frontend/app.py](frontend/app.py) | The "Fill from Genome ID" box under the antibiotic: fills the lists, shows the lab result for the chosen drug with "Use this MIC", a caution for a training genome ("its prediction will look better than on a new genome"), and after a prediction whether the model agrees with the lab. The ID is kept after a submit but never sent to the model |
+| [backend/tests/test_genome_lookup.py](backend/tests/test_genome_lookup.py), [frontend/tests/test_forecast_organisms.py](frontend/tests/test_forecast_organisms.py), [backend/tests/test_security.py](backend/tests/test_security.py) | New: 6 backend and 2 frontend tests. The rate-limit test holds the limiter's clock still, since requests crossing a minute boundary started a fresh count (a rare false failure) |
+
+Checked in Edge: `106654.148` (a test genome) fills Acinetobacter / nosocomialis / 106654, gentamicin lab result Resistant (MIC ≥ 16 mg/L), and after the prediction "The model agrees"; `1001988.3` (a training genome) gets the caution. 6,876 of the forecaster's test genomes have a lab result here, for demos.
+
+---
+
+## Linked organism lists and MIC suggestions on /forecast (2026-10-02, Suleman)
+
+| File | Change |
+|---|---|
+| [frontend/templates/resistance_forecast.html](frontend/templates/resistance_forecast.html), [static/js/forecast.js](frontend/static/js/forecast.js) | Genus, species and taxon ID are dropdowns in that order: a genus fills the species list with its own species only, and the taxon ID list with that species' IDs (the genus's when no species is chosen). The MIC field suggests recorded values and says from which level; any value can still be typed. Choices are kept after a submit. The antibiotic tooltip reads the model's count (126), not "62" |
+| [backend/api/organisms.py](backend/api/organisms.py) | New: the genus → species → taxon ID tree from the forecaster's vocabulary and `backend/taxon_species.csv` (only values the model can use; "coli" under Escherichia and Campylobacter; NCBI's renamed Aliarcobacter and Stutzerimonas mapped back; 69 of 70 taxon IDs placed), and the MIC lookup (species, then genus, then all organisms) |
+| [backend/api/views.py](backend/api/views.py), [urls.py](backend/api/urls.py), [frontend/app.py](frontend/app.py) | `/api/vocabulary/` adds `lgbm.organisms`; new `GET /api/mic-values/?antibiotic=&genus=&species=` (and the frontend's `/api/mic-values`) |
+| [scripts/build_mic_values.py](scripts/build_mic_values.py), [backend/api/mic_values.json](backend/api/mic_values.json) | The MIC values recorded in BV-BRC (mg/L) per species, genus and antibiotic, the 12 most common seen at least 3 times; 118 kB, from `Data/amr_output/` (re-run on the complete export to refresh). Suggestions only: the model does not read it |
+| [backend/tests/test_organisms.py](backend/tests/test_organisms.py), [frontend/tests/test_forecast_organisms.py](frontend/tests/test_forecast_organisms.py) | New: 8 and 4 tests |
+
+Checked in Edge with both servers: Escherichia → coli → 562, Campylobacter → coli, jejuni, MIC suggestions for E. coli + ciprofloxacin, the prediction runs and the choices stay. Documents: [README.md](README.md) (routes, "Organism lists on /forecast are linked"; the libraries are served from `static/vendor/`).
+
+**Open for the team:** a Genome ID field. The forecaster does not use Genome ID (it is the split key, so as an input it would only memorise known genomes); proposed instead as a "fill from Genome ID" helper (organism, the genome's real lab results, its genes on `/genes`, and whether the model saw it in training).
+
+---
+
+## Timeline ML model, GAN experiment, results chapter (2026-10-22)
+
+| File | Change |
+|---|---|
+| [timeline_model.py](experiments/timeline_ml/timeline_model.py), [series.csv](experiments/timeline_ml/series.csv) | New **timeline ML model**: yearly resistant share per genus and antibiotic from the 553,223 BV-BRC lab results with a collection year (467 series, 2,619 year points); LightGBM predicts a year from the years before it. Trained up to 2016, tested on 2017–2022: MAE 13.98 pp [11.84, 16.33], better than last value (14.33), linear trend (16.75) and historical mean (17.25); ECDC *K. pneumoniae*/carbapenem check: 2.32 pp vs last value 1.89 (a limitation) |
+| [timeline_ml.py](backend/ml_models/timeline_ml.py), `backend/trained_models/timeline_ml/`, [views.py](backend/api/views.py), [test_timeline_ml.py](backend/tests/test_timeline_ml.py) | The model is served: `/api/timeline/` returns `ml_forecast` (history, 5-year forecast with an 80% band, held-out errors) beside the simulation; the organism comes from the request's `genus` or the genome's 6-mer profile; 5 tests |
+| [ctgan_augment.py](experiments/gan/ctgan_augment.py), [A13_ctgan_v7.json](experiments/configs/A13_ctgan_v7.json), [run.py](experiments/run.py) `data.synthetic`, [GAN_RESULTS.md](experiments/gan/results/GAN_RESULTS.md) | **GAN experiment**: CTGAN fitted on A6's training rows of 62 rare antibiotics and 21 rare genera; 21,030 synthetic rows on A13's training side, real test set. Negative: AUC −0.0005 on all rows, **−0.0080** on the rare rows (both significant); detection AUC 0.9999. Synthetic rows stay in `experiments/cache/` (not committed) |
+| [04_timeline_ml_and_gan.ipynb](notebooks/04_timeline_ml_and_gan.ipynb) | New notebook, executed: the timeline model step by step (equals the saved run) and the GAN code and results |
+| [Chapter_Results.md](docs/report/Chapter_Results.md) | New: the results chapter of the report |
+| README, experiments README, formats §8, roadmap, trackers | Timeline model in the current figures; §8 live; GAN item ticked; Hamza's sprint done; Handovers for Suleman (show the forecast) and Ali |
+
+## Final sprint planned (2026-10-17)
+
+The supervisor asked for the timeline as an ML model and for the missing RL agent and GAN; the team has 3 days (17 to 19 October).
+
+| File | Change |
+|---|---|
+| [HAMZA_PROGRESS.md](progress/HAMZA_PROGRESS.md) | "Final sprint" section: day-by-day plan and owners. Hamza: timeline ML model (186 yearly resistance series from 553,223 dated lab results), GAN experiment (CTGAN, `A13_ctgan`), results chapter. Ali: RL agent, data chapters. Suleman: deploy, `/timeline` page, system design, demo video, tag. Moved to future work: retraining on 87,325 genomes, 4- vs 6-mer comparison, backend switch to the library, real-PyPI release |
+| [formats/README.md](progress/formats/README.md) §8 | Proposed `ml_forecast` block of `/api/timeline/` |
+| Handovers | Ali and Suleman: their sprint tasks |
+
+## Notebooks of the current models (2026-10-13)
+
+The supervisor asked for the model code as notebooks; the original notebooks are the July versions, not the served models.
+
+| File | Change |
+|---|---|
+| [01_forecaster_model.ipynb](notebooks/01_forecaster_model.ipynb) | New: trains the served forecaster `D3_forecaster_deploy_v7` step by step with the project's code; reproduces the published run exactly (AUC 0.77367, confusion counts, threshold 0.15) |
+| [02_genome_models.ipynb](notebooks/02_genome_models.ipynb) | New: trains the gene model (lab AUC 0.9772) and the k-mer model (0.9345), identical to the published runs; significance test; the website's feature code gives the training run's probability |
+| [03_evaluation.ipynb](notebooks/03_evaluation.ipynb) | New: seen vs never-seen genomes, seeds, significance, lineage split, temporal test, calibration, from the saved runs |
+| [notebooks/README.md](notebooks/README.md) | New: which notebook is which, how to run them |
+| `notebooks/forecasting_formulation.ipynb` | Removed: an empty file (0 bytes) since the initial upload |
+| `notebooks/archive/` | The three July notebooks moved here (history); `notebooks/` now opens with the current models and Ali's Colab tools. Paths updated in `README.md`, `notebooks/README.md`, `experiments/HANDBOOK.md`; README's closing tip no longer says `/predict` answers from a fallback heuristic. Suleman's `mutation_timeline.html` and `train.html` still show the old path (his Handovers) |
+
+## amrpredict 0.2.0 on TestPyPI (2026-10-13)
+
+| File | Change |
+|---|---|
+| TestPyPI | `amrpredict 0.2.0` (wheel and source) published: https://test.pypi.org/project/amrpredict/0.2.0/. Installed from there into a clean venv outside the project, it gives the website's forecast (ciprofloxacin, taxon 562, MIC 4: Resistant 0.7055, `D3_forecaster_deploy_v7`) |
+| [amrpredict-lib/README.md](amrpredict-lib/README.md) | Install from TestPyPI (dependencies from PyPI); `pip install amrpredict` from the real PyPI only after the final release |
+| [HAMZA_PROGRESS.md](progress/HAMZA_PROGRESS.md) | Week 4 done |
+| [quickstart.md](amrpredict-lib/docs/quickstart.md), [CITATION.cff](amrpredict-lib/CITATION.cff) | Install from TestPyPI; citation version 0.2.0, released 2026-10-13 |
+| [README.md](README.md) | §7: the TestPyPI release, the forecaster run as the backend runs it (parity test), current test counts (backend 84, library 35); §11.1 and §11.3 no longer say the k-mer fix and the library timeline sync are still to do |
+| [FYP_Completion_Roadmap.md](docs/FYP_Completion_Roadmap.md) | Security step 12 and the submission checklist ticked where the code shows it done; deployment, supervisor reply, report and tag stay open |
+| Handovers | Suleman: `library.html` still shows `pip install amrpredict`; Ali: FYI |
+
+## Project brought up to date with the served gene model (2026-10-12)
+
+The gene model `G_genes_deploy` (lab AUC 0.977) was promoted on 2026-10-01 and verified with real AMRFinderPlus in the Docker image by Suleman's GitHub Actions on 2026-10-09; the documents still described it as coming later.
+
+| File | Change |
+|---|---|
+| [README.md](README.md) | Engine table, the /predict section and the current figures describe both genome models: the gene model (0.977, `genes_found`, served by the Docker image, CI-verified) and the k-mer model (0.935, where AMRFinderPlus is not installed) |
+| [experiments/README.md](experiments/README.md) | "Currently served": the gene model and the train/test genome lists |
+| [GENOME_RESULTS.md](experiments/GENOME_RESULTS.md) | Section 5: the served gene model |
+| [HAMZA_PROGRESS.md](progress/HAMZA_PROGRESS.md) | Summary: weeks 3 and 4 done (TestPyPI upload waits on a token; the library switch is postponed until after the demo), research track done on the 24,926 genomes; B6–B8 item ticked |
+| Handovers | Suleman: his two week-3 items in progress are complete by his own CI run; Ali: the research-track deliverables, and the `RESEARCH_PLAN.md` boxes that can be ticked |
+
+## Training genomes of the served models (2026-10-04)
+
+For Suleman's "fill from Genome ID" helper on `/forecast`, so the page can say whether the model saw a genome in training.
+
+| File | Change |
+|---|---|
+| [promote.py](experiments/promote.py) | Writes each promoted model's train/test Genome IDs (`split_genomes()`), rebuilt from the run's config and checked against its test-row count; `--split-only` for models promoted earlier |
+| `backend/trained_models/lgbm_split_genomes.json.gz`, `genome/` and `genome_genes/split_genomes.json.gz` | /forecast: 351,442 train, 88,100 test genomes (all 439,542 of v7); /predict: 19,804 and 4,915 (test list identical to the gene run's predictions) |
+| [training_genomes.py](backend/ml_models/training_genomes.py) | `genome_status(model_dir, genome_id)`: `train`, `test` or not in the data, per served model, with a sentence for the page |
+| [test_training_genomes.py](backend/tests/test_training_genomes.py) | 4 tests: roles, IDs as text, a re-promoted file is re-read, served lists never overlap |
+| [formats/README.md](progress/formats/README.md) §7, [.gitignore](.gitignore) | File format; the forecaster's list is committed |
+
+## Gene model promoted, seeds, significance and lineage results (2026-10-01)
+
+| File | Change |
+|---|---|
+| `backend/trained_models/genome_genes/` | **`G_genes_deploy` promoted:** lab AUC 0.977 [0.975–0.979] on 40,356 lab test rows of 4,481 unseen genomes, threshold 0.58 for VME ≤ 10% (VME 10.2%, ME 5.1%). Served when AMRFinderPlus is on the server; the website's predictor reproduces the run's probabilities on 400 test rows (largest difference 1e-16) |
+| [.gitignore](.gitignore) | `backend/trained_models/genome_genes/` committed like `genome/` (it was ignored, so the gene model would never have reached GitHub) |
+| [promote.py](experiments/promote.py) | Fix: the species table was indexed with the column from before de-duplication (`Length mismatch`) |
+| [export_report.py](experiments/export_report.py) | Rebuilds temporal runs' splits (collection years and `cutoff_year`) |
+| [significance.md](experiments/results/significance.md) | 7 pairs: genes vs k-mers +0.0445, vs taxonomy +0.130, vs drug only +0.264; A2 vs drug only +0.128; MIC on lab rows +0.083 (all p < 0.0001); genes + k-mers +0.002; A10 vs A2 −0.0004 (McNemar p = 0.14) |
+| Seeds | Split seeds 42, 1, 2: A2 0.7849 ± 0.0005, A10 0.7845 ± 0.0005, A6 0.9214 ± 0.0012, A6b 0.8376 ± 0.0024, drug-only 0.6569 ± 0.0004, B6 genes lab 0.9789 ± 0.0004 |
+| `LT_*_v7` | Lineage check for the tabular models on the 24,926 genomes with clusters, lab AUC grouped / close / broad: A2 0.968 / 0.967 / 0.961, D3 0.962 / 0.962 / 0.961 |
+| [RESULTS.md](experiments/RESULTS.md) | Regenerated |
+
 ## Gene model path on /predict, lineage check for the tabular models (2026-09-30)
 
 | File | Change |

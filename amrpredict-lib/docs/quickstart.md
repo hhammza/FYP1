@@ -4,9 +4,13 @@ Five minutes from install to a prediction.
 
 ## 1. Install
 
+Version 0.2.0 is on TestPyPI; its dependencies come from the real PyPI:
+
 ```bash
-pip install amrpredict
+pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ amrpredict==0.2.0
 ```
+
+(`pip install amrpredict` from the real PyPI works once the final version is released there.)
 
 Nothing else to download — the trained models ship inside the package.
 

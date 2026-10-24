@@ -170,6 +170,99 @@
     }, { responsive: true, displayModeBar: false });
   }
 
+  /* ── RL panel (format §4): policies against each other ──────
+     Data from <script id="rl-data">. Week w's value is the resistant share
+     of the drug given in week w at the end of that week
+     (resistant_fraction[drug][w]); first-failure weeks are the data's own. */
+  const DRUG_COLOURS = ['#6366f1', '#f59e0b', '#10b981', '#ec4899', '#0ea5e9', '#a855f7'];
+  const POLICY_COLOURS = ['#7c3aed', '#ef4444', '#0ea5e9', '#f59e0b', '#10b981', '#64748b'];
+
+  function rlLayout(t, narrow, n, extra) {
+    return Object.assign({
+      paper_bgcolor: t.paper_bgcolor, plot_bgcolor: t.plot_bgcolor,
+      margin: { t: 10, b: 50, l: 50, r: 16 },
+      legend: { font: { color: t.tickColor, size: 11 }, orientation: 'h', x: 0, y: 1.02, yanchor: 'bottom' },
+      xaxis: { tickfont: { color: t.tickColor, size: 11 }, gridcolor: t.gridColor, linecolor: t.gridColor,
+               title: { text: 'Week', font: { color: t.tickColor, size: 12 } },
+               dtick: narrow && n > 13 ? 2 : 1, automargin: true },
+      yaxis: { tickfont: { color: t.tickColor }, gridcolor: t.gridColor, range: [0, 105], ticksuffix: '%',
+               title: { text: 'Resistant %', font: { color: t.tickColor, size: 12 } } },
+      shapes: [{ type: 'line', xref: 'paper', x0: 0, x1: 1, y0: 50, y1: 50,
+                 line: { color: 'rgba(239,68,68,0.5)', width: 1.5, dash: 'dash' } }],
+      font: { family: t.fontFamily },
+      hovermode: 'x unified',
+    }, extra || {});
+  }
+
+  function givenResistance(p) {
+    /* resistance of the drug given in week w, at the end of week w */
+    return p.policy.map((drug, i) => (p.resistant_fraction[drug] || [])[i + 1]);
+  }
+
+  function renderRl(rl) {
+    if (!rl || !rl.policies || !rl.policies.length || !document.getElementById('rlChart')) return;
+    const t = AMR.plotLayout();
+    const narrow = window.innerWidth < 576;
+    const n = rl.n_weeks || rl.policies[0].policy.length;
+    const weeks = Array.from({ length: n }, (_, i) => i + 1);
+    const drugColour = d => DRUG_COLOURS[Math.max(0, rl.drugs.indexOf(d)) % DRUG_COLOURS.length];
+
+    /* 1. One line per policy: how resistant the drug it gave was */
+    const traces = rl.policies.map((p, i) => ({
+      name: p.label + (p.name === rl.best ? ' (best)' : ''),
+      x: weeks, y: givenResistance(p), customdata: p.policy,
+      mode: 'lines+markers',
+      line: { color: POLICY_COLOURS[i % POLICY_COLOURS.length], width: p.name === rl.best ? 3.5 : 2,
+              dash: p.name === 'rl' || p.name === rl.best ? 'solid' : 'dot' },
+      marker: { size: p.name === rl.best ? 7 : 5 },
+      hovertemplate: '%{customdata}: %{y:.1f}%<extra>' + p.label + '</extra>',
+    }));
+    Plotly.newPlot('rlChart', traces, rlLayout(t, narrow, n), { responsive: true, displayModeBar: false });
+
+    /* 2. The chosen policy: the drug given each week, and every drug's resistance */
+    const select = document.getElementById('rlPolicySelect');
+    function showPolicy(i) {
+      const p = rl.policies[i];
+      const chips = document.getElementById('rlChips');
+      if (chips) {
+        chips.innerHTML = '';
+        const given = givenResistance(p);
+        p.policy.forEach((drug, w) => {
+          const chip = document.createElement('span');
+          chip.className = 'rl-chip' + (given[w] >= 50 ? ' rl-chip-failed' : '');
+          chip.style.borderLeftColor = drugColour(drug);
+          chip.title = `Week ${w + 1}: ${drug}, ${given[w] !== undefined ? given[w].toFixed(1) + '% resistant' : ''}`;
+          const wk = document.createElement('span');
+          wk.className = 'rl-chip-week';
+          wk.textContent = 'W' + (w + 1);
+          const name = document.createElement('span');
+          name.textContent = drug.length > 8 ? drug.slice(0, 7) + '.' : drug;
+          chip.appendChild(wk);
+          chip.appendChild(name);
+          chips.appendChild(chip);
+        });
+      }
+      const all = Array.from({ length: n + 1 }, (_, k) => k);
+      const perDrug = rl.drugs.map(d => ({
+        name: d, x: all, y: p.resistant_fraction[d] || [], mode: 'lines',
+        line: { color: drugColour(d), width: 2.5 },
+        hovertemplate: d + ': %{y:.1f}%<extra></extra>',
+      }));
+      Plotly.react('rlDrugChart', perDrug,
+        rlLayout(t, narrow, n, { xaxis: Object.assign(rlLayout(t, narrow, n).xaxis, { range: [0, n] }) }),
+        { responsive: true, displayModeBar: false });
+    }
+    if (select) {
+      select.addEventListener('change', () => showPolicy(parseInt(select.value, 10)));
+      showPolicy(parseInt(select.value, 10) || 0);
+    }
+  }
+
+  const rlEl = document.getElementById('rl-data');
+  if (rlEl) {
+    try { renderRl(JSON.parse(rlEl.textContent)); } catch (_) {}
+  }
+
   /* ── Dynamic bar widths (gene contribution bars) ─────────── */
   document.querySelectorAll('.prob-bar-fill[data-prob]').forEach(function (el) {
     el.style.width = parseFloat(el.dataset.prob).toFixed(1) + '%';
