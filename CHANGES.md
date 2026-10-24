@@ -18,6 +18,16 @@ Baseline is commit **`52ae361`** *(Add amrpredict library and macOS launcher, 20
 
 ---
 
+## Report: data and methodology chapters (2026-10-24, Ali)
+
+| File | Change |
+|---|---|
+| [docs/report/Chapter_Data.md](docs/report/Chapter_Data.md) | New. Sources, what a BV-BRC record is, the v7 cleaning step by step, ten data-quality problems with counts from the audit, the cleaned data, genome features, scaling to every lab-tested genome, limitations |
+| [docs/report/Chapter_Methodology.md](docs/report/Chapter_Methodology.md) | New. The task, the split by genome, the forecaster's features and the target-encoding fix, training, calibration and threshold, genome features, metrics and statistics, the timeline simulation and its checks, the RL agent, reproducibility. Results stay in `Chapter_Results.md` |
+| [experiments/evolution/rl_figure.py](experiments/evolution/rl_figure.py), [experiments/genome/features/gene_figure.py](experiments/genome/features/gene_figure.py) | New. The RL comparison and gene summary figures for the chapters |
+
+---
+
 ## RL agent trained and served (2026-10-24, Ali)
 
 | File | Change |
