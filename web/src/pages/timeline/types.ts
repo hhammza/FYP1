@@ -47,10 +47,25 @@ export interface TimelineResult {
   resistance_genes?: { gene: string; activation_week: number; resistance_contribution: number }[];
   calibration?: { curves: number; rmse: number; surveillance_curves: number; drugs: string[] } | null;
   rl?: RlBlock | null;
+  ml_forecast?: MlForecast | null;
   [k: string]: unknown;
+}
+
+/** The timeline ML model's block (format §8): observed yearly resistance and
+    its forecast, absent when the organism and drug have too little history. */
+export interface MlForecast {
+  model_run?: string;
+  organism: string;
+  antibiotic: string;
+  history: { year: number; resistant_pct: number; n: number }[];
+  forecast: { year: number; resistant_pct: number; lo: number; hi: number }[];
+  metrics?: Record<string, { mae_pct: number; ci: [number, number] }>;
+  label: string;
 }
 
 export interface TimelineInputs {
   antibiotic: string;
   n_weeks: string;
+  /** the organism for the ML forecast; '' = identify it from the genome */
+  genus?: string;
 }

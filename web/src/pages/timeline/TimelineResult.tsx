@@ -5,6 +5,7 @@ import type { Data, Shape } from 'plotly.js-dist-min';
 import ExportBar from '../../components/ExportBar';
 import Plot, { type Figure, type PlotElement, type PlotTheme } from '../../components/Plot';
 import { jinjaTitle, pyFixed, pyFloat, thousands } from '../../lib/metrics';
+import MlForecastCard from './MlForecastCard';
 import RlPanel from './RlPanel';
 import type { TimelineInputs, TimelineResult as Result, Week } from './types';
 
@@ -79,6 +80,14 @@ export default function TimelineResult({ result, inputs, sample }: Props) {
           This is <code>progress/formats/timeline_response.sample.json</code>, shown to preview the layout and the RL panel.
         </div>
       )}
+
+      {/* the trained model first; the simulation below is the what-if tool */}
+      <MlForecastCard ml={result.ml_forecast} antibiotic={result.antibiotic} genus={inputs.genus} />
+
+      <div className="d-flex align-items-center flex-wrap gap-2 mb-2" id="simulationHeading">
+        <h6 className="card-section-title mb-0 me-auto"><i className="bi bi-sliders text-accent me-2"></i>What-if simulation: week by week under treatment</h6>
+        <span className="status-badge simulated"><i className="bi bi-activity"></i>Simulation, not a trained model</span>
+      </div>
 
       <div className="timeline-summary-card mb-4">
         <div className="row g-3 align-items-center">

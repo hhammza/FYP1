@@ -13,6 +13,8 @@ export interface OrganismGenus {
 export interface Vocabulary {
   lgbm: { antibiotics?: string[]; organisms?: OrganismGenus[]; [k: string]: unknown } | null;
   kmer: { antibiotics?: string[] } | null;
+  /** the timeline ML model: the genera it forecasts, per antibiotic (format §8) */
+  timeline?: { genera: Record<string, string[]> } | null;
 }
 
 function cached<T>(key: string, load: () => Promise<T>): Promise<T> {
@@ -50,7 +52,8 @@ export function useAntibiotics(model: 'lgbm' | 'kmer'): Loaded<string[]> {
 }
 
 export function useVocabulary(): Loaded<Vocabulary> {
-  return useLoad('vocabulary', () => apiGet<Vocabulary>('vocabulary/'), d => !!(d.lgbm || d.kmer));
+  // _v2: since `timeline` was added, so a tab's older copy is not reused
+  return useLoad('vocabulary_v2', () => apiGet<Vocabulary>('vocabulary/'), d => !!(d.lgbm || d.kmer));
 }
 
 /** 'ciprofloxacin' -> 'Ciprofloxacin', as the Flask dropdowns showed names. */
