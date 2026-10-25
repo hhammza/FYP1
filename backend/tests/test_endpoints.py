@@ -116,5 +116,23 @@ class GeneLookup(unittest.TestCase):
         self.assertEqual(r.json(), {'genome_id': '999999999.9', 'searched': False, 'genes': []})
 
 
+class TimelineGenera(unittest.TestCase):
+    """/api/vocabulary/'s `timeline`: the genera /timeline offers for a drug,
+    each one the timeline ML model really forecasts (format §8)."""
+
+    def test_every_genus_offered_gets_a_forecast(self):
+        from ml_models.timeline_ml import get_forecaster
+        vocab = get('/api/vocabulary/').json()['timeline']
+        if vocab is None:
+            self.skipTest('no timeline ML model')
+        cipro = vocab['genera']['ciprofloxacin']
+        self.assertIn('Salmonella', cipro)
+        self.assertEqual(cipro, sorted(cipro))
+        model = get_forecaster(str(settings.TRAINED_MODELS_DIR))
+        for ab in ('ciprofloxacin', 'gentamicin', 'ampicillin'):
+            for genus in vocab['genera'].get(ab, []):
+                self.assertIsNotNone(model.forecast(genus, ab), f'{genus} + {ab} offered without a forecast')
+
+
 if __name__ == '__main__':
     unittest.main()
