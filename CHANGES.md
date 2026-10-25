@@ -18,6 +18,18 @@ Baseline is commit **`52ae361`** *(Add amrpredict library and macOS launcher, 20
 
 ---
 
+## ML forecast and the live RL agent on /timeline (2026-10-25, Suleman)
+
+| File | Change |
+|---|---|
+| [web/src/pages/timeline/MlForecastCard.tsx](web/src/pages/timeline/MlForecastCard.tsx), [TimelineResult.tsx](web/src/pages/timeline/TimelineResult.tsx) | Hamza's `ml_forecast` (format §8) on `/timeline`: the organism's observed yearly resistance, the forecast dashed with its 80% band, the model's label, and its held-out error against the baselines. The simulation follows, headed "What-if simulation" and labelled "Simulation, not a trained model". Without a forecast, one line says why |
+| [web/src/pages/timeline/TimelineForm.tsx](web/src/pages/timeline/TimelineForm.tsx), [backend/api/views.py](backend/api/views.py) | An organism list for the forecast: only the genera with yearly lab history for the chosen drug, from the new `timeline` key of `/api/vocabulary/`; left empty, the genome's genus is used |
+| [web/src/pages/timeline/RlPanel.tsx](web/src/pages/timeline/RlPanel.tsx), [frontend/static/js/timeline.js](frontend/static/js/timeline.js), [frontend/templates/_rl_panel.html](frontend/templates/_rl_panel.html) | The RL panel on Ali's live block: a week fails on the drug's resistance at its start (format §4, answer 4), so the red week chips match `failure_week`; they had been one week early (six in one 52-week case) |
+| [scripts/e2e_check.py](scripts/e2e_check.py) | React: a step for the forecast (Salmonella + ciprofloxacin), 24 steps |
+| [web/vite.config.ts](web/vite.config.ts) | `API_PROXY` for a backend on another port than 8000 |
+
+---
+
 ## Report: data and methodology chapters (2026-10-24, Ali)
 
 | File | Change |
@@ -42,7 +54,7 @@ Baseline is commit **`52ae361`** *(Add amrpredict library and macOS launcher, 20
 
 ---
 
-## React + TypeScript frontend finished (2026-10-15, Suleman; branch `frontend-react`)
+## React + TypeScript frontend finished (2026-10-15, Suleman; merged into `main` as pull request #1)
 
 | File | Change |
 |---|---|

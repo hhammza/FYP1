@@ -19,7 +19,7 @@ python scripts/e2e_check.py --site react --base https://<web>.up.railway.app --a
 
 It prints ✓ or ✗ for each step below and exits 0 only if all pass. For `/predict` it downloads one complete genome the served model never trained on (from its test list, BV-BRC); `--no-genome` skips that step when offline.
 
-Last run: **2026-10-15, 23 of 23 steps passed** on Flask, on the React dev site and on the React production build (local, Windows, Edge).
+Last run: **2026-10-25**: React 24 of 24 (with the ML forecast step), Flask 23 of 23 (local, Windows, Edge). Earlier, 2026-10-15: 23 of 23 on the React production build too.
 
 ## By hand: the same steps
 
@@ -46,6 +46,7 @@ Last run: **2026-10-15, 23 of 23 steps passed** on Flask, on the React dev site 
 ### 5. `/timeline`
 - [ ] Paste tab → **Load Sample** → Generate → the weekly chart; the RL panel appears once Ali's agent returns `rl` (preview: `/timeline/sample` on a local run)
 - [ ] Download **CSV**, **PDF report**, **Chart (PNG)**; each is labelled "Simulation, not a trained model"
+- [ ] React: ciprofloxacin, organism **Salmonella** → the ML forecast above the simulation (about 21 years of history, a dashed forecast with its band); ciprofloxacin, gentamicin or imipenem → the RL panel, its red week chips at the weeks the table gives
 
 ### 6. `/genes`
 - [ ] Gene matrix CSV and gene info CSV download
