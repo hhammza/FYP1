@@ -24,7 +24,8 @@ export default defineConfig({
   server: {
     host: '127.0.0.1',
     port: 5173,
-    proxy: { '/api': 'http://127.0.0.1:8000' },
+    // API_PROXY: another port when 8000 is taken, e.g. API_PROXY=http://127.0.0.1:8001
+    proxy: { '/api': process.env.API_PROXY || 'http://127.0.0.1:8000' },
     // the sample responses (/predict/sample, /timeline/sample) are read from
     // progress/formats/ on a development run; a build leaves them out
     fs: { allow: ['.', '../progress/formats'] },
