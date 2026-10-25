@@ -195,8 +195,14 @@
   }
 
   function givenResistance(p) {
-    /* resistance of the drug given in week w, at the end of week w */
+    /* resistance of the drug given in week w, at the end of week w (the lines) */
     return p.policy.map((drug, i) => (p.resistant_fraction[drug] || [])[i + 1]);
+  }
+
+  function startResistance(p) {
+    /* at the start of week w: a week fails on this (format §4, answer 4),
+       as failure_week counts it, so a failed week follows the line crossing 50 */
+    return p.policy.map((drug, i) => (p.resistant_fraction[drug] || [])[i]);
   }
 
   function renderRl(rl) {
@@ -227,11 +233,13 @@
       if (chips) {
         chips.innerHTML = '';
         const given = givenResistance(p);
+        const start = startResistance(p);
         p.policy.forEach((drug, w) => {
           const chip = document.createElement('span');
-          chip.className = 'rl-chip' + (given[w] >= 50 ? ' rl-chip-failed' : '');
+          chip.className = 'rl-chip' + (start[w] >= 50 ? ' rl-chip-failed' : '');
           chip.style.borderLeftColor = drugColour(drug);
-          chip.title = `Week ${w + 1}: ${drug}, ${given[w] !== undefined ? given[w].toFixed(1) + '% resistant' : ''}`;
+          chip.title = `Week ${w + 1}: ${drug}, ${start[w] !== undefined ? start[w].toFixed(1) + '% resistant at the start' : ''}`
+            + (given[w] !== undefined ? `, ${given[w].toFixed(1)}% at the end` : '');
           const wk = document.createElement('span');
           wk.className = 'rl-chip-week';
           wk.textContent = 'W' + (w + 1);

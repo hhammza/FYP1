@@ -15,12 +15,12 @@
   <p class="small text-muted mb-3">
     Which drug to give each week so that one of them keeps working longest. The
     {% if rl.agent %}agent ({{ rl.agent }}){% else %}fixed baselines{% endif %} and the policies it is compared with run on the
-    same simulation, from the same starting resistance: {{ rl.drugs | join(', ') }}. A week fails when the drug given is at
-    50% resistance or more. Weeks and resistance levels are illustrative, not a treatment plan.
+    same simulation, from the same starting resistance: {{ rl.drugs | join(', ') }}. A week fails when the drug given starts
+    the week at 50% resistance or more. Weeks and resistance levels are illustrative, not a treatment plan.
   </p>
 
   <div class="rl-chart-wrap mb-2">
-    <div class="small fw-600 mb-1">Resistance to the drug given each week</div>
+    <div class="small fw-600 mb-1">Resistance to the drug given each week, at the end of the week</div>
     <div id="rlChart" class="chart-300" role="img" aria-label="Resistance to the drug given each week, one line per policy"></div>
   </div>
 
@@ -56,7 +56,7 @@
   </div>
   <div class="caption-text mt-2">
     Best: the latest first failure (never failing beats any week), then the higher reward. Effective weeks: weeks the drug
-    given was under 50% resistance.
+    given started under 50% resistance. A red chip is a week that failed.
   </div>
 </div>
 {% endif %}

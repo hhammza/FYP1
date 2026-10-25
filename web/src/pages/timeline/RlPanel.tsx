@@ -1,9 +1,10 @@
 /* The RL panel on /timeline (_rl_panel.html; format §4, "RL panel").
      result.rl absent -> RL was not run (agent not trained, or not for this drug): no panel
      result.rl         -> the agent and the fixed baselines on the same simulation
-   Week w's value is the resistant share of the drug given in week w at the
-   end of that week (resistant_fraction[drug][w]); first-failure weeks are
-   the data's own. */
+   The lines show the resistant share of the drug given in week w at the end
+   of that week (resistant_fraction[drug][w]). A week fails on the share at its
+   start (index w - 1), as the agent and failure_week count it (format §4,
+   answer 4), so a failed week is the one after a line crosses 50. */
 import { useCallback, useState } from 'react';
 import type { Data, Layout } from 'plotly.js-dist-min';
 import Plot, { type Figure, type PlotTheme } from '../../components/Plot';
@@ -14,9 +15,21 @@ const DRUG_COLOURS = ['#6366f1', '#f59e0b', '#10b981', '#ec4899', '#0ea5e9', '#a
 const POLICY_COLOURS = ['#7c3aed', '#ef4444', '#0ea5e9', '#f59e0b', '#10b981', '#64748b'];
 const NARROW_PX = 576;
 
-/** Resistance of the drug given in week w, at the end of week w. */
+/** Resistance of the drug given in week w, at the end of week w (the lines). */
 export function givenResistance(p: RlPolicy): (number | undefined)[] {
   return p.policy.map((drug, i) => (p.resistant_fraction[drug] || [])[i + 1]);
+}
+
+/** Resistance of the drug given in week w when the week starts: what decides
+    whether the week fails (format §4). */
+export function startResistance(p: RlPolicy): (number | undefined)[] {
+  return p.policy.map((drug, i) => (p.resistant_fraction[drug] || [])[i]);
+}
+
+/** The first week that fails (1-based), or null: the same rule as failure_week. */
+export function firstFailedWeek(p: RlPolicy): number | null {
+  const i = startResistance(p).findIndex(v => (v ?? 0) >= 50);
+  return i < 0 ? null : i + 1;
 }
 
 /** 'trimethoprim' -> 'trimeth.', so a chip fits. */
@@ -82,6 +95,7 @@ export default function RlPanel({ rl, nWeeks }: { rl: RlBlock | null | undefined
 
   if (!rl || !policies.length) return null;
   const given = givenResistance(p);
+  const start = startResistance(p);
 
   return (
     <div className="info-card mb-4" id="rlPanel">
@@ -91,12 +105,12 @@ export default function RlPanel({ rl, nWeeks }: { rl: RlBlock | null | undefined
       <p className="small text-muted mb-3">
         Which drug to give each week so that one of them keeps working longest. The{' '}
         {rl.agent ? `agent (${rl.agent})` : 'fixed baselines'} and the policies it is compared with run on the
-        same simulation, from the same starting resistance: {rl.drugs.join(', ')}. A week fails when the drug given is at
-        50% resistance or more. Weeks and resistance levels are illustrative, not a treatment plan.
+        same simulation, from the same starting resistance: {rl.drugs.join(', ')}. A week fails when the drug given starts
+        the week at 50% resistance or more. Weeks and resistance levels are illustrative, not a treatment plan.
       </p>
 
       <div className="rl-chart-wrap mb-2">
-        <div className="small fw-600 mb-1">Resistance to the drug given each week</div>
+        <div className="small fw-600 mb-1">Resistance to the drug given each week, at the end of the week</div>
         <div role="img" aria-label="Resistance to the drug given each week, one line per policy">
           <Plot id="rlChart" className="chart-300" figure={policiesFigure} />
         </div>
@@ -111,9 +125,10 @@ export default function RlPanel({ rl, nWeeks }: { rl: RlBlock | null | undefined
       </div>
       <div id="rlChips" className="rl-chips mb-3" aria-label="Drug given each week">
         {p.policy.map((drug, w) => (
-          <span key={w} className={'rl-chip' + ((given[w] ?? 0) >= 50 ? ' rl-chip-failed' : '')}
+          <span key={w} className={'rl-chip' + ((start[w] ?? 0) >= 50 ? ' rl-chip-failed' : '')}
                 style={{ borderLeftColor: drugColour(drug) }}
-                title={`Week ${w + 1}: ${drug}, ${given[w] !== undefined ? given[w]!.toFixed(1) + '% resistant' : ''}`}>
+                title={`Week ${w + 1}: ${drug}, ${start[w] !== undefined ? start[w]!.toFixed(1) + '% resistant at the start' : ''}`
+                  + (given[w] !== undefined ? `, ${given[w]!.toFixed(1)}% at the end` : '')}>
             <span className="rl-chip-week">W{w + 1}</span><span>{shortDrug(drug)}</span>
           </span>
         ))}
@@ -143,7 +158,7 @@ export default function RlPanel({ rl, nWeeks }: { rl: RlBlock | null | undefined
       </div>
       <div className="caption-text mt-2">
         Best: the latest first failure (never failing beats any week), then the higher reward. Effective weeks: weeks the drug
-        given was under 50% resistance.
+        given started under 50% resistance. A red chip is a week that failed.
       </div>
     </div>
   );
