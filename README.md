@@ -38,7 +38,7 @@ You built a full-stack antimicrobial-resistance (AMR) prediction system with **f
 |---|---|---|---|
 | 1 | **Django REST API** | `backend/` | 14 endpoints, loads 3 prediction engines into memory at startup |
 | 2 | **Flask web app** | `frontend/` | 22 routes, 11 pages, calls the Django API over HTTP |
-| 2b | **React + TypeScript web app** (in progress, branch `frontend-react`) | `web/` | The same pages, page by page; calls the Django API straight from the browser. Flask stays the deployed site until it is finished ([web/README.md](web/README.md)) |
+| 2b | **React + TypeScript web app** | `web/` | The same 11 pages as the Flask app, calling the Django API straight from the browser; the frontend to deploy, with Flask kept as the fallback ([web/README.md](web/README.md)) |
 | 3 | **`amrpredict` Python package** | `amrpredict-lib/` | The same three engines, cleaned up, pip-installable, with a CLI and tests |
 | 4 | **Research notebooks** | `*.ipynb` | Where the models were originally designed and trained (Colab) |
 
@@ -567,7 +567,7 @@ Leave `DEBUG` unset in production. Without `SECRET_KEY` or `ALLOWED_HOSTS` the b
 
 `frontend/app.py` infers its mode from `PORT`: if Railway sets it, `debug=False`; locally with no `PORT`, debug is on and the server listens on 127.0.0.1 only, since the debugger can run code.
 
-**The React frontend instead of Flask** (`web/`, branch `frontend-react`): a service with root directory `web/` (`web/railway.toml`). Nixpacks builds it; `npm start` runs `web/server.mjs`, a plain Node static server. Set `VITE_API_URL` (the backend's `/api` address, read at build time) on it, and `CORS_ALLOWED_ORIGINS` (its address) on the backend. Check it with `python scripts/e2e_check.py --site react --base <web> --api <backend>/api`.
+**The React frontend instead of Flask** (`web/`): a service with root directory `web/` (`web/railway.toml`). Nixpacks builds it; `npm start` runs `web/server.mjs`, a plain Node static server. Set `VITE_API_URL` (the backend's `/api` address, read at build time) on it, and `CORS_ALLOWED_ORIGINS` (its address) on the backend. Check it with `python scripts/e2e_check.py --site react --base <web> --api <backend>/api`.
 
 ---
 

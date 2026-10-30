@@ -311,6 +311,21 @@ def main(a):
             return downloads('timeline')
         timeline_downloads()
 
+        if react:
+            @step('/timeline: the ML forecast for an organism (Salmonella + ciprofloxacin)')
+            def timeline_forecast():
+                goto('/timeline')
+                select_when_ready('#timelineForm [name=antibiotic]', 'ciprofloxacin')
+                select_when_ready('#genusSelect', 'Salmonella')
+                page.click('#fastaTab2 .nav-link >> nth=1')
+                page.click('text=Load Sample')
+                submit('#timelineForm [type=submit]', 60_000, '#mlForecastChart .main-svg')
+                years = page.evaluate("document.getElementById('mlForecastChart').data"
+                                      ".find(d => d.name && d.name.startsWith('Observed')).x.length")
+                check(years >= 5, f'only {years} years of history shown')
+                return f'{years} years of history and a forecast'
+            timeline_forecast()
+
         @step('/genes: gene matrix and gene info CSV downloads')
         def gene_csvs():
             goto('/genes')

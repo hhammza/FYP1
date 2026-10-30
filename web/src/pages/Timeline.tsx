@@ -51,9 +51,9 @@ export default function Timeline({ sample = false }: { sample?: boolean }) {
     }
   }, [answered]);
 
-  async function simulate({ antibiotic, n_weeks, genome }: TimelineSubmit) {
+  async function simulate({ antibiotic, n_weeks, genus, genome }: TimelineSubmit) {
     setError('');
-    const inputs = { antibiotic, n_weeks };
+    const inputs = { antibiotic, n_weeks, genus };
     if ('file' in genome && genome.file.size > MAX_FASTA_MB * 1024 * 1024) {
       setShown(null);
       setError(`The file is too large: the limit is ${MAX_FASTA_MB} MB.`);
@@ -68,10 +68,11 @@ export default function Timeline({ sample = false }: { sample?: boolean }) {
         form.append('fasta_file', genome.file, genome.file.name);
         form.append('antibiotic', antibiotic);
         form.append('n_weeks', n_weeks);
+        if (genus) form.append('genus', genus);
         result = await apiUpload<Result>('timeline/', form);
       } else {
         // n_weeks as typed: the backend checks it
-        result = await apiPost<Result>('timeline/', { fasta_text: genome.text, antibiotic, n_weeks });
+        result = await apiPost<Result>('timeline/', { fasta_text: genome.text, antibiotic, n_weeks, ...(genus ? { genus } : {}) });
       }
       setShown({ result, inputs });
     } catch (e) {

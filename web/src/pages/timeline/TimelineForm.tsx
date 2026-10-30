@@ -2,7 +2,7 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import FastaInput, { chosenGenome, EMPTY_FASTA, type FastaValue } from '../../components/FastaInput';
 import { useToast } from '../../components/Toasts';
-import { capitalise, useAntibiotics } from '../../lib/vocab';
+import { capitalise, useAntibiotics, useVocabulary } from '../../lib/vocab';
 
 export const SAMPLE_GENOME = `>sample_Ecoli_genome
 ATGAAACGCATTAGCACCACCATTACCACCACCATCACCATTACCACAGGTAACGGTGCGGGCTGACGCGTACAGGAAACACAGAAAAAAGCCCGCACCTGACAGTGCGGGCTTTTTTTTTCGACCAAAGGTAACGAGGTAACAACCATGCGAGTGTTGAAGTTCGGCGGTACATCAGTGGCAAATGCAGAACGTTTTCTGCGCGTTGTTACGCGCATTTTCTGATATTCGATTCGCATCATTTTCGGTCGGGTATCGCGGCGTTTGCTAAAAAACGTCAGCGTTTGCAGTTTTCGCTGAAACAGATGCGTATTTCGGTTTATCTCAAAAGTTCGTTTAGTAACAACGATGCGTAAAGCAGCATTAACGAAACAGTTTCAACGTTTGGCTGAAACGCAGTTTAAAGCTCAACGCAACAGTTTGCAAACGCAGCGCAATTTAAACAAGCGTTTGCAGAAACG`;
@@ -10,24 +10,38 @@ ATGAAACGCATTAGCACCACCATTACCACCACCATCACCATTACCACAGGTAACGGTGCGGGCTGACGCGTACAGGAAAC
 export interface TimelineSubmit {
   antibiotic: string;
   n_weeks: string;
+  /** the organism for the ML forecast; '' = identify it from the genome */
+  genus: string;
   genome: { file: File } | { text: string };
+}
+
+/** The genera the timeline ML model forecasts for a drug (format §8). */
+export function forecastGenera(genera: Record<string, string[]> | undefined, antibiotic: string): string[] {
+  return (genera && antibiotic && genera[antibiotic.toLowerCase()]) || [];
 }
 
 interface Props {
   busy: boolean;
-  initial?: { antibiotic: string; n_weeks: string };
+  initial?: { antibiotic: string; n_weeks: string; genus?: string };
   onSubmit: (s: TimelineSubmit) => void;
 }
 
 export default function TimelineForm({ busy, initial, onSubmit }: Props) {
   const toast = useToast();
   const antibiotics = useAntibiotics('kmer');
+  const vocab = useVocabulary();
+  const timelineGenera = vocab.state === 'ready' ? vocab.data.timeline?.genera : undefined;
   const [antibiotic, setAntibiotic] = useState(initial?.antibiotic ?? '');
   const [weeks, setWeeks] = useState(initial?.n_weeks ?? '8');
+  const [genus, setGenus] = useState(initial?.genus ?? '');
+  const genera = forecastGenera(timelineGenera, antibiotic);
   const [fasta, setFasta] = useState<FastaValue>(EMPTY_FASTA);
   const [missing, setMissing] = useState(false);
 
-  useEffect(() => { if (initial) { setAntibiotic(initial.antibiotic); setWeeks(initial.n_weeks); } }, [initial]);
+  useEffect(() => { if (initial) { setAntibiotic(initial.antibiotic); setWeeks(initial.n_weeks); setGenus(initial.genus ?? ''); } }, [initial]);
+
+  // a genus with no history for the newly chosen drug is let go
+  useEffect(() => { if (genus && timelineGenera && !genera.includes(genus)) setGenus(''); }, [genus, genera, timelineGenera]);
 
   useEffect(() => {
     if (antibiotics.state === 'failed') {
@@ -43,7 +57,7 @@ export default function TimelineForm({ busy, initial, onSubmit }: Props) {
       document.getElementById(fasta.tab === 'text' ? 'fastaText2' : 'fastaFile2')?.focus();
       return;
     }
-    onSubmit({ antibiotic, n_weeks: weeks, genome });
+    onSubmit({ antibiotic, n_weeks: weeks, genus, genome });
   }
 
   return (
@@ -60,6 +74,25 @@ export default function TimelineForm({ busy, initial, onSubmit }: Props) {
             : <option value="">-- Select Antibiotic --</option>}
           {antibiotics.state === 'ready' && antibiotics.data.map(a => <option key={a} value={a}>{capitalise(a)}</option>)}
         </select>
+      </div>
+
+      <div className="mb-3">
+        <label className="form-label-custom" htmlFor="genusSelect">Organism for the ML forecast <span className="text-muted">(optional)</span>{' '}
+          <i className="bi bi-info-circle text-muted ms-1" data-bs-toggle="tooltip" data-bs-placement="right"
+             data-bs-title="The genus whose yearly resistance the ML model forecasts. Only genera with lab history for the chosen drug are listed. Left empty, the genus is identified from a complete uploaded genome."></i>
+        </label>
+        <select name="genus" id="genusSelect" className="form-select form-select-custom" value={genus}
+                onChange={e => setGenus(e.target.value)} disabled={!genera.length}>
+          <option value="">{!antibiotic ? '-- Choose an antibiotic first --'
+            : genera.length ? '-- Identify it from the genome --' : '-- No forecast for this drug --'}</option>
+          {genera.map(g => <option key={g} value={g}>{g}</option>)}
+        </select>
+        <div className="form-hint">
+          {vocab.state === 'loading' || !antibiotic ? ''
+            : !timelineGenera ? 'The ML forecast needs the backend; the simulation works without it.'
+            : genera.length ? `${genera.length} genera have yearly lab history for ${antibiotic}`
+            : `No genus has enough yearly lab history for ${antibiotic}; the simulation still runs.`}
+        </div>
       </div>
 
       <div className="mb-3">

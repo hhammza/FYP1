@@ -514,7 +514,25 @@ class VocabularyView(View):
         return JsonResponse({
             'lgbm': lgbm_vocab,
             'kmer': {'antibiotics': sorted(kmer.ab_list)} if kmer and kmer.ab_list else None,
+            'timeline': timeline_genera(),
         })
+
+
+def timeline_genera():
+    """{antibiotic: [genus, ...]}: the organisms the timeline ML model can
+    forecast for each drug (format §8), for /timeline's genus list; None
+    when the model is not trained."""
+    from ml_models.timeline_ml import get_forecaster
+    meta = get_forecaster(str(settings.TRAINED_MODELS_DIR)).meta
+    if not meta.get('history'):
+        return None
+    least = meta.get('min_history', 2)
+    by_drug = {}
+    for genus, series in meta['history'].items():
+        for ab, s in series.items():
+            if len(s.get('points') or []) >= least:
+                by_drug.setdefault(ab, []).append(genus)
+    return {'genera': {ab: sorted(gs) for ab, gs in sorted(by_drug.items())}}
 
 
 class MicValuesView(View):
