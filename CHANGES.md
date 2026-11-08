@@ -18,6 +18,17 @@ Baseline is commit **`52ae361`** *(Add amrpredict library and macOS launcher, 20
 
 ---
 
+## Groundwork for the /explore dashboard (2026-11-08, Hamza; branch `feature/explore`)
+
+| File | Change |
+|---|---|
+| [backend/reference/antibiotics.csv](backend/reference/antibiotics.csv), [families.csv](backend/reference/families.csv) | First lookup tables of the [instructor requirements plan](docs/INSTRUCTOR_REQUIREMENTS_PLAN.md): 126 drugs with family, subfamily, chemical group, ATC code and WHO AWaRe category (to be checked against the WHO lists); family > subfamily display order for the grouped dropdown |
+| [download_genome_meta.py](scripts/bvbrc_download/download_genome_meta.py) | `--clinical`: disease, host_health and body_sample_site of the lab-tested genomes, into `Data/genome_meta/genome_clinical.csv` (plan step 1) |
+| [download_amr_full.py](scripts/bvbrc_download/download_amr_full.py) | Retries saving `state.json` when OneDrive or an antivirus holds the file (the download crashed on Windows) |
+| [scripts/bvbrc_download/README.md](scripts/bvbrc_download/README.md), trackers | Windows note (`--run`), `--clinical`; Handovers for Ali and Suleman |
+
+---
+
 ## ML forecast and the live RL agent on /timeline (2026-10-25, Suleman)
 
 | File | Change |

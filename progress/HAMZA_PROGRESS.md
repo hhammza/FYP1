@@ -2,7 +2,7 @@
 
 **Role:** models
 **Plan:** the split by skill (Ali: data + evolution, Hamza: models, Suleman: platform), based on [FYP_Completion_Roadmap.md](../docs/FYP_Completion_Roadmap.md)
-**Started:** 2026-09-25 · **Last updated:** 2026-10-22 (sprint done: timeline ML model, GAN experiment, notebook 04, results chapter)
+**Started:** 2026-09-25 · **Last updated:** 2026-11-08 (groundwork for the instructor's /explore dashboard pushed on `feature/explore`)
 
 Status key: `[ ]` not started · `[~]` in progress · `[x]` done · `[!]` blocked (say why in the log)
 
@@ -29,6 +29,7 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done · `[!]` blocke
 | Sprint | 17 to 22 Oct | Timeline ML model, GAN experiment, results chapter ([Final sprint](#final-sprint-17-to-19-october-added-2026-10-17)) | **Done 2026-10-22** (Hamza's part): timeline ML model served, GAN experiment (negative), notebook 04, results chapter |
 | 5 | 26 Oct to 30 Oct | Results chapters | Brought forward into the final sprint (17 to 19 Oct) |
 | Research | alongside weeks 3 to 5 | Lab-genome runs B6 to B8, lineage split for all models, seeds and tests, calibration plot, temporal split ([Research track](#research-track-added-by-ali-2026-09-28), added by Ali) | **Done on the 24,926 genomes** (2026-10-01). Next: rerun on all 87,325 lab-tested genomes when Ali's merged gene matrix is ready (his k-mers for 89,738 genomes are on Drive) |
+| Explore | 7 to 8 Nov | Groundwork for the instructor's 12 dashboard requirements (Ali's [plan](../docs/INSTRUCTOR_REQUIREMENTS_PLAN.md)) | **[~] Groundwork pushed** on branch `feature/explore` (`55d83428`): lookup tables for antibiotics and families, clinical-field download, lab records with Intermediate kept. Ali builds `/explore` on top |
 
 **Files I own:** `experiments/` (except `lib/data_prep.py`, `genome/features/`, `evolution/`), `backend/ml_models/lgbm_predictor.py`, `backend/ml_models/resistance_predictor.py`, `backend/trained_models/`, `amrpredict-lib/`.
 Other people's files: ask the owner, or comment in their pull request.
@@ -280,6 +281,7 @@ Alongside weeks 3 to 5, not instead of them. What the papers are and why: [RESEA
 | To Ali | **Answers (2026-09-29):** (1) yes, please sync your timeline fix into `amrpredict/timeline.py` yourself and remove the strict xfail; (2) lab AUC on your genomes (v6, plasmids excluded): **genes 0.979 [0.977–0.981] on 40,356 lab test rows from 4,481 genomes; training used 24,719 genomes** (about 200,000 lab rows); k-mers 0.935; (3) Dataset 2 kept, Suleman told to mark it superseded | Week 3 | [x] |
 | To Ali | Proposed gene-matrix format in `progress/formats/README.md` §3 (string `Genome ID` index, zero rows for searched genomes, `gene_info.csv`); `pyarrow` needed | Day 1 | [x] agreed by Ali 2026-09-26, formats §3; `pyarrow` in `experiments/requirements.txt` |
 | To supervisor | Scope email | Day 1 | [x] sent 2026-09-25; reply pending |
+| To Ali | Groundwork for `/explore` on branch `feature/explore` (`55d83428`): `backend/reference/antibiotics.csv` and `families.csv` (please check ATC and AWaRe against the WHO lists), `download_genome_meta.py --clinical`, the OneDrive fix in `download_amr_full.py`. Still to do from the plan: the other lookup tables including `chemical_groups.csv`, the cube, PubChem cache, 4 endpoints, `/explore`, grouped dropdown, tests | Before the demo | [~] pushed 2026-11-08 |
 
 ---
 
@@ -300,6 +302,7 @@ Newest first. One line per work session: date, what I did, what is next, anythin
 
 | Date | Done | Next | Blockers |
 |---|---|---|---|
+| 2026-11-08 | **Groundwork for `/explore`** on branch `feature/explore` (`55d83428`). `backend/reference/antibiotics.csv`: 126 drugs with family, subfamily, chemical group, ATC code and AWaRe category; `families.csv`: family > subfamily order for the grouped dropdown. `download_genome_meta.py --clinical`: disease (17,815 lab-tested genomes), host_health (17,392) and body_sample_site (40,117) into `Data/genome_meta/genome_clinical.csv`. Lab stream of `download_amr_full.py` re-downloaded locally: 1,537,259 rows, Intermediate kept separate. `download_amr_full.py` now retries saving `state.json` when OneDrive holds it; on Windows run it with `--run` (its self-restart breaks on paths with spaces). Handovers for Ali and Suleman | Ali: remaining lookup tables, cube, endpoints, `/explore` page; one pull request for Suleman to review | ATC and AWaRe entries need checking against the WHO lists; the chemistry and resistance-mechanism text (`chemical_groups.csv`) is not written yet |
 | 2026-10-22 | **My sprint work done.** Timeline ML model (`experiments/timeline_ml/`): 467 yearly series, 13.98 pp on 2017–2022, better than last value, trend and mean; promoted and served as `ml_forecast` in `/api/timeline/`; 5 tests. GAN experiment (`experiments/gan/`, `A13_ctgan_v7`, `run.py` `data.synthetic`): CTGAN rows lowered the AUC on rare classes by 0.008 (significant), detection AUC 0.9999: a documented negative result. Notebook 04 executed; results chapter `docs/report/Chapter_Results.md`; README, experiments README, formats §8, roadmap, CHANGES, Handovers (Suleman: show the forecast on `/timeline`; Ali: FYI) | Team: Ali's RL agent, Suleman's page and deploy, demo, tag | Ali's RL agent; Suleman's `/timeline` page |
 | 2026-10-17 | Final sprint planned (3 days): the supervisor wants the timeline as an ML model, plus the missing RL agent and GAN. Checked the data: 553,223 lab results with a collection year give 186 yearly resistance series (>= 5 years) for a real timeline ML model. Assignments: Hamza timeline ML model, GAN experiment, results chapter; Ali RL agent, data chapters; Suleman deploy, `/timeline` page, demo, system design. Formats §8 written. Retraining on 87,325 genomes and the 4- vs 6-mer comparison moved to future work | Day 1: timeline ML model and CTGAN | None |
 | 2026-10-13 | July notebooks (`LightGBM_Model_Improved`, `resistance_prediction_model`, `bacterial_mutation_timeline`) moved to `notebooks/archive/`, so `notebooks/` opens with the current models (`01`–`03`) and Ali's Colab tools; paths updated in `README.md` §6 and §13, `notebooks/README.md`, `experiments/HANDBOOK.md`; README §11.5 (the removed empty notebook) and a stale closing tip (`/predict` on a fallback heuristic) corrected. Suleman asked to update the path on two pages | — | None |

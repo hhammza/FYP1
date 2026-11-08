@@ -26,4 +26,14 @@ pkill -f download_amr_full.py                                             # stop
 
 The record IDs are split into 16 shards by their first character and downloaded 8 at a time (`--workers`), about 12,000 rows a second: lab rows in a few minutes, all 17.6 M rows in under an hour, about 6 GB. Only lab rows: add `--streams lab`. Live view: `--watch`.
 
+**Windows:** add `--run`. Without it the script restarts itself with `os.execv`, which breaks on paths with spaces and opens a Python prompt instead. Saving `state.json` retries for a few seconds when OneDrive or an antivirus holds the file:
+
+```bash
+.venv/Scripts/python.exe -u scripts/bvbrc_download/download_amr_full.py --run --streams lab < /dev/null > Data/amr_full/download.log 2>&1
+```
+
+## Genome metadata: `download_genome_meta.py`
+
+Collection year, country, host and isolation source for every genome in the export (`Data/genome_meta/genome_meta.csv`). `--clinical` adds disease, host_health and body_sample_site for the lab-tested genomes (`Data/genome_meta/genome_clinical.csv`, about 250 requests), for the `/explore` disease filter.
+
 The complete genomes (Dataset 3) come from `experiments/genome/features/download_genomes.py` instead, not from these scripts.
