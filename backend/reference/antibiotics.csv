@@ -1,0 +1,127 @@
+antibiotic,family,subfamily,chemical_group,atc_code,aware,pubchem_query,notes
+penicillin,Beta-lactams,Penicillins,Penams,J01CE01,Access,benzylpenicillin,Benzylpenicillin (penicillin G)
+ampicillin,Beta-lactams,Penicillins,Penams,J01CA01,Access,,
+amoxicillin,Beta-lactams,Penicillins,Penams,J01CA04,Access,,
+piperacillin,Beta-lactams,Penicillins,Penams,J01CA12,Watch,,
+carbenicillin,Beta-lactams,Penicillins,Penams,J01CA03,Watch,,
+ticarcillin,Beta-lactams,Penicillins,Penams,J01CA13,Watch,,
+temocillin,Beta-lactams,Penicillins,Penams,J01CA17,Watch,,
+oxacillin,Beta-lactams,Penicillins,Penams,J01CF04,Access,,Penicillinase-resistant; the MRSA marker
+methicillin,Beta-lactams,Penicillins,Penams,J01CF03,Not classified,,No longer marketed; the MRSA marker
+dicloxacillin,Beta-lactams,Penicillins,Penams,J01CF01,Access,,
+amoxicillin/clavulanic acid,Beta-lactams,Penicillins + beta-lactamase inhibitor,Penams,J01CR02,Access,amoxicillin/clavulanic acid,
+ampicillin/sulbactam,Beta-lactams,Penicillins + beta-lactamase inhibitor,Penams,J01CR01,Access,ampicillin/sulbactam,
+piperacillin/tazobactam,Beta-lactams,Penicillins + beta-lactamase inhibitor,Penams,J01CR05,Watch,piperacillin/tazobactam,
+ticarcillin/clavulanic acid,Beta-lactams,Penicillins + beta-lactamase inhibitor,Penams,J01CR03,Watch,ticarcillin/clavulanic acid,
+timentin,Beta-lactams,Penicillins + beta-lactamase inhibitor,Penams,J01CR03,Watch,ticarcillin/clavulanic acid,Brand name of ticarcillin/clavulanic acid
+sulbactam,Beta-lactams,Beta-lactamase inhibitors,Penam sulfones,J01CG01,Not classified,,
+cefazolin,Beta-lactams,Cephalosporins 1st generation,Cephems,J01DB04,Access,,
+cephalothin,Beta-lactams,Cephalosporins 1st generation,Cephems,J01DB03,Access,cefalotin,
+cephalexin,Beta-lactams,Cephalosporins 1st generation,Cephems,J01DB01,Access,cefalexin,
+cefuroxime,Beta-lactams,Cephalosporins 2nd generation,Cephems,J01DC02,Watch,,
+cefoxitin,Beta-lactams,Cephalosporins 2nd generation,Cephems,J01DC01,Watch,,Cephamycin; screens for MRSA
+cefotetan,Beta-lactams,Cephalosporins 2nd generation,Cephems,J01DC05,Watch,,Cephamycin
+cefotaxime,Beta-lactams,Cephalosporins 3rd generation,Cephems,J01DD01,Watch,,
+ceftazidime,Beta-lactams,Cephalosporins 3rd generation,Cephems,J01DD02,Watch,,
+ceftriaxone,Beta-lactams,Cephalosporins 3rd generation,Cephems,J01DD04,Watch,,
+cefixime,Beta-lactams,Cephalosporins 3rd generation,Cephems,J01DD08,Watch,,
+cefpodoxime,Beta-lactams,Cephalosporins 3rd generation,Cephems,J01DD13,Watch,,
+cefoperazone,Beta-lactams,Cephalosporins 3rd generation,Cephems,J01DD12,Watch,,
+cefdinir,Beta-lactams,Cephalosporins 3rd generation,Cephems,J01DD15,Watch,,
+ceftiofur,Beta-lactams,Cephalosporins 3rd generation,Cephems,QJ01DD90,Not classified,,Veterinary
+cefepime,Beta-lactams,Cephalosporins 4th generation,Cephems,J01DE01,Watch,,
+cefpirome,Beta-lactams,Cephalosporins 4th generation,Cephems,J01DE02,Watch,,
+ceftaroline,Beta-lactams,Cephalosporins 5th generation,Cephems,J01DI02,Reserve,,Anti-MRSA cephalosporin
+ceftarolin,Beta-lactams,Cephalosporins 5th generation,Cephems,J01DI02,Reserve,ceftaroline,Spelling of ceftaroline in the data
+cefiderocol,Beta-lactams,Cephalosporins (siderophore),Cephems,J01DI04,Reserve,,
+ceftazidime/avibactam,Beta-lactams,Cephalosporins + beta-lactamase inhibitor,Cephems,J01DD52,Reserve,ceftazidime/avibactam,
+ceftolozane/tazobactam,Beta-lactams,Cephalosporins + beta-lactamase inhibitor,Cephems,J01DI54,Reserve,ceftolozane/tazobactam,
+cefotaxime/clavulanic acid,Beta-lactams,Cephalosporins + beta-lactamase inhibitor,Cephems,,Not classified,cefotaxime/clavulanic acid,Laboratory ESBL confirmation test
+ceftazidime/clavulanic acid,Beta-lactams,Cephalosporins + beta-lactamase inhibitor,Cephems,,Not classified,ceftazidime/clavulanic acid,Laboratory ESBL confirmation test
+cefpodoxime/clavulanic acid,Beta-lactams,Cephalosporins + beta-lactamase inhibitor,Cephems,,Not classified,cefpodoxime/clavulanic acid,Laboratory ESBL confirmation test
+ceftriaxone/cefpodoxime,Beta-lactams,Cephalosporins 3rd generation,Cephems,,Not classified,ceftriaxone/cefpodoxime,A combined result for two drugs in the source data
+imipenem,Beta-lactams,Carbapenems,Carbapenems,J01DH51,Watch,,
+meropenem,Beta-lactams,Carbapenems,Carbapenems,J01DH02,Watch,,
+ertapenem,Beta-lactams,Carbapenems,Carbapenems,J01DH03,Watch,,
+doripenem,Beta-lactams,Carbapenems,Carbapenems,J01DH04,Watch,,
+aztreonam,Beta-lactams,Monobactams,Monobactams,J01DF01,Reserve,,
+gentamicin,Aminoglycosides,Aminoglycosides,Aminoglycosides,J01GB03,Access,,
+amikacin,Aminoglycosides,Aminoglycosides,Aminoglycosides,J01GB06,Access,,
+tobramycin,Aminoglycosides,Aminoglycosides,Aminoglycosides,J01GB01,Watch,,
+streptomycin,Aminoglycosides,Aminoglycosides,Aminoglycosides,J01GA01,Watch,,
+kanamycin,Aminoglycosides,Aminoglycosides,Aminoglycosides,J01GB04,Watch,,
+neomycin,Aminoglycosides,Aminoglycosides,Aminoglycosides,J01GB05,Watch,,
+netilmicin,Aminoglycosides,Aminoglycosides,Aminoglycosides,J01GB07,Watch,,
+apramycin,Aminoglycosides,Aminoglycosides,Aminoglycosides,QJ01GB90,Not classified,,Veterinary
+spectinomycin,Aminoglycosides,Aminocyclitols,Aminocyclitols,J01XX04,Access,,
+ciprofloxacin,Quinolones,Fluoroquinolones,Quinolones,J01MA02,Watch,,
+levofloxacin,Quinolones,Fluoroquinolones,Quinolones,J01MA12,Watch,,
+moxifloxacin,Quinolones,Fluoroquinolones,Quinolones,J01MA14,Watch,,
+ofloxacin,Quinolones,Fluoroquinolones,Quinolones,J01MA01,Watch,,
+norfloxacin,Quinolones,Fluoroquinolones,Quinolones,J01MA06,Watch,,
+pefloxacin,Quinolones,Fluoroquinolones,Quinolones,J01MA03,Watch,,
+gatifloxacin,Quinolones,Fluoroquinolones,Quinolones,J01MA16,Watch,,
+sparfloxacin,Quinolones,Fluoroquinolones,Quinolones,J01MA09,Watch,,
+trovafloxacin,Quinolones,Fluoroquinolones,Quinolones,J01MA13,Not classified,,Withdrawn
+enrofloxacin,Quinolones,Fluoroquinolones,Quinolones,QJ01MA90,Not classified,,Veterinary
+nalidixic acid,Quinolones,Quinolones (1st generation),Quinolones,J01MB02,Watch,,
+tetracycline,Tetracyclines,Tetracyclines,Tetracyclines,J01AA07,Access,,
+doxycycline,Tetracyclines,Tetracyclines,Tetracyclines,J01AA02,Access,,
+minocycline,Tetracyclines,Tetracyclines,Tetracyclines,J01AA08,Watch,,Oral Watch; intravenous Reserve
+oxytetracycline,Tetracyclines,Tetracyclines,Tetracyclines,J01AA06,Watch,,
+chlortetracycline,Tetracyclines,Tetracyclines,Tetracyclines,J01AA03,Watch,,
+tigecycline,Tetracyclines,Glycylcyclines,Tetracyclines,J01AA12,Reserve,,
+erythromycin,Macrolides,Macrolides,Macrolides,J01FA01,Watch,,
+azithromycin,Macrolides,Macrolides,Macrolides,J01FA10,Watch,,
+clarithromycin,Macrolides,Macrolides,Macrolides,J01FA09,Watch,,
+spiramycin,Macrolides,Macrolides,Macrolides,J01FA02,Watch,,
+tylosin,Macrolides,Macrolides,Macrolides,QJ01FA90,Not classified,,Veterinary
+tilmicosin,Macrolides,Macrolides,Macrolides,QJ01FA91,Not classified,,Veterinary
+telithromycin,Macrolides,Ketolides,Macrolides,J01FA15,Watch,,
+clindamycin,Lincosamides,Lincosamides,Lincosamides,J01FF01,Access,,
+lincomycin,Lincosamides,Lincosamides,Lincosamides,J01FF02,Watch,,
+quinupristin/dalfopristin,Streptogramins,Streptogramins,Streptogramins,J01FG02,Reserve,quinupristin/dalfopristin,
+pristinamycin,Streptogramins,Streptogramins,Streptogramins,J01FG01,Watch,,
+virginiamycin,Streptogramins,Streptogramins,Streptogramins,QJ01FG90,Not classified,,Veterinary growth promoter
+trimethoprim/sulfamethoxazole,Folate pathway inhibitors,Sulfonamide + trimethoprim,Sulfonamides + diaminopyrimidines,J01EE01,Access,trimethoprim/sulfamethoxazole,Co-trimoxazole
+trimethoprim/sulphamethoxazole,Folate pathway inhibitors,Sulfonamide + trimethoprim,Sulfonamides + diaminopyrimidines,J01EE01,Access,trimethoprim/sulfamethoxazole,Spelling of co-trimoxazole in the data
+trimethoprim/sulfobactam,Folate pathway inhibitors,Sulfonamide + trimethoprim,Sulfonamides + diaminopyrimidines,,Not classified,trimethoprim,Name as recorded in the source data
+trimethoprim,Folate pathway inhibitors,Trimethoprim,Diaminopyrimidines,J01EA01,Access,,
+sulfamethoxazole,Folate pathway inhibitors,Sulfonamides,Sulfonamides,J01EC01,Not classified,,
+sulfisoxazole,Folate pathway inhibitors,Sulfonamides,Sulfonamides,J01EB05,Not classified,sulfisoxazole,Sulfafurazole
+sulfathiazole,Folate pathway inhibitors,Sulfonamides,Sulfonamides,J01EB07,Not classified,,
+sulfamethazine,Folate pathway inhibitors,Sulfonamides,Sulfonamides,J01EB03,Not classified,,Sulfadimidine; mostly veterinary
+sulphadimethoxine,Folate pathway inhibitors,Sulfonamides,Sulfonamides,J01ED01,Not classified,sulfadimethoxine,Mostly veterinary
+chloramphenicol,Phenicols,Phenicols,Phenicols,J01BA01,Access,,
+florfenicol,Phenicols,Phenicols,Phenicols,QJ01BA90,Not classified,,Veterinary
+colistin,Polymyxins,Polymyxins,Polymyxins,J01XB01,Reserve,,Polymyxin E
+colomycin,Polymyxins,Polymyxins,Polymyxins,J01XB01,Reserve,colistin,Brand name of colistin
+polymyxin b,Polymyxins,Polymyxins,Polymyxins,J01XB02,Reserve,polymyxin B,
+vancomycin,Glycopeptides,Glycopeptides,Glycopeptides,J01XA01,Watch,,
+teicoplanin,Glycopeptides,Glycopeptides,Glycopeptides,J01XA02,Watch,,
+dalbavancin,Glycopeptides,Lipoglycopeptides,Glycopeptides,J01XA04,Reserve,,
+linezolid,Oxazolidinones,Oxazolidinones,Oxazolidinones,J01XX08,Reserve,,
+tedizolid,Oxazolidinones,Oxazolidinones,Oxazolidinones,J01XX11,Reserve,,
+daptomycin,Lipopeptides,Lipopeptides,Cyclic lipopeptides,J01XX09,Reserve,,
+rifampicin,Rifamycins,Rifamycins,Ansamycins,J04AB02,Not classified,rifampicin,Antituberculosis use is outside AWaRe
+rifabutin,Rifamycins,Rifamycins,Ansamycins,J04AB04,Not classified,,Antituberculosis use is outside AWaRe
+isoniazid,Antituberculosis agents,First-line antituberculosis,Hydrazides,J04AC01,Not classified,,Antituberculosis drugs are outside AWaRe
+ethambutol,Antituberculosis agents,First-line antituberculosis,Ethylenediamines,J04AK02,Not classified,,Antituberculosis drugs are outside AWaRe
+pyrazinamide,Antituberculosis agents,First-line antituberculosis,Pyrazinecarboxamides,J04AK01,Not classified,,Antituberculosis drugs are outside AWaRe
+nicotinamide,Antituberculosis agents,First-line antituberculosis,Pyridinecarboxamides,,Not classified,,A pyrazinamide analogue tested on Mycobacterium; a vitamin and not an antibiotic
+ethionamide,Antituberculosis agents,Second-line antituberculosis,Thioamides,J04AD03,Not classified,,Antituberculosis drugs are outside AWaRe
+prothionamide,Antituberculosis agents,Second-line antituberculosis,Thioamides,J04AD01,Not classified,,Antituberculosis drugs are outside AWaRe
+cycloserine,Antituberculosis agents,Second-line antituberculosis,Isoxazolidinones,J04AB01,Not classified,,Antituberculosis drugs are outside AWaRe
+para-aminosalicylic acid,Antituberculosis agents,Second-line antituberculosis,Aminosalicylates,J04AA01,Not classified,4-aminosalicylic acid,Antituberculosis drugs are outside AWaRe
+capreomycin,Antituberculosis agents,Second-line antituberculosis,Cyclic peptides,J04AB30,Not classified,,Antituberculosis drugs are outside AWaRe
+clofazimine,Antituberculosis agents,Second-line antituberculosis,Riminophenazines,J04BA01,Not classified,,Antituberculosis drugs are outside AWaRe
+bedaquiline,Antituberculosis agents,Second-line antituberculosis,Diarylquinolines,J04AK05,Not classified,,Antituberculosis drugs are outside AWaRe
+delamanid,Antituberculosis agents,Second-line antituberculosis,Nitroimidazoles,J04AK06,Not classified,,Antituberculosis drugs are outside AWaRe
+nitrofurantoin,Nitrofurans,Nitrofurans,Nitrofurans,J01XE01,Access,,
+furazolidone,Nitrofurans,Nitrofurans,Nitrofurans,G01AX06,Not classified,,
+metronidazole,Nitroimidazoles,Nitroimidazoles,Nitroimidazoles,J01XD01,Access,,
+fosfomycin,Fosfomycin,Fosfomycin,Phosphonic acids,J01XX01,Watch,,Oral Watch; intravenous Reserve
+fusidic acid,Others,Fusidanes,Steroid antibiotics,J01XC01,Watch,,
+mupirocin,Others,Pseudomonic acids,Pseudomonic acids,D06AX09,Not classified,,Topical
+tiamulin,Others,Pleuromutilins,Pleuromutilins,QJ01XQ01,Not classified,,Veterinary
+azidothymidine,Others,Antivirals,Nucleoside analogues,J05AF01,Not classified,zidovudine,Zidovudine: an antiviral tested on bacteria in the source data

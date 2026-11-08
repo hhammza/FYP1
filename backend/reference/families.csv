@@ -1,0 +1,42 @@
+family,subfamily,display_order
+Beta-lactams,Penicillins,1
+Beta-lactams,Penicillins + beta-lactamase inhibitor,2
+Beta-lactams,Beta-lactamase inhibitors,3
+Beta-lactams,Cephalosporins 1st generation,4
+Beta-lactams,Cephalosporins 2nd generation,5
+Beta-lactams,Cephalosporins 3rd generation,6
+Beta-lactams,Cephalosporins 4th generation,7
+Beta-lactams,Cephalosporins 5th generation,8
+Beta-lactams,Cephalosporins (siderophore),9
+Beta-lactams,Cephalosporins + beta-lactamase inhibitor,10
+Beta-lactams,Carbapenems,11
+Beta-lactams,Monobactams,12
+Aminoglycosides,Aminoglycosides,20
+Aminoglycosides,Aminocyclitols,21
+Quinolones,Fluoroquinolones,30
+Quinolones,Quinolones (1st generation),31
+Tetracyclines,Tetracyclines,40
+Tetracyclines,Glycylcyclines,41
+Macrolides,Macrolides,50
+Macrolides,Ketolides,51
+Lincosamides,Lincosamides,55
+Streptogramins,Streptogramins,57
+Folate pathway inhibitors,Sulfonamide + trimethoprim,60
+Folate pathway inhibitors,Trimethoprim,61
+Folate pathway inhibitors,Sulfonamides,62
+Phenicols,Phenicols,65
+Polymyxins,Polymyxins,70
+Glycopeptides,Glycopeptides,75
+Glycopeptides,Lipoglycopeptides,76
+Oxazolidinones,Oxazolidinones,80
+Lipopeptides,Lipopeptides,82
+Rifamycins,Rifamycins,85
+Antituberculosis agents,First-line antituberculosis,90
+Antituberculosis agents,Second-line antituberculosis,91
+Nitrofurans,Nitrofurans,95
+Nitroimidazoles,Nitroimidazoles,96
+Fosfomycin,Fosfomycin,97
+Others,Fusidanes,100
+Others,Pseudomonic acids,101
+Others,Pleuromutilins,102
+Others,Antivirals,103

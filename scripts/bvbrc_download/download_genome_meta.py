@@ -20,6 +20,11 @@ Run from the project root:
         >> Data/genome_meta/download.log 2>&1 &
     .venv/bin/python scripts/bvbrc_download/download_genome_meta.py --watch
     .venv/bin/python scripts/bvbrc_download/download_genome_meta.py --report
+    .venv/bin/python scripts/bvbrc_download/download_genome_meta.py --clinical
+
+--clinical fetches disease, host_health and body_sample_site for the
+lab-tested genomes in genome_meta.csv into Data/genome_meta/genome_clinical.csv
+(for the /explore page's disease filter, docs/INSTRUCTOR_REQUIREMENTS_PLAN.md).
 
 Stop with: pkill -f download_genome_meta.py
 Run the same command again to resume. With no internet it waits and retries.
@@ -49,6 +54,8 @@ API = 'https://www.bv-brc.org/api/genome/'
 FIELDS = ['genome_id', 'genome_name', 'taxon_id', 'collection_year', 'collection_date',
           'isolation_country', 'geographic_group', 'host_common_name', 'host_name',
           'isolation_source', 'genome_status', 'completion_date', 'date_inserted']
+CLINICAL = os.path.join(OUT, 'genome_clinical.csv')
+CLINICAL_FIELDS = ['genome_id', 'disease', 'host_health', 'body_sample_site']
 BATCH = 500
 WORKERS = 8
 YEAR = re.compile(r'(?<!\d)(19[0-9]{2}|20[0-9]{2})(?!\d)')
@@ -78,8 +85,8 @@ def batch_path(n):
     return os.path.join(BATCHES, f'batch_{n:05d}.csv')
 
 
-def fetch(ids):
-    body = (f'in(genome_id,({",".join(ids)}))&select({",".join(FIELDS)})'
+def fetch(ids, fields=FIELDS):
+    body = (f'in(genome_id,({",".join(ids)}))&select({",".join(fields)})'
             f'&limit({len(ids) + 10})')
     wait = 5
     while True:
@@ -125,6 +132,25 @@ def download():
     merge()
     report()
     print(f'[done] {datetime.now():%H:%M:%S}', flush=True)
+
+
+def clinical():
+    """disease, host_health and body_sample_site of every lab-tested genome."""
+    meta = pd.read_csv(MERGED, dtype={'genome_id': str}, usecols=['genome_id', 'lab_tested'])
+    ids = meta.loc[meta['lab_tested'].astype(str).eq('True'), 'genome_id'].tolist()
+    chunks = [ids[i:i + BATCH] for i in range(0, len(ids), BATCH)]
+    print(f'[clinical] {len(ids):,} lab-tested genomes, {len(chunks)} requests', flush=True)
+    rows = []
+    with concurrent.futures.ThreadPoolExecutor(WORKERS) as pool:
+        for i, part in enumerate(pool.map(lambda c: fetch(c, CLINICAL_FIELDS), chunks), 1):
+            rows += part
+            if i % 20 == 0 or i == len(chunks):
+                print(f'[clinical] {i}/{len(chunks)}', flush=True)
+    df = pd.DataFrame(rows, columns=CLINICAL_FIELDS).drop_duplicates('genome_id')
+    df.to_csv(CLINICAL, index=False)
+    for c in CLINICAL_FIELDS[1:]:
+        print(f'[clinical] {c}: {int(df[c].notna().sum()):,} genomes', flush=True)
+    print(f'[clinical] wrote {CLINICAL}', flush=True)
 
 
 def year_of(row):
@@ -239,11 +265,15 @@ if __name__ == '__main__':
     ap.add_argument('--status', action='store_true')
     ap.add_argument('--watch', action='store_true')
     ap.add_argument('--report', action='store_true', help='merge the batches and rewrite the report')
+    ap.add_argument('--clinical', action='store_true',
+                    help='disease, host health and body site of the lab-tested genomes')
     a = ap.parse_args()
     if a.status:
         print(status())
     elif a.watch:
         watch()
+    elif a.clinical:
+        clinical()
     elif a.report:
         merge()
         report()

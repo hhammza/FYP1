@@ -136,7 +136,15 @@ class State:
             tmp = self.path + '.tmp'
             with open(tmp, 'w') as fh:
                 json.dump(self.data, fh, indent=2)
-            os.replace(tmp, self.path)
+            # Windows: OneDrive or an antivirus can hold the file for a moment
+            for attempt in range(20):
+                try:
+                    os.replace(tmp, self.path)
+                    break
+                except PermissionError:
+                    if attempt == 19:
+                        raise
+                    time.sleep(0.5)
 
 
 HEX = '0123456789abcdef'   # record IDs are lowercase UUIDs: one shard per first character
