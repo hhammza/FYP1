@@ -5,7 +5,6 @@ import type { CountryRow, SummaryRow } from './types';
 
 /* Sequential, one hue light to dark, for resistance %: the legend bins 0-20 ... 80-100 */
 export const BINS = ['#fde6d8', '#f8b08a', '#ec7a45', '#c84a1c', '#8a2c0d'];
-export const NO_DATA = '#c9ccd1';
 /* Categorical slots, fixed order (identity: resistance types, split series) */
 export const SERIES = ['#2a78d6', '#eb6834', '#1baf7a', '#eda100', '#e87ba4', '#008300', '#6250d6', '#e34948'];
 
@@ -21,7 +20,7 @@ function base(t: PlotTheme, extra: Partial<Layout> = {}): Partial<Layout> {
 }
 
 const geo = (t: PlotTheme): Partial<Layout['geo']> => ({
-  showframe: false, showcoastlines: false, showland: true, landcolor: NO_DATA, showcountries: true,
+  showframe: false, showcoastlines: false, showland: true, landcolor: t.noData, showcountries: true,
   countrycolor: t.lineColor, projection: { type: 'natural earth' }, bgcolor: 'rgba(0,0,0,0)',
 });
 

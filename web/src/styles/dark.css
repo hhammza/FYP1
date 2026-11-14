@@ -38,7 +38,7 @@
   /* Text */
   --text-1: #f1f5f9;
   --text-2: #94a3b8;
-  --text-3: #475569;
+  --text-3: #8391a7;   /* hints and captions: about 5:1 on the dark card */
 
   /* Shadows */
   --shadow:    0 1px 3px rgba(0,0,0,0.50), 0 1px 2px rgba(0,0,0,0.40);
@@ -125,3 +125,24 @@
 [data-theme="dark"] .insights-hint { color: #7c8aa0; }
 [data-theme="dark"] .drug-modal .btn-close { filter: invert(1) grayscale(100%) brightness(200%); }
 [data-theme="dark"] .drug-modal .table { --bs-table-color: var(--text-1); --bs-table-bg: transparent; --bs-table-border-color: var(--border); }
+
+/* Resistance Explorer: colours chosen for white need lighter steps on the dark card */
+[data-theme="dark"] .legend-swatch.no-data { background: #334155; }
+[data-theme="dark"] .drug-tile-bar,
+[data-theme="dark"] .drug-country-bar { background: rgba(255,255,255,0.09); }
+[data-theme="dark"] .chem-detail-pct.low  { color: #34d399; }
+[data-theme="dark"] .chem-detail-pct.mid  { color: #fbbf24; }
+[data-theme="dark"] .chem-detail-pct.high { color: #f87171; }
+[data-theme="dark"] .chem-group.active { background: rgba(99,102,241,0.22); }
+[data-theme="dark"] .drug-tile { background: var(--bg-card2); border-color: var(--border-md); }
+[data-theme="dark"] .drug-tile:hover,
+[data-theme="dark"] .drug-tile:focus-visible { background: rgba(99,102,241,0.16); border-color: #818cf8; }
+[data-theme="dark"] .drug-resistance { background: var(--bg-card2); }
+[data-theme="dark"] .explore-error { background: rgba(245,158,11,0.10); color: #fbbf24; }
+[data-theme="dark"] .ms-option:hover { background: rgba(255,255,255,0.06); }
+[data-theme="dark"] .drug-modal a,
+[data-theme="dark"] .chem-explorer a,
+[data-theme="dark"] .explore-error a { color: #a5b4fc; }
+[data-theme="dark"] .form-select-custom {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%2394a3b8' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e") !important;
+}

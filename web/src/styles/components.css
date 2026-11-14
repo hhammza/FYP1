@@ -124,7 +124,7 @@
 .form-hint { font-size: 11px; color: var(--text-3); margin-top: 4px; }
 
 .form-control-custom, .form-select-custom {
-  background: var(--bg-input) !important;
+  background-color: var(--bg-input) !important;
   border: 1px solid var(--border-md) !important;
   color: var(--text-1) !important;
   border-radius: var(--r-sm) !important;
@@ -500,9 +500,10 @@
 .ms-menu { position: absolute; z-index: 1050; top: 100%; left: 0; right: 0; min-width: 260px; margin-top: 4px; padding: 10px; }
 .ms-options { max-height: 300px; overflow-y: auto; }
 .ms-header { display: flex; align-items: center; font-size: 0.75rem; font-weight: 600; text-transform: uppercase;
-  letter-spacing: 0.04em; color: var(--text-muted, #64748b); margin: 8px 0 2px; }
+  letter-spacing: 0.04em; color: var(--text-3); margin: 8px 0 2px; }
 .ms-option { display: flex; align-items: center; padding: 3px 4px; border-radius: 6px; cursor: pointer; font-size: 0.9rem; }
 .ms-option:hover { background: rgba(37, 99, 235, 0.08); }
+.legend-swatch.no-data { background: #c9ccd1; }
 .legend-swatch { display: inline-block; width: 14px; height: 14px; border-radius: 3px; margin-right: 6px; vertical-align: -2px; }
 .drug-modal .modal-content { border-radius: var(--r-md, 14px); border: 1px solid var(--border); background: var(--bg-card); color: var(--text-1); }
 .drug-modal .modal-header, .drug-modal .modal-body { padding-left: 24px; padding-right: 24px; }

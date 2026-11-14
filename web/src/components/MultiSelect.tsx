@@ -48,7 +48,7 @@ export default function MultiSelect({ label, groups, selected, onChange, placeho
       {open && (
         <div className="ms-menu glass-card" role="listbox" aria-multiselectable="true" aria-label={label}>
           <div className="d-flex gap-2 mb-2">
-            <input type="search" className="form-control form-control-sm" placeholder="Search" value={query}
+            <input type="search" className="form-control form-control-sm form-control-custom" placeholder="Search" value={query}
                    onChange={e => setQuery(e.target.value)} aria-label={`Search ${label}`} autoFocus />
             {selected.length > 0 && <button type="button" className="btn btn-sm btn-outline-secondary" onClick={() => onChange([])}>Clear</button>}
           </div>

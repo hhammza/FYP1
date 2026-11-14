@@ -32,6 +32,7 @@ export function plotTheme() {
     tickColor: dark ? '#94a3b8' : '#64748b',
     gridColor: dark ? 'rgba(255,255,255,0.06)' : 'rgba(15,23,42,0.08)',
     lineColor: dark ? 'rgba(255,255,255,0.10)' : 'rgba(15,23,42,0.12)',
+    noData: dark ? '#334155' : '#c9ccd1',   // map countries without data
     fontFamily: "'Inter',-apple-system,sans-serif",
   };
 }

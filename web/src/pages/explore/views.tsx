@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import Plot, { type PlotTheme } from '../../components/Plot';
 import { apiGet, errorText } from '../../lib/api';
 import { capitalise } from '../../lib/vocab';
-import { BINS, NO_DATA, dominantMap, rateBars, rateMap, splitBars, trendLines } from './charts';
+import { BINS, dominantMap, rateBars, rateMap, splitBars, trendLines } from './charts';
 import DrugCatalog from './DrugCatalog';
 import { filterQuery, type Filters } from './filters';
 import type { Countries, ExploreMeta, Summary, SummaryRow } from './types';
@@ -74,7 +74,7 @@ function Legend({ minN }: { minN: number }) {
     <div className="d-flex flex-wrap align-items-center gap-3 small mt-2" aria-label="Map legend">
       {['0-20', '20-40', '40-60', '60-80', '80-100'].map((b, i) => (
         <span key={b}><span className="legend-swatch" style={{ background: BINS[i] }}></span>{b}%</span>))}
-      <span><span className="legend-swatch" style={{ background: NO_DATA }}></span>No data</span>
+      <span><span className="legend-swatch no-data"></span>No data</span>
       <span><span className="legend-swatch" style={{ background: BINS[3], opacity: 0.35 }}></span>Low sample (n &lt; {minN})</span>
     </div>
   );
@@ -121,7 +121,7 @@ export function GroupMap({ filters, meta, group, setGroup, onCountry }: {
     <div className="glass-card">
       <div className="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
         <h2 className="h5 mb-0">Resistance by antibiotic group</h2>
-        <select className="form-select form-select-sm w-auto" aria-label="Antibiotic group" value={chosen} onChange={e => setGroup(e.target.value)}>
+        <select className="form-select form-select-sm form-select-custom w-auto" aria-label="Antibiotic group" value={chosen} onChange={e => setGroup(e.target.value)}>
           {meta.antibiotic_hierarchy.map(f => (
             <optgroup key={f.family} label={f.family}>
               {f.subfamilies.map(s => <option key={s.subfamily} value={s.subfamily}>{s.subfamily}</option>)}
@@ -152,10 +152,10 @@ export function GroupComparison({ filters, split, setSplit }: {
       <div className="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
         <h2 className="h5 mb-0">Group-wise comparison</h2>
         <div className="d-flex gap-2">
-          <select className="form-select form-select-sm w-auto" aria-label="Group level" value={level} onChange={e => setLevel(e.target.value as 'family' | 'subfamily')}>
+          <select className="form-select form-select-sm form-select-custom w-auto" aria-label="Group level" value={level} onChange={e => setLevel(e.target.value as 'family' | 'subfamily')}>
             <option value="family">Families</option><option value="subfamily">Subfamilies</option>
           </select>
-          <select className="form-select form-select-sm w-auto" aria-label="Split by" value={split} onChange={e => setSplit(e.target.value)}>
+          <select className="form-select form-select-sm form-select-custom w-auto" aria-label="Split by" value={split} onChange={e => setSplit(e.target.value)}>
             {Object.entries(SPLITS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
           </select>
         </div>
@@ -184,7 +184,7 @@ export function DrugComparison({ filters, meta, group, setGroup, onDrug }: {
     <div className="glass-card">
       <div className="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
         <h2 className="h5 mb-0">Drug-wise comparison</h2>
-        <select className="form-select form-select-sm w-auto" aria-label="Antibiotic group to compare" value={chosen} onChange={e => setGroup(e.target.value)}>
+        <select className="form-select form-select-sm form-select-custom w-auto" aria-label="Antibiotic group to compare" value={chosen} onChange={e => setGroup(e.target.value)}>
           {meta.antibiotic_hierarchy.map(f => (
             <optgroup key={f.family} label={f.family}>
               {f.subfamilies.map(s => <option key={s.subfamily} value={s.subfamily}>{s.subfamily}</option>)}
