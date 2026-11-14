@@ -158,7 +158,7 @@ def summary(params):
     cube = f.apply(d['cube'])
     keys = [DIMENSIONS[by]] + ([DIMENSIONS[split]] if split else [])
     g = cube.groupby(keys, dropna=False)[['tested', 'resistant', 'intermediate']].sum().reset_index()
-    g = g[g[keys[0]].astype(str) != '']
+    g = g[g[keys[0]].notna() & (g[keys[0]].astype(str) != '')]   # no year, no country: left out
     g = f.rate(g)
     # Highest resistance first; groups under min_n go after the rest, whatever their %
     g = g.sort_values(['low_sample', 'resistant_pct'], ascending=[True, False], na_position='last')
