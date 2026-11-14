@@ -223,6 +223,9 @@ backend/trained_models/*
 # Timeline calibration summary served by /api/timeline/, written by
 # experiments/evolution/calibrate.py
 !backend/trained_models/timeline_calibration.json
+# The dashboard's summary table and PubChem cache (scripts/build_explorer_data.py,
+# scripts/fetch_pubchem.py): 0.1 MB table, drug JSON and structure images
+!backend/trained_models/explorer/
 # The RL agent behind /api/timeline/'s rl block (experiments/evolution/rl_train.py):
 # policy weights as numpy arrays, 44 KB
 !backend/trained_models/rl_agent/
