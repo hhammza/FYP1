@@ -25,7 +25,7 @@ Baseline is commit **`52ae361`** *(Add amrpredict library and macOS launcher, 20
 |---|---|
 | [docs/report/Chapter_Results.md](docs/report/Chapter_Results.md) | New §8, the RL agent (Ali's results from `experiments/evolution/results/rl_agent.md`): at a 5% fitness cost, first failure 48.7 weeks later than weekly cycling and 62.1 later than always imipenem; no better than the greedy "lowest resistance first" rule, because the reward has no penalty for a failed week. Limitations updated |
 | [docs/report/Chapter_Deviations.md](docs/report/Chapter_Deviations.md) | New: every proposal item (committed and conditional) against what was delivered and why; technologies named in the proposal; scope decisions on record; future work. Drug design and images descoped in writing |
-| [experiments/export_report.py](experiments/export_report.py) | The GAN run `A13_ctgan` is grouped with the special runs on `/models` (`model_report.json` follows when the rebuild finishes) |
+| [experiments/export_report.py](experiments/export_report.py), `backend/trained_models/model_report.json` | The GAN run `A13_ctgan` is grouped with the special runs; the report rebuilt (29 runs), so `/models` lists it beside A6 (0.9222 vs 0.9227) |
 | [docs/FYP_Completion_Roadmap.md](docs/FYP_Completion_Roadmap.md), [progress/HAMZA_PROGRESS.md](progress/HAMZA_PROGRESS.md) | Definition-of-done checklist ticked where done, with evidence; tracker brought up to date |
 
 ---
