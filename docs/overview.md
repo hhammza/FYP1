@@ -39,7 +39,7 @@ You built a full-stack antimicrobial-resistance (AMR) prediction system with **f
 | 1 | **Django REST API** | `backend/` | 14 endpoints, loads 3 prediction engines into memory at startup |
 | 2 | **Flask web app** | `frontend/` | 22 routes, 11 pages, calls the Django API over HTTP |
 | 2b | **React + TypeScript web app** | `web/` | The same 11 pages as the Flask app, calling the Django API straight from the browser; the frontend to deploy, with Flask kept as the fallback ([web/README.md](../web/README.md)) |
-| 3 | **`amrpredict` Python package** | `amrpredict-lib/` | The same three engines, cleaned up, pip-installable, with a CLI and tests |
+| 3 | **`amrpredict` Python package** | `amrpredict-lib/` | Every model the site serves (forecaster, genome models, timeline ML model, RL agent) and the simulation, pip-installable, with a CLI and tests |
 | 4 | **Research notebooks** | `*.ipynb` | Where the models were originally designed and trained (Colab) |
 
 And **three prediction engines**, of which only two are machine learning:

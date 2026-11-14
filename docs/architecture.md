@@ -38,7 +38,7 @@ FYP1/
 │   └── src/lib/                 API calls, model numbers, theme; *.test.ts(x) beside the code
 │
 ├── amrpredict-lib/              The packaged library (see [§7](library.md))
-│   ├── src/amrpredict/          Flat API, CLI, 3 predictors, bundled models
+│   ├── src/amrpredict/          Flat API, CLI, every served model, bundled
 │   ├── tests/                   30 pytest tests
 │   ├── docs/                    quickstart, api-reference, cli, known-issues
 │   └── dist/                    Built wheel + sdist, v0.1.0

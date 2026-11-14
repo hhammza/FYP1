@@ -299,6 +299,8 @@ def main(a):
         @step('/timeline: a simulation comes back')
         def timeline_submit():
             goto('/timeline')
+            if react:
+                page.get_by_role('tab', name='What-if simulation').click()
             select_when_ready('#timelineForm [name=antibiotic]', 'ciprofloxacin')
             page.click('#fastaTab2 .nav-link >> nth=1')
             page.click('text=Load Sample')
@@ -312,9 +314,22 @@ def main(a):
         timeline_downloads()
 
         if react:
+            @step('/timeline: the ML trend forecast, no genome (Salmonella + ciprofloxacin)')
+            def timeline_trend():
+                goto('/timeline')
+                select_when_ready('#trendAntibiotic', 'ciprofloxacin')
+                select_when_ready('#trendGenus', 'Salmonella')
+                submit('#trendForm [type=submit]', 60_000, '#mlForecastChart .main-svg')
+                points = page.evaluate("document.getElementById('mlForecastChart').data"
+                                       ".find(d => d.name === 'ML forecast').x.length")
+                check(points == 6, f'{points - 1} forecast years shown, not 5')
+                return '5-year forecast from the organism alone'
+            timeline_trend()
+
             @step('/timeline: the ML forecast for an organism (Salmonella + ciprofloxacin)')
             def timeline_forecast():
                 goto('/timeline')
+                page.get_by_role('tab', name='What-if simulation').click()
                 select_when_ready('#timelineForm [name=antibiotic]', 'ciprofloxacin')
                 select_when_ready('#genusSelect', 'Salmonella')
                 page.click('#fastaTab2 .nav-link >> nth=1')
