@@ -66,3 +66,15 @@ export const MIC_SIGNS = [
   { value: '>', label: '>  (greater than)' },
   { value: '>=', label: '≥  (greater than or equal)' },
 ];
+
+export interface DrugGroup { label: string; antibiotics: string[] }
+
+/** Point 11 of docs/INSTRUCTOR_REQUIREMENTS_PLAN.md: family › subfamily of every
+    drug, from backend/reference/antibiotics.csv through /api/explore/meta/. An
+    empty list (dashboard data not built) leaves the dropdowns flat. */
+export function useDrugGroups(): Loaded<DrugGroup[]> {
+  return useLoad('drug_groups_v1', () => apiGet<{ antibiotic_hierarchy: { family: string; subfamilies: { subfamily: string; antibiotics: { value: string }[] }[] }[] }>('explore/meta/')
+    .then(m => m.antibiotic_hierarchy.flatMap(f => f.subfamilies.map(s => ({
+      label: f.family === s.subfamily ? f.family : `${f.family} › ${s.subfamily}`, antibiotics: s.antibiotics.map(a => a.value) })))),
+  () => true);
+}

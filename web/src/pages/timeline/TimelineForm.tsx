@@ -2,7 +2,8 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import FastaInput, { chosenGenome, EMPTY_FASTA, type FastaValue } from '../../components/FastaInput';
 import { useToast } from '../../components/Toasts';
-import { capitalise, useAntibiotics, useVocabulary } from '../../lib/vocab';
+import { useAntibiotics, useVocabulary } from '../../lib/vocab';
+import AntibioticOptions from '../../components/AntibioticOptions';
 
 export const SAMPLE_GENOME = `>sample_Ecoli_genome
 ATGAAACGCATTAGCACCACCATTACCACCACCATCACCATTACCACAGGTAACGGTGCGGGCTGACGCGTACAGGAAACACAGAAAAAAGCCCGCACCTGACAGTGCGGGCTTTTTTTTTCGACCAAAGGTAACGAGGTAACAACCATGCGAGTGTTGAAGTTCGGCGGTACATCAGTGGCAAATGCAGAACGTTTTCTGCGCGTTGTTACGCGCATTTTCTGATATTCGATTCGCATCATTTTCGGTCGGGTATCGCGGCGTTTGCTAAAAAACGTCAGCGTTTGCAGTTTTCGCTGAAACAGATGCGTATTTCGGTTTATCTCAAAAGTTCGTTTAGTAACAACGATGCGTAAAGCAGCATTAACGAAACAGTTTCAACGTTTGGCTGAAACGCAGTTTAAAGCTCAACGCAACAGTTTGCAAACGCAGCGCAATTTAAACAAGCGTTTGCAGAAACG`;
@@ -72,7 +73,7 @@ export default function TimelineForm({ busy, initial, onSubmit }: Props) {
           {antibiotics.state === 'failed'
             ? <option value="" disabled>Failed to load — check backend</option>
             : <option value="">-- Select Antibiotic --</option>}
-          {antibiotics.state === 'ready' && antibiotics.data.map(a => <option key={a} value={a}>{capitalise(a)}</option>)}
+          {antibiotics.state === 'ready' && <AntibioticOptions names={antibiotics.data} />}
         </select>
       </div>
 

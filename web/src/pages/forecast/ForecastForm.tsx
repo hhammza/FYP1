@@ -8,10 +8,11 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { apiGet, errorText } from '../../lib/api';
 import { useMetrics } from '../../lib/health';
-import { capitalise, MIC_SIGNS, useAntibiotics, useVocabulary, type OrganismGenus } from '../../lib/vocab';
+import { MIC_SIGNS, useAntibiotics, useVocabulary, type OrganismGenus } from '../../lib/vocab';
 import { useToast } from '../../components/Toasts';
 import GenomeInfo from './GenomeInfo';
 import type { ForecastInputs, GenomeLookup, LabResult } from './types';
+import AntibioticOptions from '../../components/AntibioticOptions';
 
 const GENOME_ID = /^\d{1,9}\.\d{1,9}$/;
 
@@ -193,7 +194,7 @@ export default function ForecastForm({ busy, prediction, onSubmit }: Props) {
           {antibiotics.state === 'failed'
             ? <option value="" disabled>Failed to load — check backend</option>
             : <option value="">-- Select Antibiotic --</option>}
-          {antibiotics.state === 'ready' && antibiotics.data.map(a => <option key={a} value={a}>{capitalise(a)}</option>)}
+          {antibiotics.state === 'ready' && <AntibioticOptions names={antibiotics.data} />}
         </select>
       </div>
 
