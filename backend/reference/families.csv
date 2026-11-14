@@ -1,0 +1,47 @@
+family,subfamily,display_order
+Beta-lactams,Penicillins,1
+Beta-lactams,Penicillins (penicillinase-resistant),2
+Beta-lactams,Penicillins + beta-lactamase inhibitor,3
+Beta-lactams,Beta-lactamase inhibitors,4
+Beta-lactams,Cephalosporins (1st gen),5
+Beta-lactams,Cephalosporins (2nd gen),6
+Beta-lactams,Cephalosporins (3rd gen),7
+Beta-lactams,Cephalosporins (3rd gen) + beta-lactamase inhibitor,8
+Beta-lactams,Cephalosporins (4th gen),9
+Beta-lactams,Cephalosporins (5th gen),10
+Beta-lactams,Cephalosporins (siderophore),11
+Beta-lactams,Cephalosporins + beta-lactamase inhibitor,12
+Beta-lactams,Carbapenems,13
+Beta-lactams,Monobactams,14
+Aminoglycosides,Aminoglycosides,20
+Fluoroquinolones,Quinolones (1st gen),30
+Fluoroquinolones,Fluoroquinolones (2nd gen),31
+Fluoroquinolones,Fluoroquinolones (3rd gen),32
+Fluoroquinolones,Fluoroquinolones (4th gen),33
+Fluoroquinolones,Fluoroquinolones (veterinary),34
+Macrolides,Macrolides (14-membered),40
+Macrolides,Macrolides (15-membered),41
+Macrolides,Macrolides (16-membered),42
+Macrolides,Ketolides,43
+Tetracyclines,Tetracyclines,50
+Tetracyclines,Glycylcyclines,51
+Glycopeptides,Glycopeptides,60
+Glycopeptides,Lipoglycopeptides,61
+Oxazolidinones,Oxazolidinones,70
+Polymyxins,Polymyxins,80
+Lincosamides,Lincosamides,90
+Sulfonamides and Trimethoprim,Sulfonamides,100
+Sulfonamides and Trimethoprim,Trimethoprim,101
+Sulfonamides and Trimethoprim,Sulfonamide-trimethoprim combinations,102
+Nitrofurans,Nitrofurans,110
+Fosfomycin,Fosfomycin,120
+Others,Phenicols,130
+Others,Rifamycins,131
+Others,Streptogramins,132
+Others,Lipopeptides,133
+Others,Fusidanes,134
+Others,Pseudomonic acids,135
+Others,Nitroimidazoles,136
+Others,Pleuromutilins,137
+Others,Antimycobacterials,138
+Others,Not an antibacterial,139

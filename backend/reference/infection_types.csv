@@ -1,0 +1,32 @@
+priority,field,pattern,infection_type
+10,disease,meningitis,Meningitis
+10,body_sample_site,^(csf|cerebrospinal fluid|cerebrospinal)$,Meningitis
+10,isolation_source,cerebrospinal|\bcsf\b,Meningitis
+20,disease,tuberculosis,Tuberculosis
+20,host_health,tuberculosis,Tuberculosis
+30,disease,urinary|\buti\b|cystitis|pyelonephritis,Urinary tract infection
+30,host_health,urinary|\buti\b|cystitis,Urinary tract infection
+30,body_sample_site,^(urine|urinary tract|bladder|kidney)$,Urinary tract infection
+30,isolation_source,urine|urinary,Urinary tract infection
+40,disease,bacter(a)?emia|bloodstream|sepsis|septic|invasive pneumococcal|typhoid|enteric fever,Bloodstream infection
+40,host_health,bacter(a)?emia|bloodstream|sepsis|septic,Bloodstream infection
+40,body_sample_site,^(blood|blood culture|bloodstream)$,Bloodstream infection
+40,isolation_source,\bblood\b|bacter(a)?emia|sepsis,Bloodstream infection
+50,disease,pneumonia|respiratory|cystic fibrosis|bronch,Pneumonia and respiratory infection
+50,host_health,pneumonia|\brti\b|respiratory|cystic fibrosis,Pneumonia and respiratory infection
+50,body_sample_site,^(sputum|lung|respiratory|nasopharynx|pharynx|throat|bronchoalveolar lavage|trachea|nose|nasal)$,Pneumonia and respiratory infection
+50,isolation_source,sputum|respiratory|nasopharyn|bronch|lung|tracheal|throat|pharyn,Pneumonia and respiratory infection
+60,disease,gonorrh,Sexually transmitted infection
+60,body_sample_site,^(urethra|cervix|vagina|genital|penis)$,Sexually transmitted infection
+60,isolation_source,urethra|cervi|vagin|genital,Sexually transmitted infection
+70,disease,wound|skin|abscess|cellulitis|burn|impetigo|osteomyelitis,Skin and wound infection
+70,host_health,wound|burn|skin|abscess,Skin and wound infection
+70,body_sample_site,^(wound|skin|cutaneous|abscess|pus|tissue|bone)$,Skin and wound infection
+70,isolation_source,wound|\bpus\b|abscess|skin|burn|tissue,Skin and wound infection
+80,disease,salmonellosis|shigellos|diarrh|gastroenteritis|campylobact|enteritis|food ?borne|dysentery|cholera,Gastrointestinal infection
+80,host_health,salmonell|diarrh|gastroenteritis|enteritis,Gastrointestinal infection
+80,body_sample_site,^(stool|feces|faeces|gastrointestinal|rectum|rectal|rectal swab|intestine|colon)$,Gastrointestinal infection
+80,isolation_source,stool|f(a)?eces|diarrh|rectal|intestin,Gastrointestinal infection
+90,disease,carriage|colonization|colonisation|asymptomatic,Carriage or colonisation
+90,host_health,carriage|coloni[sz]ation|asymptomatic|healthy,Carriage or colonisation
+100,isolation_source,chicken|turkey|pork|beef|meat|cattle|swine|pig|poultry|food|retail|milk|egg|animal|farm|wastewater|water|environment|soil|sewage,Non-clinical (food animal or environment)

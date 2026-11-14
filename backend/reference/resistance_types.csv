@@ -1,0 +1,9 @@
+resistance_type,label,genera,species,antibiotics,note
+MRSA,Methicillin-resistant Staphylococcus aureus,Staphylococcus,aureus,oxacillin;methicillin;cefoxitin,Resistant to any listed drug
+VRE,Vancomycin-resistant Enterococcus,Enterococcus,,vancomycin,
+CRE,Carbapenem-resistant Enterobacterales,@Enterobacterales,,imipenem;meropenem;ertapenem;doripenem,Organism group from organisms.csv (order_group)
+ESBL (proxy),Third-generation cephalosporin resistant Enterobacterales,@Enterobacterales,,cefotaxime;ceftriaxone;ceftazidime,"A proxy: ESBL is a mechanism, and the data records the phenotype only"
+CRAB,Carbapenem-resistant Acinetobacter baumannii,Acinetobacter,baumannii,imipenem;meropenem;doripenem,
+CRPA,Carbapenem-resistant Pseudomonas aeruginosa,Pseudomonas,aeruginosa,imipenem;meropenem;doripenem,
+FQ-resistant Salmonella,Fluoroquinolone-resistant Salmonella,Salmonella,,ciprofloxacin,
+MDR-TB (proxy),Rifampicin and isoniazid resistant Mycobacterium tuberculosis,Mycobacterium,tuberculosis,rifampicin;isoniazid,"Resistant to both drugs, per genome"

@@ -1,0 +1,85 @@
+disease_raw,disease,infection_type,lab_rows
+salmonellosis,salmonellosis,Gastrointestinal infection,28405
+invasive pneumococcal disease,invasive pneumococcal disease,Bloodstream infection,26176
+gonorrhea,gonorrhea,Sexually transmitted infection,19167
+haematological malignancies,haematological malignancies,Other or unspecified,8736
+mrsa-positive,mrsa-positive,Other or unspecified,7097
+shigellosi,shigellosis,Gastrointestinal infection,6118
+diarrhea,diarrhea,Gastrointestinal infection,3938
+shigellosis,shigellosis,Gastrointestinal infection,3888
+meningitis,meningitis,Meningitis,3406
+pneumonia,pneumonia,Pneumonia and respiratory infection,3220
+typhoid fever,typhoid fever,Bloodstream infection,3211
+tuberculosis,tuberculosis,Tuberculosis,3063
+bacteremia,bacteremia,Bloodstream infection,2575
+carriage,carriage,Carriage or colonisation,2321
+urinary tract infection,urinary tract infection,Urinary tract infection,1747
+enteric fever,enteric fever,Bloodstream infection,1696
+bacteraemia,bacteremia,Bloodstream infection,1495
+bloodstream infection,bloodstream infection,Bloodstream infection,960
+sepsis,sepsis,Bloodstream infection,591
+multidrug-resistant tuberculosis,multidrug-resistant tuberculosis,Tuberculosis,463
+wound infection,wound infection,Skin and wound infection,399
+colonization,colonization,Carriage or colonisation,354
+ipd,ipd,Other or unspecified,326
+gall bladder cancer,gall bladder cancer,Other or unspecified,279
+mastitis\xa0,mastitis\xa0,Other or unspecified,263
+septicaemia,septicaemia,Bloodstream infection,244
+otitis,otitis,Other or unspecified,200
+vancomycin-resistant enterococcus faecium,vancomycin-resistant enterococcus faecium,Other or unspecified,185
+cystic fibrosis,cystic fibrosis,Pneumonia and respiratory infection,158
+pneumococcal disease,pneumococcal disease,Other or unspecified,154
+bacterial infectious disease,bacterial infectious disease,Other or unspecified,123
+meningitis/sepsis,meningitis/sepsis,Meningitis,84
+infection,infection,Other or unspecified,77
+acute otitis media upper respiratory tract infection,acute otitis media upper respiratory tract infection,Pneumonia and respiratory infection,75
+burn injury,burn injury,Skin and wound infection,73
+"squamous cell carcinom\\, right thigh","squamous cell carcinom\\, right thigh",Other or unspecified,69
+nosocomial infections,nosocomial infections,Other or unspecified,61
+no infection,no infection,Other or unspecified,57
+nasopharyngitis,nasopharyngitis,Other or unspecified,57
+cellulitis; gastroenteritis; ineffective endocarditis; osteomyelitis; pneumonia; toxic shock syndrome,cellulitis; gastroenteritis; ineffective endocarditis; osteomyelitis; pneumonia; toxic shock syndrome,Pneumonia and respiratory infection,57
+unspecified,unspecified,Other or unspecified,56
+urethritis,urethritis,Other or unspecified,56
+"tracheo-esophageal fistula\\, pneumothorax\\, post operative bilateral pneumonia","tracheo-esophageal fistula\\, pneumothorax\\, post operative bilateral pneumonia",Pneumonia and respiratory infection,55
+"lung mass\\, t2dm\\, hyperthyroidism","lung mass\\, t2dm\\, hyperthyroidism",Other or unspecified,54
+left ureteric stricture,left ureteric stricture,Other or unspecified,52
+left ureteric stone,left ureteric stone,Other or unspecified,52
+hiv,hiv,Other or unspecified,51
+burn wound,burn wound,Skin and wound infection,50
+acute otitis media,acute otitis media,Other or unspecified,45
+"renal calculus\\, pyelonephritis","renal calculus\\, pyelonephritis",Urinary tract infection,45
+joint infection,joint infection,Other or unspecified,43
+other,other,Other or unspecified,43
+harm with sigmoid loop colostomy,harm with sigmoid loop colostomy,Other or unspecified,43
+electrical injury,electrical injury,Other or unspecified,42
+status febrilis,status febrilis,Other or unspecified,40
+upper respiratory tract infection,upper respiratory tract infection,Pneumonia and respiratory infection,35
+cancer,cancer,Other or unspecified,35
+abscess,abscess,Skin and wound infection,34
+cellulitis,cellulitis,Skin and wound infection,34
+septicemia,septicemia,Bloodstream infection,32
+"neonatal sepsis\\, vlbw","neonatal sepsis\\, vlbw",Bloodstream infection,32
+disseminated intravascular coagulation,disseminated intravascular coagulation,Other or unspecified,32
+arthritis,arthritis,Other or unspecified,31
+diabetic foot with cellulitis,diabetic foot with cellulitis,Skin and wound infection,30
+"renal calculus\\, pyelonephrosis\\, left ureteric stricture","renal calculus\\, pyelonephrosis\\, left ureteric stricture",Other or unspecified,30
+nsaid induced peptic perforation,nsaid induced peptic perforation,Other or unspecified,30
+diabetic,diabetic,Other or unspecified,29
+ruptured amorbic liver abbcess,ruptured amorbic liver abbcess,Other or unspecified,28
+"uti\\, vescical and renal calculus","uti\\, vescical and renal calculus",Urinary tract infection,28
+"exploratory lap\\, vdrl +","exploratory lap\\, vdrl +",Other or unspecified,28
+rt. leg osteomyelitis with necrotising fascitis,rt. leg osteomyelitis with necrotising fascitis,Skin and wound infection,27
+"posterior urethral valve\\, ckd","posterior urethral valve\\, ckd",Other or unspecified,27
+"posterior urethral valve\\, vescicoureteric reflux\\, ckd","posterior urethral valve\\, vescicoureteric reflux\\, ckd",Other or unspecified,27
+salmonellosis (except human typhoid & paratyphoid),salmonellosis (except human typhoid & paratyphoid),Bloodstream infection,26
+megalourethra,megalourethra,Other or unspecified,26
+renal calculus,renal calculus,Other or unspecified,26
+pleural effusion,pleural effusion,Other or unspecified,26
+rhabdomyosarcoma of urinary bladder,rhabdomyosarcoma of urinary bladder,Urinary tract infection,26
+bacteremic pneumonia,bacteremic pneumonia,Pneumonia and respiratory infection,25
+peritonitis,peritonitis,Other or unspecified,22
+not variable data,not variable data,Other or unspecified,21
+bacterimia,bacterimia,Other or unspecified,20
+sinusitis,sinusitis,Other or unspecified,20
+acute otitis media upper respiratory tract infection bronchitis,acute otitis media upper respiratory tract infection bronchitis,Pneumonia and respiratory infection,20

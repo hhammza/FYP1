@@ -1,0 +1,35 @@
+chemical_group,core_structure,mechanism,resistance_mechanisms,drugs
+Aminoglycoside/aminocyclitol,Amino sugars linked by glycosidic bonds to an aminocyclitol ring,Inhibits protein synthesis,"Aminoglycoside-modifying enzymes (acetyl-, phospho-, adenylyl-transferases); 16S rRNA methylases; efflux",9
+Aminosalicylic acid,4-aminosalicylic acid,Inhibits folate metabolism,thyA and folC mutations,1
+Amphenicol,Dichloroacetamide on a phenylpropanoid,Inhibits protein synthesis,"Chloramphenicol acetyltransferases (cat); efflux (cmlA, floR)",2
+Ansamycin,Aromatic core bridged by an aliphatic ansa chain,Inhibits RNA synthesis,rpoB mutations,2
+Beta-lactam ring,"Four-membered beta-lactam ring (fused to a thiazolidine ring in penicillins, a dihydrothiazine ring in cephalosporins)",Inhibits cell-wall synthesis,Beta-lactamases hydrolyse the beta-lactam ring; altered PBPs (e.g. mecA/PBP2a); porin loss; efflux,46
+Cyclic peptide,Cyclic peptide,Inhibits protein synthesis,tlyA and rrs mutations,1
+Diaminopyrimidine,"2,4-diaminopyrimidine",Inhibits folate synthesis,dfr genes encoding resistant enzymes; folA mutations,1
+Diarylquinoline,Quinoline with two aryl groups,Inhibits ATP synthesis,atpE mutations; Rv0678 efflux upregulation,1
+Ethylenediamine,Ethylenediamine with two butanol groups,Inhibits arabinogalactan synthesis,embB mutations,1
+Glycopeptide,Glycosylated cyclic heptapeptide,Inhibits cell-wall synthesis,van gene clusters change the target to D-Ala-D-Lac or D-Ala-D-Ser,3
+Hydrazide,Pyridine-4-carbohydrazide,Inhibits mycolic acid synthesis,katG and inhA mutations,1
+Isoxazolidinone,Cyclic analogue of D-alanine,Inhibits cell-wall synthesis,alr and ddl changes,1
+Lincosamide,Amino acid (proline derivative) linked to an amino sugar,Inhibits protein synthesis,23S rRNA methylation (erm); lnu enzymes; efflux,2
+Macrolide lactone ring,14- to 16-membered macrocyclic lactone ring with attached sugars,Inhibits protein synthesis,"23S rRNA methylation (erm); efflux (mef, msr); target mutations",7
+Nitrofuran,Furan ring with a nitro group,Damages DNA after bacterial reduction,Loss of nitroreductases,2
+Nitroimidazo-oxazole,Bicyclic nitroimidazo-oxazole,Inhibits mycolic acid synthesis,ddn and fgd1 mutations,1
+Nitroimidazole,Imidazole ring with a nitro group,Damages DNA after reduction,nim genes; reduced activation,1
+Nucleoside analogue,Thymidine analogue with an azido group,Antiviral (HIV reverse transcriptase inhibitor),Not applicable,1
+Oxazolidinone,Five-membered oxazolidin-2-one ring,Inhibits protein synthesis,23S rRNA mutations; cfr methyltransferase; optrA/poxtA,2
+Phosphonic acid,Epoxide with a phosphonic acid,Inhibits cell-wall synthesis,"fosA/fosB/fosX enzymes; reduced uptake (glpT, uhpT)",1
+Pleuromutilin,Tricyclic diterpene,Inhibits protein synthesis,cfr; vga genes; 23S rRNA mutations,1
+Polypeptide,Cyclic cationic peptide with a fatty-acid tail,Disrupts the outer membrane,"Lipid A modification (mcr genes, pmrAB/phoPQ mutations)",3
+Polypeptide (cyclic lipopeptide),Cyclic peptide with a lipid tail,Depolarises the cell membrane,"mprF, liaFSR and cls mutations change membrane charge",1
+Pseudomonic acid,Monic acid linked to 9-hydroxynonanoic acid,Inhibits protein synthesis,ileS mutations; mupA/mupB alternative enzymes,1
+Pyrazine carboxamide,Pyrazine ring with a carboxamide,Disrupts membrane energetics and CoA synthesis,pncA mutations,1
+Pyridine carboxamide,Pyridine-3-carboxamide,Vitamin B3; tested in BV-BRC as a pyrazinamide analogue,pncA mutations,1
+Quinolone core,Bicyclic 4-quinolone with a carboxylic acid; most add a fluorine at position 6,Inhibits DNA replication,Target mutations in gyrA/parC; qnr target protection; aac(6')-Ib-cr; efflux,11
+Riminophenazine,Phenazine dye with an imino group,Generates reactive oxygen species; membrane disruption,Rv0678 efflux upregulation,1
+Steroid (fusidane),Tetracyclic steroid-like fusidane skeleton,Inhibits protein synthesis,fusA mutations; fusB/fusC target protection,1
+Streptogramin (macrolactone and cyclic depsipeptide),Pair of a macrolactone (group A) and a cyclic depsipeptide (group B),Inhibits protein synthesis,vat/vgb enzymes; erm methylation; efflux,3
+Sulfonamide,Sulfanilamide group (para-aminobenzenesulfonamide),Inhibits folate synthesis,sul1/sul2/sul3 drug-insensitive enzymes; folP mutations,5
+Sulfonamide + diaminopyrimidine,Sulfonamide and diaminopyrimidine in a fixed combination,Sequential block of folate synthesis,"sul and dfr genes, often together on integrons",3
+Tetracycline four-ring,Four linearly fused six-membered rings (naphthacene core),Inhibits protein synthesis,"Efflux pumps (tet(A), tet(B)); ribosomal protection (tet(M)); enzymatic inactivation (tet(X))",6
+Thioamide,Pyridine thioamide,Inhibits mycolic acid synthesis,ethA and inhA mutations,2
