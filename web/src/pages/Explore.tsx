@@ -77,7 +77,7 @@ export default function Explore() {
           {view === 'map' && <GroupMap filters={filters} meta={meta.data} group={group} setGroup={setGroup} onCountry={onCountry} />}
           {view === 'groups' && <GroupComparison filters={filters} split={split} setSplit={s => update({ split: s })} />}
           {view === 'drugs' && <DrugComparison filters={filters} meta={meta.data} group={group} setGroup={setGroup} onDrug={onDrug} />}
-          {view === 'chemistry' && <ChemistryView filters={filters} onDrug={onDrug} />}
+          {view === 'chemistry' && <ChemistryView filters={filters} meta={meta.data} onDrug={onDrug} />}
 
           {drug && <DrugDetail name={drug} filters={filters} onClose={() => update({ drug: null })} />}
         </>}

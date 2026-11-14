@@ -1,6 +1,6 @@
 /* Points 9 and 12: a drug's nomenclature and chemistry, in a popup that
    opens from any dropdown, bar or button (the drug is kept in the URL). */
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Link } from 'react-router';
 import { apiUrl } from '../../lib/api';
@@ -80,7 +80,6 @@ function Body({ d, filters }: { d: Detail; filters: Filters }) {
           <div className="small">{d.resistance.r.toLocaleString()} of {d.resistance.n.toLocaleString()} isolates resistant
             {d.resistance.low_sample && <span className="badge bg-secondary ms-2">low sample</span>}</div>
         </div>
-        <ByCountry drug={d.antibiotic} filters={filters} />
       </div>
 
       <div className="col-lg-5">
@@ -109,6 +108,7 @@ function Body({ d, filters }: { d: Detail; filters: Filters }) {
           <Row label="Target">{d.target}</Row>
           <Row label="Resistance mechanisms">{d.resistance_mechanism}</Row>
         </tbody></table>
+        <ResistanceBy drug={d.antibiotic} filters={filters} />
         {d.missing_from_pubchem.length > 0 && <p className="small text-muted mb-1">Not found in PubChem: {d.missing_from_pubchem.join(', ')}.</p>}
         {d.review && <p className="small text-muted mb-0">Reference note: {d.review}</p>}
       </div>
@@ -116,30 +116,53 @@ function Body({ d, filters }: { d: Detail; filters: Filters }) {
   );
 }
 
-/** Where this drug meets the most resistance: the countries with the highest
-    resistant share among those with enough isolates, under the current filters. */
-function ByCountry({ drug, filters }: { drug: string; filters: Filters }) {
+const BREAKDOWNS = [
+  { by: 'country', tab: 'Country', plural: ['country', 'countries'] },
+  { by: 'species', tab: 'Bacteria', plural: ['species', 'species'] },
+  { by: 'infection_type', tab: 'Infection type', plural: ['infection type', 'infection types'] },
+  { by: 'disease', tab: 'Disease', plural: ['disease', 'diseases'] },
+] as const;
+
+/** Where this drug meets the most resistance: by country, bacterial species,
+    infection type or recorded disease, under the current filters. The groups
+    with the highest resistant share among those with enough isolates. */
+function ResistanceBy({ drug, filters }: { drug: string; filters: Filters }) {
+  const [tab, setTab] = useState<typeof BREAKDOWNS[number]['by']>('country');
+  const b = BREAKDOWNS.find(x => x.by === tab)!;
   const mine: Filters = { ...filters, lists: { ...filters.lists, antibiotic: [drug] } };
-  const res = useExplore<Summary>(`explore/summary/${filterQuery(mine, { by: 'country' })}`);
-  if (res.state !== 'ready') return null;
-  const rows = res.data.rows.filter(r => r.resistant_pct !== null);
+  const res = useExplore<Summary>(`explore/summary/${filterQuery(mine, { by: tab })}`);
+  const rows = res.state === 'ready'
+    ? res.data.rows.filter(r => r.resistant_pct !== null && String(r.value) !== '' && String(r.value) !== 'Unknown') : [];
   const enough = rows.filter(r => !r.low_sample);
   const top = enough.slice(0, 6);
-  if (!rows.length) return null;
+  const minN = res.state === 'ready' ? res.data.min_n : 30;
+  const name = (r: Summary['rows'][number]) => {
+    const v = String(r.label || r.value);
+    return tab === 'disease' ? v.charAt(0).toUpperCase() + v.slice(1) : v;
+  };
   return (
     <div className="drug-countries mt-3">
       <div className="d-flex justify-content-between align-items-baseline mb-1">
-        <h3 className="h6 section-label mb-0">Resistance by country</h3>
-        <Link className="small" to={`/explore/heatmap${filterQuery(mine)}`}>See on the map</Link>
+        <h3 className="h6 section-label mb-0">Resistance by</h3>
+        {tab === 'country' && <Link className="small" to={`/explore/heatmap${filterQuery(mine)}`}>See on the map</Link>}
       </div>
-      <div className="drug-note mb-2">Share of each country's lab-tested isolates that were resistant to this drug</div>
-      {top.length ? top.map(r => (
+      <div className="drug-tabs mb-2" role="tablist" aria-label="Resistance by">
+        {BREAKDOWNS.map(x => (
+          <button key={x.by} type="button" role="tab" aria-selected={tab === x.by}
+                  className={'drug-tab' + (tab === x.by ? ' active' : '')} onClick={() => setTab(x.by)}>{x.tab}</button>))}
+      </div>
+      <div className="drug-note mb-2">% of lab-tested isolates resistant to this drug, per {b.plural[0]}</div>
+      {res.state === 'loading' && <div className="small text-muted py-2"><span className="spinner-border spinner-border-sm me-2"></span>Loading…</div>}
+      {res.state === 'failed' && <div className="small text-muted">{res.error}</div>}
+      {res.state === 'ready' && (top.length ? top.map(r => (
         <div key={String(r.value)} className="drug-country">
-          <span className="drug-country-name">{r.label || String(r.value)}</span>
+          <span className={'drug-country-name' + (tab === 'species' ? ' fst-italic' : '')} title={name(r)}>{name(r)}</span>
           <span className="drug-country-bar"><span style={{ width: `${r.resistant_pct}%` }}></span></span>
           <span className="drug-country-val" title={`${r.r.toLocaleString()} of ${r.n.toLocaleString()} isolates resistant`}>{(r.resistant_pct as number).toFixed(0)}% <span className="text-muted">of {r.n.toLocaleString()}</span></span>
-        </div>)) : <div className="small text-muted">No country has {res.data.min_n} or more isolates tested.</div>}
-      <div className="drug-note mt-1">Highest first. {rows.length} {rows.length === 1 ? 'country' : 'countries'} tested it{rows.length > enough.length ? `; ${rows.length - enough.length} with under ${res.data.min_n} isolates not shown` : ''}. Submitted isolates, not a national survey.</div>
+        </div>)) : <div className="small text-muted">{rows.length ? `None has ${minN} or more isolates tested.` : 'Not recorded for this drug.'}</div>)}
+      {res.state === 'ready' && rows.length > 0 && (
+        <div className="drug-note mt-1" title="BV-BRC holds the isolates labs chose to submit, not a surveillance sample">
+          Highest first · {rows.length} {rows.length === 1 ? b.plural[0] : b.plural[1]}{rows.length > enough.length ? `, ${rows.length - enough.length} under ${minN} isolates hidden` : ''} · submitted isolates</div>)}
     </div>
   );
 }

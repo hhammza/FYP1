@@ -5,6 +5,7 @@ import Plot, { type PlotTheme } from '../../components/Plot';
 import { apiGet, errorText } from '../../lib/api';
 import { capitalise } from '../../lib/vocab';
 import { BINS, NO_DATA, dominantMap, rateBars, rateMap, splitBars, trendLines } from './charts';
+import DrugCatalog from './DrugCatalog';
 import { filterQuery, type Filters } from './filters';
 import type { Countries, ExploreMeta, Summary, SummaryRow } from './types';
 
@@ -205,32 +206,18 @@ export function DrugComparison({ filters, meta, group, setGroup, onDrug }: {
   );
 }
 
-/** Point 9: resistance across chemical groups, and each group's chemistry. */
-export function ChemistryView({ filters, onDrug }: { filters: Filters; onDrug: (d: string) => void }) {
+/** Point 9: resistance across chemical groups, each group's drugs, and each drug's chemistry. */
+export function ChemistryView({ filters, meta, onDrug }: { filters: Filters; meta: ExploreMeta; onDrug: (d: string) => void }) {
   const res = useExplore<Summary>(`explore/summary/${filterQuery(filters, { by: 'chemical_group' })}`);
-  const drugs = useExplore<Summary>(`explore/summary/${filterQuery(filters, { by: 'antibiotic' })}`);
-  const figure = useCallback((t: PlotTheme) => (res.state === 'ready' ? rateBars(res.data.rows, t) : { data: [], layout: {} }), [res]);
   return (
     <div className="glass-card">
       <h2 className="h5">Chemistry: resistance across chemical groups</h2>
-      <p className="caption-text">The structural class of each drug, kept apart from its family (a family can span several structures).
-        Pick a drug below for its structure, formula, mechanism and the resistance mechanisms that act on its chemistry.</p>
+      <p className="caption-text">The structural class of each drug, kept apart from its family (a family can span several
+        structures). Pick a group on the left to see its drugs, then a drug for its structure, formula, mechanism and the
+        resistance mechanisms that act on its chemistry.</p>
       <Status value={res} />
-      {res.state === 'ready' && <>
-        <Plot id="chemBars" style={{ height: Math.max(300, 26 * res.data.rows.length + 80) }} figure={figure} />
-        <TableView rows={res.data.rows} label={r => String(r.value)} valueName="Chemical group" />
-      </>}
-      {drugs.state === 'ready' && (
-        <div className="mt-3">
-          <span className="form-label-custom d-block">Open a drug's chemistry panel</span>
-          <div className="d-flex flex-wrap gap-1">
-            {drugs.data.rows.slice(0, 40).map(r => (
-              <button key={String(r.value)} type="button" className="btn btn-sm btn-outline-secondary" onClick={() => onDrug(String(r.value))}>
-                {capitalise(String(r.value))}
-              </button>))}
-          </div>
-        </div>
-      )}
+      <DrugCatalog filters={filters} meta={meta} onDrug={onDrug} />
+      {res.state === 'ready' && <TableView rows={res.data.rows} label={r => String(r.value)} valueName="Chemical group" />}
     </div>
   );
 }
