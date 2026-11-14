@@ -19,6 +19,20 @@ Baseline is commit **`52ae361`** *(Add amrpredict library and macOS launcher, 20
 
 ---
 
+## Web app: dark mode fixes, animated icons and page scenes (2026-11-14, Ali)
+
+Five commits on the React app (`web/`). No backend or model change.
+
+- **Dark mode.** Captions and hints were about 2:1 contrast on the dark cards and are now about 5:1. Countries without data, the chemistry percentages, bar tracks, drug tiles, links and the Explorer's selects and inputs get dark-mode colours. Themed selects show their arrow again in both themes.
+- **Explorer filters.** The Gram buttons no longer move when a filter is set: Clear filters stays beside them and is disabled until a filter is active.
+- **Motion.** A dividing-cell loader replaces the spinner in the Explorer, the drug popup and the report pages; bars grow in, drug tiles appear in turn, and cards and buttons lift on hover.
+- **Icons.** The microbiology icons (DNA, bacterium, virus, capsule, petri dish, globe, growth curve, charts) are SVG drawings with moving parts in `components/BioIcon.tsx`. Every other icon moves in a way that fits its meaning when hovered (`styles/icon-motion.css`).
+- **Scenes.** Each page header has its own animation of what the page does, from a k-mer scan on genome prediction to an MIC dilution plate on the forecaster and plasmid transfer on resistance genes (`components/HeaderScene.tsx`). The home page has a 3D DNA helix whose base pairs mutate, labelled with known resistance mutations (`components/HeroHelix.tsx`), and the footer a flowing DNA strand (`components/FooterScene.tsx`).
+
+All motion stops, and the scenes are hidden, for visitors whose system asks for reduced motion. The 87 web tests pass.
+
+---
+
 ## Report: RL results, Deviations chapter (2026-11-14, Hamza)
 
 | File | Change |
