@@ -9,6 +9,7 @@ import { pyFixed, thousands } from '../lib/metrics';
 import { usePageEffects, useTitle } from '../lib/pageEffects';
 import { classFigure, geneTitle, heatFigure, perGenomeFigure, topFigure } from './genes/charts';
 import type { GeneReport, GenomeGenes, LabView } from './genes/types';
+import CellLoader from '../components/CellLoader';
 
 const FIRST_ROWS = 12;
 const KIND_LABEL: Record<string, string> = { gene: 'Gene', point_mutation: 'Mutation' };
@@ -422,8 +423,7 @@ export default function Genes() {
             </div>
           ) : (
             <div className="empty-state">
-              <div className="spinner-border text-accent mb-3" role="status"></div>
-              <p className="text-muted mb-0">Loading the gene report…</p>
+              <CellLoader block label="Loading the gene report…" />
             </div>
           )}
       </div>

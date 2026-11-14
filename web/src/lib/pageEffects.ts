@@ -36,7 +36,8 @@ export function usePageEffects(root: HTMLElement | null, deps: unknown[]) {
   useEffect(() => {
     if (!root) return;
     const cleanups: (() => void)[] = [];
-    const hasIO = typeof IntersectionObserver !== 'undefined';
+    const calm = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const hasIO = !calm && typeof IntersectionObserver !== 'undefined';
 
     if (hasIO) {
       const counter = new IntersectionObserver(entries => {

@@ -8,6 +8,7 @@ import { capitalise } from '../../lib/vocab';
 import { filterQuery, type Filters } from './filters';
 import type { DrugDetail as Detail, Summary } from './types';
 import { useExplore } from './views';
+import CellLoader from '../../components/CellLoader';
 
 const AWARE_CLASS: Record<string, string> = { Access: 'bg-success', Watch: 'bg-warning text-dark', Reserve: 'bg-danger' };
 const na = <span className="text-muted">not available</span>;
@@ -48,7 +49,7 @@ export default function DrugDetail({ name, filters, onClose }: { name: string; f
               <button ref={closeBtn} type="button" className="btn-close" aria-label="Close" onClick={onClose}></button>
             </div>
             <div className="modal-body">
-              {res.state === 'loading' && <div className="text-muted py-4"><span className="spinner-border spinner-border-sm me-2"></span>Loading…</div>}
+              {res.state === 'loading' && <CellLoader />}
               {res.state === 'failed' && <div className="alert-warning-custom">{res.error}</div>}
               {res.state === 'ready' && <Body d={res.data} filters={filters} />}
             </div>
@@ -152,7 +153,7 @@ function ResistanceBy({ drug, filters }: { drug: string; filters: Filters }) {
                   className={'drug-tab' + (tab === x.by ? ' active' : '')} onClick={() => setTab(x.by)}>{x.tab}</button>))}
       </div>
       <div className="drug-note mb-2">% of lab-tested isolates resistant to this drug, per {b.plural[0]}</div>
-      {res.state === 'loading' && <div className="small text-muted py-2"><span className="spinner-border spinner-border-sm me-2"></span>Loading…</div>}
+      {res.state === 'loading' && <CellLoader />}
       {res.state === 'failed' && <div className="small text-muted">{res.error}</div>}
       {res.state === 'ready' && (top.length ? top.map(r => (
         <div key={String(r.value)} className="drug-country">

@@ -8,6 +8,7 @@ import { BINS, dominantMap, rateBars, rateMap, splitBars, trendLines } from './c
 import DrugCatalog from './DrugCatalog';
 import { filterQuery, type Filters } from './filters';
 import type { Countries, ExploreMeta, Summary, SummaryRow } from './types';
+import CellLoader from '../../components/CellLoader';
 
 const MAP_CONFIG = { topojsonURL: '/topojson/' };
 
@@ -43,7 +44,7 @@ export function LoadError({ error, retry }: { error: string; retry: () => void }
 }
 
 function Status({ value }: { value: Loaded<unknown> & { retry: () => void } }) {
-  if (value.state === 'loading') return <div className="text-muted py-4"><span className="spinner-border spinner-border-sm me-2"></span>Loading…</div>;
+  if (value.state === 'loading') return <CellLoader />;
   if (value.state === 'failed') return <LoadError error={value.error} retry={value.retry} />;
   return null;
 }

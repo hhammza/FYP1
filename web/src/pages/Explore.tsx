@@ -11,6 +11,7 @@ import { EXPLORE_VIEWS } from './explore/nav';
 import { filterQuery, useExploreFilters } from './explore/filters';
 import type { ExploreMeta } from './explore/types';
 import { ChemistryView, CountryHeatMap, DrugComparison, GroupComparison, GroupMap, LoadError, useExplore } from './explore/views';
+import CellLoader from '../components/CellLoader';
 
 /** /explore and old ?view= links go to the matching page, keeping the filters. */
 export function ExploreRedirect() {
@@ -68,16 +69,18 @@ export default function Explore() {
                   className={'explore-tab' + (view === v.key ? ' active' : '')}><i className={`bi ${v.icon}`}></i><span>{v.label}</span></Link>))}
         </nav>
 
-        {meta.state === 'loading' && <div className="text-muted py-4"><span className="spinner-border spinner-border-sm me-2"></span>Loading…</div>}
+        {meta.state === 'loading' && <CellLoader label="Loading the Explorer…" />}
         {meta.state === 'failed' && <LoadError error={meta.error} retry={meta.retry} />}
         {meta.state === 'ready' && <>
           <FilterBar meta={meta.data} filters={filters} update={update} clear={clear} />
 
+          <div key={view} className="explore-view">
           {(view === 'heatmap' || view === 'dominant') && <CountryHeatMap filters={filters} mode={view === 'dominant' ? 'dominant' : 'rate'} onCountry={onCountry} />}
           {view === 'map' && <GroupMap filters={filters} meta={meta.data} group={group} setGroup={setGroup} onCountry={onCountry} />}
           {view === 'groups' && <GroupComparison filters={filters} split={split} setSplit={s => update({ split: s })} />}
           {view === 'drugs' && <DrugComparison filters={filters} meta={meta.data} group={group} setGroup={setGroup} onDrug={onDrug} />}
           {view === 'chemistry' && <ChemistryView filters={filters} meta={meta.data} onDrug={onDrug} />}
+          </div>
 
           {drug && <DrugDetail name={drug} filters={filters} onClose={() => update({ drug: null })} />}
         </>}

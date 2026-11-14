@@ -10,6 +10,7 @@ import { shownGenomeRuns, type ModelReport, type ShippedModel } from '../lib/rep
 import { useModelReport } from '../lib/useReport';
 import GenomeDemo from './models/GenomeDemo';
 import { aucFigure, drugFigure, errorFigure, genomeFigure, learningFigure, rocFigure, seenFigure } from './models/charts';
+import CellLoader from '../components/CellLoader';
 
 // the template's '%.3f' etc., rounded as Python rounds
 const f3 = (x: number) => pyFixed(x, 3);
@@ -57,8 +58,7 @@ export function ReportUnavailable({ error }: { error?: string }) {
   if (!error) {
     return (
       <div className="empty-state">
-        <div className="spinner-border text-accent mb-3" role="status"></div>
-        <p className="text-muted mb-0">Loading the report…</p>
+        <CellLoader block label="Loading the report…" />
       </div>
     );
   }

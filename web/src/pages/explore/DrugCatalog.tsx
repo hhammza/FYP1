@@ -1,7 +1,7 @@
 /* The chemistry view (point 9): chemical groups (or drug families) on the left,
    ranked or A to Z with their resistance; the selected group's drugs on the
    right as tiles that open the drug popup. One search box narrows both. */
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type CSSProperties } from 'react';
 import { capitalise } from '../../lib/vocab';
 import { filterQuery, type Filters } from './filters';
 import type { ExploreMeta, Summary, SummaryRow } from './types';
@@ -107,7 +107,7 @@ export default function DrugCatalog({ filters, meta, onDrug }: { filters: Filter
 
             {/* right: the selected group's drugs */}
             <div className="chem-detail">
-              <div className="chem-detail-head">
+              <div key={current.title} className="chem-detail-head">
                 <div>
                   <div className="small text-muted text-uppercase chem-eyebrow">{what}</div>
                   <h3 className="h5 mb-1">{current.title}</h3>
@@ -117,12 +117,12 @@ export default function DrugCatalog({ filters, meta, onDrug }: { filters: Filter
                 <div className={`chem-detail-pct ${band(current.pct)}`}>{current.pct === null ? 'n/a' : `${current.pct.toFixed(1)}%`}</div>
               </div>
               <div className="small text-muted mb-2">Click a drug for its structure, nomenclature and where it meets resistance.</div>
-              <div className="drug-tiles chem-tiles">
-                {[...current.items].sort(drugOrder).map(d => {
+              <div key={`${groupBy}:${current.title}`} className="drug-tiles chem-tiles">
+                {[...current.items].sort(drugOrder).map((d, i) => {
                   const p = d.row.resistant_pct;
                   const none = p === null || d.row.n === 0;
                   return (
-                    <button key={d.name} type="button" className="drug-tile" onClick={() => onDrug(d.name)}
+                    <button key={d.name} type="button" className="drug-tile" onClick={() => onDrug(d.name)} style={{ '--i': Math.min(i, 24) } as CSSProperties}
                             title={`${capitalise(d.name)}: ${none ? 'intermediate results only' : `${(p as number).toFixed(1)}% of ${d.row.n.toLocaleString()} isolates resistant`}`}>
                       <span className="drug-tile-row">
                         <span className="drug-tile-name">{capitalise(d.name)}</span>
