@@ -19,6 +19,17 @@ Baseline is commit **`52ae361`** *(Add amrpredict library and macOS launcher, 20
 
 ---
 
+## Report: RL results, Deviations chapter (2026-11-14, Hamza)
+
+| File | Change |
+|---|---|
+| [docs/report/Chapter_Results.md](docs/report/Chapter_Results.md) | New §8, the RL agent (Ali's results from `experiments/evolution/results/rl_agent.md`): at a 5% fitness cost, first failure 48.7 weeks later than weekly cycling and 62.1 later than always imipenem; no better than the greedy "lowest resistance first" rule, because the reward has no penalty for a failed week. Limitations updated |
+| [docs/report/Chapter_Deviations.md](docs/report/Chapter_Deviations.md) | New: every proposal item (committed and conditional) against what was delivered and why; technologies named in the proposal; scope decisions on record; future work. Drug design and images descoped in writing |
+| [experiments/export_report.py](experiments/export_report.py) | The GAN run `A13_ctgan` is grouped with the special runs on `/models` (`model_report.json` follows when the rebuild finishes) |
+| [docs/FYP_Completion_Roadmap.md](docs/FYP_Completion_Roadmap.md), [progress/HAMZA_PROGRESS.md](progress/HAMZA_PROGRESS.md) | Definition-of-done checklist ticked where done, with evidence; tracker brought up to date |
+
+---
+
 ## README split into an overview and detailed guides (2026-11-14, Ali)
 
 The README had grown to 780 lines. It is now a one-page overview, and its sections 0 to 13 moved word for word into ten guides in `docs/`, indexed by [docs/README.md](docs/README.md). Section numbers (§) are kept in the guides, and every § reference links to the guide that holds that section.
@@ -29,6 +40,8 @@ The README had grown to 780 lines. It is now a one-page overview, and its sectio
 | [docs/overview.md](docs/overview.md), [architecture.md](docs/architecture.md), [models.md](docs/models.md), [data-and-training.md](docs/data-and-training.md), [library.md](docs/library.md), [frontend.md](docs/frontend.md), [running-and-deployment.md](docs/running-and-deployment.md), [results.md](docs/results.md), [known-issues.md](docs/known-issues.md), [glossary.md](docs/glossary.md) | The README's sections, moved unchanged apart from links: repository paths gain `../`, and § references link across guides |
 | [docs/README.md](docs/README.md) | Index of the guides and of the plans already in `docs/`; marks PROJECT_DOCUMENTATION.md as the older reference |
 | [CHANGES.md](CHANGES.md) | Links to README sections point to the guide that now holds each section |
+
+---
 
 ## ML forecast and the live RL agent on /timeline (2026-10-25, Suleman)
 

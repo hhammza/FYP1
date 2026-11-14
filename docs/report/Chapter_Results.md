@@ -126,7 +126,26 @@ The proposal asked whether GAN-generated data helps. CTGAN (a GAN for tabular da
 
 **The synthetic rows did not help; they slightly hurt, most on the rare classes they were made for.** The quality checks explain why: a classifier separates real from synthetic rows almost perfectly (AUC 0.9999); the category distributions differ (total variation 0.26–0.44 per column, except the resistant share, 0.03) and so does the MIC (Kolmogorov–Smirnov 0.29); and only 17% of sampled rows were biologically consistent (the rest paired a drug with another drug's class or a species with another genus). With 21,030 rows spread over 62 drugs and 21 genera, CTGAN cannot learn the joint structure of drug, organism, MIC and phenotype well enough to add information. Conclusion for the report: on this problem, more real data (the 87,325 lab-tested genomes) is the way to help rare classes, not synthetic rows.
 
-## 8. Limitations
+## 8. The RL agent (Ali)
+
+A PPO agent (stable-baselines3) chooses one of three drugs each week (ciprofloxacin, gentamicin, imipenem) over 104 weeks in the cycling simulation (`experiments/evolution/rl_env.py`); a week fails when the drug given starts the week at 50% resistance or more. It learns from simulated episodes only, no patient data: 300,000 simulated weeks per agent, 3 training seeds for each of 3 fitness costs (resistance falls 0%, 2% or 5% a week while a drug is not used). Every policy is scored on the same 100 episodes, never used in training (`experiments/evolution/results/rl_agent.md`, built by `experiments/evolution/rl_train.py`).
+
+**At a 5% fitness cost** (the setting the website serves):
+
+| Policy | Effective weeks (of 104) | First failed week | Total reward |
+|---|---|---|---|
+| **PPO agent** (3 seeds pooled) | **95.0** [87.0, 101.0] | **81.3** [68.0, 94.0] | **−35.3** |
+| Lowest resistance first (greedy rule) | 104.0 | never fails | −35.8 |
+| Cycle every week | 79.5 | 32.6 | −39.7 |
+| Cycle every 4 weeks | 74.5 | 23.9 | −40.5 |
+| Always imipenem (best single drug) | 18.2 | 19.2 | −59.9 |
+
+- **The agent beats every fixed schedule.** On the same episodes its first failure comes 48.7 weeks later than weekly cycling (95% bootstrap interval [47.6, 49.9]) and 62.1 weeks later than always giving imipenem ([61.2, 63.0]).
+- **Against the greedy rule it is no better.** Its reward is slightly higher (+0.5), but it fails 23.7 weeks earlier ([22.7, 24.8]): the reward penalises resistance, not a failed week, so the agent trades failures for a lower average resistance. It also fails earlier than the greedy rule at 0% and 2% fitness cost (by 2.2 and 8.6 weeks).
+- **The result does not depend on the training seed:** the three seeds' first failed weeks are 77.1, 83.7 and 83.2.
+- **Served:** `/api/timeline/` returns the agent's plan (the `rl` block) for those three drugs; its NumPy copy picks the same drug as the trained policy on 100% of 2,000 random states.
+
+## 9. Limitations
 
 - The overall forecaster AUC (0.774) is held down by computational labels; on lab-confirmed rows it is 0.908.
 - The forecaster does not transfer to an unseen genus (0.618) or fully to future years (0.857); the genome models transfer better to new genera (0.82–0.94 with genes).
@@ -134,3 +153,4 @@ The proposal asked whether GAN-generated data helps. CTGAN (a GAN for tabular da
 - The timeline ML model forecasts noisy yearly samples (about 14 pp error) and does not beat persistence on smooth surveillance data.
 - The GAN experiment is negative: CTGAN rows were easy to tell from real ones and lowered the AUC on rare classes.
 - The simulation (and the RL agent trained on it) uses hand-set curves; its time scale is illustrative.
+- The RL agent learned from the simulation only; it beats fixed schedules but not the greedy "lowest resistance first" rule, because its reward has no penalty for a failed week.

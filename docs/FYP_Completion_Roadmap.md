@@ -494,27 +494,27 @@ A suggested split, based on the proposal's roles (Ali: data; Hamza: models; Sule
 ## 8. Definition of done: final checklist
 
 **Models**
-- [ ] Deployed tabular model is the promoted experiment (A10 or A2), not the July artifact
-- [ ] `/predict` is deterministic and uses a real model; its number comes from `metrics.json`
-- [ ] Genome model evaluated with a genome-grouped split; per-antibiotic results reported
-- [ ] Threshold chosen on validation with a stated VME/ME rationale
-- [ ] Calibration plot + Brier before/after
-- [ ] Accuracy, recall, specificity, F1, AUC-ROC, AUPRC reported with 95% CIs
-- [ ] DeLong/McNemar for the key comparisons; 3 seeds for key runs
+- [x] Deployed tabular model is the promoted experiment (A10 or A2), not the July artifact *(`D3_forecaster_deploy_v7`)*
+- [x] `/predict` is deterministic and uses a real model; its number comes from `metrics.json` *(gene model `G_genes_deploy`, k-mer model without AMRFinderPlus)*
+- [x] Genome model evaluated with a genome-grouped split; per-antibiotic results reported *(Results §4; gene model vs rule per drug)*
+- [x] Threshold chosen on validation with a stated VME/ME rationale *(VME ≤ 10%, Results §1)*
+- [x] Calibration plot + Brier before/after *(Brier 0.193 → 0.160, Results §3)*
+- [x] Accuracy, recall, specificity, F1, AUC-ROC, AUPRC reported with 95% CIs 
+- [x] DeLong/McNemar for the key comparisons; 3 seeds for key runs 
 
 **Proposal items**
 - [x] Ablations and cross-dataset/species hold-out in the report ✅ (already have) *(runs done; the report chapter is Week 5)*
-- [~] Evolution component: simulation fixed, sensitivity analysis, (calibration), (RL agent) *(fix, sensitivity and calibration done; RL agent in progress with Ali, its panel built by Suleman)*
+- [x] Evolution component: simulation fixed, sensitivity analysis, (calibration), (RL agent) *(fix, sensitivity and calibration done; RL agent in progress with Ali, its panel built by Suleman)* *(RL agent served 2026-10-24, Results §8)*
 - [x] GAN experiment run **or** descoped in writing *(run 2026-10-22, `A13_ctgan_v7`: negative, `experiments/gan/results/GAN_RESULTS.md`)*
-- [ ] Drug design prototype **or** descoped in writing
-- [ ] Images descoped in writing
+- [x] Drug design prototype **or** descoped in writing *(descoped: `docs/report/Chapter_Deviations.md` §2)*
+- [x] Images descoped in writing *(`docs/report/Chapter_Deviations.md` §2)*
 - [ ] Supervisor email confirming the scope decisions
 
 **Platform**
 - [x] CSV / PDF / PNG export on all three tool pages
 - [x] Batch CSV upload with template
 - [x] Security checklist (§6.3 Step 12) complete
-- [ ] No hardcoded metrics anywhere in templates
+- [x] No hardcoded metrics anywhere in templates *(checked 2026-11-14: figures come from the API; only the July AUC 0.93 is quoted, as history)*
 - [x] ML vs. simulation labelling preserved in UI **and** exports
 - [ ] Deployed on Railway, live URL works, demo video recorded
 
@@ -524,7 +524,7 @@ A suggested split, based on the proposal's roles (Ali: data; Hamza: models; Sule
 - [x] Tests pass; no `xfail` left for the timeline bug *(35 library tests, run in CI)*
 
 **Documentation**
-- [ ] Report with a Deviations chapter
+- [~] Report with a Deviations chapter *(Data, Methodology, Results and Deviations chapters in `docs/report/`; system design is Suleman's)*
 - [x] README/CHANGES updated; empty notebook resolved *(2026-10-13: removed; the current models are in `notebooks/01`–`03`)*
 - [ ] Git tag `v1.0-submission`
 

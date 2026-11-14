@@ -38,6 +38,7 @@ GROUPS = {
     'A5b_catboost': 'algorithm', 'A5c_catboost_native': 'algorithm',
     'A6_lab_only': 'special', 'A6b_lab_only_no_mic': 'special',
     'A12_species_holdout': 'special',
+    'A13_ctgan': 'special',
     'A_ablation_no_mic': 'ablation', 'A_ablation_drug_only': 'ablation',
     'A10s_monotonic_species': 'protocol', 'D1_forecaster_deploy': 'special',
     'D2_forecaster_deploy': 'special',
