@@ -206,7 +206,7 @@ function Trees() {
 }
 
 /* ── library: the amrpredict command line ── */
-const CMDS = ['amrpredict forecast ciprofloxacin --taxon-id 562 --mic-value 4', 'amrpredict predict genome.fasta ampicillin', 'amrpredict antibiotics --compact | jq'];
+const CMDS = ['amrpredict forecast ciprofloxacin --taxon-id 562 --mic-value 4', 'amrpredict predict genome.fna ampicillin', 'amrpredict trend Salmonella ciprofloxacin --years 5'];
 function Terminal() {
   return (<>
     <rect className="sc-term" x="150" y="14" width="434" height="132" rx="9" />
