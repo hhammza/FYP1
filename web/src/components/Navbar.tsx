@@ -2,6 +2,25 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router';
 import { Collapse } from 'bootstrap';
 import { setTheme, useDarkTheme } from '../lib/theme';
+import { EXPLORE_VIEWS } from '../pages/explore/nav';
+
+const MODEL_PAGES = [
+  { to: '/models', icon: 'bi-clipboard-data', label: 'Model Report', hint: 'How every model was evaluated' },
+  { to: '/compare', icon: 'bi-layout-split', label: 'Deployed vs Experimental', hint: 'What is served, and why' },
+];
+const DATA_PAGES = [
+  { to: '/datasets', icon: 'bi-database', label: 'Datasets', hint: 'BV-BRC records and cleaning' },
+  { to: '/genes', icon: 'bi-bacteria', label: 'Resistance Genes', hint: 'AMRFinderPlus results' },
+];
+
+function MenuItem({ to, icon, label, hint, active }: { to: string; icon: string; label: string; hint: string; active: boolean }) {
+  return (
+    <Link className={'dropdown-item insights-item' + (active ? ' active' : '')} to={to} aria-current={active ? 'page' : undefined}>
+      <span className="insights-icon"><i className={`bi ${icon}`}></i></span>
+      <span className="insights-text"><span className="insights-label">{label}</span><span className="insights-hint">{hint}</span></span>
+    </Link>
+  );
+}
 
 export default function Navbar() {
   const { pathname } = useLocation();
@@ -58,21 +77,24 @@ export default function Navbar() {
             <li className="nav-item">
               <Link className={'nav-link' + on('/timeline')} to="/timeline"><i className="bi bi-activity me-1"></i>Bio-Simulator</Link>
             </li>
-            {/* Pages that explain results; nothing here predicts */}
+            {/* Pages that explain results; nothing here predicts. Two columns on a wide screen */}
             <li className="nav-item dropdown">
-              <a className={'nav-link dropdown-toggle' + on('/models', '/compare', '/genes', '/datasets')}
-                 href="#" role="button" data-bs-toggle="dropdown" onClick={e => e.preventDefault()}>
+              <a className={'nav-link dropdown-toggle' + on('/models', '/compare', '/genes', '/datasets', '/explore')}
+                 href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" onClick={e => e.preventDefault()}>
                 <i className="bi bi-lightbulb me-1"></i>Insights
               </a>
-              <ul className="dropdown-menu dropdown-menu-dark">
-                <li><h6 className="dropdown-header dropdown-section-label">MODEL RESULTS</h6></li>
-                <li><Link className="dropdown-item" to="/models"><i className="bi bi-clipboard-data me-2 text-accent"></i>Model Report <span className="badge bg-secondary ms-1 badge-xs">All models</span></Link></li>
-                <li><Link className="dropdown-item" to="/compare"><i className="bi bi-layout-split me-2 text-accent"></i>Deployed vs Experimental</Link></li>
-                <li><hr className="dropdown-divider" /></li>
-                <li><h6 className="dropdown-header dropdown-section-label">DATA</h6></li>
-                <li><Link className="dropdown-item" to="/datasets"><i className="bi bi-database me-2 text-accent"></i>Datasets <span className="badge bg-secondary ms-1 badge-xs">BV-BRC</span></Link></li>
-                <li><Link className="dropdown-item" to="/genes"><i className="bi bi-bacteria me-2 text-emerald2"></i>Resistance Genes <span className="badge bg-secondary ms-1 badge-xs">AMRFinderPlus</span></Link></li>
-              </ul>
+              <div className="dropdown-menu insights-menu">
+                <div className="insights-col">
+                  <h6 className="dropdown-header dropdown-section-label">Resistance Explorer</h6>
+                  {EXPLORE_VIEWS.map(v => <MenuItem key={v.key} to={`/explore/${v.key}`} icon={v.icon} label={v.label} hint={v.hint} active={pathname === `/explore/${v.key}`} />)}
+                </div>
+                <div className="insights-col">
+                  <h6 className="dropdown-header dropdown-section-label">Model results</h6>
+                  {MODEL_PAGES.map(m => <MenuItem key={m.to} {...m} active={pathname === m.to} />)}
+                  <h6 className="dropdown-header dropdown-section-label mt-2">Data</h6>
+                  {DATA_PAGES.map(m => <MenuItem key={m.to} {...m} active={pathname === m.to} />)}
+                </div>
+              </div>
             </li>
             <li className="nav-item">
               <Link className={'nav-link' + on('/library')} to="/library"><i className="bi bi-box-seam me-1"></i>Library</Link>

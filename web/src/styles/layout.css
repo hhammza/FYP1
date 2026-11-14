@@ -86,6 +86,16 @@ main, nav, footer, .page-header, .hero-section {
   align-items: center;
   white-space: nowrap;
 }
+/* Phone menu: the bar is a fixed 64px, so the opened menu hangs below it;
+   give it the page's card background and let a long menu scroll */
+@media (max-width: 991.98px) {
+  #mainNav .navbar-collapse {
+    background: var(--bg-card, #fff); border: 1px solid var(--border); border-radius: var(--r-sm);
+    box-shadow: var(--shadow-lg); padding: 8px; margin-top: 6px;
+    max-height: calc(100vh - 80px); overflow-y: auto;
+  }
+  #mainNav .insights-menu { box-shadow: none; border: none !important; padding: 0 0 0 8px; }
+}
 /* 992-1199px: the full menu only just fits, so tighten the side padding */
 @media (min-width: 992px) and (max-width: 1199.98px) {
   #mainNav .nav-link { padding: 6px 9px !important; }
@@ -106,6 +116,31 @@ main, nav, footer, .page-header, .hero-section {
   background: #fff !important;
   border: 1px solid var(--border) !important;
   box-shadow: var(--shadow-lg);
+}
+
+/* Insights: a two-column panel (Explorer views | model results and data),
+   centred under its button; one column in the phone menu */
+.insights-menu { padding: 8px; }
+.insights-menu .dropdown-header { padding: 6px 10px 4px; }
+.insights-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 7px 10px; border-radius: var(--r-sm); white-space: normal;
+}
+.insights-icon {
+  flex: none; width: 30px; height: 30px; border-radius: 8px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--primary-dim); color: var(--primary); font-size: 14px;
+}
+.insights-text { display: flex; flex-direction: column; min-width: 0; line-height: 1.25; }
+.insights-label { font-size: 13.5px; font-weight: 500; color: var(--text-1); }
+.insights-hint { font-size: 11.5px; color: var(--text-3); }
+.insights-item.active, .insights-item:active { background: var(--primary-dim); }
+.insights-item.active .insights-label { color: var(--primary); }
+.insights-item.active .insights-icon { background: var(--primary); color: #fff; }
+@media (min-width: 992px) {
+  .insights-menu.show { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 8px; width: 560px; }
+  .insights-menu[data-bs-popper] { left: 50%; transform: translateX(-50%); }
+  .insights-col + .insights-col { border-left: 1px solid var(--border); padding-left: 8px; }
 }
 
 .nav-train {
