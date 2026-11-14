@@ -174,13 +174,53 @@ describe('the ML forecast', () => {
   });
 });
 
+/** The what-if simulation tab, and queries inside it (the forecast tab's form stays mounted, hidden). */
+async function openSimulation() {
+  fireEvent.click(screen.getByRole('tab', { name: /What-if simulation/ }));
+  const pane = within(document.getElementById('simulationPane')!);
+  await pane.findByRole('option', { name: 'Ciprofloxacin' });
+  return pane;
+}
+
 describe('Timeline page', () => {
+  it('opens on the ML trend forecast, which needs no genome', async () => {
+    const calls = backend({ 'timeline/forecast/': { body: { ml_forecast: ML } } });
+    renderPage(<Timeline />, '/timeline');
+    expect(screen.getByRole('tab', { name: /ML trend forecast/ })).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByText('Forecast a Resistance Trend')).toBeInTheDocument();
+    const pane = within(document.getElementById('trendPane')!);
+    await pane.findByRole('option', { name: 'Ciprofloxacin' });
+    const go = pane.getByRole('button', { name: /Forecast Resistance Trend/ });
+    expect(go).toBeDisabled();
+    fireEvent.change(pane.getByLabelText(/^Antibiotic/), { target: { value: 'ciprofloxacin' } });
+    await pane.findByRole('option', { name: 'Salmonella' });
+    fireEvent.change(pane.getByLabelText(/^Organism/), { target: { value: 'Salmonella' } });
+    fireEvent.change(pane.getByLabelText('Years ahead'), { target: { value: '2' } });
+    fireEvent.click(go);
+    expect(await screen.findByText(/Resistance forecast:/)).toBeInTheDocument();
+    const body = JSON.parse(String(calls.find(c => c.url.endsWith('/timeline/forecast/'))?.init?.body));
+    expect(body).toEqual({ antibiotic: 'ciprofloxacin', genus: 'Salmonella', years_ahead: '2' });
+    expect(calls.some(c => c.url.endsWith('/api/timeline/'))).toBe(false);
+  });
+
+  it("shows the forecast endpoint's refusal", async () => {
+    backend({ 'timeline/forecast/': { status: 404, body: { error: 'Salmonella has too little yearly lab history for ciprofloxacin to forecast' } } });
+    renderPage(<Timeline />, '/timeline');
+    const pane = within(document.getElementById('trendPane')!);
+    await pane.findByRole('option', { name: 'Ciprofloxacin' });
+    fireEvent.change(pane.getByLabelText(/^Antibiotic/), { target: { value: 'ciprofloxacin' } });
+    await pane.findByRole('option', { name: 'Salmonella' });
+    fireEvent.change(pane.getByLabelText(/^Organism/), { target: { value: 'Salmonella' } });
+    fireEvent.click(pane.getByRole('button', { name: /Forecast Resistance Trend/ }));
+    expect(await screen.findByText(/too little yearly lab history/)).toBeInTheDocument();
+  });
+
   it('asks for a genome before sending anything', async () => {
     const calls = backend();
     renderPage(<Timeline />, '/timeline');
-    await screen.findByRole('option', { name: 'Ciprofloxacin' });
-    fireEvent.change(screen.getByLabelText(/^Antibiotic/), { target: { value: 'ciprofloxacin' } });
-    fireEvent.click(screen.getByRole('button', { name: /Generate Timeline/ }));
+    const sim = await openSimulation();
+    fireEvent.change(sim.getByLabelText(/^Antibiotic/), { target: { value: 'ciprofloxacin' } });
+    fireEvent.click(sim.getByRole('button', { name: /Generate Timeline/ }));
     expect(screen.getByText('Upload a FASTA file or paste a sequence before generating a timeline.')).toBeVisible();
     expect(calls.some(c => c.url.endsWith('/timeline/'))).toBe(false);
   });
@@ -188,12 +228,12 @@ describe('Timeline page', () => {
   it('sends the weeks with a pasted genome and shows the simulation', async () => {
     const calls = backend();
     renderPage(<Timeline />, '/timeline');
-    await screen.findByRole('option', { name: 'Ciprofloxacin' });
-    fireEvent.change(screen.getByLabelText(/^Antibiotic/), { target: { value: 'ciprofloxacin' } });
-    fireEvent.change(screen.getByLabelText(/^Simulation Weeks/), { target: { value: '12' } });
+    const sim = await openSimulation();
+    fireEvent.change(sim.getByLabelText(/^Antibiotic/), { target: { value: 'ciprofloxacin' } });
+    fireEvent.change(sim.getByLabelText(/^Simulation Weeks/), { target: { value: '12' } });
     expect(document.getElementById('weeksVal')).toHaveTextContent('12');
-    fireEvent.click(screen.getByRole('button', { name: 'Load Sample' }));
-    fireEvent.click(screen.getByRole('button', { name: /Generate Timeline/ }));
+    fireEvent.click(sim.getByRole('button', { name: 'Load Sample' }));
+    fireEvent.click(sim.getByRole('button', { name: /Generate Timeline/ }));
     expect(await screen.findByText('Week-by-Week Resistance Evolution')).toBeInTheDocument();
     const body = JSON.parse(String(calls.find(c => c.url.endsWith('/timeline/'))?.init?.body));
     expect(body).toEqual({ fasta_text: SAMPLE_GENOME, antibiotic: 'ciprofloxacin', n_weeks: '12' });   // no genus chosen
@@ -204,13 +244,13 @@ describe('Timeline page', () => {
   it('sends the organism chosen for the ML forecast', async () => {
     const calls = backend();
     renderPage(<Timeline />, '/timeline');
-    await screen.findByRole('option', { name: 'Ciprofloxacin' });
-    fireEvent.change(screen.getByLabelText(/^Antibiotic/), { target: { value: 'ciprofloxacin' } });
-    await screen.findByRole('option', { name: 'Salmonella' });
-    expect(screen.getByText('2 genera have yearly lab history for ciprofloxacin')).toBeInTheDocument();
-    fireEvent.change(screen.getByLabelText(/^Organism for the ML forecast/), { target: { value: 'Salmonella' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Load Sample' }));
-    fireEvent.click(screen.getByRole('button', { name: /Generate Timeline/ }));
+    const sim = await openSimulation();
+    fireEvent.change(sim.getByLabelText(/^Antibiotic/), { target: { value: 'ciprofloxacin' } });
+    await sim.findByRole('option', { name: 'Salmonella' });
+    expect(sim.getByText('2 genera have yearly lab history for ciprofloxacin')).toBeInTheDocument();
+    fireEvent.change(sim.getByLabelText(/^Organism for the ML forecast/), { target: { value: 'Salmonella' } });
+    fireEvent.click(sim.getByRole('button', { name: 'Load Sample' }));
+    fireEvent.click(sim.getByRole('button', { name: /Generate Timeline/ }));
     await screen.findByText('Week-by-Week Resistance Evolution');
     const body = JSON.parse(String(calls.find(c => c.url.endsWith('/timeline/'))?.init?.body));
     expect(body.genus).toBe('Salmonella');
@@ -219,10 +259,10 @@ describe('Timeline page', () => {
   it("shows the backend's refusal", async () => {
     backend({ 'timeline/': { status: 400, body: { error: 'n_weeks must be a whole number from 2 to 24, not "99".' } } });
     renderPage(<Timeline />, '/timeline');
-    await screen.findByRole('option', { name: 'Ciprofloxacin' });
-    fireEvent.change(screen.getByLabelText(/^Antibiotic/), { target: { value: 'ciprofloxacin' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Load Sample' }));
-    fireEvent.click(screen.getByRole('button', { name: /Generate Timeline/ }));
+    const sim = await openSimulation();
+    fireEvent.change(sim.getByLabelText(/^Antibiotic/), { target: { value: 'ciprofloxacin' } });
+    fireEvent.click(sim.getByRole('button', { name: 'Load Sample' }));
+    fireEvent.click(sim.getByRole('button', { name: /Generate Timeline/ }));
     expect(await screen.findByText(/n_weeks must be a whole number/)).toBeInTheDocument();
   });
 });

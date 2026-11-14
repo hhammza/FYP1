@@ -20,7 +20,7 @@ export function TimelineHeader() {
           <div className="page-header-icon timeline-icon"><BioIcon icon="bi-activity" live /></div>
           <div>
             <h1 className="page-title">Bacterial Mutation Timeline</h1>
-            <p className="page-subtitle">Week-by-week resistance evolution using a biologically-informed logistic growth simulation</p>
+            <p className="page-subtitle">An ML forecast of yearly resistance trends, and a week-by-week what-if simulation under treatment</p>
           </div>
         </div>
       </div>
@@ -163,6 +163,25 @@ export function TimelineEmpty() {
             </div>
           </div>
     </>
+  );
+}
+
+/** The forecast mode before its first answer. */
+export function TrendEmpty() {
+  return (
+    <div className="empty-state" id="trendEmpty">
+      <div className="empty-state-icon timeline-icon"><i className="bi bi-graph-up-arrow"></i></div>
+      <h4>Forecast a Resistance Trend</h4>
+      <p>Choose an antibiotic and an organism to see the yearly share of resistant isolates in BV-BRC laboratory
+        results and the trained model's forecast for the coming years, with an 80% band.</p>
+      <div className="example-box text-start mt-3">
+        <div className="example-title">Try</div>
+        <div className="example-content">
+          <div><i className="bi bi-check text-success me-1"></i>Ciprofloxacin + Salmonella (21 years of history)</div>
+          <div><i className="bi bi-check text-success me-1"></i>For week-by-week evolution under treatment, switch to the what-if simulation</div>
+        </div>
+      </div>
+    </div>
   );
 }
 
