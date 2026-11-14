@@ -41,22 +41,60 @@ amrpredict forecast ciprofloxacin --taxon-id 562 --mic-value 4
 }
 ```
 
-Default threshold: the bundled model's own (0.15 in 0.2.0).
+Default threshold: the bundled model's own (0.15).
 
 ## `predict`
 
 ```
-amrpredict predict FASTA ANTIBIOTIC [--threshold F]
+amrpredict predict FASTA ANTIBIOTIC [--threshold F] [--genus G] [--species S] [--kmers | --genes]
 ```
 
-`FASTA` is a path, or `-` to read stdin.
+`FASTA` is a path, or `-` to read stdin: a complete genome assembly
+(100,000 bp or more).
 
 ```bash
-amrpredict predict genome.fasta ciprofloxacin
-cat genome.fasta | amrpredict predict - ciprofloxacin --threshold 0.6
+amrpredict predict genome.fna ciprofloxacin
+cat genome.fna | amrpredict predict - ciprofloxacin --threshold 0.6
+amrpredict predict genome.fna ciprofloxacin --kmers     # always the k-mer model
 ```
 
-Default threshold `0.50`.
+The gene model answers when AMRFinderPlus is installed, the k-mer model
+otherwise; `--genes` requires the gene model. Default threshold: each model's
+own (k-mer 0.43, gene 0.58).
+
+## `species`
+
+```bash
+amrpredict species genome.fna
+```
+
+The species and genus of a complete genome from its 6-mer profile.
+
+## `trend`
+
+```
+amrpredict trend GENUS ANTIBIOTIC [--years N]
+```
+
+```bash
+amrpredict trend Salmonella ciprofloxacin --years 5
+```
+
+The genus's observed yearly % resistant and the timeline ML model's forecast
+(1 to 10 years, default 5) with an 80% band.
+
+## `plan`
+
+```
+amrpredict plan ANTIBIOTIC [--weeks N] [--seed S]
+```
+
+```bash
+amrpredict plan ciprofloxacin --weeks 52
+```
+
+The RL agent's drug for each week against fixed schedules, in the simulation
+(ciprofloxacin, gentamicin or imipenem; 1 to 104 weeks, default 52).
 
 ## `timeline`
 
@@ -74,10 +112,11 @@ not a prediction.
 ## `antibiotics`
 
 ```bash
-amrpredict antibiotics
+amrpredict antibiotics                  # the genome models' 111 names
+amrpredict antibiotics --model trend    # also: forecast, rl
 ```
 
-JSON array of the 62 names the k-mer model knows.
+JSON array of the names a model was trained on.
 
 ## `status`
 
@@ -95,7 +134,8 @@ Which models loaded, and the library version.
 | `1` | Invalid value (bad argument, unusable input) |
 | `2` | File not found |
 
-Note that a FASTA which is too short is **not** an error exit — it returns `0`
+Note that unusable input (a FASTA which is too short, a genus with no history,
+a drug the RL agent does not know) is **not** an error exit — it returns `0`
 with an `error` key in the JSON, matching the Python API. Check the payload:
 
 ```bash

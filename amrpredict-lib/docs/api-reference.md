@@ -19,7 +19,7 @@ Resistance from organism metadata and MIC values, via LightGBM.
 | `mic_sign` | `str` | `None` | MIC comparator: `'='`, `'>'`, `'<='`, … |
 | `genus` | `str` | `'unknown'` | e.g. `'Escherichia'`. |
 | `species` | `str` | `'unknown'` | e.g. `'coli'`. |
-| `threshold` | `float` | `None` | Probability at/above which the call is Resistant. `None`: the bundled model's own threshold (`status()['lgbm_forecasting']['default_threshold']`, 0.15 in 0.2.0). |
+| `threshold` | `float` | `None` | Probability at/above which the call is Resistant. `None`: the bundled model's own threshold (`status()['lgbm_forecasting']['default_threshold']`, 0.15). |
 | `model_dir` | `str` | `None` | Directory of alternative artifacts. |
 
 **Returns** `dict`
@@ -51,16 +51,22 @@ amrpredict.forecast('meropenem', taxon_id=287, mic_value=8, genus='Pseudomonas')
 
 ## `predict_fasta(fasta_text, antibiotic, *, ...)`
 
-Resistance from genome composition, via RandomForest on 4-mer frequencies.
+Resistance from a complete genome assembly: the gene model (LightGBM on the
+resistance genes and mutations NCBI AMRFinderPlus finds; lab AUC 0.977) when
+the `amrfinder` program is installed, else the k-mer model (LightGBM on 4-mer
+frequencies; lab AUC 0.935). The same code and models as the web app's
+`/predict`.
 
 **Parameters**
 
 | Name | Type | Default | Meaning |
 |---|---|---|---|
-| `fasta_text` | `str` | — | FASTA contents. Headers optional. |
-| `antibiotic` | `str` | — | Antibiotic name, case-insensitive. |
-| `threshold` | `float` | `0.5` | Probability at/above which the call is Resistant. |
-| `model_dir` | `str` | `None` | Directory of alternative artifacts. |
+| `fasta_text` | `str` | — | FASTA contents; every contig is read |
+| `antibiotic` | `str` | — | Antibiotic name, case-insensitive |
+| `threshold` | `float` | `None` | Probability at/above which the call is Resistant; `None` = the model's own (k-mer 0.43, gene 0.58) |
+| `genus`, `species` | `str` | `None` | The organism, if known |
+| `use_genes` | `bool \| None` | `None` | `None`: gene model if AMRFinderPlus is installed; `False`: always the k-mer model; `True`: require the gene model |
+| `model_dir` | `str` | `None` | Directory of alternative artifacts |
 
 **Returns** `dict` — on success:
 
@@ -69,13 +75,18 @@ Resistance from genome composition, via RandomForest on 4-mer frequencies.
 | `prediction` | `str` | `'Resistant'` or `'Susceptible'` |
 | `probability` | `float` | 0–1 |
 | `confidence` | `float` | Percent |
-| `sequence_length` | `int` | Cleaned length in bp, after stripping non-ACGT |
+| `threshold` | `float` | The threshold used |
+| `antibiotic`, `antibiotic_known` | `str`, `bool` | Canonical name; whether the model was trained on it |
+| `sequence_length` | `int` | ACGT bases read |
 | `gc_content` | `float` | **Percent** |
-| `top_kmers` | `list[dict]` | Ten most frequent 4-mers, `{'kmer', 'frequency'}` |
-| `model_used` | `str` | `'RandomForest K-mer (trained)'` |
+| `model_used`, `model_run` | `str` | e.g. `'LightGBM on 4-mers (G_kmer_deploy)'` |
+| `top_kmers` | `list[dict]` | k-mer model: ten most frequent 4-mers, `{'kmer', 'frequency'}` |
+| `genes_found` | `list[dict]` | Gene model: every core AMR gene and mutation, `relevant` when its class covers the drug |
+| `species_detected` | `dict` | Gene model: species from the 6-mer profile, and the `--organism` given to AMRFinderPlus |
+| `warning` | `str` | AMRFinderPlus failed on this genome and the k-mer model answered |
 
-On invalid input it returns `{'error': str, 'sequence_length': int}` instead —
-**with no `prediction` key**. Always check:
+On invalid input it returns `{'error': str, ...}` instead — **with no
+`prediction` key**. Always check:
 
 ```python
 r = amrpredict.predict_fasta(text, 'ciprofloxacin')
@@ -87,12 +98,75 @@ if 'error' in r:
 
 | Input | Behaviour |
 |---|---|
-| Lowercase bases | Uppercased |
-| `N`, `R`, `Y`, other ambiguity codes | Silently discarded |
-| Multiple records | Concatenated |
+| Lowercase bases | Counted as uppercase |
+| `N`, `R`, `Y`, other ambiguity codes | Not counted; k-mers spanning them are skipped |
+| Multiple records (contigs) | k-mers counted inside each contig, as in training |
 | No `>` header | Accepted |
-| Over 500,000 bp | Truncated |
-| Under 100 bp after cleaning | Error dict |
+| Under 100,000 bp | Error dict: upload a complete assembly |
+
+AMRFinderPlus is configured through the environment: `AMRFINDER_PATH`,
+`AMRFINDER_THREADS` (4), `AMRFINDER_TIMEOUT` (100 s) and `AMRFINDER_DATABASE`
+(training used database `2026-08-07.1`).
+
+---
+
+## `identify_species(fasta_text, *, model_dir=None)`
+
+Species and genus of a complete genome: the nearest of 99 reference profiles
+by cosine distance of 6-mer frequencies (right species for 98.0%, right genus
+for 99.8% of held-out genomes). Returns `{'species', 'genus', 'distance'}`;
+`species` and `genus` are `None` when no reference is within 0.01. Under
+100,000 bp: an error dict.
+
+---
+
+## `forecast_trend(genus, antibiotic, *, years_ahead=5, model_dir=None)`
+
+The timeline ML model: a genus's yearly share of resistant isolates in BV-BRC
+laboratory results, and LightGBM's forecast for the next `years_ahead` years
+(1 to 10), made one year at a time. The same code and model as the web app's
+`/timeline` "ML trend forecast".
+
+**Returns** `dict`
+
+| Key | Type | Meaning |
+|---|---|---|
+| `organism`, `antibiotic` | `str` | As the series spell them |
+| `history` | `list[dict]` | `year`, `resistant_pct`, `n` (lab results that year, at least 20) |
+| `forecast` | `list[dict]` | `year`, `resistant_pct`, `lo`, `hi` (80% band, widening as √years) |
+| `metrics` | `dict` | Held-out mean absolute error (percentage points, with CI) of the model and of the baselines `last_value`, `linear_trend`, `historical_mean` |
+| `label`, `model_run` | `str` | What to call the forecast; the run |
+
+A pair with fewer than two years of history returns `{'error': str}`.
+
+## `trend_series(model_dir=None)`
+
+`{genus: [antibiotic, ...]}`: every pair `forecast_trend` can forecast.
+
+---
+
+## `plan_treatment(antibiotic, *, n_weeks=52, seed=42, model_dir=None)`
+
+Which drug to give each week, from a PPO agent trained on the project's cycling
+simulation, compared with fixed schedules on the same simulated episode. The
+same agent as the `rl` block of the web app's `/timeline`.
+
+> **Trained on a simulation, not patient data.** Use it to explore cycling
+> strategies, not to treat patients.
+
+`antibiotic` (ciprofloxacin, gentamicin or imipenem) comes first; the other two
+are the alternatives. `n_weeks`: 1 to 104, the agent's training horizon.
+
+**Returns** `dict`
+
+| Key | Type | Meaning |
+|---|---|---|
+| `drugs` | `list[str]` | The three drugs, the requested one first |
+| `policies` | `list[dict]` | The agent (`name: 'rl'`) then each baseline: `policy` (drug per week), `resistant_fraction` (percent per drug per week), `failure_week` (`None` = never), `effective_weeks`, `total_reward`, `mean_burden` |
+| `best` | `str` | The policy that fails latest, then the highest reward |
+| `agent`, `n_weeks` | `str`, `int` | |
+
+Another drug, or weeks outside 1–104, returns `{'error': str}`.
 
 ---
 
@@ -146,20 +220,22 @@ See [Known issues](known-issues.md) for why the fraction fields hold percentages
 
 ---
 
-## `antibiotics(model_dir=None)`
+## `antibiotics(model='genome', model_dir=None)`
 
-Sorted `list[str]` of the 62 antibiotics the k-mer model was trained on.
-`forecast()` accepts names outside this list; `predict_fasta()` will one-hot
-them as all-zero.
+Sorted `list[str]` of the antibiotics a model was trained on: `'genome'`
+(`predict_fasta`, 111), `'forecast'` (`forecast`), `'trend'`
+(`forecast_trend`) or `'rl'` (`plan_treatment`). `forecast()` and
+`predict_fasta()` accept other names too, with less to go on.
 
 ---
 
 ## `status(model_dir=None)`
 
-`dict` with `version` plus a per-model block carrying `trained`, `model_type`
-and `description`. Useful as a health check. The forecaster's block also has
-`run_id`, `default_threshold`, `calibration`, `taxon_level` and `metrics` (the
-promoted run's measured test numbers, `lgbm_metrics.json`).
+`dict` with `version` plus a block per model — `lgbm_forecasting`,
+`genome_resistance`, `trend_forecast`, `rl_agent`, `mutation_timeline` —
+carrying `trained`, `model_type` and `description`. Useful as a health check.
+The trained models' blocks also have `run_id` and `metrics` (their measured
+test numbers); `genome_resistance` says whether it `searches_genes`.
 
 ---
 
@@ -168,10 +244,13 @@ promoted run's measured test numbers, `lgbm_metrics.json`).
 Lazy, process-wide predictor cache.
 
 ```python
-amrpredict.registry.lgbm()       # shared LGBMResistancePredictor
-amrpredict.registry.kmer()       # shared KmerResistancePredictor
-amrpredict.registry.timeline()   # shared MutationTimelinePredictor
-amrpredict.registry.reset()      # drop them, freeing memory
+amrpredict.registry.lgbm()          # shared LGBMResistancePredictor
+amrpredict.registry.genome()        # shared GenomeModelPredictor (gene model if possible)
+amrpredict.registry.genome_kmers()  # the k-mer genome model
+amrpredict.registry.trend()         # shared TimelineMLForecaster
+amrpredict.registry.rl()            # shared RLAgent
+amrpredict.registry.timeline()      # shared MutationTimelinePredictor
+amrpredict.registry.reset()         # drop them, freeing memory
 ```
 
 Passing `model_dir` bypasses the cache and builds a fresh instance.
@@ -193,9 +272,10 @@ p.batch_predict([{'antibiotic': 'ciprofloxacin', 'taxon_id': 562}, ...])
 p.status          # a property, not a method
 ```
 
-`KmerResistancePredictor` and `MutationTimelinePredictor` follow the same
-shape: construct with an optional `model_dir`, call `.predict(...)`, read
-`.status`.
+`GenomeModelPredictor`, `TimelineMLForecaster` and `MutationTimelinePredictor`
+follow the same shape: construct with an optional `model_dir`, call
+`.predict(...)` (`.forecast(genus, antibiotic)` for the trend model), read
+`.status`. `RLAgent(folder).block(antibiotic, n_weeks)` gives the plan.
 
 > `.status` is a **property**. Calling `.status()` raises `TypeError`.
 

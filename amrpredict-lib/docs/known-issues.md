@@ -4,6 +4,35 @@ Read this before quoting numbers from this library in a report or thesis.
 
 ---
 
+## Fixed in 0.3.0
+
+### `predict_fasta()` carried the July k-mer model
+
+**Severity: high. Fixed in 0.3.0.**
+
+Up to 0.2.0, `predict_fasta()` was the July RandomForest on 4-mers of a
+genome's first 500,000 bp: AUC 0.981 on genomes it trained on but **0.695** on
+genomes it never saw. 0.3.0 ships the web app's genome models with the code
+ported from `backend/ml_models/genome_predictor.py`: the gene model (lab AUC
+0.977 on 4,481 unseen genomes) when AMRFinderPlus is installed, the k-mer
+LightGBM (0.935) otherwise. A backend test (`test_library_parity.py`) checks
+the library and the web app give identical answers. The RandomForest, its
+scaler bug (below) and the scikit-learn pin are gone with it.
+
+### scikit-learn version drift
+
+**Severity: medium. Resolved in 0.3.0.** Only the RandomForest was a pickled
+scikit-learn estimator; the bundled models are now LightGBM text files and
+NumPy arrays, and scikit-learn is no longer a dependency.
+
+### Model metrics are not shipped
+
+**Severity: low. Fixed.** Every trained model carries its measured test
+metrics (`lgbm_metrics.json`, `genome_metrics.json`, `timeline_metrics.json`),
+returned by `status()`.
+
+---
+
 ## Fixed in 0.2.0
 
 ### `forecast()` disagreed with the web app
@@ -65,9 +94,7 @@ feat[:N_KMERS] = self.scaler.transform(feat[:N_KMERS].reshape(1, -1))[0]
 
 `test_kmer_model_actually_runs` and `test_predict_is_deterministic` guard it.
 
-**This bug also exists in the main Django backend**, in
-`backend/ml_models/resistance_predictor.py`. Applying the same one-line change
-there is required for the web app's `/predict` page to use the real model.
+The same fix was applied in the backend. (0.3.0 removed this model.)
 
 ### Library printed to stdout
 
@@ -101,40 +128,12 @@ default), so the same inputs give the same output, and `model_used` is always
 on a 0–100 scale, not 0–1. Renaming them would break the Django frontend
 templates, so the names stand and the docs state the scale.
 
-### scikit-learn version drift
-
-**Severity: medium. Mitigated.**
-
-`kmer_resistance_model.pkl` was pickled with scikit-learn **1.6.1**. Loading it
-under a different 1.x works but emits `InconsistentVersionWarning`, and the
-maintainers make no guarantee the numbers are identical.
-
-Mitigated in 0.2.0 by pinning `scikit-learn>=1.6.1,<1.7` (0.1.0 allowed any
-1.x). The durable fix is retraining and saving via
-[skops](https://skops.readthedocs.io/) or ONNX.
-
-LightGBM is unaffected — its text format is version-stable.
-
-### Model metrics are not shipped
-
-**Severity: low. Fixed in 0.2.0 for the forecaster.** `models/lgbm_metrics.json`
-is written by `experiments/promote.py --library` and returned by `status()`.
-The k-mer model still has none in the package (the web app's re-test is in
-`backend/trained_models/kmer_metrics.json`).
-
-`train_models.py` computes AUC and a classification report, prints them, and
-discards them. No metrics are stored in the artifacts, so the library cannot
-report the accuracy of the models it carries, and any figure quoted elsewhere
-is manually transcribed and can drift silently after a retrain.
-
-Fix: have training write `metrics.json` alongside the models and expose it
-through `status()`.
-
 ### The timeline is not validated
 
 **Severity: informational.**
 
 `simulate_timeline()` is a deterministic biological simulation. Its growth
-parameters are not fitted to data and its output has never been compared
-against published resistance-evolution curves. `status()` reports
+parameters are set by hand; its curve shape has been checked against published
+resistance-evolution curves (`calibration` in its output), but its weeks are
+illustrative. For a forecast trained on data, use `forecast_trend()`. `status()` reports
 `trained: False` for it. Treat its output as illustrative.

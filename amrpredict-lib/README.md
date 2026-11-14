@@ -2,31 +2,32 @@
 
 Antimicrobial resistance prediction from bacterial genomes and MIC metadata.
 
-Three models behind one flat Python API and a command-line tool. The trained
-artifacts ship inside the package, so there is nothing to download and it works
-offline.
+The models of the AMR Intelligence Platform (a final-year project) behind one
+flat Python API and a command-line tool: the same models, and the same answers,
+as the project's web app. The trained artifacts ship inside the package, so
+there is nothing to download and it works offline.
 
 ```python
 import amrpredict
 
 amrpredict.forecast('ciprofloxacin', taxon_id=562, mic_value=4)
-# {'prediction': 'Susceptible', 'probability': 0.1005, 'confidence': 89.9,
-#  'drug_class': 'fluoroquinolone', 'model_used': 'LightGBM (trained)', ...}
+# {'prediction': 'Resistant', 'probability': 0.7055, 'confidence': 70.6,
+#  'drug_class': 'fluoroquinolone', 'model_run': 'D3_forecaster_deploy_v7', ...}
 ```
 
 ## Install
 
-Version 0.2.0 is on **TestPyPI**, the Python Package Index's test site
-([test.pypi.org/project/amrpredict](https://test.pypi.org/project/amrpredict/0.2.0/)).
-TestPyPI does not host the dependencies (LightGBM, scikit-learn, pandas), so
-they come from the real PyPI:
-
 ```bash
-pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ amrpredict==0.2.0
+pip install amrpredict
 ```
 
-The release on the real PyPI (`pip install amrpredict`) comes with the final
-version, once the whole project is merged.
+Requires Python 3.9+. Dependencies: LightGBM, pandas, NumPy, joblib. The
+download is about 6 MB because the model artifacts are bundled.
+
+For the gene model (the most accurate genome model), also install NCBI
+[AMRFinderPlus](https://github.com/ncbi/amr) so the `amrfinder` program is on
+your PATH (e.g. `conda install -c bioconda ncbi-amrfinderplus`). Without it,
+`predict_fasta()` uses the k-mer model.
 
 From a checkout:
 
@@ -34,30 +35,27 @@ From a checkout:
 pip install -e ".[dev]"
 ```
 
-Requires Python 3.9+. The package is ~7 MB because the model artifacts are
-bundled.
+## The models
 
-## The three models
-
-| Function | Model | Input | Trained |
+| Function | Model | Input | Measured on data it never saw |
 |---|---|---|---|
-| `forecast()` | LightGBM gradient boosting | Antibiotic + taxonomy + MIC | Yes |
-| `predict_fasta()` | RandomForest on 4-mer spectra | Genome FASTA + antibiotic | Yes |
-| `simulate_timeline()` | Biological simulation | Genome FASTA + antibiotic | **No** — see below |
+| `forecast()` | LightGBM, calibrated | Antibiotic + organism + MIC | AUC 0.774 (lab-confirmed rows 0.908) |
+| `predict_fasta()` | Gene model: LightGBM on AMRFinderPlus genes and mutations | Complete genome FASTA | Lab AUC 0.977 [0.975–0.979] |
+| `predict_fasta()` without AMRFinderPlus | k-mer model: LightGBM on 4-mer frequencies | Complete genome FASTA | Lab AUC 0.935 [0.931–0.939] |
+| `forecast_trend()` | Timeline ML model: LightGBM on yearly resistant shares | Genus + antibiotic | 13.98 percentage points mean error on 2017–2022 |
+| `plan_treatment()` | RL agent (PPO), trained on the simulation | One of 3 antibiotics | Beats every fixed schedule in the simulation |
+| `simulate_timeline()` | Biological simulation | Genome FASTA + antibiotic | **Not a trained model** |
 
-`simulate_timeline()` is a deterministic simulation, not a learned model. It has
-no AUC or accuracy score, and its output is illustrative rather than predictive.
+Every trained model was tested on genomes (or years) it never saw in training.
+`simulate_timeline()` is a deterministic simulation, not a learned model: it
+has no accuracy score, and its output is illustrative rather than predictive.
 `status()` reports `trained: False` for it, deliberately.
 
 ## Usage
 
-### Forecast from metadata
-
-Use when you have organism metadata and, ideally, an MIC measurement.
+### Resistance from metadata and an MIC
 
 ```python
-import amrpredict
-
 r = amrpredict.forecast(
     'ciprofloxacin',
     taxon_id=562,           # NCBI taxonomy ID — 562 is E. coli
@@ -65,105 +63,138 @@ r = amrpredict.forecast(
     mic_sign='=',           # '=', '>', '<=' ...
     genus='Escherichia',
     species='coli',
-    # threshold=None: the bundled model's own (0.15, chosen to keep very
-    # major errors <= 10% on validation genomes); pass a number to override
+    # threshold=None: the model's own (0.15, chosen to keep very major
+    # errors <= 10% on validation genomes); pass a number to override
 )
 
-print(r['prediction'])      # 'Resistant'
-print(r['probability'])     # 0.9619, calibrated
-print(r['model_run'])       # 'D3_forecaster_deploy_v7'
-print(r['evidence']['label'])  # 'Isolate-level estimate': which inputs counted
+print(r['prediction'])         # 'Resistant'
+print(r['probability'])        # calibrated
+print(r['evidence']['label'])  # which inputs counted
 ```
 
-Since 0.2.0 the bundled forecaster is the model the web app serves
-(`D3_forecaster_deploy_v7`, cleaning v7 of the BV-BRC export) and is scored the
-same way: isotonic-calibrated probabilities, strain Taxon IDs read as their
-species, and the run's own threshold. On 1,569,432 test rows from genomes it
-never saw: AUC 0.774 [0.772–0.775], recall 91.4%, very major error 8.6%,
-major error 60.8% at that threshold. `status()['lgbm_forecasting']['metrics']`
-carries the full set.
+On 1,569,432 test rows from genomes it never saw: AUC 0.774 [0.772–0.775],
+recall 91.4%, very major error 8.6%, major error 60.8% at that threshold
+(`status()['lgbm_forecasting']['metrics']` has the full set). Every argument
+except `antibiotic` is optional; with fewer inputs the model falls back to
+population-level resistance rates.
 
-Every argument except `antibiotic` is optional and keyword-only. With fewer
-inputs the model falls back to population-level resistance rates, so accuracy
-degrades but the call still succeeds.
-
-### Predict from a genome
-
-Use when you have a sequence. The FASTA is parsed to plain ACGT, uppercased,
-and capped at 500,000 bp.
+### Resistance from a complete genome
 
 ```python
-with open('genome.fasta') as fh:
+with open('genome.fna') as fh:
     fasta = fh.read()
 
-r = amrpredict.predict_fasta(fasta, 'ciprofloxacin', threshold=0.5)
+r = amrpredict.predict_fasta(fasta, 'ciprofloxacin')
 
-print(r['prediction'])       # 'Susceptible'
-print(r['gc_content'])       # 50.43  (percent)
-print(r['sequence_length'])  # 3000
-print(r['top_kmers'][0])     # {'kmer': 'CCCA', 'frequency': 0.00667}
+print(r['prediction'], r['probability'])
+print(r['model_used'])        # 'LightGBM on AMRFinderPlus resistance genes (G_genes_deploy)'
+print(r['genes_found'][:3])   # gene model: the resistance genes and mutations found
+print(r['species_detected'])  # gene model: the species, from the genome
+print(r.get('top_kmers'))     # k-mer model: the most frequent 4-mers
 ```
 
-Sequences under 100 bp return an error dict instead of a prediction:
+- Upload a **complete assembly** (at least 100,000 bp); every contig is read.
+- `use_genes=None` (default) picks the gene model when AMRFinderPlus is
+  installed, else the k-mer model; `use_genes=False` always uses the k-mer
+  model; `use_genes=True` requires the gene model. If AMRFinderPlus fails on
+  one genome, the k-mer model answers and the result has a `warning`.
+- `threshold=None` uses each model's own threshold, chosen on validation
+  genomes for very major error near 10%.
+- Bad input (too short, empty) returns a dict with `error`; it never raises.
 
 ```python
-r = amrpredict.predict_fasta('>x\nACGT\n', 'ciprofloxacin')
-# {'error': 'FASTA sequence too short (minimum 100 bp)', 'sequence_length': 4}
+amrpredict.identify_species(fasta)
+# {'species': 'Pseudomonas aeruginosa', 'genus': 'Pseudomonas', 'distance': 0.00028}
 ```
 
-Check for `'error'` before reading `'prediction'`. The function does not raise
-on malformed input.
+### Yearly resistance trend and its forecast
 
-### Simulate resistance evolution
+```python
+r = amrpredict.forecast_trend('Salmonella', 'ciprofloxacin', years_ahead=5)
+
+for h in r['history']:     # observed: BV-BRC laboratory results per year
+    print(h['year'], h['resistant_pct'], h['n'])
+for f in r['forecast']:    # the model's forecast with an 80% band
+    print(f['year'], f['resistant_pct'], f['lo'], f['hi'])
+print(r['metrics'])        # its held-out error against simple baselines
+
+amrpredict.trend_series()  # {genus: [antibiotics]} with enough history
+```
+
+Trained on 553,223 dated laboratory results (2000–2022; a year counts with at
+least 20 results), it predicts each year from the years before it and was
+tested on 2017–2022: mean absolute error 13.98 percentage points, against
+14.33 for "same as last year", 16.75 for a linear trend and 17.25 for the
+average. The forecast is made one year at a time; the band widens with each.
+
+### Which drug to give each week
+
+```python
+r = amrpredict.plan_treatment('ciprofloxacin', n_weeks=52)
+
+print(r['best'])                  # the policy that keeps drugs working longest
+for p in r['policies']:           # the RL agent, then fixed schedules
+    print(p['label'], p['failure_week'], p['total_reward'])
+print(r['policies'][0]['policy'][:8])   # the agent's drug for weeks 1-8
+```
+
+A PPO agent chooses ciprofloxacin, gentamicin or imipenem each week in the
+project's cycling simulation; the policies are compared on the same simulated
+episode. It learned from simulated episodes only, not patient data: use it to
+explore cycling strategies, not to treat patients.
+
+### Week-by-week simulation (not a trained model)
 
 ```python
 r = amrpredict.simulate_timeline(fasta, 'ciprofloxacin', n_weeks=8)
 
 for week in r['timeline']:
     print(week['week'], week['resistant_fraction'], week['mic_fold_change'])
-
-print(r['failure_week'])            # week treatment stops being effective
-print(r['resistance_genes'])        # gyrA, gyrB, parC ...
-print(r['mutation_hotspots'])       # positions and substitution types
+print(r['failure_week'])
 ```
 
-`n_weeks=8` returns **9** entries — week 0 is the untreated baseline.
-
-Despite the name, `resistant_fraction` and its siblings are **percentages
-(0–100)**, not fractions. See [Known issues](docs/known-issues.md).
+`n_weeks=8` returns **9** entries — week 0 is the untreated baseline. Despite
+the name, `resistant_fraction` and its siblings are **percentages (0–100)**.
+See [Known issues](docs/known-issues.md).
 
 ### Inspect what loaded
 
 ```python
 amrpredict.status()
-# {'version': '0.2.0',
-#  'lgbm_forecasting':   {'trained': True, 'run_id': 'D3_forecaster_deploy_v7',
-#                         'metrics': {...}, ...},
-#  'kmer_resistance':    {'trained': True,  ...},
-#  'mutation_timeline':  {'trained': False, ...}}
+# {'version': '0.3.0',
+#  'lgbm_forecasting':  {'trained': True, 'run_id': 'D3_forecaster_deploy_v7', 'metrics': {...}},
+#  'genome_resistance': {'trained': True, 'run_id': 'G_kmer_deploy', 'searches_genes': False, ...},
+#  'trend_forecast':    {'trained': True, 'run_id': 'TL_timeline_ml', ...},
+#  'rl_agent':          {'trained': True, 'drugs': ['ciprofloxacin', 'gentamicin', 'imipenem'], ...},
+#  'mutation_timeline': {'trained': False, ...}}
 
-amrpredict.antibiotics()   # 62 names the k-mer model knows
+amrpredict.antibiotics()            # the genome models' 111 antibiotics
+amrpredict.antibiotics('forecast')  # also 'trend' and 'rl'
 ```
 
 ## Command line
 
 ```bash
 amrpredict forecast ciprofloxacin --taxon-id 562 --mic-value 4
-amrpredict predict genome.fasta ciprofloxacin --threshold 0.6
-amrpredict timeline genome.fasta ciprofloxacin --weeks 12
-amrpredict antibiotics
+amrpredict predict genome.fna ciprofloxacin            # --kmers or --genes to choose
+amrpredict species genome.fna
+amrpredict trend Salmonella ciprofloxacin --years 5
+amrpredict plan ciprofloxacin --weeks 52
+amrpredict timeline genome.fna ciprofloxacin --weeks 12
+amrpredict antibiotics --model trend
 amrpredict status
 ```
 
-Output is JSON on stdout, so it composes:
+Output is JSON on stdout, so it composes. Unusable input (a short FASTA, a
+drug the RL agent does not know) exits 0 with an `error` key, as the Python
+API returns it:
 
 ```bash
 amrpredict --compact forecast meropenem --taxon-id 287 | jq -r .prediction
-cat genome.fasta | amrpredict predict - ciprofloxacin
+cat genome.fna | amrpredict predict - ciprofloxacin
 ```
 
-Diagnostics go through `logging` to stderr, never stdout, so piping stays clean.
-To see them:
+Diagnostics go through `logging` to stderr, never stdout. To see them:
 
 ```python
 import logging
@@ -172,47 +203,41 @@ logging.basicConfig(level=logging.INFO)
 
 ## Using your own models
 
-Every entry point takes `model_dir`:
+Every entry point takes `model_dir`, a folder laid out like the bundled one
+(`amrpredict.default_model_dir()`): the forecaster's files at the top
+(`amr_lgbm_final_model.txt`, the `*.joblib` rate tables, `lgbm_metrics.json`),
+and the folders `genome/`, `genome_genes/`, `timeline_ml/` and `rl_agent/`.
+They are produced by the main project's `experiments/promote.py`.
 
 ```python
 amrpredict.forecast('ciprofloxacin', taxon_id=562, model_dir='/path/to/models')
 ```
 
-```bash
-amrpredict --model-dir /path/to/models status
-```
-
-The directory must contain `amr_lgbm_final_model.txt`,
-`kmer_resistance_model.pkl`, and the `*.joblib` rate tables. Retrain them with
-`backend/train_models.py` in the main project.
-
 ## Performance notes
 
 Models load lazily on first use and are cached process-wide, so the first call
-pays ~1–2 s and later calls are fast. In a worker process, call the function you
-need once at startup to move that cost out of the request path.
+pays about 1–2 s and later calls are fast. A complete genome takes about a
+second with the k-mer model; the gene model adds AMRFinderPlus's 10–45 s.
+To release the memory: `amrpredict.registry.reset()`.
 
-To release the memory:
+## Changes in 0.3.0
 
-```python
-amrpredict.registry.reset()
-```
-
-## scikit-learn version
-
-The k-mer model is a pickled scikit-learn estimator built with scikit-learn
-**1.6.1**, so since 0.2.0 the dependency is pinned to `>=1.6.1,<1.7`.
-scikit-learn does not support unpickling an estimator in another release (it
-warns with `InconsistentVersionWarning` and makes no promise about the numbers).
-
-The LightGBM model is unaffected — it uses LightGBM's own version-stable text
-format.
+- `predict_fasta()` uses the web app's genome models: the gene model (lab AUC
+  0.977) with AMRFinderPlus, else the k-mer LightGBM (0.935). The July k-mer
+  RandomForest (0.695 on genomes it never saw) is removed, and with it the
+  scikit-learn dependency. `predict_fasta()` now needs a complete genome
+  (100,000 bp or more) and reads all of it.
+- New: `forecast_trend()` and `trend_series()` (timeline ML model),
+  `plan_treatment()` (RL agent), `identify_species()`; CLI commands `trend`,
+  `plan` and `species`.
+- `status()` reports `genome_resistance`, `trend_forecast` and `rl_agent`
+  (`kmer_resistance` is gone); `antibiotics()` takes the model to ask.
 
 ## Development
 
 ```bash
 pip install -e ".[dev]"
-pytest                          # 29 passed, 1 xfailed
+pytest
 python -m build && twine check dist/*
 ```
 
