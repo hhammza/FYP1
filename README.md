@@ -492,17 +492,40 @@ Tiles whose value is not a single number (for example "9 vs 37") carry the
 
 ---
 
+### 8.3 The Resistance Explorer: `/explore/<view>`
+
+Each view is its own page, listed in the navbar's **Insights** menu under Resistance Explorer: `/explore/heatmap`, `/explore/dominant`, `/explore/map`, `/explore/groups`, `/explore/drugs` and `/explore/chemistry`. The filters carry over between them in the URL, and `/explore` opens the heat map.
+
+The instructor's dashboard (plan and decisions: [docs/INSTRUCTOR_REQUIREMENTS_PLAN.md](docs/INSTRUCTOR_REQUIREMENTS_PLAN.md)). It shows laboratory-confirmed resistance in BV-BRC by organism, antibiotic group, country, infection type and drug chemistry. Resistance % is resistant ÷ (resistant + susceptible); intermediate results are left out unless the toggle counts them as resistant. Groups under 30 isolates (configurable) are faded and marked "low sample".
+
+| Part | Where |
+|---|---|
+| Filters: organism grouped by Gram stain, antibiotic group (selects its drugs), antibiotic, chemical group, country (search), infection type and disease (each narrows the other), years, intermediate toggle, low-sample threshold. All kept in the URL | `web/src/pages/explore/FilterBar.tsx`, `filters.ts`, `web/src/components/MultiSelect.tsx` |
+| Views: country heat map (rate or dominant resistance type, click a country to filter), map by antibiotic group, group-wise and drug-wise comparison with yearly trend, chemistry across chemical groups | `web/src/pages/explore/views.tsx`, `charts.ts` |
+| Drug panel: nomenclature (generic and likely brand names, IUPAC name, ATC code, family, chemical group, AWaRe, PubChem CID) and chemistry (2D structure, formula, weight, mechanism, target, resistance mechanisms) | `web/src/pages/explore/DrugDetail.tsx` |
+| Grouped antibiotic dropdown (family › subfamily) on `/forecast`, `/predict` and `/timeline` | `web/src/components/AntibioticOptions.tsx` |
+| API: `GET /api/explore/meta/`, `summary/?by=&split=`, `countries/?mode=`, `drug/<name>/`, `structure/<cid>.png`; every filter is a query parameter | `backend/api/explorer.py`, `backend/api/views.py`, `backend/api/urls.py` |
+| Tests | `backend/tests/test_explorer.py`, `backend/tests/test_reference.py`, `web/src/pages/Explore.test.tsx` |
+
+**Data.** The page reads no database and never the cleaned table. `scripts/build_explorer_data.py` counts the 649,944 laboratory rows into `backend/trained_models/explorer/cube.csv.gz` (tested, resistant and intermediate per country, organism, antibiotic, infection type, disease and year; 0.2 MB). `scripts/fetch_pubchem.py` caches each drug's PubChem record and structure image in the same folder, so the site does not call PubChem. The world map's outline is served from `web/public/topojson/`, so the maps work offline.
+
+**Lookup tables** ([backend/reference/](backend/reference/README.md)), plain CSV that any spreadsheet can edit: `antibiotics.csv` (family, subfamily, chemical group, ATC, AWaRe, mechanism, target, resistance mechanism), `families.csv`, `chemical_groups.csv`, `organisms.csv` (Gram stain), `countries.csv` (ISO-3 codes for the maps), `infection_types.csv` (rules from the genome metadata's disease, host health, body site and isolation source), `diseases.csv`, `resistance_types.csv` (MRSA, VRE, CRE, ESBL proxy, CRAB, CRPA). To change a mapping: edit the CSV, run `python -m unittest discover -s backend/tests`, restart the backend. After a new cleaning or metadata download, rerun `scripts/build_explorer_data.py`.
+
+**Limits, also stated on the page.** BV-BRC holds the isolates labs chose to sequence, not surveillance, so a country's percentage describes its submitted isolates. 62% of laboratory rows have an infection type and 20% a disease. ESBL is a proxy (third-generation cephalosporin resistance in Enterobacterales). Brand names are guesses from PubChem synonyms.
+
 ## 9. Running, training, deploying
 
 ### Local (macOS/Linux)
 
 ```bash
-./start.sh
+./start.sh            # backend + React app (web/) on http://127.0.0.1:5173
+./start.sh --flask    # backend + the older Flask app (frontend/) on http://127.0.0.1:5001
+./start.sh --update   # also reinstall or upgrade the dependencies (needs internet)
 ```
 
-Creates `.venv` if missing, installs both requirement sets, checks for **libomp** (LightGBM's OpenMP dependency, without it `import lightgbm` fails on macOS and the forecaster silently degrades to heuristics), starts Django on 8000, waits for `/api/health/` to answer, starts Flask on **5001** (the recommended port, `app.py`'s default; not 5000, which macOS AirPlay Receiver owns), opens the browser, and tears down both process groups on Ctrl-C.
+Creates `.venv` if missing, installs both requirement sets, checks for **libomp** (LightGBM's OpenMP dependency, without it `import lightgbm` fails on macOS and the forecaster silently degrades to heuristics), starts Django on 8000 and waits for `/api/health/` to answer. It then starts the React app with Vite on **5173**, which passes `/api` through to the backend; the first run installs its packages with `npm ci`. The React app needs Node.js 18 or newer; without Node, or with `--flask`, the launcher starts Flask on **5001** instead (`app.py`'s default; not 5000, which macOS AirPlay Receiver owns). If port 8000 already has this project's backend (an earlier `./start.sh` still running), the launcher uses it and leaves it running on exit; if another program holds 8000, the backend moves to the next free port and the frontend is pointed there. It opens the browser and tears down what it started on Ctrl-C. Only the React app has the Resistance Explorer.
 
-Windows: `start.bat` (ports 8000 + 5001, two `cmd` windows). It creates `.venv` if missing and runs everything with the venv's Python, so no activation is needed.
+Windows: `start.bat`, with the same options (`--flask`, `--update`), in two `cmd` windows: ports 8000 and 5173, or 5001 with `--flask`. It creates `.venv` if missing and runs everything with the venv's Python, so no activation is needed.
 
 Both launchers start the backend with `DEBUG=True`, local development mode, so no `SECRET_KEY` or `ALLOWED_HOSTS` is needed (Django makes a random key per process). Starting the backend by hand needs the same: `DEBUG=True python manage.py runserver`, or `set DEBUG=True` first on Windows. There is no `migrate` step: the API uses no database.
 

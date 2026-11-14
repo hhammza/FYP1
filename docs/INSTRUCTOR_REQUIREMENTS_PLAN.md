@@ -12,11 +12,32 @@
 | 2. Lookup tables | Done, needs review | `backend/reference/`: 7 CSV files and a README. All 126 drugs (family, subfamily, chemical group, ATC, AWaRe, mechanism, target, resistance mechanism), 46 subfamilies, 34 chemical groups, 40 genera with Gram stain, 31 infection rules, 84 diseases, 8 resistance types. 62.4% of lab rows get an infection type. 18 drug rows carry a `review` note. Tests: `backend/tests/test_reference.py` (8 pass) |
 | 3. PubChem cache | Done | `scripts/fetch_pubchem.py` → `backend/trained_models/explorer/drugs.json` and 114 structure images. 124 of 126 drugs found; not found: polymyxin B (a mixture in PubChem) and trimethoprim/sulfobactam (not a real drug). Brand names are a heuristic from PubChem synonyms and are labelled as guesses |
 | 4. Summary table | Done | `scripts/build_explorer_data.py` → `cube.parquet` (35,879 rows, 0.1 MB) and `cube_meta.json`. Totals match the cleaned table (649,944 lab rows); 16,213 intermediate-only pairs kept apart for the toggle; country on 596,013 rows (165 countries), infection type on 405,464, disease on 133,102, year on 571,202 |
-| 5. API endpoints and tests | Not started | Touches Suleman's `urls.py` and `views.py` (decision D6) |
-| 6. `/explore` page | Not started | Suleman's frontend (decision D6) |
-| 7. README and checklist | Not started | |
+| 5. API endpoints and tests | Done | `backend/api/explorer.py` with 5 endpoints under `/api/explore/`; `views.py` and `urls.py` gain thin views and routes only. `countries.csv` adds ISO-3 codes for the maps. The summary table became `cube.csv.gz` (the backend image has no pyarrow). 10 tests in `test_explorer.py`; 126 backend tests pass |
+| 6. `/explore` page | Done | `web/src/pages/Explore.tsx` and `web/src/pages/explore/`; grouped dropdown on `/forecast`, `/predict`, `/timeline`; a click callback added to `Plot.tsx`; world map outline served locally. 4 new tests; 85 web tests pass; checked in Chrome with no console errors |
+| 7. README and checklist | Done | README section 8.3; the checklist below |
 
 Found along the way: 7 spelling variants the cleaning misses (`ceftarolin`, `colomycin`, `timentin`, `trimethoprim/sulphamethoxazole`, ...), recorded as `alias_of` in `antibiotics.csv`; adding them to `ANTIBIOTIC_ALIASES` is a cleaning change for a later version.
+
+## The 12 requirements: checklist
+
+| # | Requirement | Status | Where |
+|---|---|---|---|
+| 1 | Organism, Gram-positive and Gram-negative | Done | Organism filter grouped under Gram-positive, Gram-negative and Other (acid-fast); Gram buttons filter a whole stain. `FilterBar.tsx`; `backend/reference/organisms.csv` (`gram_stain`) |
+| 2 | Antibiotic group | Done | Antibiotic group filter (subfamilies under families); choosing a group selects all its drugs in the antibiotic filter. `FilterBar.tsx`; `antibiotics.csv`, `families.csv` |
+| 3 | Country | Done | Multi-select with search; a click on either map sets it. `FilterBar.tsx`, `MultiSelect.tsx`; `countries.csv` |
+| 4 | Disease, linked to type of infection | Done | Infection type and disease filters, each narrowing the other. `FilterBar.tsx`; `infection_types.csv`, `diseases.csv`; metadata from `download_genome_meta.py` |
+| 5 | Chemical group of drug | Done | Separate filter on the structural class, independent of family. `FilterBar.tsx`; `chemical_groups.csv` |
+| 6 | Map by antibiotic group | Done | "Map by antibiotic group" view: choose a group, see resistance % per country. `views.tsx` (`GroupMap`) |
+| 7 | Group-wise comparison | Done | Bars of resistance % per family or subfamily, highest first, split by Gram stain, organism, country or infection type, with a table view. `views.tsx` (`GroupComparison`) |
+| 8 | Drug-wise comparison | Done | The drugs of one group side by side with resistance % and isolates tested (n), and the yearly trend. `views.tsx` (`DrugComparison`) |
+| 9 | Chemistry (important) | Done | Chemistry view comparing resistance across chemical groups, and a panel per drug with chemical group, core structure, 2D structure image, formula, weight, mechanism, target and the resistance mechanisms tied to the chemistry. `views.tsx` (`ChemistryView`), `DrugDetail.tsx`; `drugs.json` and `structures/` from `fetch_pubchem.py` |
+| 10 | Country heat map: which country has which resistance | Done | Choropleth with bins 0-20 to 80-100, grey for no data, faded and noted below the low-sample threshold (30 by default, configurable); toggle to the dominant resistance type (MRSA, VRE, CRE, ESBL proxy, CRAB, CRPA, ...); tooltip with country, %, n, top 3 resistance types and top organism; a click sets the Country filter. `views.tsx` (`CountryHeatMap`), `charts.ts`; `resistance_types.csv` |
+| 11 | Antibiotic family/group in the dropdown | Done | The antibiotic dropdowns on `/forecast`, `/predict` and `/timeline` are grouped family › subfamily from the lookup table, not hard-coded. `AntibioticOptions.tsx`, `lib/vocab.ts` (`useDrugGroups`) |
+| 12 | Nomenclature of drug | Done | Drug panel opened from any drug bar or button, or by `?drug=` in the URL: generic name, likely brand names, IUPAC name, ATC code, family, subfamily, chemical group, WHO AWaRe category, PubChem CID with a link. `DrugDetail.tsx`; fetched from PubChem PUG REST and cached by `fetch_pubchem.py` |
+
+Technical requirements: resistance % = resistant ÷ tested with intermediate left out unless toggled (`explorer.Filters.rate`); every filter applies to every view (the views share one filter object; the group map and the drug comparison add their own group selector on top); filters live in the URL (`filters.ts`); seed data for Gram stain, family, subfamily, chemical group, AWaRe and the disease-to-infection mapping is in `backend/reference/`; README section 8.3 lists the tables, sources and how to edit them.
+
+Departures from the brief, all from the decisions in section 2: the lookup tables are CSV files, not database tables (D1, no database exists); only laboratory results are counted (D2); brand names are a heuristic from PubChem synonyms; ESBL is a proxy; the organism filter works at genus level (species is a query parameter of the API but not offered in the menu, to keep it short).
 
 ## 1. What the codebase has today
 
