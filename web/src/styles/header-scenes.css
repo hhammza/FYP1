@@ -15,7 +15,6 @@
 .header-scene text { font-family: var(--mono, 'JetBrains Mono', monospace); }
 .sc-caption { font-size: 10px; fill: var(--st); }
 .sc-axis { fill: none; stroke: var(--sl); stroke-width: 1.2; }
-@media (max-width: 991.98px) { .header-scene { width: 70%; opacity: .3; } }
 @media (prefers-reduced-motion: reduce) { .header-scene { display: none; } }
 
 /* k-mer scan */
@@ -216,4 +215,52 @@
 @keyframes hh-flash { from { opacity: 1; } to { opacity: .35; } }
 .hh-tag rect { fill: var(--mut); }
 .hh-tag text { fill: #fff; font: 700 11px var(--mono, 'JetBrains Mono', monospace); }
-@media (max-width: 991.98px) { .hero-helix { left: auto; right: -40px; transform: rotate(8deg); opacity: .3; } }
+
+/* ── RESPONSIVE: every scene sized to the screen ──────────────── */
+/* wide screens: the header scene lines up with the content's right edge, not the window's */
+.header-scene { right: max(0px, calc((100% - 1320px) / 2)); width: min(52%, 700px); }
+/* laptops and up: the subtitle wraps before it reaches the scene */
+@media (min-width: 992px) {
+  .page-header:has(.header-scene) .page-subtitle { max-width: 520px; }
+}
+@media (min-width: 1400px) {
+  .page-header:has(.header-scene) .page-subtitle { max-width: 640px; }
+}
+/* phones and tablets: the scene becomes a band above the title, centred and sized to the width */
+@media (max-width: 991.98px) {
+  .page-header:has(.header-scene) { padding-top: clamp(84px, 16vw, 124px); }
+  .header-scene {
+    top: 10px; bottom: auto; left: 0; right: 0; width: 100%; height: clamp(64px, 13vw, 104px); opacity: .85;
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+            mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+  }
+  .header-scene svg { width: auto; max-width: 100%; margin: 0 auto; }
+}
+
+/* home helix: narrower in the tighter gap of small laptops */
+@media (min-width: 992px) and (max-width: 1199.98px) {
+  .hero-helix { width: 120px; left: 57%; opacity: .7; }
+}
+/* phones and tablets: the helix lies on its side as a band under the buttons */
+@media (max-width: 991.98px) {
+  .hero-section:has(.hero-helix) { padding-bottom: calc(clamp(110px, 18vw, 160px) + 40px); }
+  .hero-helix {
+    width: clamp(110px, 18vw, 160px); height: 100vw; top: auto; left: 50%;
+    bottom: calc(clamp(110px, 18vw, 160px) / 2 + 12px - 50vw);
+    transform: translateX(-50%) rotate(90deg); opacity: .9;
+  }
+  .hero-helix .hh-tag { display: none; }
+}
+
+/* footer strip: a little shorter on phones */
+@media (max-width: 575.98px) {
+  .footer { padding-top: 64px; }
+  .footer-scene { height: 42px; }
+  .fs-dna { transform-origin: left top; scale: .8; }
+  .fs-bug, .fs-capsule { scale: .8; }
+}
+/* small laptops: less room, so a narrower scene and an earlier wrap */
+@media (min-width: 992px) and (max-width: 1199.98px) {
+  .header-scene { width: 42%; }
+  .page-header:has(.header-scene) .page-subtitle { max-width: 430px; }
+}
