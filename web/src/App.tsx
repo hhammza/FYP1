@@ -3,6 +3,7 @@ import Layout from './components/Layout';
 import About from './pages/About';
 import Compare from './pages/Compare';
 import Datasets from './pages/Datasets';
+import Explore, { ExploreRedirect } from './pages/Explore';
 import Forecast from './pages/Forecast';
 import Genes from './pages/Genes';
 import Home from './pages/Home';
@@ -26,6 +27,8 @@ export default function App() {
         <Route path="/timeline/sample" element={<Timeline sample />} />
         <Route path="/models" element={<Models />} />
         <Route path="/compare" element={<Compare />} />
+        <Route path="/explore" element={<ExploreRedirect />} />
+        <Route path="/explore/:view" element={<Explore />} />
         <Route path="/datasets" element={<Datasets />} />
         <Route path="/genes" element={<Genes />} />
         <Route path="/library" element={<Library />} />

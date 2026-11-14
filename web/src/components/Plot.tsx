@@ -20,9 +20,11 @@ interface Props {
   /** the chart for the current theme's colours; keep it stable (useCallback) */
   figure: (t: PlotTheme) => Figure;
   config?: Partial<Config>;
+  /** called with the clicked point's customdata (the dashboard's map sets a filter) */
+  onPointClick?: (customdata: unknown) => void;
 }
 
-const Plot = forwardRef<PlotElement | null, Props>(function Plot({ id, className, style, figure, config }, ref) {
+const Plot = forwardRef<PlotElement | null, Props>(function Plot({ id, className, style, figure, config, onPointClick }, ref) {
   const el = useRef<PlotElement>(null);
   const dark = useDarkTheme();
   // drawn again once the web fonts load: Plotly sizes legends with the font it has
@@ -36,9 +38,14 @@ const Plot = forwardRef<PlotElement | null, Props>(function Plot({ id, className
       if (!alive || !el.current) return;
       const { data, layout } = figure(plotTheme());
       P.react(el.current, data, layout, { responsive: true, displayModeBar: false, ...config });
+      const node = el.current as PlotElement & { removeAllListeners?: (e: string) => void; on?: (e: string, f: (ev: { points: { customdata?: unknown }[] }) => void) => void };
+      if (onPointClick && node.on) {
+        node.removeAllListeners?.('plotly_click');
+        node.on('plotly_click', ev => onPointClick(ev.points[0]?.customdata));
+      }
     }).catch(() => {});
     return () => { alive = false; };
-  }, [figure, config, dark, fonts]);
+  }, [figure, config, dark, fonts, onPointClick]);
 
   useEffect(() => () => {
     const node = el.current;

@@ -493,3 +493,43 @@
   .table-responsive > .table:not(.evidence-table):has(tr > :nth-child(4)) { min-width: 620px; }
   /* the evidence table's first column is an icon: it fits, and its detail column must stay visible */
 }
+
+/* Resistance Explorer (/explore): multi-select filters and map legend */
+.ms-select { position: relative; }
+.ms-toggle { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ms-menu { position: absolute; z-index: 1050; top: 100%; left: 0; right: 0; min-width: 260px; margin-top: 4px; padding: 10px; }
+.ms-options { max-height: 300px; overflow-y: auto; }
+.ms-header { display: flex; align-items: center; font-size: 0.75rem; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.04em; color: var(--text-muted, #64748b); margin: 8px 0 2px; }
+.ms-option { display: flex; align-items: center; padding: 3px 4px; border-radius: 6px; cursor: pointer; font-size: 0.9rem; }
+.ms-option:hover { background: rgba(37, 99, 235, 0.08); }
+.legend-swatch { display: inline-block; width: 14px; height: 14px; border-radius: 3px; margin-right: 6px; vertical-align: -2px; }
+.drug-panel { overflow-y: auto; }
+
+/* ── RESISTANCE EXPLORER (/explore/<view>) ─────────────────── */
+.explore-facts { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.explore-facts span {
+  display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-2);
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: 20px; padding: 4px 10px;
+}
+.explore-facts i { color: var(--primary); }
+/* the six views as one segmented bar; scrolls sideways on a phone */
+.explore-tabs {
+  display: flex; gap: 4px; padding: 4px; overflow-x: auto; scrollbar-width: none;
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--r-sm); box-shadow: var(--shadow);
+}
+.explore-tabs::-webkit-scrollbar { display: none; }
+.explore-tab {
+  flex: 1 0 auto; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 8px 12px; border-radius: 8px; font-size: 13px; font-weight: 500; white-space: nowrap;
+  color: var(--text-2); text-decoration: none; transition: background 0.15s, color 0.15s;
+}
+.explore-tab:hover { background: var(--primary-hover, rgba(99,102,241,0.06)); color: var(--text-1); }
+.explore-tab.active { background: var(--primary); color: #fff; }
+.explore-error {
+  display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+  background: rgba(217,119,6,0.08); border: 1px solid rgba(217,119,6,0.25); color: var(--warning);
+  border-radius: var(--r-sm); padding: 14px 16px;
+}
+.explore-error .small { color: var(--text-2); }
+.explore-error-icon { font-size: 22px; }

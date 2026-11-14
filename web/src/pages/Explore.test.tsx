@@ -1,0 +1,79 @@
+import { fireEvent, screen } from '@testing-library/react';
+import { Route, Routes, useLocation } from 'react-router';
+import Explore, { ExploreRedirect } from './Explore';
+import { readFilters, filterQuery } from './explore/filters';
+import { HEALTH, mockBackend, renderPage } from '../test-utils';
+
+afterEach(() => vi.unstubAllGlobals());
+
+const META = {
+  organisms: [
+    { gram: 'positive', genera: [{ genus: 'Staphylococcus', n: 100, species: [] }] },
+    { gram: 'negative', genera: [{ genus: 'Escherichia', n: 500, species: [] }] },
+    { gram: 'other', genera: [{ genus: 'Mycobacterium', n: 50, species: [] }] },
+  ],
+  antibiotic_hierarchy: [{ family: 'Beta-lactams', subfamilies: [{ subfamily: 'Carbapenems', antibiotics: [
+    { value: 'meropenem', n: 300, aware: 'Watch' }, { value: 'imipenem', n: 200, aware: 'Watch' }] }] }],
+  chemical_groups: [{ value: 'Beta-lactam ring', label: 'Beta-lactam ring', n: 500 }],
+  countries: [{ value: 'PAK', label: 'Pakistan', n: 40 }],
+  infection_types: [{ value: 'Urinary tract infection', label: 'Urinary tract infection', n: 30 }],
+  diseases: [{ value: 'urinary tract infection', label: 'urinary tract infection', n: 10 }],
+  disease_by_infection_type: { 'Urinary tract infection': ['urinary tract infection'] },
+  disease_infection_type: { 'urinary tract infection': 'Urinary tract infection' },
+  aware: [], year_range: [2000, 2022], resistance_types: [], min_n_default: 30, build: { lab_rows: 649944 },
+};
+const COUNTRIES = { min_n: 30, include_intermediate: false, resistance_types: [], countries: [
+  { iso3: 'PAK', country: 'Pakistan', tested: 40, n: 40, resistant_pct: 55, low_sample: false, top_types: [], dominant_type: null, dominant_pct: null, top_organism: 'Klebsiella pneumoniae' }] };
+
+describe('Explore', () => {
+  it('shows the filters and the heat map from /api/explore/', async () => {
+    mockBackend({ 'health/': { body: HEALTH }, 'explore/meta/': { body: META }, 'explore/countries/': { body: COUNTRIES } });
+    renderPage(<Explore />, '/explore');
+    expect(await screen.findByText('Which country has which resistance')).toBeInTheDocument();
+    for (const label of ['Organism', 'Antibiotic group', 'Country', 'Infection type', 'Disease', 'Chemical group']) {
+      expect(screen.getByLabelText(label)).toBeInTheDocument();
+    }
+    expect(screen.getByText('649,944 laboratory results')).toBeInTheDocument();
+  });
+
+  it('groups organisms under Gram-positive and Gram-negative', async () => {
+    mockBackend({ 'health/': { body: HEALTH }, 'explore/meta/': { body: META }, 'explore/countries/': { body: COUNTRIES } });
+    renderPage(<Explore />, '/explore');
+    fireEvent.click(await screen.findByLabelText('Organism'));
+    expect(screen.getAllByText('Gram-positive').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Gram-negative').length).toBeGreaterThan(0);
+    expect(screen.getByText('Staphylococcus')).toBeInTheDocument();
+  });
+
+  it('says when the backend has no dashboard data', async () => {
+    mockBackend({ 'health/': { body: HEALTH }, 'explore/meta/': { status: 503, body: { error: 'Dashboard data not built.' } } });
+    renderPage(<Explore />, '/explore');
+    expect(await screen.findByText('Dashboard data not built.', { exact: false })).toBeInTheDocument();
+  });
+});
+
+function Where() { const l = useLocation(); return <span data-testid="where">{l.pathname + l.search}</span>; }
+
+describe('explore pages', () => {
+  it('sends /explore and old ?view= links to the page for that view, keeping the filters', async () => {
+    mockBackend({ 'health/': { body: HEALTH }, 'explore/meta/': { body: META } });
+    renderPage(<Routes><Route path="/explore" element={<ExploreRedirect />} /><Route path="/explore/:view" element={<Where />} /></Routes>,
+      '/explore?view=heatmap&mode=dominant&gram=negative');
+    expect((await screen.findByTestId('where')).textContent).toBe('/explore/dominant?gram=negative');
+  });
+
+  it('opens the view named in the path and links to the others with the same filters', async () => {
+    mockBackend({ 'health/': { body: HEALTH }, 'explore/meta/': { body: META }, 'explore/summary/': { body: { rows: [], min_n: 30 } } });
+    renderPage(<Routes><Route path="/explore/:view" element={<Explore />} /></Routes>, '/explore/groups?country=PAK');
+    expect(await screen.findByRole('heading', { level: 1, name: /Group-wise comparison/ })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Chemistry/ })).toHaveAttribute('href', '/explore/chemistry?country=PAK');
+  });
+});
+
+describe('explore filters in the URL', () => {
+  it('round-trips through the query string', () => {
+    const f = readFilters(new URLSearchParams('gram=negative&subfamily=Carbapenems&country=PAK,IND&include_intermediate=1&view=map'));
+    expect(f.lists.country).toEqual(['PAK', 'IND']);
+    expect(filterQuery(f)).toBe('?gram=negative&subfamily=Carbapenems&country=PAK%2CIND&include_intermediate=1');
+  });
+});
