@@ -1,5 +1,7 @@
 """Download collection year, country and host for every genome in the AMR
-export (Data/amr_full/), resumable, with the Mac kept awake.
+export (Data/amr_full/), resumable, with the Mac kept awake. Since 2026-11-14
+also disease, host health and body site, for the infection-type filter
+(docs/INSTRUCTOR_REQUIREMENTS_PLAN.md).
 
 For the temporal test in progress/RESEARCH_PLAN.md: train on genomes
 collected up to a year, test on later ones. BV-BRC keeps these fields on the
@@ -40,7 +42,9 @@ import requests
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 AMR = os.path.join(ROOT, 'Data', 'amr_full')
 OUT = os.path.join(ROOT, 'Data', 'genome_meta')
-BATCHES = os.path.join(OUT, 'batches')
+# v2 adds the disease and body-site fields (for the dashboard's infection filter);
+# a new folder, so batches fetched with the old field list are never mixed in
+BATCHES = os.path.join(OUT, 'batches_v2')
 IDS = os.path.join(OUT, 'genome_ids.csv')
 MERGED = os.path.join(OUT, 'genome_meta.csv')
 REPORT = os.path.join(ROOT, 'experiments', 'audit', 'results', 'genome_meta_coverage.md')
@@ -48,7 +52,8 @@ REPORT = os.path.join(ROOT, 'experiments', 'audit', 'results', 'genome_meta_cove
 API = 'https://www.bv-brc.org/api/genome/'
 FIELDS = ['genome_id', 'genome_name', 'taxon_id', 'collection_year', 'collection_date',
           'isolation_country', 'geographic_group', 'host_common_name', 'host_name',
-          'isolation_source', 'genome_status', 'completion_date', 'date_inserted']
+          'isolation_source', 'genome_status', 'completion_date', 'date_inserted',
+          'disease', 'host_health', 'body_sample_site', 'body_sample_subsite', 'isolation_site']
 BATCH = 500
 WORKERS = 8
 YEAR = re.compile(r'(?<!\d)(19[0-9]{2}|20[0-9]{2})(?!\d)')
