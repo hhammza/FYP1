@@ -1,6 +1,7 @@
 import { Link } from 'react-router';
 import CopyButton from '../components/CopyButton';
 import { useTitle } from '../lib/pageEffects';
+import BioIcon from '../components/BioIcon';
 
 export default function Library() {
   useTitle('Python Library');
@@ -14,7 +15,7 @@ export default function Library() {
         </ol></nav>
         <div className="d-flex align-items-center gap-3">
           <div className="page-header-icon">{' '}
-            <i className="bi bi-box-seam"></i>
+            <BioIcon icon="bi-box-seam" live />
           </div>
           <div>
             <h1 className="page-title">amrpredict <span className="code-pill ms-1">v{__LIB_VERSION__}</span></h1>
@@ -75,7 +76,7 @@ export default function Library() {
           {/* Forecast */}
           <div className="info-card mb-4">
             <h5 className="card-section-title">{' '}
-              <i className="bi bi-graph-up-arrow text-accent me-2"></i>Forecast from metadata{' '}
+              <BioIcon icon="bi-graph-up-arrow" className="text-accent me-2" />Forecast from metadata{' '}
               <span className="badge bg-success ms-1 badge-xs">LightGBM</span>
             </h5>
             <p className="text-muted">{' '}
@@ -94,7 +95,7 @@ export default function Library() {
           {/* Predict */}
           <div className="info-card mb-4">
             <h5 className="card-section-title">{' '}
-              <i className="bi bi-dna text-emerald2 me-2"></i>Predict from a genome{' '}
+              <BioIcon icon="bi-dna" className="text-emerald2 me-2" />Predict from a genome{' '}
               <span className="badge bg-primary ms-1 badge-xs">K-mer RF</span>
             </h5>
             <p className="text-muted">{' '}
@@ -117,7 +118,7 @@ export default function Library() {
           {/* Timeline */}
           <div className="info-card mb-4">
             <h5 className="card-section-title">{' '}
-              <i className="bi bi-activity text-rose2 me-2"></i>Simulate resistance evolution{' '}
+              <BioIcon icon="bi-activity" className="text-rose2 me-2" />Simulate resistance evolution{' '}
               <span className="badge bg-warning text-dark ms-1 badge-xs">Simulation</span>
             </h5>
             <div className="alert alert-warning-custom mb-3">{' '}

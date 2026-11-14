@@ -1,6 +1,7 @@
 import { Link } from 'react-router';
 import { useMetrics } from '../lib/health';
 import { useTitle } from '../lib/pageEffects';
+import BioIcon from '../components/BioIcon';
 
 export default function About() {
   useTitle('About the AMR Prediction System');
@@ -15,7 +16,7 @@ export default function About() {
         </ol></nav>
         <div className="d-flex align-items-center gap-3">
           <div className="page-header-icon">{' '}
-            <i className="bi bi-info-circle"></i>
+            <BioIcon icon="bi-info-circle" live />
           </div>
           <div>
             <h1 className="page-title">About This Project</h1>
@@ -149,12 +150,12 @@ export default function About() {
 
           {/* Models Detail */}
           <div className="info-card mb-4">
-            <h5 className="card-section-title"><i className="bi bi-cpu text-accent me-2"></i>ML Models: Technical Detail</h5>
+            <h5 className="card-section-title"><BioIcon icon="bi-cpu" className="text-accent me-2" />ML Models: Technical Detail</h5>
 
             {/* LightGBM */}
             <div className="example-box mb-3">
               <div className="d-flex align-items-center gap-2 mb-2">
-                <div className="model-icon lgbm-icon about-model-icon"><i className="bi bi-graph-up-arrow"></i></div>
+                <div className="model-icon lgbm-icon about-model-icon"><BioIcon icon="bi-graph-up-arrow" /></div>
                 <div className="example-title mb-0">Model 1: LightGBM Resistance Forecasting</div>{' '}
                 <span className="status-badge trained ms-auto">AUC {m.lgbm.auc}</span>
               </div>
@@ -173,7 +174,7 @@ export default function About() {
             {/* K-mer genome model */}
             <div className="example-box mb-3">
               <div className="d-flex align-items-center gap-2 mb-2">
-                <div className="model-icon kmer-icon about-model-icon"><i className="bi bi-dna"></i></div>
+                <div className="model-icon kmer-icon about-model-icon"><BioIcon icon="bi-dna" /></div>
                 <div className="example-title mb-0">Model 2: K-mer Genome Predictor</div>{' '}
                 <span className="status-badge trained about-kmer-badge ms-auto">AUC {m.kmer.auc}</span>
               </div>
@@ -192,7 +193,7 @@ export default function About() {
             {/* Timeline */}
             <div className="example-box">
               <div className="d-flex align-items-center gap-2 mb-2">
-                <div className="model-icon timeline-icon about-model-icon"><i className="bi bi-activity"></i></div>
+                <div className="model-icon timeline-icon about-model-icon"><BioIcon icon="bi-activity" /></div>
                 <div className="example-title mb-0">Model 3: Mutation Timeline (Biological Simulation)</div>{' '}
                 <span className="status-badge simulated ms-auto">Bio-Sim</span>
               </div>
@@ -231,7 +232,7 @@ export default function About() {
               </div>
               <div className="pipeline-arrow"><i className="bi bi-arrow-right"></i></div>
               <div className="pipeline-step">
-                <div className="pipeline-icon"><i className="bi bi-cpu"></i></div>
+                <div className="pipeline-icon"><BioIcon icon="bi-cpu" /></div>
                 <div className="pipeline-label">ML Models<br /><small>LightGBM · RF · Sim</small></div>
               </div>
               <div className="pipeline-arrow"><i className="bi bi-arrow-right"></i></div>
@@ -472,7 +473,7 @@ export default function About() {
 
           {/* Performance Summary */}
           <div className="info-card mb-4">
-            <h6 className="card-section-title"><i className="bi bi-graph-up text-accent me-2"></i>Model Performance</h6>
+            <h6 className="card-section-title"><BioIcon icon="bi-graph-up" className="text-accent me-2" />Model Performance</h6>
             <table className="table table-custom table-sm"><tbody>
               <tr>
                 <td className="text-muted">LightGBM AUC-ROC</td>
@@ -511,11 +512,11 @@ export default function About() {
 
           {/* Data Sources */}
           <div className="info-card mb-4">
-            <h6 className="card-section-title"><i className="bi bi-database text-accent me-2"></i>Data Sources</h6>
+            <h6 className="card-section-title"><BioIcon icon="bi-database" className="text-accent me-2" />Data Sources</h6>
             <div className="d-flex flex-column gap-2">{' '}
 
               <a href="https://www.bv-brc.org/" target="_blank" rel="noopener" className="datasrc-card">
-                <div className="datasrc-icon datasrc-primary"><i className="bi bi-virus2"></i></div>
+                <div className="datasrc-icon datasrc-primary"><BioIcon icon="bi-virus2" /></div>
                 <div className="datasrc-body">
                   <div className="datasrc-name">BVBRC / PATRIC</div>
                   <div className="datasrc-desc">Primary training data: {m.lgbm.train_rows} AMR phenotype records and {m.kmer.genomes_total} FASTA genomes</div>
@@ -524,7 +525,7 @@ export default function About() {
               </a>{' '}
 
               <a href="https://www.ncbi.nlm.nih.gov/genbank/" target="_blank" rel="noopener" className="datasrc-card">
-                <div className="datasrc-icon datasrc-emerald"><i className="bi bi-dna"></i></div>
+                <div className="datasrc-icon datasrc-emerald"><BioIcon icon="bi-dna" /></div>
                 <div className="datasrc-body">
                   <div className="datasrc-name">NCBI GenBank</div>
                   <div className="datasrc-desc">Reference genome sequences and resistance gene annotations</div>
@@ -542,7 +543,7 @@ export default function About() {
               </a>{' '}
 
               <a href="https://www.who.int/initiatives/glass" target="_blank" rel="noopener" className="datasrc-card">
-                <div className="datasrc-icon datasrc-rose"><i className="bi bi-globe2"></i></div>
+                <div className="datasrc-icon datasrc-rose"><BioIcon icon="bi-globe2" /></div>
                 <div className="datasrc-body">
                   <div className="datasrc-name">WHO GLASS</div>
                   <div className="datasrc-desc">Global AMR surveillance providing population-level resistance statistics</div>
@@ -557,11 +558,11 @@ export default function About() {
           <div className="info-card mb-4">
             <h6 className="card-section-title"><i className="bi bi-lightning-charge text-accent me-2"></i>Quick Links</h6>
             <div className="d-grid gap-2">{' '}
-              <Link to="/forecast" className="btn btn-model"><i className="bi bi-graph-up-arrow me-2"></i>AMR Forecasting</Link>{' '}
-              <Link to="/predict" className="btn btn-model btn-model-green"><i className="bi bi-dna me-2"></i>Resistance Prediction</Link>{' '}
-              <Link to="/timeline" className="btn btn-model btn-model-red"><i className="bi bi-activity me-2"></i>Mutation Timeline</Link>{' '}
-              <Link to="/datasets" className="btn btn-model"><i className="bi bi-database me-2"></i>Dataset Details</Link>{' '}
-              <Link to="/train" className="btn btn-model"><i className="bi bi-cpu me-2"></i>Train Models</Link>
+              <Link to="/forecast" className="btn btn-model"><BioIcon icon="bi-graph-up-arrow" className="me-2" />AMR Forecasting</Link>{' '}
+              <Link to="/predict" className="btn btn-model btn-model-green"><BioIcon icon="bi-dna" className="me-2" />Resistance Prediction</Link>{' '}
+              <Link to="/timeline" className="btn btn-model btn-model-red"><BioIcon icon="bi-activity" className="me-2" />Mutation Timeline</Link>{' '}
+              <Link to="/datasets" className="btn btn-model"><BioIcon icon="bi-database" className="me-2" />Dataset Details</Link>{' '}
+              <Link to="/train" className="btn btn-model"><BioIcon icon="bi-cpu" className="me-2" />Train Models</Link>
             </div>
           </div>
 

@@ -13,6 +13,7 @@ import { useToast } from '../../components/Toasts';
 import GenomeInfo from './GenomeInfo';
 import type { ForecastInputs, GenomeLookup, LabResult } from './types';
 import AntibioticOptions from '../../components/AntibioticOptions';
+import BioIcon from '../../components/BioIcon';
 
 const GENOME_ID = /^\d{1,9}\.\d{1,9}$/;
 
@@ -309,7 +310,7 @@ export default function ForecastForm({ busy, prediction, onSubmit }: Props) {
       <button type="submit" className="btn btn-primary-custom w-100 btn-lg" id="predictBtn" disabled={busy}>
         {busy
           ? <><span className="spinner-border spinner-border-sm me-2" role="status"></span>Processing…</>
-          : <><i className="bi bi-cpu me-2"></i>Predict Resistance</>}
+          : <><BioIcon icon="bi-cpu" className="me-2" />Predict Resistance</>}
       </button>
     </form>
   );

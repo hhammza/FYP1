@@ -8,6 +8,7 @@ import { jinjaTitle, pyFixed, pyFloat, thousands } from '../../lib/metrics';
 import MlForecastCard from './MlForecastCard';
 import RlPanel from './RlPanel';
 import type { TimelineInputs, TimelineResult as Result, Week } from './types';
+import BioIcon from '../../components/BioIcon';
 
 const NARROW_PX = 576;
 
@@ -86,7 +87,7 @@ export default function TimelineResult({ result, inputs, sample }: Props) {
 
       <div className="d-flex align-items-center flex-wrap gap-2 mb-2" id="simulationHeading">
         <h6 className="card-section-title mb-0 me-auto"><i className="bi bi-sliders text-accent me-2"></i>What-if simulation: week by week under treatment</h6>
-        <span className="status-badge simulated"><i className="bi bi-activity"></i>Simulation, not a trained model</span>
+        <span className="status-badge simulated"><BioIcon icon="bi-activity" />Simulation, not a trained model</span>
       </div>
 
       <div className="timeline-summary-card mb-4">
@@ -123,7 +124,7 @@ export default function TimelineResult({ result, inputs, sample }: Props) {
       </div>
 
       <div className="info-card mb-4">
-        <h6 className="card-section-title"><i className="bi bi-graph-up text-accent me-2"></i>Week-by-Week Resistance Evolution</h6>
+        <h6 className="card-section-title"><BioIcon icon="bi-graph-up" className="text-accent me-2" />Week-by-Week Resistance Evolution</h6>
         <TimelineChart weeks={result.timeline} failWeek={result.failure_week} chartRef={chart} />
       </div>
 

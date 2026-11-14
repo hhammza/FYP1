@@ -9,6 +9,7 @@ import type { ModelReport, Run } from '../lib/report';
 import { useModelReport } from '../lib/useReport';
 import { ReportHeader, ReportUnavailable } from './Models';
 import { claimFigure, genusFigure, labelFigure, sizeFigure, type Profile, type Profiles } from './compare/charts';
+import BioIcon from '../components/BioIcon';
 
 // the template's macros: n(x) and p(x)
 const n = (x: number | undefined) => (typeof x === 'number' ? thousands(x) : '');
@@ -216,7 +217,7 @@ function Comparison({ report }: { report: ModelReport }) {
         <div className="row g-4 mb-4">
           <div className="col-lg-6">
             <div className="glass-card h-100">
-              <h6 className="card-section-title mb-1"><i className="bi bi-database text-accent me-2"></i>Training set size</h6>
+              <h6 className="card-section-title mb-1"><BioIcon icon="bi-database" className="text-accent me-2" />Training set size</h6>
               <p className="small text-muted mb-2">Rows each model learned from. Log scale: every gridline is 10 times more data.</p>
               <Chart id="sizeChart" report={report} build={sizeFigure} height={420} />
             </div>

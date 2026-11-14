@@ -3,9 +3,10 @@
    model's call (showGenome in the old forecast.js). */
 import { Link } from 'react-router';
 import type { GenomeLookup, LabResult } from './types';
+import BioIcon from '../../components/BioIcon';
 
 function Line({ icon, cls, children }: { icon: string; cls?: string; children: React.ReactNode }) {
-  return <div className={'genome-info-line' + (cls ? ' ' + cls : '')}><i className={`bi bi-${icon} me-1`}></i>{children}</div>;
+  return <div className={'genome-info-line' + (cls ? ' ' + cls : '')}><BioIcon icon={`bi-${icon}`} className="me-1" />{children}</div>;
 }
 
 export function micText(r: LabResult): string {

@@ -12,6 +12,7 @@ import { filterQuery, useExploreFilters } from './explore/filters';
 import type { ExploreMeta } from './explore/types';
 import { ChemistryView, CountryHeatMap, DrugComparison, GroupComparison, GroupMap, LoadError, useExplore } from './explore/views';
 import CellLoader from '../components/CellLoader';
+import BioIcon from '../components/BioIcon';
 
 /** /explore and old ?view= links go to the matching page, keeping the filters. */
 export function ExploreRedirect() {
@@ -48,7 +49,7 @@ export default function Explore() {
             <li className="breadcrumb-item active" aria-current="page">{current.label}</li>
           </ol></nav>
           <div className="d-flex align-items-center gap-3">
-            <div className="page-header-icon"><i className={`bi ${current.icon}`}></i></div>
+            <div className="page-header-icon"><BioIcon icon={current.icon} live /></div>
             <div>
               <h1 className="page-title">{current.label}</h1>
               <p className="page-subtitle">{current.hint}, from laboratory-confirmed BV-BRC results.</p>
@@ -66,7 +67,7 @@ export default function Explore() {
         <nav className="explore-tabs mb-3" aria-label="Explorer views">
           {EXPLORE_VIEWS.map(v => (
             <Link key={v.key} to={`/explore/${v.key}${carry}`} aria-current={view === v.key ? 'page' : undefined}
-                  className={'explore-tab' + (view === v.key ? ' active' : '')}><i className={`bi ${v.icon}`}></i><span>{v.label}</span></Link>))}
+                  className={'explore-tab' + (view === v.key ? ' active' : '')}><BioIcon icon={v.icon} /><span>{v.label}</span></Link>))}
         </nav>
 
         {meta.state === 'loading' && <CellLoader label="Loading the Explorer…" />}

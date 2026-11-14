@@ -6,6 +6,7 @@ import ExportBar from '../../components/ExportBar';
 import Plot, { type Figure, type PlotElement, type PlotTheme } from '../../components/Plot';
 import { pyFixed, thousands } from '../../lib/metrics';
 import type { BatchResult as Result } from './types';
+import BioIcon from '../../components/BioIcon';
 
 const SHOWN_ROWS = 200;
 const CHART_DRUGS = 20;
@@ -33,7 +34,7 @@ export function BatchForm({ busy, onSubmit }: { busy: boolean; onSubmit: (file: 
       <button type="submit" className="btn btn-primary-custom w-100 btn-lg" disabled={busy}>
         {busy
           ? <><span className="spinner-border spinner-border-sm me-2" role="status"></span>Processing…</>
-          : <><i className="bi bi-cpu me-2"></i>Predict All Rows</>}
+          : <><BioIcon icon="bi-cpu" className="me-2" />Predict All Rows</>}
       </button>
     </form>
   );
@@ -87,7 +88,7 @@ export function BatchResult({ batch }: { batch: Result }) {
 
       {hasChart && (
         <div className="info-card mb-4">
-          <h6 className="card-section-title"><i className="bi bi-bar-chart me-2 text-accent"></i>Resistant and susceptible, per antibiotic</h6>
+          <h6 className="card-section-title"><BioIcon icon="bi-bar-chart" className="me-2 text-accent" />Resistant and susceptible, per antibiotic</h6>
           <BatchChart byAb={s.by_antibiotic} chartRef={chart} />
         </div>
       )}

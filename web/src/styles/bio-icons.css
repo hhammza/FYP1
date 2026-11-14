@@ -1,0 +1,102 @@
+/* ============================================================
+   AMRPredict: animated bio icons (components/BioIcon)
+   Each icon rests still. It moves when it is `live` (page
+   header, brand, the open Explorer tab) or while its link is
+   hovered. Reduced motion stops all of it (bio-motion.css).
+   ============================================================ */
+.bio-icon { width: 1.15em; height: 1.15em; display: inline-block; vertical-align: -0.2em; overflow: visible; flex: none; }
+/* parts that carry their own SVG transform (rotated spikes, the tilted capsule) keep the SVG origin */
+.bio-icon *:not([transform]) { transform-box: fill-box; transform-origin: center; }
+.page-header-icon .bio-icon { width: 28px; height: 28px; }
+.brand-icon .bio-icon { width: 1.25em; height: 1.25em; }
+
+/* when to move: one selector list, reused below as ON */
+/* ON = :is(.bio-icon.live, :is(a, button, label, summary, .dropdown-item, .badge, .status-badge, .model-card, .info-card, .stat-mini, .datasrc-card, .ft-stat, .explore-facts span, .alert, .empty-state, .rl-chip, .gene-chip, tr, li, [class*="-icon"], .card-section-title, .section-label):is(:hover, :focus-visible) .bio-icon, .bio-icon:hover, .explore-tab.active .bio-icon) */
+
+/* DNA: the rungs turn edge-on one after another, like a helix rotating */
+:is(.bio-icon.live, :is(a, button, label, summary, .dropdown-item, .badge, .status-badge, .model-card, .info-card, .stat-mini, .datasrc-card, .ft-stat, .explore-facts span, .alert, .empty-state, .rl-chip, .gene-chip, tr, li, [class*="-icon"], .card-section-title, .section-label):is(:hover, :focus-visible) .bio-icon, .bio-icon:hover, .explore-tab.active .bio-icon).bio-dna .rung { animation: bi-twist 1.8s ease-in-out infinite both; }
+.bio-dna .r1 { animation-delay: -0.45s !important; } .bio-dna .r2 { animation-delay: -0.9s !important; } .bio-dna .r3 { animation-delay: -1.35s !important; }
+@keyframes bi-twist { 0%, 100% { transform: scaleX(1); } 50% { transform: scaleX(0.12); } }
+
+/* Bacterium: flagella beat, the cell body flexes as it swims */
+:is(.bio-icon.live, :is(a, button, label, summary, .dropdown-item, .badge, .status-badge, .model-card, .info-card, .stat-mini, .datasrc-card, .ft-stat, .explore-facts span, .alert, .empty-state, .rl-chip, .gene-chip, tr, li, [class*="-icon"], .card-section-title, .section-label):is(:hover, :focus-visible) .bio-icon, .bio-icon:hover, .explore-tab.active .bio-icon).bio-bacterium .flagella { transform-origin: left center; animation: bi-beat 0.9s ease-in-out infinite; }
+:is(.bio-icon.live, :is(a, button, label, summary, .dropdown-item, .badge, .status-badge, .model-card, .info-card, .stat-mini, .datasrc-card, .ft-stat, .explore-facts span, .alert, .empty-state, .rl-chip, .gene-chip, tr, li, [class*="-icon"], .card-section-title, .section-label):is(:hover, :focus-visible) .bio-icon, .bio-icon:hover, .explore-tab.active .bio-icon).bio-bacterium .body { animation: bi-flex 0.9s ease-in-out infinite; }
+:is(.bio-icon.live, :is(a, button, label, summary, .dropdown-item, .badge, .status-badge, .model-card, .info-card, .stat-mini, .datasrc-card, .ft-stat, .explore-facts span, .alert, .empty-state, .rl-chip, .gene-chip, tr, li, [class*="-icon"], .card-section-title, .section-label):is(:hover, :focus-visible) .bio-icon, .bio-icon:hover, .explore-tab.active .bio-icon).bio-bacterium { animation: bi-swim 2.7s ease-in-out infinite; }
+@keyframes bi-beat { 0%, 100% { transform: rotate(0) scaleY(1); } 25% { transform: rotate(-12deg) scaleY(1.15); } 75% { transform: rotate(12deg) scaleY(0.85); } }
+@keyframes bi-flex { 0%, 100% { transform: scale(1, 1); } 50% { transform: scale(1.04, 0.93); } }
+@keyframes bi-swim { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(-1.5px); } }
+
+/* Virus: the spike proteins turn slowly, the capsid breathes */
+:is(.bio-icon.live, :is(a, button, label, summary, .dropdown-item, .badge, .status-badge, .model-card, .info-card, .stat-mini, .datasrc-card, .ft-stat, .explore-facts span, .alert, .empty-state, .rl-chip, .gene-chip, tr, li, [class*="-icon"], .card-section-title, .section-label):is(:hover, :focus-visible) .bio-icon, .bio-icon:hover, .explore-tab.active .bio-icon).bio-virus .spikes { animation: bi-turn 12s linear infinite; }
+:is(.bio-icon.live, :is(a, button, label, summary, .dropdown-item, .badge, .status-badge, .model-card, .info-card, .stat-mini, .datasrc-card, .ft-stat, .explore-facts span, .alert, .empty-state, .rl-chip, .gene-chip, tr, li, [class*="-icon"], .card-section-title, .section-label):is(:hover, :focus-visible) .bio-icon, .bio-icon:hover, .explore-tab.active .bio-icon).bio-virus .core { animation: bi-breathe 2.4s ease-in-out infinite; }
+a:hover .bio-virus .spikes { animation-duration: 3s !important; }
+@keyframes bi-turn { to { transform: rotate(360deg); } }
+@keyframes bi-breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+
+/* Globe: meridians sweep across, as if it turns */
+:is(.bio-icon.live, :is(a, button, label, summary, .dropdown-item, .badge, .status-badge, .model-card, .info-card, .stat-mini, .datasrc-card, .ft-stat, .explore-facts span, .alert, .empty-state, .rl-chip, .gene-chip, tr, li, [class*="-icon"], .card-section-title, .section-label):is(:hover, :focus-visible) .bio-icon, .bio-icon:hover, .explore-tab.active .bio-icon).bio-globe .meridian { animation: bi-meridian 3.2s linear infinite; }
+.bio-globe .m1 { animation-delay: -1.6s !important; }
+@keyframes bi-meridian {
+  0% { transform: scaleX(2.2); opacity: 0; } 15% { opacity: 1; }
+  50% { transform: scaleX(0.05); } 85% { opacity: 1; } 100% { transform: scaleX(2.2); opacity: 0; }
+}
+
+/* Petri dish: colonies appear and spread */
+:is(.bio-icon.live, :is(a, button, label, summary, .dropdown-item, .badge, .status-badge, .model-card, .info-card, .stat-mini, .datasrc-card, .ft-stat, .explore-facts span, .alert, .empty-state, .rl-chip, .gene-chip, tr, li, [class*="-icon"], .card-section-title, .section-label):is(:hover, :focus-visible) .bio-icon, .bio-icon:hover, .explore-tab.active .bio-icon).bio-petri .colony { animation: bi-colony 3.6s ease-out infinite both; }
+.bio-petri .c1 { animation-delay: 0.35s !important; } .bio-petri .c2 { animation-delay: 0.7s !important; } .bio-petri .c3 { animation-delay: 1.05s !important; }
+@keyframes bi-colony { 0% { transform: scale(0); opacity: 0; } 25% { transform: scale(1.15); opacity: 1; } 35%, 88% { transform: scale(1); opacity: 1; } 100% { transform: scale(1); opacity: 0; } }
+
+/* Map: the pin drops and lands */
+:is(.bio-icon.live, :is(a, button, label, summary, .dropdown-item, .badge, .status-badge, .model-card, .info-card, .stat-mini, .datasrc-card, .ft-stat, .explore-facts span, .alert, .empty-state, .rl-chip, .gene-chip, tr, li, [class*="-icon"], .card-section-title, .section-label):is(:hover, :focus-visible) .bio-icon, .bio-icon:hover, .explore-tab.active .bio-icon).bio-map .pin { transform-origin: bottom center; animation: bi-drop 1.8s cubic-bezier(.3,.7,.4,1) infinite; }
+@keyframes bi-drop { 0%, 60%, 100% { transform: translateY(0) scale(1); } 20% { transform: translateY(-3.5px); } 40% { transform: translateY(0) scale(1.12, 0.88); } }
+
+/* Bars and the report: bars rise and fall like changing rates */
+:is(.bio-icon.live, :is(a, button, label, summary, .dropdown-item, .badge, .status-badge, .model-card, .info-card, .stat-mini, .datasrc-card, .ft-stat, .explore-facts span, .alert, .empty-state, .rl-chip, .gene-chip, tr, li, [class*="-icon"], .card-section-title, .section-label):is(:hover, :focus-visible) .bio-icon, .bio-icon:hover, .explore-tab.active .bio-icon):is(.bio-bars, .bio-report) .bar { transform-origin: bottom center; animation: bi-rise 1.6s ease-in-out infinite; }
+:is(.bio-bars, .bio-report) .b1 { animation-delay: -0.5s !important; } :is(.bio-bars, .bio-report) .b2 { animation-delay: -1s !important; }
+@keyframes bi-rise { 0%, 100% { transform: scaleY(1); } 50% { transform: scaleY(0.5); } }
+
+/* Capsule: the halves part and release their granules */
+.bio-capsule .grain { opacity: 0; }
+:is(.bio-icon.live, :is(a, button, label, summary, .dropdown-item, .badge, .status-badge, .model-card, .info-card, .stat-mini, .datasrc-card, .ft-stat, .explore-facts span, .alert, .empty-state, .rl-chip, .gene-chip, tr, li, [class*="-icon"], .card-section-title, .section-label):is(:hover, :focus-visible) .bio-icon, .bio-icon:hover, .explore-tab.active .bio-icon).bio-capsule .h0 { animation: bi-part-l 2.2s ease-in-out infinite; }
+:is(.bio-icon.live, :is(a, button, label, summary, .dropdown-item, .badge, .status-badge, .model-card, .info-card, .stat-mini, .datasrc-card, .ft-stat, .explore-facts span, .alert, .empty-state, .rl-chip, .gene-chip, tr, li, [class*="-icon"], .card-section-title, .section-label):is(:hover, :focus-visible) .bio-icon, .bio-icon:hover, .explore-tab.active .bio-icon).bio-capsule .h1 { animation: bi-part-r 2.2s ease-in-out infinite; }
+:is(.bio-icon.live, :is(a, button, label, summary, .dropdown-item, .badge, .status-badge, .model-card, .info-card, .stat-mini, .datasrc-card, .ft-stat, .explore-facts span, .alert, .empty-state, .rl-chip, .gene-chip, tr, li, [class*="-icon"], .card-section-title, .section-label):is(:hover, :focus-visible) .bio-icon, .bio-icon:hover, .explore-tab.active .bio-icon).bio-capsule .grain { animation: bi-grain 2.2s ease-out infinite; }
+.bio-capsule .g1 { --gx: 1.2px; --gy: 3.4px; } .bio-capsule .g0 { --gx: -0.6px; --gy: -3.6px; } .bio-capsule .g2 { --gx: -1.4px; --gy: 2.6px; }
+@keyframes bi-part-l { 0%, 15%, 85%, 100% { transform: translateX(0); } 40%, 60% { transform: translateX(-1.8px); } }
+@keyframes bi-part-r { 0%, 15%, 85%, 100% { transform: translateX(0); } 40%, 60% { transform: translateX(1.8px); } }
+@keyframes bi-grain { 0%, 25% { transform: translate(0, 0); opacity: 0; } 40% { opacity: 1; } 70% { transform: translate(var(--gx), var(--gy)); opacity: 0; } 100% { opacity: 0; } }
+
+/* Molecule: the ring turns, each atom flashes in turn */
+:is(.bio-icon.live, :is(a, button, label, summary, .dropdown-item, .badge, .status-badge, .model-card, .info-card, .stat-mini, .datasrc-card, .ft-stat, .explore-facts span, .alert, .empty-state, .rl-chip, .gene-chip, tr, li, [class*="-icon"], .card-section-title, .section-label):is(:hover, :focus-visible) .bio-icon, .bio-icon:hover, .explore-tab.active .bio-icon).bio-molecule .ring { animation: bi-turn 16s linear infinite; }
+:is(.bio-icon.live, :is(a, button, label, summary, .dropdown-item, .badge, .status-badge, .model-card, .info-card, .stat-mini, .datasrc-card, .ft-stat, .explore-facts span, .alert, .empty-state, .rl-chip, .gene-chip, tr, li, [class*="-icon"], .card-section-title, .section-label):is(:hover, :focus-visible) .bio-icon, .bio-icon:hover, .explore-tab.active .bio-icon).bio-molecule .atom { animation: bi-atom 2.4s ease-in-out infinite; }
+:is(.bio-icon.live, :is(a, button, label, summary, .dropdown-item, .badge, .status-badge, .model-card, .info-card, .stat-mini, .datasrc-card, .ft-stat, .explore-facts span, .alert, .empty-state, .rl-chip, .gene-chip, tr, li, [class*="-icon"], .card-section-title, .section-label):is(:hover, :focus-visible) .bio-icon, .bio-icon:hover, .explore-tab.active .bio-icon).bio-molecule .pi { animation: bi-breathe 2.4s ease-in-out infinite; }
+a:hover .bio-molecule .ring { animation-duration: 4s !important; }
+.bio-molecule .a1 { animation-delay: 0.4s !important; } .bio-molecule .a2 { animation-delay: 0.8s !important; } .bio-molecule .a3 { animation-delay: 1.2s !important; }
+.bio-molecule .a4 { animation-delay: 1.6s !important; } .bio-molecule .a5 { animation-delay: 2s !important; }
+@keyframes bi-atom { 0%, 30%, 100% { transform: scale(1); } 15% { transform: scale(1.6); } }
+
+/* Growth curve and pulse: the line draws itself, then holds */
+:is(.bio-growth, .bio-pulse) .curve { stroke-dasharray: 1 1; stroke-dashoffset: 0; }
+:is(.bio-icon.live, :is(a, button, label, summary, .dropdown-item, .badge, .status-badge, .model-card, .info-card, .stat-mini, .datasrc-card, .ft-stat, .explore-facts span, .alert, .empty-state, .rl-chip, .gene-chip, tr, li, [class*="-icon"], .card-section-title, .section-label):is(:hover, :focus-visible) .bio-icon, .bio-icon:hover, .explore-tab.active .bio-icon).bio-growth .curve { animation: bi-draw 2.6s ease-in-out infinite; }
+:is(.bio-icon.live, :is(a, button, label, summary, .dropdown-item, .badge, .status-badge, .model-card, .info-card, .stat-mini, .datasrc-card, .ft-stat, .explore-facts span, .alert, .empty-state, .rl-chip, .gene-chip, tr, li, [class*="-icon"], .card-section-title, .section-label):is(:hover, :focus-visible) .bio-icon, .bio-icon:hover, .explore-tab.active .bio-icon).bio-pulse .curve { animation: bi-trace 2.4s linear infinite; }
+:is(.bio-icon.live, :is(a, button, label, summary, .dropdown-item, .badge, .status-badge, .model-card, .info-card, .stat-mini, .datasrc-card, .ft-stat, .explore-facts span, .alert, .empty-state, .rl-chip, .gene-chip, tr, li, [class*="-icon"], .card-section-title, .section-label):is(:hover, :focus-visible) .bio-icon, .bio-icon:hover, .explore-tab.active .bio-icon).bio-growth .tip { animation: bi-tip 2.6s ease-in-out infinite; }
+@keyframes bi-trace { 0% { stroke-dashoffset: 1; } 50%, 70% { stroke-dashoffset: 0; } 100% { stroke-dashoffset: -1; } }
+@keyframes bi-draw { 0% { stroke-dashoffset: 1; } 55%, 100% { stroke-dashoffset: 0; } }
+@keyframes bi-tip { 0%, 45% { transform: scale(0); } 60% { transform: scale(1.4); } 70%, 100% { transform: scale(1); } }
+
+/* Database: a read passes down the discs */
+:is(.bio-icon.live, :is(a, button, label, summary, .dropdown-item, .badge, .status-badge, .model-card, .info-card, .stat-mini, .datasrc-card, .ft-stat, .explore-facts span, .alert, .empty-state, .rl-chip, .gene-chip, tr, li, [class*="-icon"], .card-section-title, .section-label):is(:hover, :focus-visible) .bio-icon, .bio-icon:hover, .explore-tab.active .bio-icon).bio-database .disc { animation: bi-glow 1.8s ease-in-out infinite; }
+.bio-database .d1 { animation-delay: 0.3s !important; } .bio-database .d2 { animation-delay: 0.6s !important; }
+@keyframes bi-glow { 0%, 100% { opacity: 0.45; } 30% { opacity: 1; } }
+
+/* Network: a signal moves layer by layer, as in training */
+:is(.bio-icon.live, :is(a, button, label, summary, .dropdown-item, .badge, .status-badge, .model-card, .info-card, .stat-mini, .datasrc-card, .ft-stat, .explore-facts span, .alert, .empty-state, .rl-chip, .gene-chip, tr, li, [class*="-icon"], .card-section-title, .section-label):is(:hover, :focus-visible) .bio-icon, .bio-icon:hover, .explore-tab.active .bio-icon).bio-network .node { animation: bi-fire 1.5s ease-in-out infinite; }
+.bio-network .l1 { animation-delay: 0.3s !important; } .bio-network .l2 { animation-delay: 0.6s !important; }
+@keyframes bi-fire { 0%, 100% { opacity: 0.4; transform: scale(0.85); } 25% { opacity: 1; transform: scale(1.2); } }
+
+/* Package: the lid lifts */
+:is(.bio-icon.live, :is(a, button, label, summary, .dropdown-item, .badge, .status-badge, .model-card, .info-card, .stat-mini, .datasrc-card, .ft-stat, .explore-facts span, .alert, .empty-state, .rl-chip, .gene-chip, tr, li, [class*="-icon"], .card-section-title, .section-label):is(:hover, :focus-visible) .bio-icon, .bio-icon:hover, .explore-tab.active .bio-icon).bio-package .lid { animation: bi-lid 2s ease-in-out infinite; }
+@keyframes bi-lid { 0%, 60%, 100% { transform: translateY(0) rotate(0); } 25% { transform: translateY(-2.5px) rotate(-6deg); } }
+
+/* Microscope: the light under the lens blinks */
+:is(.bio-icon.live, :is(a, button, label, summary, .dropdown-item, .badge, .status-badge, .model-card, .info-card, .stat-mini, .datasrc-card, .ft-stat, .explore-facts span, .alert, .empty-state, .rl-chip, .gene-chip, tr, li, [class*="-icon"], .card-section-title, .section-label):is(:hover, :focus-visible) .bio-icon, .bio-icon:hover, .explore-tab.active .bio-icon).bio-microscope .beam { animation: bi-beam 1.8s ease-in-out infinite; }
+@keyframes bi-beam { 0%, 100% { opacity: 0.3; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1.3); } }

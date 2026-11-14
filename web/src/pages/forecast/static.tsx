@@ -2,6 +2,7 @@
    frontend/templates/resistance_forecast.html). */
 import { Link } from 'react-router';
 import { useMetrics } from '../../lib/health';
+import BioIcon from '../../components/BioIcon';
 
 /** The page header. */
 export function ForecastHeader() {
@@ -14,7 +15,7 @@ export function ForecastHeader() {
           <li className="breadcrumb-item active">AMR Forecasting</li>
         </ol></nav>
         <div className="d-flex align-items-center gap-3">
-          <div className="page-header-icon lgbm-icon"><i className="bi bi-graph-up-arrow"></i></div>
+          <div className="page-header-icon lgbm-icon"><BioIcon icon="bi-graph-up-arrow" live /></div>
           <div>
             <h1 className="page-title">AMR Resistance Forecasting</h1>
             <p className="page-subtitle">LightGBM gradient boosting to predict resistance from genomic metadata &amp; MIC values</p>
@@ -98,7 +99,7 @@ export function ForecastEmpty() {
     <>
           {/* Empty State */}
           <div className="empty-state">
-            <div className="empty-state-icon lgbm-icon"><i className="bi bi-graph-up-arrow"></i></div>
+            <div className="empty-state-icon lgbm-icon"><BioIcon icon="bi-graph-up-arrow" /></div>
             <h4>Ready to Forecast</h4>
             <p>Enter the antibiotic name and organism details, then click <strong>Predict Resistance</strong> to get the forecasting result.</p>
             <div className="row g-3 mt-3">
@@ -146,7 +147,7 @@ export function ForecastBackground() {
         <div className="row g-4 mb-4">
           <div className="col-md-4">
             <div className="crisis-card blue h-100">
-              <div className="crisis-icon"><i className="bi bi-cpu text-accent"></i></div>
+              <div className="crisis-icon"><BioIcon icon="bi-cpu" className="text-accent" /></div>
               <div className="crisis-val">LightGBM</div>
               <div className="fw-600 mb-2 text-accent2">Gradient Boosting Algorithm</div>
               <div className="crisis-desc">LightGBM builds an ensemble of decision trees sequentially, each correcting the errors of the previous. It uses histogram-based splitting and leaf-wise tree growth for superior speed and accuracy on tabular genomic metadata. On genomes it never saw in training it scores AUC-ROC {m.lgbm.auc_ci}.</div>
@@ -154,7 +155,7 @@ export function ForecastBackground() {
           </div>
           <div className="col-md-4">
             <div className="crisis-card indigo h-100">
-              <div className="crisis-icon"><i className="bi bi-bar-chart-steps text-indigo2"></i></div>
+              <div className="crisis-icon"><BioIcon icon="bi-bar-chart-steps" className="text-indigo2" /></div>
               <div className="crisis-val">MIC Values</div>
               <div className="fw-600 mb-2 text-indigo2">Minimum Inhibitory Concentration</div>
               <div className="crisis-desc">MIC is the lowest antibiotic concentration that prevents visible bacterial growth. It is the gold-standard phenotypic measure of resistance. Our model log-transforms MIC values and encodes the sign (≤, =, ≥) as a separate categorical feature, capturing both measurement and directionality.</div>
@@ -173,7 +174,7 @@ export function ForecastBackground() {
         <div className="row g-4 mb-4">
           <div className="col-lg-7">
             <div className="glass-card h-100">
-              <h6 className="card-section-title"><i className="bi bi-bacteria text-accent me-2"></i>WHO Priority Pathogens: Resistance Rates</h6>
+              <h6 className="card-section-title"><BioIcon icon="bi-bacteria" className="text-accent me-2" />WHO Priority Pathogens: Resistance Rates</h6>
               <div className="table-responsive">
                 <table className="table table-custom table-sm mb-0">
                   <thead><tr>
@@ -240,7 +241,7 @@ export function ForecastBackground() {
 
         {/* Drug Class Reference */}
         <div className="glass-card">
-          <h6 className="card-section-title"><i className="bi bi-capsule text-accent me-2"></i>Antibiotic Drug Classes: Mechanism of Action</h6>
+          <h6 className="card-section-title"><BioIcon icon="bi-capsule" className="text-accent me-2" />Antibiotic Drug Classes: Mechanism of Action</h6>
           <div className="row g-3">
             <div className="col-md-3">
               <div className="example-box">

@@ -11,6 +11,7 @@ import { useModelReport } from '../lib/useReport';
 import GenomeDemo from './models/GenomeDemo';
 import { aucFigure, drugFigure, errorFigure, genomeFigure, learningFigure, rocFigure, seenFigure } from './models/charts';
 import CellLoader from '../components/CellLoader';
+import BioIcon from '../components/BioIcon';
 
 // the template's '%.3f' etc., rounded as Python rounds
 const f3 = (x: number) => pyFixed(x, 3);
@@ -42,7 +43,7 @@ export function ReportHeader({ title, subtitle, icon, crumb, parent }: {
           <li className="breadcrumb-item active">{crumb ?? title}</li>
         </ol></nav>
         <div className="d-flex align-items-center gap-3">
-          <div className="page-header-icon"><i className={`bi bi-${icon}`}></i></div>
+          <div className="page-header-icon"><BioIcon icon={`bi-${icon}`} live /></div>
           <div>
             <h1 className="page-title">{title}</h1>
             <p className="page-subtitle">{subtitle}</p>
@@ -84,7 +85,7 @@ function DeployedCard({ m, which, icon, report }: { m: ShippedModel; which: 'lig
   return (
     <div className="col-lg-6">
       <div className="info-card h-100">
-        <h6 className="card-section-title"><i className={`bi bi-${icon} text-accent me-2`}></i>{m.name}{' '}
+        <h6 className="card-section-title"><BioIcon icon={`bi-${icon}`} className="text-accent me-2" />{m.name}{' '}
           <Link to={m.page} className="small ms-1">{m.page}</Link></h6>
         <div className="table-responsive">
           <table className="table table-custom table-sm mb-2">
@@ -184,7 +185,7 @@ function Report({ report }: { report: ModelReport }) {
             {report.insights.map(f => (
               <div className="col-md-6 col-xl-3" key={f.title}>
                 <div className="glass-card h-100 insight-card">
-                  <div className="insight-icon mb-2"><i className={`bi bi-${f.icon}`}></i></div>
+                  <div className="insight-icon mb-2"><BioIcon icon={`bi-${f.icon}`} /></div>
                   <h6 className="fw-700 mb-2">{f.title}</h6>
                   <p className="small body-text mb-2">{f.text}</p>
                   <div className="caption-text"><i className="bi bi-link-45deg me-1"></i>{f.evidence}</div>
@@ -312,7 +313,7 @@ function Report({ report }: { report: ModelReport }) {
             random row split. We reconstructed exactly which genomes they trained on and scored them on every genome they never saw.
           </p>
           <div className="glass-card mb-4">
-            <h6 className="card-section-title mb-1"><i className="bi bi-bar-chart text-accent me-2"></i>AUC on genomes seen in training vs never seen</h6>
+            <h6 className="card-section-title mb-1"><BioIcon icon="bi-bar-chart" className="text-accent me-2" />AUC on genomes seen in training vs never seen</h6>
             <p className="small text-muted mb-2">Near-perfect on familiar genomes, much weaker on new ones. That gap is what a random split hides.</p>
             <Chart id="seenChart" report={report} build={seenFigure} height={320} />
           </div>
@@ -329,7 +330,7 @@ function Report({ report }: { report: ModelReport }) {
         <h2 className="sec-title">All experiment runs</h2>
         <p className="sec-sub mb-4">Every run from <code>experiments/</code> on the complete BV-BRC data (cleaning {report.clean_version || 'v7'}), scored on the test genomes it held out. The bars show the 95% confidence interval, resampled by genome.</p>
         <div className="glass-card mb-4">
-          <h6 className="card-section-title mb-1"><i className="bi bi-bar-chart-steps text-accent me-2"></i>AUC-ROC by run</h6>
+          <h6 className="card-section-title mb-1"><BioIcon icon="bi-bar-chart-steps" className="text-accent me-2" />AUC-ROC by run</h6>
           <Chart id="aucChart" report={report} build={aucFigure} height={140 + 24 * report.runs.length} />
         </div>
         <div className="row g-4 mb-4">
@@ -342,7 +343,7 @@ function Report({ report }: { report: ModelReport }) {
           </div>
           <div className="col-lg-6">
             <div className="glass-card h-100">
-              <h6 className="card-section-title mb-1"><i className="bi bi-graph-up text-accent me-2"></i>Learning curve</h6>
+              <h6 className="card-section-title mb-1"><BioIcon icon="bi-graph-up" className="text-accent me-2" />Learning curve</h6>
               <p className="small text-muted mb-2">LightGBM AUC as training data grows. It flattens early, so more rows alone will not fix it.</p>
               <Chart id="learningChart" report={report} build={learningFigure} height={440} />
             </div>
@@ -417,7 +418,7 @@ function Report({ report }: { report: ModelReport }) {
           </div>
           <div className="col-lg-8">
             <div className="glass-card h-100">
-              <h6 className="card-section-title mb-1"><i className="bi bi-capsule text-accent me-2"></i>Best and worst antibiotics</h6>
+              <h6 className="card-section-title mb-1"><BioIcon icon="bi-capsule" className="text-accent me-2" />Best and worst antibiotics</h6>
               <p className="small text-muted mb-2">AUC per antibiotic, among the {b.per_antibiotic_count} with at least 1,000 test rows.</p>
               <Chart id="drugChart" report={report} build={drugFigure} height={460} />
             </div>
@@ -439,7 +440,7 @@ function Report({ report }: { report: ModelReport }) {
           <div className="row g-4 mb-4">
             <div className="col-lg-8">
               <div className="glass-card h-100">
-                <h6 className="card-section-title mb-1"><i className="bi bi-dna text-accent me-2"></i>Lab AUC by run</h6>
+                <h6 className="card-section-title mb-1"><BioIcon icon="bi-dna" className="text-accent me-2" />Lab AUC by run</h6>
                 <p className="small text-muted mb-2">Each dot is one run; the colour is how its test genomes were held out.</p>
                 <Chart id="genomeChart" report={report} build={genomeFigure} height={140 + 22 * gr.runs.length} />
               </div>

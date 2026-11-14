@@ -5,6 +5,7 @@ import { useToast } from '../../components/Toasts';
 import { useMetrics } from '../../lib/health';
 import { useAntibiotics } from '../../lib/vocab';
 import AntibioticOptions from '../../components/AntibioticOptions';
+import BioIcon from '../../components/BioIcon';
 
 /* A short E. coli snippet: the model refuses it (a complete genome is at
    least 100,000 bp), which shows what a refusal looks like */
@@ -95,7 +96,7 @@ export default function PredictForm({ busy, initialAntibiotic = '', onSubmit }: 
       <button type="submit" className="btn btn-primary-custom btn-success-custom w-100 btn-lg" disabled={busy}>
         {busy
           ? <><span className="spinner-border spinner-border-sm me-2" role="status"></span>Analysing the genome…</>
-          : <><i className="bi bi-dna me-2"></i>Predict Resistance</>}
+          : <><BioIcon icon="bi-dna" className="me-2" />Predict Resistance</>}
       </button>
       <div className={'form-hint text-center mt-2' + (busy ? '' : ' d-none')} role="status" aria-live="polite">
         <i className="bi bi-hourglass-split me-1"></i>A complete genome can take up to a minute. Please keep this page open.

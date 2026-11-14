@@ -2,6 +2,7 @@
    frontend/templates/mutation_timeline.html). */
 import { Link } from 'react-router';
 import { useMetrics } from '../../lib/health';
+import BioIcon from '../../components/BioIcon';
 
 /** The page header. */
 export function TimelineHeader() {
@@ -14,7 +15,7 @@ export function TimelineHeader() {
           <li className="breadcrumb-item active">Mutation Timeline</li>
         </ol></nav>
         <div className="d-flex align-items-center gap-3">
-          <div className="page-header-icon timeline-icon"><i className="bi bi-activity"></i></div>
+          <div className="page-header-icon timeline-icon"><BioIcon icon="bi-activity" live /></div>
           <div>
             <h1 className="page-title">Bacterial Mutation Timeline</h1>
             <p className="page-subtitle">Week-by-week resistance evolution using a biologically-informed logistic growth simulation</p>
@@ -74,7 +75,7 @@ export function SimulationGuides() {
     <>
           {/* Model Architecture Info */}
           <div className="info-card mt-4">
-            <h6 className="card-section-title"><i className="bi bi-cpu text-accent me-2"></i>Simulation Model</h6>
+            <h6 className="card-section-title"><BioIcon icon="bi-cpu" className="text-accent me-2" />Simulation Model</h6>
             <div className="alert-success-tok mb-3">{' '}
               <i className="bi bi-check-circle me-1"></i> <strong>Simulation, not a trained model.</strong> A logistic-growth model with hand-set, literature-based constants; it is not validated against patient data.
             </div>
@@ -130,7 +131,7 @@ export function TimelineEmpty() {
     <>
           {/* Empty State */}
           <div className="empty-state">
-            <div className="empty-state-icon timeline-icon"><i className="bi bi-activity"></i></div>
+            <div className="empty-state-icon timeline-icon"><BioIcon icon="bi-activity" /></div>
             <h4>Generate Resistance Timeline</h4>
             <p>Upload a bacterial FASTA genome and select an antibiotic to simulate week-by-week resistance evolution with a logistic-growth simulation.</p>
             <div className="row g-3 mt-3 text-start">
@@ -178,7 +179,7 @@ export function TimelineBackground() {
         <div className="row g-4 mb-4">
           <div className="col-md-3">
             <div className="crisis-card rose h-100">
-              <div className="crisis-icon"><i className="bi bi-activity text-rose2"></i></div>
+              <div className="crisis-icon"><BioIcon icon="bi-activity" className="text-rose2" /></div>
               <div className="crisis-val">Logistic</div>
               <div className="fw-600 mb-2 text-rose2">Population Growth Model</div>
               <div className="crisis-desc">Resistance fraction follows a logistic S-curve: slow initial spread, exponential acceleration, then plateau. Each antibiotic has its own mutation speed, peak resistance and growth rate. These are hand-set from the literature, not fitted to data; only the curve's shape has been checked against published resistance curves.</div>

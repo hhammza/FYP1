@@ -6,6 +6,7 @@ import ExportBar from '../../components/ExportBar';
 import { pyFixed, pyFloat } from '../../lib/metrics';
 import Plot, { type Figure, type PlotElement, type PlotTheme } from '../../components/Plot';
 import type { EvidenceInput, ForecastInputs, ForecastResult as Result } from './types';
+import BioIcon from '../../components/BioIcon';
 
 const RED = 'rgba(239,68,68,0.82)', AMBER = 'rgba(245,158,11,0.82)', GREEN = 'rgba(34,197,94,0.82)';
 
@@ -190,7 +191,7 @@ export default function ForecastResult({ result, inputs }: { result: Result; inp
 
       {result.comparison_chart?.length ? (
         <div className="info-card mb-4">
-          <h6 className="card-section-title"><i className="bi bi-bar-chart me-2 text-accent"></i>Resistance Probability Comparison (Common Antibiotics)</h6>
+          <h6 className="card-section-title"><BioIcon icon="bi-bar-chart" className="me-2 text-accent" />Resistance Probability Comparison (Common Antibiotics)</h6>
           <ComparisonChart data={result.comparison_chart} threshold={result.threshold} chartRef={chart} />
         </div>
       ) : null}

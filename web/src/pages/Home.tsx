@@ -2,6 +2,7 @@ import { Link } from 'react-router';
 import ModelStatus from '../components/ModelStatus';
 import { useHealth } from '../lib/health';
 import { useTitle } from '../lib/pageEffects';
+import BioIcon from '../components/BioIcon';
 
 export default function Home() {
   useTitle('Dashboard');
@@ -28,10 +29,10 @@ export default function Home() {
             </p>
             <div className="hero-actions">{' '}
               <Link to="/forecast" className="btn btn-primary-custom btn-lg px-4">{' '}
-                <i className="bi bi-graph-up-arrow me-2"></i>Start Predicting
+                <BioIcon icon="bi-graph-up-arrow" className="me-2" />Start Predicting
               </Link>{' '}
               <Link to="/train" className="btn btn-outline-custom btn-lg px-4">{' '}
-                <i className="bi bi-cpu me-2"></i>Train Models
+                <BioIcon icon="bi-cpu" className="me-2" />Train Models
               </Link>{' '}
               <Link to="/about" className="btn btn-outline-custom btn-lg px-4">{' '}
                 <i className="bi bi-info-circle me-2"></i>About
@@ -54,7 +55,7 @@ export default function Home() {
               </div>
               <div className="hero-panel-body">
                 <div className="hpanel-row">
-                  <div className="hpanel-icon lgbm"><i className="bi bi-graph-up-arrow"></i></div>
+                  <div className="hpanel-icon lgbm"><BioIcon icon="bi-graph-up-arrow" /></div>
                   <div className="hpanel-info">
                     <div className="hpanel-name">LightGBM Forecasting</div>
                     <div className="hpanel-meta">{m.lgbm.train_rows} training rows &middot; 14 features</div>
@@ -62,7 +63,7 @@ export default function Home() {
                   <div className="hpanel-badge trained">AUC {m.lgbm.auc}</div>
                 </div>
                 <div className="hpanel-row">
-                  <div className="hpanel-icon kmer"><i className="bi bi-dna"></i></div>
+                  <div className="hpanel-icon kmer"><BioIcon icon="bi-dna" /></div>
                   <div className="hpanel-info">
                     <div className="hpanel-name">K-mer LightGBM (complete genomes)</div>
                     <div className="hpanel-meta">{m.kmer.train_rows} training rows &middot; 256 k-mer features</div>
@@ -70,7 +71,7 @@ export default function Home() {
                   <div className="hpanel-badge trained">AUC {m.kmer.auc}</div>
                 </div>
                 <div className="hpanel-row">
-                  <div className="hpanel-icon timeline"><i className="bi bi-activity"></i></div>
+                  <div className="hpanel-icon timeline"><BioIcon icon="bi-activity" /></div>
                   <div className="hpanel-info">
                     <div className="hpanel-name">Mutation Timeline</div>
                     <div className="hpanel-meta">Logistic growth simulation</div>
@@ -97,7 +98,7 @@ export default function Home() {
                   </div>
                 </div>
                 <div className="hpanel-divider"></div>
-                <div className="hpanel-bars-label"><i className="bi bi-bar-chart me-1"></i>Resistance rate by antibiotic class</div>
+                <div className="hpanel-bars-label"><BioIcon icon="bi-bar-chart" className="me-1" />Resistance rate by antibiotic class</div>
                 <div className="hpanel-bars">
                   <div className="hpanel-bar-row">{' '}
                     <span className="hpanel-bar-name">Penicillins</span>{' '}
@@ -192,7 +193,7 @@ export default function Home() {
         </div>
         <div className="col-md-3 col-6 mb-3">
           <div className="crisis-card blue h-100">
-            <div className="crisis-icon"><i className="bi bi-bacteria"></i></div>
+            <div className="crisis-icon"><BioIcon icon="bi-bacteria" /></div>
             <div className="crisis-val">1.27M</div>
             <div className="crisis-desc">Deaths directly attributable to bacterial AMR in 2019  surpassing HIV/AIDS and malaria</div>
             <div className="mt-2"><a href="https://www.thelancet.com/journals/lancet/article/PIIS0140-6736(21)02724-0/fulltext" target="_blank" rel="noopener" className="src-link">Murray et al., The Lancet (2022)</a></div>
@@ -200,7 +201,7 @@ export default function Home() {
         </div>
         <div className="col-md-3 col-6 mb-3">
           <div className="crisis-card rose h-100">
-            <div className="crisis-icon"><i className="bi bi-capsule-pill"></i></div>
+            <div className="crisis-icon"><BioIcon icon="bi-capsule-pill" /></div>
             <div className="crisis-val">~80%</div>
             <div className="crisis-desc">Of E. coli isolates show fluoroquinolone resistance in several high-burden countries, per WHO surveillance data</div>
             <div className="mt-2"><a href="https://www.who.int/publications/i/item/9789240062702" target="_blank" rel="noopener" className="src-link">WHO GLASS Report (2022)</a></div>
@@ -208,7 +209,7 @@ export default function Home() {
         </div>
         <div className="col-md-3 col-6 mb-3">
           <div className="crisis-card amber h-100">
-            <div className="crisis-icon"><i className="bi bi-dna"></i></div>
+            <div className="crisis-icon"><BioIcon icon="bi-dna" /></div>
             <div className="crisis-val">2.8M+</div>
             <div className="crisis-desc">Antibiotic-resistant infections occur in the United States every year, causing at least 35,000 deaths</div>
             <div className="mt-2"><a href="https://www.cdc.gov/antimicrobial-resistance/data-research/threats/index.html" target="_blank" rel="noopener" className="src-link">CDC AR Threats Report (2019)</a></div>
@@ -216,7 +217,7 @@ export default function Home() {
         </div>
         <div className="col-md-3 col-6 mb-3">
           <div className="crisis-card indigo h-100">
-            <div className="crisis-icon"><i className="bi bi-activity"></i></div>
+            <div className="crisis-icon"><BioIcon icon="bi-activity" /></div>
             <div className="crisis-val">AUC {m.lgbm.auc}</div>
             <div className="crisis-desc">The resistance forecaster, tested on genomes it never saw in training ({m.lgbm.split || 'genome-grouped split'})</div>
             <div className="mt-2"><a href="https://www.bv-brc.org/" target="_blank" rel="noopener" className="src-link">Training data: BVBRC / PATRIC</a></div>
@@ -225,7 +226,7 @@ export default function Home() {
       </div>
 
       {/* ══ ML MODEL STATUS CARDS ════════════════════════════════ */}
-      <div className="sec-eyebrow"><i className="bi bi-cpu me-2"></i>Machine Learning Models</div>
+      <div className="sec-eyebrow"><BioIcon icon="bi-cpu" className="me-2" />Machine Learning Models</div>
       <h2 className="sec-title mb-1">Trained ML Prediction Models</h2>
       <p className="sec-sub mb-4">Two ML models trained on real BVBRC / PATRIC genomic data   each producing a data-driven binary classification: <strong>Resistant</strong> or <strong>Susceptible</strong>.</p>
 
@@ -234,7 +235,7 @@ export default function Home() {
         <div className="col-lg-6">
           <div className="model-card h-100">
             <div className="d-flex align-items-start gap-3 mb-3">
-              <div className="model-icon lgbm-icon"><i className="bi bi-graph-up-arrow"></i></div>
+              <div className="model-icon lgbm-icon"><BioIcon icon="bi-graph-up-arrow" /></div>
               <div className="flex-grow-1">
                 <div className="fw-700 text-white fs-15">AMR Resistance Forecasting</div>
                 <div className="model-subtitle">LightGBM Gradient Boosting · Trained on real data</div>
@@ -265,7 +266,7 @@ export default function Home() {
         <div className="col-lg-6">
           <div className="model-card h-100">
             <div className="d-flex align-items-start gap-3 mb-3">
-              <div className="model-icon kmer-icon"><i className="bi bi-dna"></i></div>
+              <div className="model-icon kmer-icon"><BioIcon icon="bi-dna" /></div>
               <div className="flex-grow-1">
                 <div className="fw-700 text-white fs-15">Genomic Resistance Prediction</div>
                 <div className="model-subtitle">K-mer Spectrum of the complete genome + LightGBM · Trained on real data</div>
@@ -294,7 +295,7 @@ export default function Home() {
       </div>
 
       {/* ══ BIOLOGICAL SIMULATION TOOL ════════════════════════════ */}
-      <div className="sec-eyebrow"><i className="bi bi-activity me-2"></i>Analytical Tool</div>
+      <div className="sec-eyebrow"><BioIcon icon="bi-activity" className="me-2" />Analytical Tool</div>
       <h2 className="sec-title mb-1">Biological Simulation</h2>
       <p className="sec-sub mb-2">Not a machine learning model a mathematical simulation tool based on published biological kinetics.</p>
 
@@ -302,7 +303,7 @@ export default function Home() {
         <div className="col-lg-8">
           <div className="glass-card h-100 card-border-warning">
             <div className="d-flex align-items-start gap-3 mb-3">
-              <div className="model-icon timeline-icon"><i className="bi bi-activity"></i></div>
+              <div className="model-icon timeline-icon"><BioIcon icon="bi-activity" /></div>
               <div className="flex-grow-1">
                 <div className="fw-700 text-white fs-15">Mutation Timeline Simulator</div>
                 <div className="model-subtitle">Logistic Growth Equation · Hand-set Constants</div>
@@ -367,7 +368,7 @@ export default function Home() {
         <div className="col-lg-4">
           <div className="model-card model-card-disabled">
             <div className="d-flex align-items-start gap-3 mb-3">
-              <div className="model-icon formulation-icon"><i className="bi bi-capsule"></i></div>
+              <div className="model-icon formulation-icon"><BioIcon icon="bi-capsule" /></div>
               <div className="flex-grow-1">
                 <div className="fw-700 text-white fs-15">Formulation Forecasting</div>
                 <div className="model-subtitle">Dataset Not Available</div>
@@ -405,7 +406,7 @@ export default function Home() {
               </div>
               <div className="pipeline-arrow"><i className="bi bi-arrow-right"></i></div>
               <div className="pipeline-step">
-                <div className="pipeline-icon"><i className="bi bi-cpu"></i></div>
+                <div className="pipeline-icon"><BioIcon icon="bi-cpu" /></div>
                 <div className="pipeline-label">ML Models<br /><small>LightGBM / RF</small></div>
               </div>
               <div className="pipeline-arrow"><i className="bi bi-arrow-right"></i></div>

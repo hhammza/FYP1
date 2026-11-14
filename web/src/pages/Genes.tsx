@@ -10,6 +10,7 @@ import { usePageEffects, useTitle } from '../lib/pageEffects';
 import { classFigure, geneTitle, heatFigure, perGenomeFigure, topFigure } from './genes/charts';
 import type { GeneReport, GenomeGenes, LabView } from './genes/types';
 import CellLoader from '../components/CellLoader';
+import BioIcon from '../components/BioIcon';
 
 const FIRST_ROWS = 12;
 const KIND_LABEL: Record<string, string> = { gene: 'Gene', point_mutation: 'Mutation' };
@@ -234,21 +235,21 @@ function Report({ report }: { report: GeneReport }) {
         <h2 className="sec-title">What was found</h2>
         <p className="sec-sub mb-4">The most common genes and mutations, how many each genome carries, and which drug classes they affect.</p>
         <div className="glass-card mb-4">
-          <h6 className="card-section-title mb-1"><i className="bi bi-bar-chart text-accent me-2"></i>Top {report.top_genes.length} genes and mutations</h6>
+          <h6 className="card-section-title mb-1"><BioIcon icon="bi-bar-chart" className="text-accent me-2" />Top {report.top_genes.length} genes and mutations</h6>
           <p className="small text-muted mb-2">Share of searched genomes that carry each one.</p>
           <Chart id="topChart" report={report} build={topFigure} height={90 + 24 * report.top_genes.length} />
         </div>
         <div className="row g-4 mb-4">
           <div className="col-lg-5">
             <div className="glass-card h-100">
-              <h6 className="card-section-title mb-1"><i className="bi bi-bar-chart-line text-accent me-2"></i>Resistance genes per genome</h6>
+              <h6 className="card-section-title mb-1"><BioIcon icon="bi-bar-chart-line" className="text-accent me-2" />Resistance genes per genome</h6>
               <p className="small text-muted mb-2">{thousands(s.genomes - s.with_gene)} genomes had none: searched, and nothing was found.</p>
               <Chart id="perGenomeChart" report={report} build={perGenomeFigure} height={300} />
             </div>
           </div>
           <div className="col-lg-7">
             <div className="glass-card h-100">
-              <h6 className="card-section-title mb-1"><i className="bi bi-capsule text-accent me-2"></i>Genomes with a gene for each drug class</h6>
+              <h6 className="card-section-title mb-1"><BioIcon icon="bi-capsule" className="text-accent me-2" />Genomes with a gene for each drug class</h6>
               <p className="small text-muted mb-2">A genome counts once per class, however many genes of that class it carries.</p>
               <Chart id="classChart" report={report} build={classFigure} height={90 + 22 * Math.min(report.classes.length, 14)} />
             </div>
@@ -405,7 +406,7 @@ export default function Genes() {
             <li className="breadcrumb-item active">Resistance Genes</li>
           </ol></nav>
           <div className="d-flex align-items-center gap-3">
-            <div className="page-header-icon kmer-icon"><i className="bi bi-bacteria"></i></div>
+            <div className="page-header-icon kmer-icon"><BioIcon icon="bi-bacteria" live /></div>
             <div>
               <h1 className="page-title">Resistance Genes</h1>
               <p className="page-subtitle">Resistance genes and mutations NCBI AMRFinderPlus found in the complete genome of every isolate, and how well they match the lab results</p>
@@ -417,7 +418,7 @@ export default function Genes() {
         {state.report ? <Report report={state.report} />
           : state.error ? (
             <div className="empty-state">
-              <div className="empty-state-icon"><i className="bi bi-bacteria"></i></div>
+              <div className="empty-state-icon"><BioIcon icon="bi-bacteria" /></div>
               <h5 className="fw-700">Gene report not available</h5>
               <p className="text-muted mb-0">{state.error}</p>
             </div>

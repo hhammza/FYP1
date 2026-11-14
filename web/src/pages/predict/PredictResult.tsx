@@ -7,6 +7,7 @@ import Plot, { type Figure, type PlotElement, type PlotTheme } from '../../compo
 import { pyFixed, pyFloat, thousands } from '../../lib/metrics';
 import GenesPanel from './GenesPanel';
 import type { PredictInputs, PredictResult as Result } from './types';
+import BioIcon from '../../components/BioIcon';
 
 function KmerChart({ kmers, chartRef }: { kmers: NonNullable<Result['top_kmers']>; chartRef: React.Ref<PlotElement | null> }) {
   const figure = useCallback((t: PlotTheme): Figure => ({
@@ -87,7 +88,7 @@ export default function PredictResult({ result, inputs, sample }: Props) {
             <div className="result-sub">{result.antibiotic} | Confidence: {pyFloat(result.confidence)}%</div>
             {found && (
               <div className="result-sub mt-1" data-species>
-                <i className="bi bi-bacteria me-1"></i><Species found={found} long />
+                <BioIcon icon="bi-bacteria" className="me-1" /><Species found={found} long />
               </div>
             )}
           </div>
@@ -174,7 +175,7 @@ export default function PredictResult({ result, inputs, sample }: Props) {
 
       {kmers && (
         <div className="info-card">
-          <h6 className="card-section-title"><i className="bi bi-bar-chart text-accent me-2"></i>4-mer Frequency Spectrum (Top 20)</h6>
+          <h6 className="card-section-title"><BioIcon icon="bi-bar-chart" className="text-accent me-2" />4-mer Frequency Spectrum (Top 20)</h6>
           <KmerChart kmers={kmers} chartRef={chart} />
         </div>
       )}

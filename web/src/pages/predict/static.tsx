@@ -2,6 +2,7 @@
    frontend/templates/resistance_prediction.html). */
 import { Link } from 'react-router';
 import { useMetrics } from '../../lib/health';
+import BioIcon from '../../components/BioIcon';
 
 /** The page header. */
 export function PredictHeader() {
@@ -15,7 +16,7 @@ export function PredictHeader() {
           <li className="breadcrumb-item active">Resistance Prediction</li>
         </ol></nav>
         <div className="d-flex align-items-center gap-3">
-          <div className="page-header-icon kmer-icon"><i className="bi bi-dna"></i></div>
+          <div className="page-header-icon kmer-icon"><BioIcon icon="bi-dna" live /></div>
           <div>
             <h1 className="page-title">Genomic Resistance Prediction</h1>
             <p className="page-subtitle">K-mer frequency analysis of a complete genome assembly with LightGBM (AUC {m.kmer.auc} on lab-tested genomes it never saw)</p>
@@ -113,7 +114,7 @@ export function PredictEmpty() {
     <>
           {/* Empty State */}
           <div className="empty-state">
-            <div className="empty-state-icon kmer-icon"><i className="bi bi-dna"></i></div>
+            <div className="empty-state-icon kmer-icon"><BioIcon icon="bi-dna" /></div>
             <h4>Upload a Bacterial Genome</h4>
             <p>Upload a FASTA file or paste a genome sequence to predict antibiotic resistance using 4-mer frequency analysis.</p>
             <div className="alert alert-info-custom mt-3 text-start">{' '}
@@ -139,10 +140,10 @@ export function PredictEmpty() {
                 <div className="example-box">
                   <div className="example-title">Common test organisms</div>
                   <div className="example-content">
-                    <div><i className="bi bi-bacteria text-accent me-1"></i><em>E. coli</em> K-12 (GC ~51%)</div>
-                    <div><i className="bi bi-bacteria text-accent me-1"></i><em>K. pneumoniae</em> (GC ~57%)</div>
-                    <div><i className="bi bi-bacteria text-accent me-1"></i><em>S. aureus</em> (GC ~33%)</div>
-                    <div><i className="bi bi-bacteria text-accent me-1"></i><em>P. aeruginosa</em> (GC ~67%)</div>
+                    <div><BioIcon icon="bi-bacteria" className="text-accent me-1" /><em>E. coli</em> K-12 (GC ~51%)</div>
+                    <div><BioIcon icon="bi-bacteria" className="text-accent me-1" /><em>K. pneumoniae</em> (GC ~57%)</div>
+                    <div><BioIcon icon="bi-bacteria" className="text-accent me-1" /><em>S. aureus</em> (GC ~33%)</div>
+                    <div><BioIcon icon="bi-bacteria" className="text-accent me-1" /><em>P. aeruginosa</em> (GC ~67%)</div>
                   </div>
                 </div>
               </div>
@@ -213,7 +214,7 @@ export function PredictBackground() {
           </div>
           <div className="col-lg-6">
             <div className="glass-card h-100">
-              <h6 className="card-section-title"><i className="bi bi-cpu text-accent me-2"></i>Why K-mers Beat Sequence Alignment</h6>
+              <h6 className="card-section-title"><BioIcon icon="bi-cpu" className="text-accent me-2" />Why K-mers Beat Sequence Alignment</h6>
               <div className="how-step how-step-compact">
                 <div className="how-num how-num-sm">01</div>
                 <div><div className="how-title fs-13">Reference-free</div><div className="how-desc fs-12">No reference genome needed; it works on any novel pathogen assembly</div></div>

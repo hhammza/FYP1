@@ -6,6 +6,7 @@ import type { Data } from 'plotly.js-dist-min';
 import Plot, { type Figure, type PlotTheme } from '../../components/Plot';
 import { pyFixed } from '../../lib/metrics';
 import type { MlForecast } from './types';
+import BioIcon from '../../components/BioIcon';
 
 const OBSERVED = '#6366f1', FORECAST = '#ef4444', BAND = 'rgba(239,68,68,0.15)';
 
@@ -70,7 +71,7 @@ export default function MlForecastCard({ ml, antibiotic, genus }: Props) {
   if (!ml || !ml.history?.length || !ml.forecast?.length) {
     return (
       <div className="alert alert-info-custom mb-4" role="status" id="mlForecastNone">
-        <i className="bi bi-graph-up me-2"></i><strong>No ML forecast for this request.</strong>{' '}
+        <BioIcon icon="bi-graph-up" className="me-2" /><strong>No ML forecast for this request.</strong>{' '}
         {genus
           ? `${genus} has too little yearly lab history for ${antibiotic}.`
           : 'Choose an organism above, or upload a complete genome so its genus can be identified.'}
@@ -84,9 +85,9 @@ export default function MlForecastCard({ ml, antibiotic, genus }: Props) {
   return (
     <div className="info-card mb-4" id="mlForecast">
       <div className="d-flex align-items-start flex-wrap gap-2 mb-1">
-        <h6 className="card-section-title mb-0 me-auto"><i className="bi bi-graph-up-arrow text-accent me-2"></i>
+        <h6 className="card-section-title mb-0 me-auto"><BioIcon icon="bi-graph-up-arrow" className="text-accent me-2" />
           Resistance forecast: <em>{ml.organism}</em> and {ml.antibiotic}</h6>
-        <span className="status-badge trained"><i className="bi bi-cpu"></i>{ml.label}</span>
+        <span className="status-badge trained"><BioIcon icon="bi-cpu" />{ml.label}</span>
       </div>
       <p className="small text-muted mb-2">
         The share of {ml.organism} isolates resistant to {ml.antibiotic} in BV-BRC laboratory results, year by year

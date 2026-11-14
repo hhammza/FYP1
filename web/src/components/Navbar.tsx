@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router';
 import { Collapse } from 'bootstrap';
 import { setTheme, useDarkTheme } from '../lib/theme';
 import { EXPLORE_VIEWS } from '../pages/explore/nav';
+import BioIcon from './BioIcon';
 
 const MODEL_PAGES = [
   { to: '/models', icon: 'bi-clipboard-data', label: 'Model Report', hint: 'How every model was evaluated' },
@@ -16,7 +17,7 @@ const DATA_PAGES = [
 function MenuItem({ to, icon, label, hint, active }: { to: string; icon: string; label: string; hint: string; active: boolean }) {
   return (
     <Link className={'dropdown-item insights-item' + (active ? ' active' : '')} to={to} aria-current={active ? 'page' : undefined}>
-      <span className="insights-icon"><i className={`bi ${icon}`}></i></span>
+      <span className="insights-icon"><BioIcon icon={icon} /></span>
       <span className="insights-text"><span className="insights-label">{label}</span><span className="insights-hint">{hint}</span></span>
     </Link>
   );
@@ -48,7 +49,7 @@ export default function Navbar() {
          style={scrolled ? { boxShadow: '0 4px 24px rgba(0,0,0,0.15)' } : undefined}>
       <div className="container-xl">
         <Link className="navbar-brand d-flex align-items-center gap-2" to="/">
-          <div className="brand-icon"><i className="bi bi-virus2"></i></div>
+          <div className="brand-icon"><BioIcon icon="bi-virus2" live /></div>
           <div>
             <span className="brand-name">AMR<span className="text-accent">Predict</span></span>
             <span className="brand-sub d-none d-xxl-inline">Antibiotic Resistance Forecasting</span>
@@ -66,16 +67,16 @@ export default function Navbar() {
             <li className="nav-item dropdown">
               <a className={'nav-link dropdown-toggle' + on('/forecast', '/predict')}
                  href="#" role="button" data-bs-toggle="dropdown" onClick={e => e.preventDefault()}>
-                <i className="bi bi-cpu me-1"></i>ML Models
+                <BioIcon icon="bi-cpu" className="me-1" />ML Models
               </a>
               <ul className="dropdown-menu dropdown-menu-dark">
                 <li><h6 className="dropdown-header dropdown-section-label">TRAINED ML MODELS</h6></li>
-                <li><Link className="dropdown-item" to="/forecast"><i className="bi bi-graph-up-arrow me-2 text-accent"></i>AMR Forecasting <span className="badge bg-success ms-1 badge-xs">LightGBM</span></Link></li>
-                <li><Link className="dropdown-item" to="/predict"><i className="bi bi-dna me-2 text-emerald2"></i>Resistance Prediction <span className="badge bg-primary ms-1 badge-xs">K-mer RF</span></Link></li>
+                <li><Link className="dropdown-item" to="/forecast"><BioIcon icon="bi-graph-up-arrow" className="me-2 text-accent" />AMR Forecasting <span className="badge bg-success ms-1 badge-xs">LightGBM</span></Link></li>
+                <li><Link className="dropdown-item" to="/predict"><BioIcon icon="bi-dna" className="me-2 text-emerald2" />Resistance Prediction <span className="badge bg-primary ms-1 badge-xs">K-mer RF</span></Link></li>
               </ul>
             </li>
             <li className="nav-item">
-              <Link className={'nav-link' + on('/timeline')} to="/timeline"><i className="bi bi-activity me-1"></i>Bio-Simulator</Link>
+              <Link className={'nav-link' + on('/timeline')} to="/timeline"><BioIcon icon="bi-activity" className="me-1" />Bio-Simulator</Link>
             </li>
             {/* Pages that explain results; nothing here predicts. Two columns on a wide screen */}
             <li className="nav-item dropdown">
@@ -97,7 +98,7 @@ export default function Navbar() {
               </div>
             </li>
             <li className="nav-item">
-              <Link className={'nav-link' + on('/library')} to="/library"><i className="bi bi-box-seam me-1"></i>Library</Link>
+              <Link className={'nav-link' + on('/library')} to="/library"><BioIcon icon="bi-box-seam" className="me-1" />Library</Link>
             </li>
             <li className="nav-item">
               <Link className={'nav-link' + on('/about')} to="/about"><i className="bi bi-info-circle me-1"></i>About</Link>

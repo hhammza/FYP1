@@ -1,6 +1,7 @@
 import { Link } from 'react-router';
 import { useMetrics } from '../lib/health';
 import { useTitle } from '../lib/pageEffects';
+import BioIcon from '../components/BioIcon';
 
 export default function Datasets() {
   useTitle('Datasets & Data Sources');
@@ -15,7 +16,7 @@ export default function Datasets() {
         </ol></nav>
         <div className="d-flex align-items-center gap-3">
           <div className="page-header-icon">{' '}
-            <i className="bi bi-database"></i>
+            <BioIcon icon="bi-database" live />
           </div>
           <div>
             <h1 className="page-title">Datasets &amp; Data Sources</h1>
@@ -199,7 +200,7 @@ export default function Datasets() {
           {/* Stats + Usage */}
           <div className="col-lg-4">
             <div className="info-card mb-4">
-              <h6 className="card-section-title"><i className="bi bi-bar-chart text-accent me-2"></i>Dataset Statistics</h6>
+              <h6 className="card-section-title"><BioIcon icon="bi-bar-chart" className="text-accent me-2" />Dataset Statistics</h6>
               <table className="table table-custom table-sm">
                 <thead><tr><th></th><th>Count</th></tr></thead><tbody>
                 <tr><td className="text-muted">Raw records</td><td className="fw-600 text-white">17,585,506</td></tr>
@@ -215,7 +216,7 @@ export default function Datasets() {
             </div>
 
             <div className="info-card mb-4">
-              <h6 className="card-section-title"><i className="bi bi-bacteria text-accent me-2"></i>Largest Genera (rows after cleaning)</h6>
+              <h6 className="card-section-title"><BioIcon icon="bi-bacteria" className="text-accent me-2" />Largest Genera (rows after cleaning)</h6>
               <div className="method-steps">
                 <div className="method-step"><span className="step-num step-num-xs">1</span><div><em>Escherichia</em>: 3,562,956</div></div>
                 <div className="method-step"><span className="step-num step-num-xs">2</span><div><em>Salmonella</em>: 1,083,062</div></div>
@@ -241,7 +242,7 @@ export default function Datasets() {
 
         {/* Feature Engineering */}
         <div className="glass-card mt-4">
-          <h6 className="card-section-title"><i className="bi bi-cpu text-accent me-2"></i>14 Features Extracted → LightGBM Model</h6>
+          <h6 className="card-section-title"><BioIcon icon="bi-cpu" className="text-accent me-2" />14 Features Extracted → LightGBM Model</h6>
           <div className="row g-3">
             <div className="col-md-4">
               <div className="example-box">
@@ -349,7 +350,7 @@ export default function Datasets() {
 
           <div className="col-lg-4">
             <div className="info-card mb-4">
-              <h6 className="card-section-title"><i className="bi bi-bar-chart text-accent me-2"></i>Dataset Statistics</h6>
+              <h6 className="card-section-title"><BioIcon icon="bi-bar-chart" className="text-accent me-2" />Dataset Statistics</h6>
               <table className="table table-custom table-sm"><tbody>
                 <tr><td className="text-muted">FASTA files (genomes)</td><td className="fw-600 text-white">2,587</td></tr>
                 <tr><td className="text-muted">Taxon folders</td><td className="fw-600 text-white">1,683</td></tr>
@@ -428,7 +429,7 @@ export default function Datasets() {
           </div>
           <div className="col-lg-4">
             <div className="info-card h-100">
-              <h6 className="card-section-title"><i className="bi bi-bar-chart text-accent me-2"></i>Dataset Statistics</h6>
+              <h6 className="card-section-title"><BioIcon icon="bi-bar-chart" className="text-accent me-2" />Dataset Statistics</h6>
               <table className="table table-custom table-sm mb-0"><tbody>
                 <tr><td className="text-muted">Genomes</td><td className="fw-600 text-white">24,926</td></tr>
                 <tr><td className="text-muted">With a lab result</td><td className="fw-600 text-white">22,475</td></tr>
@@ -470,7 +471,7 @@ export default function Datasets() {
           </div>
           <div className="col-lg-4">
             <div className="info-card h-100">
-              <h6 className="card-section-title"><i className="bi bi-bar-chart text-accent me-2"></i>Dataset Statistics</h6>
+              <h6 className="card-section-title"><BioIcon icon="bi-bar-chart" className="text-accent me-2" />Dataset Statistics</h6>
               <table className="table table-custom table-sm mb-0"><tbody>
                 <tr><td className="text-muted">Rows</td><td className="fw-600 text-white">171,000</td></tr>
                 <tr><td className="text-muted">Genomes</td><td className="fw-600 text-white">69,708</td></tr>
@@ -517,7 +518,7 @@ export default function Datasets() {
           </div>
           <div className="col-lg-4">
             <div className="info-card h-100">
-              <h6 className="card-section-title"><i className="bi bi-bar-chart text-accent me-2"></i>Dataset Statistics</h6>
+              <h6 className="card-section-title"><BioIcon icon="bi-bar-chart" className="text-accent me-2" />Dataset Statistics</h6>
               <table className="table table-custom table-sm mb-0"><tbody>
                 <tr><td className="text-muted">Lab curves</td><td className="fw-600 text-white">5 drugs &times; 4 populations</td></tr>
                 <tr><td className="text-muted">Lab time points</td><td className="fw-600 text-white">days 0, 2, 4, 6, 8</td></tr>
@@ -607,7 +608,7 @@ export default function Datasets() {
 
           <div className="col-lg-4">
             <div className="info-card mb-4">
-              <h6 className="card-section-title"><i className="bi bi-bar-chart text-accent me-2"></i>Dataset Statistics</h6>
+              <h6 className="card-section-title"><BioIcon icon="bi-bar-chart" className="text-accent me-2" />Dataset Statistics</h6>
               <table className="table table-custom table-sm"><tbody>
                 <tr><td className="text-muted">Mapped CSV files</td><td className="fw-600 text-white">1,683</td></tr>
                 <tr><td className="text-muted">Linked rows</td><td className="fw-600 text-white">110,493</td></tr>
@@ -715,7 +716,7 @@ export default function Datasets() {
           <div className="col-lg-4">
             <div className="model-card h-100">
               <div className="d-flex align-items-start gap-3 mb-3">
-                <div className="model-icon lgbm-icon"><i className="bi bi-graph-up-arrow"></i></div>
+                <div className="model-icon lgbm-icon"><BioIcon icon="bi-graph-up-arrow" /></div>
                 <div><div className="fw-700 text-white">LightGBM Forecasting</div><div style={{fontSize: '12px', color: 'var(--text-3)'}}>AMR Resistance Classifier</div></div>
               </div>
               <div className="mb-3">
@@ -733,7 +734,7 @@ export default function Datasets() {
           <div className="col-lg-4">
             <div className="model-card h-100">
               <div className="d-flex align-items-start gap-3 mb-3">
-                <div className="model-icon kmer-icon"><i className="bi bi-dna"></i></div>
+                <div className="model-icon kmer-icon"><BioIcon icon="bi-dna" /></div>
                 <div><div className="fw-700 text-white">K-mer LightGBM</div><div style={{fontSize: '12px', color: 'var(--text-3)'}}>Genomic Resistance Predictor</div></div>
               </div>
               <div className="mb-3">
@@ -752,7 +753,7 @@ export default function Datasets() {
           <div className="col-lg-4">
             <div className="model-card h-100">
               <div className="d-flex align-items-start gap-3 mb-3">
-                <div className="model-icon timeline-icon"><i className="bi bi-activity"></i></div>
+                <div className="model-icon timeline-icon"><BioIcon icon="bi-activity" /></div>
                 <div><div className="fw-700 text-white">Mutation Timeline</div><div style={{fontSize: '12px', color: 'var(--text-3)'}}>Biological Simulation</div></div>
               </div>
               <div className="mb-3">
@@ -785,7 +786,7 @@ export default function Datasets() {
           {/* Mode 1 */}
           <div className="col-md-6 col-lg-3">
             <div className="glass-card h-100">
-              <div className="model-icon lgbm-icon mb-3" style={{width: '44px', height: '44px'}}><i className="bi bi-graph-up-arrow"></i></div>
+              <div className="model-icon lgbm-icon mb-3" style={{width: '44px', height: '44px'}}><BioIcon icon="bi-graph-up-arrow" /></div>
               <h6 className="fw-700 text-white mb-2">Mode 1: AMR Forecasting</h6>
               <p style={{fontSize: '12px', color: 'var(--text-2)'}}>Predict resistance from metadata  <strong>no genome file needed.</strong></p>
               <div className="method-steps mt-3">
@@ -805,7 +806,7 @@ export default function Datasets() {
           {/* Mode 2 */}
           <div className="col-md-6 col-lg-3">
             <div className="glass-card h-100">
-              <div className="model-icon kmer-icon mb-3" style={{width: '44px', height: '44px'}}><i className="bi bi-dna"></i></div>
+              <div className="model-icon kmer-icon mb-3" style={{width: '44px', height: '44px'}}><BioIcon icon="bi-dna" /></div>
               <h6 className="fw-700 text-white mb-2">Mode 2: K-mer Prediction</h6>
               <p style={{fontSize: '12px', color: 'var(--text-2)'}}>Predict resistance from a genome FASTA file.</p>
               <div className="method-steps mt-3">
@@ -825,7 +826,7 @@ export default function Datasets() {
           {/* Mode 3 */}
           <div className="col-md-6 col-lg-3">
             <div className="glass-card h-100">
-              <div className="model-icon timeline-icon mb-3" style={{width: '44px', height: '44px'}}><i className="bi bi-activity"></i></div>
+              <div className="model-icon timeline-icon mb-3" style={{width: '44px', height: '44px'}}><BioIcon icon="bi-activity" /></div>
               <h6 className="fw-700 text-white mb-2">Mode 3: Mutation Timeline</h6>
               <p style={{fontSize: '12px', color: 'var(--text-2)'}}>Simulate week-by-week resistance evolution.</p>
               <div className="method-steps mt-3">
@@ -845,7 +846,7 @@ export default function Datasets() {
           {/* Mode 4: Training */}
           <div className="col-md-6 col-lg-3">
             <div className="glass-card h-100">
-              <div className="model-icon lgbm-icon mb-3" style={{width: '44px', height: '44px'}}><i className="bi bi-cpu"></i></div>
+              <div className="model-icon lgbm-icon mb-3" style={{width: '44px', height: '44px'}}><BioIcon icon="bi-cpu" /></div>
               <h6 className="fw-700 text-white mb-2">Mode 4: Training</h6>
               <p style={{fontSize: '12px', color: 'var(--text-2)'}}>Retrain models on your local data (optional, as models are already pre-trained).</p>
               <div className="method-steps mt-3">

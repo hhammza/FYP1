@@ -1,6 +1,7 @@
 import { Link } from 'react-router';
 import { useMetrics } from '../lib/health';
 import { EXPLORE_VIEWS } from '../pages/explore/nav';
+import BioIcon from './BioIcon';
 
 type FooterLink = { to: string; label: string; icon: string };
 
@@ -44,7 +45,7 @@ export default function Footer() {
         <div className="ft-grid">
           <div className="ft-brand">
             <Link to="/" className="d-inline-flex align-items-center gap-2 text-decoration-none mb-3">
-              <div className="brand-icon brand-icon-sm"><i className="bi bi-virus2"></i></div>
+              <div className="brand-icon brand-icon-sm"><BioIcon icon="bi-virus2" /></div>
               <span className="ft-name">AMR<span className="text-accent">Predict</span></span>
             </Link>
             <p className="ft-about">
@@ -63,7 +64,7 @@ export default function Footer() {
               <div className="ft-col-title">{c.title}</div>
               <ul className="list-unstyled mb-0">
                 {c.links.map(l => (
-                  <li key={l.to}><Link to={l.to} className="ft-link"><i className={`bi ${l.icon}`}></i>{l.label}</Link></li>))}
+                  <li key={l.to}><Link to={l.to} className="ft-link"><BioIcon icon={l.icon} />{l.label}</Link></li>))}
               </ul>
             </nav>))}
         </div>

@@ -3,6 +3,7 @@
      genes_found == []   -> searched, nothing found
      genes_found == [..] -> genes linked to the drug's class first (`relevant`), then the rest */
 import type { Gene, PredictResult } from './types';
+import BioIcon from '../../components/BioIcon';
 
 function Chip({ g, linked }: { g: Gene; linked: boolean }) {
   // tooltip: the element's full name and subclass when the model sends them
@@ -52,7 +53,7 @@ export default function GenesPanel({ result }: { result: PredictResult }) {
   return (
     <div className="info-card mb-4">
       <h6 className="card-section-title">
-        <i className="bi bi-bacteria text-emerald2 me-2"></i>Resistance genes found{' '}
+        <BioIcon icon="bi-bacteria" className="text-emerald2 me-2" />Resistance genes found{' '}
         <span className="feature-tag ms-2">{genes.length}</span>
       </h6>
       <p className="fs-13 mb-3">{genesSummary(result, linked, scored)}</p>

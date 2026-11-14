@@ -10,6 +10,7 @@ import CopyButton from '../components/CopyButton';
 import { useToast } from '../components/Toasts';
 import { useTitle } from '../lib/pageEffects';
 import type { ModelStatus } from '../lib/types';
+import BioIcon from '../components/BioIcon';
 
 /** "lgbm_forecasting: ✅ Trained | kmer_resistance: ⚠️ Heuristic", as train.js showed it. */
 export function reloadSummary(models: Record<string, ModelStatus> | undefined): string {
@@ -85,7 +86,7 @@ export default function Train() {
         </ol></nav>
         <div className="d-flex align-items-center gap-3">
           <div className="page-header-icon">{' '}
-            <i className="bi bi-cpu"></i>
+            <BioIcon icon="bi-cpu" live />
           </div>
           <div>
             <h1 className="page-title">Model Training</h1>
@@ -124,7 +125,7 @@ export default function Train() {
         <div className="col-lg-6">
           <div className="form-card h-100">
             <div className="d-flex align-items-center gap-3 mb-3">
-              <div className="model-icon lgbm-icon"><i className="bi bi-graph-up-arrow"></i></div>
+              <div className="model-icon lgbm-icon"><BioIcon icon="bi-graph-up-arrow" /></div>
               <div>
                 <h5 className="mb-0">LightGBM AMR Forecasting</h5>{' '}
                 <small className="text-muted">Gradient Boosting on genomic metadata</small>
@@ -132,7 +133,7 @@ export default function Train() {
             </div>
 
             <div className="alert alert-info-custom mb-3">{' '}
-              <i className="bi bi-database me-2"></i>{' '}
+              <BioIcon icon="bi-database" className="me-2" />{' '}
               <strong>Dataset:</strong> <code>amr_output/</code> (3,655 CSV files with AMR phenotype data)
             </div>
 
@@ -161,7 +162,7 @@ export default function Train() {
         <div className="col-lg-6">
           <div className="form-card h-100">
             <div className="d-flex align-items-center gap-3 mb-3">
-              <div className="model-icon kmer-icon"><i className="bi bi-dna"></i></div>
+              <div className="model-icon kmer-icon"><BioIcon icon="bi-dna" /></div>
               <div>
                 <h5 className="mb-0">K-mer Resistance Predictor</h5>{' '}
                 <small className="text-muted">RandomForest on 4-mer frequency spectra</small>
@@ -169,7 +170,7 @@ export default function Train() {
             </div>
 
             <div className="alert alert-info-custom mb-3">{' '}
-              <i className="bi bi-database me-2"></i>{' '}
+              <BioIcon icon="bi-database" className="me-2" />{' '}
               <strong>Dataset:</strong> <code>mapped_output/</code> + <code>fasta_output/</code> ({m.kmer.genomes_total} genomes with a FASTA)
             </div>
 
@@ -198,7 +199,7 @@ export default function Train() {
         <div className="col-lg-6">
           <div className="form-card h-100">
             <div className="d-flex align-items-center gap-3 mb-3">
-              <div className="model-icon timeline-icon"><i className="bi bi-activity"></i></div>
+              <div className="model-icon timeline-icon"><BioIcon icon="bi-activity" /></div>
               <div>
                 <h5 className="mb-0">Mutation Timeline</h5>{' '}
                 <small className="text-muted">Simulation, nothing to train</small>
@@ -226,7 +227,7 @@ export default function Train() {
         <div className="col-lg-6">
           <div className="form-card model-card-disabled h-100">
             <div className="d-flex align-items-center gap-3 mb-3">
-              <div className="model-icon formulation-icon"><i className="bi bi-capsule"></i></div>
+              <div className="model-icon formulation-icon"><BioIcon icon="bi-capsule" /></div>
               <div>
                 <h5 className="mb-0">Formulation Forecasting</h5>{' '}
                 <small className="text-danger">Dataset Not Available</small>

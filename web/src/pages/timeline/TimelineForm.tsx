@@ -4,6 +4,7 @@ import FastaInput, { chosenGenome, EMPTY_FASTA, type FastaValue } from '../../co
 import { useToast } from '../../components/Toasts';
 import { useAntibiotics, useVocabulary } from '../../lib/vocab';
 import AntibioticOptions from '../../components/AntibioticOptions';
+import BioIcon from '../../components/BioIcon';
 
 export const SAMPLE_GENOME = `>sample_Ecoli_genome
 ATGAAACGCATTAGCACCACCATTACCACCACCATCACCATTACCACAGGTAACGGTGCGGGCTGACGCGTACAGGAAACACAGAAAAAAGCCCGCACCTGACAGTGCGGGCTTTTTTTTTCGACCAAAGGTAACGAGGTAACAACCATGCGAGTGTTGAAGTTCGGCGGTACATCAGTGGCAAATGCAGAACGTTTTCTGCGCGTTGTTACGCGCATTTTCTGATATTCGATTCGCATCATTTTCGGTCGGGTATCGCGGCGTTTGCTAAAAAACGTCAGCGTTTGCAGTTTTCGCTGAAACAGATGCGTATTTCGGTTTATCTCAAAAGTTCGTTTAGTAACAACGATGCGTAAAGCAGCATTAACGAAACAGTTTCAACGTTTGGCTGAAACGCAGTTTAAAGCTCAACGCAACAGTTTGCAAACGCAGCGCAATTTAAACAAGCGTTTGCAGAAACG`;
@@ -119,7 +120,7 @@ export default function TimelineForm({ busy, initial, onSubmit }: Props) {
       <button type="submit" className="btn btn-primary-custom btn-danger-custom w-100 btn-lg" disabled={busy}>
         {busy
           ? <><span className="spinner-border spinner-border-sm me-2" role="status"></span>Processing…</>
-          : <><i className="bi bi-activity me-2"></i>Generate Timeline</>}
+          : <><BioIcon icon="bi-activity" className="me-2" />Generate Timeline</>}
       </button>
     </form>
   );
