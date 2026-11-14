@@ -18,7 +18,9 @@ def test_bundled_models_are_found():
 def test_status_reports_trained_models():
     st = amrpredict.status()
     assert st['lgbm_forecasting']['trained'] is True
-    assert st['kmer_resistance']['trained'] is True
+    assert st['genome_resistance']['trained'] is True
+    assert st['trend_forecast']['trained'] is True
+    assert st['rl_agent']['trained'] is True
     # The timeline is a simulation, not a trained model — asserted so that a
     # future change to that claim has to be deliberate.
     assert st['mutation_timeline']['trained'] is False
@@ -105,9 +107,9 @@ def test_strain_taxon_is_read_as_its_species():
 def test_spelling_variants_reach_the_same_model_input():
     """Every model reads names through the shared alias table (amr_constants),
     as the web app does: 'Rifampin' is rifampicin everywhere."""
-    fasta = '>x\n' + 'ACGTTGCAAT' * 400
-    assert (amrpredict.predict_fasta(fasta, 'Rifampin')['probability']
-            == amrpredict.predict_fasta(fasta, 'rifampicin')['probability'])
+    fasta = '>x\n' + 'ACGTTGCAATGGCTTACCGA' * 6000      # 120 kb, a complete-genome size
+    assert (amrpredict.predict_fasta(fasta, 'Rifampin', use_genes=False)['probability']
+            == amrpredict.predict_fasta(fasta, 'rifampicin', use_genes=False)['probability'])
     t = amrpredict.simulate_timeline(fasta, 'Rifampin')
     assert t['antibiotic'] == 'rifampicin'
     assert t == amrpredict.simulate_timeline(fasta, 'rifampicin')
