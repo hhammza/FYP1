@@ -365,28 +365,9 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Formulation (unavailable) */}
       <div className="row g-4 mb-5">
-        <div className="col-lg-4">
-          <div className="model-card model-card-disabled">
-            <div className="d-flex align-items-start gap-3 mb-3">
-              <div className="model-icon formulation-icon"><BioIcon icon="bi-capsule" /></div>
-              <div className="flex-grow-1">
-                <div className="fw-700 text-white fs-15">Formulation Forecasting</div>
-                <div className="model-subtitle">Dataset Not Available</div>
-              </div>{' '}
-              <span className="status-badge unavailable"><i className="bi bi-database-x"></i>No Dataset</span>
-            </div>
-            <p className="body-text text-3 mb-12">{' '}
-              Would predict optimal antibiotic formulations and dosing strategies to counteract
-              resistance patterns. Excluded from scope because the pharmaceutical formulation dataset was not available.
-            </p>
-            <div className="alert-warning-custom fs-12"><i className="bi bi-info-circle me-2"></i>Excluded from project scope. Dataset required before training can begin.</div>
-          </div>
-        </div>
-
         {/* System Architecture Panel */}
-        <div className="col-lg-8">
+        <div className="col-12">
           <div className="glass-card h-100">
             <h5 className="fw-700 text-white mb-1"><i className="bi bi-diagram-3 me-2 text-primary-tok"></i>System Architecture</h5>
             <p className="fs-13 text-3 mb-20">Full-stack ML deployment: Flask frontend → Django REST API → Trained ML models</p>

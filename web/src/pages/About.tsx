@@ -331,25 +331,19 @@ export default function About() {
           <div className="info-card">
             <h5 className="card-section-title"><i className="bi bi-exclamation-triangle text-accent me-2"></i>Known Limitations</h5>
             <div className="row g-3">
-              <div className="col-md-6">
-                <div className="example-box about-limit-box">
-                  <div className="example-title about-limit-title">Formulation Model Missing</div>
-                  <div className="example-content small text-muted">A fourth model (Formulation Forecasting) was planned to recommend optimal dosing strategies but was left out of scope. No publicly available pharmaceutical formulation dataset was found that matched the project's genomic data.</div>
-                </div>
-              </div>
-              <div className="col-md-6">
+              <div className="col-md-4">
                 <div className="example-box about-limit-box">
                   <div className="example-title about-limit-title">No Real-Time Training Progress</div>
                   <div className="example-content small text-muted">Model training runs in a background thread. There is no WebSocket-based live progress indicator. The interface shows a "Training started" message but does not stream training logs in real time. A production system would use Celery and Redis for async task queuing.</div>
                 </div>
               </div>
-              <div className="col-md-6">
+              <div className="col-md-4">
                 <div className="example-box about-limit-box">
                   <div className="example-title about-limit-title">Timeline is Simulation, Not Trained</div>
                   <div className="example-content small text-muted">The Mutation Timeline uses a biologically-informed logistic growth model, not a trained CNN-LSTM. While results are scientifically plausible, they are simulated rather than learned from empirical time-series data.</div>
                 </div>
               </div>
-              <div className="col-md-6">
+              <div className="col-md-4">
                 <div className="example-box about-limit-box">
                   <div className="example-title about-limit-title">No User Authentication</div>
                   <div className="example-content small text-muted">The system has no login/authentication layer. In a clinical deployment, HIPAA/GDPR compliance would require user accounts, audit logging, and encrypted data at rest. This is a research prototype.</div>

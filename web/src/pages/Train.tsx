@@ -198,7 +198,7 @@ export default function Train() {
         </div>
 
         {/* Mutation Timeline Model */}
-        <div className="col-lg-6">
+        <div className="col-12">
           <div className="form-card h-100">
             <div className="d-flex align-items-center gap-3 mb-3">
               <div className="model-icon timeline-icon"><BioIcon icon="bi-activity" /></div>
@@ -225,36 +225,6 @@ export default function Train() {
           </div>
         </div>
 
-        {/* Formulation Forecasting (unavailable) */}
-        <div className="col-lg-6">
-          <div className="form-card model-card-disabled h-100">
-            <div className="d-flex align-items-center gap-3 mb-3">
-              <div className="model-icon formulation-icon"><BioIcon icon="bi-capsule" /></div>
-              <div>
-                <h5 className="mb-0">Formulation Forecasting</h5>{' '}
-                <small className="text-danger">Dataset Not Available</small>
-              </div>
-            </div>
-            <div className="alert alert-warning-custom mb-3">{' '}
-              <i className="bi bi-database-x me-2"></i>{' '}
-              This model requires a pharmaceutical formulation dataset which is not currently available in the project directory.
-            </div>
-            {/* train.html had a <ul> inside a <p>, which a browser cannot nest: it ends
-                the paragraph before the list and turns the stray </p> into an empty one.
-                This is the page as browsers drew it. */}
-            <p className="text-muted">The formulation forecasting model would predict:</p>
-            <ul className="text-muted small">
-              <li>Optimal antibiotic formulation types</li>
-              <li>Dosing strategies to counter resistance</li>
-              <li>Drug combination effectiveness</li>
-            </ul>{' '}
-            Training can be enabled once the relevant dataset is provided.
-            <p></p>{' '}
-            <button className="btn btn-secondary w-100" disabled>{' '}
-              <i className="bi bi-database-x me-2"></i>Dataset Not Available
-            </button>
-          </div>
-        </div>
       </div>
 
       {/* Reload Models */}
