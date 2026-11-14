@@ -1,0 +1,52 @@
+{
+  "schema": "amr-model-metrics/1",
+  "model": "genome_kmer_lightgbm",
+  "page": "/predict",
+  "run_id": "G_kmer_deploy",
+  "description": "Deploy candidate for /predict: LightGBM on 4-mers of the complete genome (v6, no plasmid records), threshold for VME <= 10% on validation",
+  "algorithm": "LightGBM on 4-mers of the complete genome",
+  "trained_at": "2026-09-29T04:29:05+00:00",
+  "promoted_at": "2026-09-29T04:30:47+00:00",
+  "git_commit": "df6b94dd",
+  "git_dirty": true,
+  "evaluation": {
+    "split": "grouped",
+    "test_genomes_unseen": true,
+    "headline": "lab-labelled test rows",
+    "all_rows_auc": 0.9371
+  },
+  "threshold": 0.43,
+  "threshold_rule": "highest threshold with very major error <= 10% on validation genomes, i.e. the lowest major error within that budget",
+  "calibration": null,
+  "test": {
+    "n": 40356,
+    "prevalence": 0.497,
+    "auc_roc": 0.9345,
+    "auc_roc_ci": [
+      0.9309,
+      0.9388
+    ],
+    "auc_pr": 0.9344,
+    "f1": 0.8559,
+    "accuracy": 0.8479,
+    "recall": 0.9089,
+    "specificity": 0.7876,
+    "very_major_error": 0.0911,
+    "major_error": 0.2124,
+    "brier": 0.1037,
+    "tp": 18228,
+    "fp": 4311,
+    "tn": 15990,
+    "fn": 1827
+  },
+  "data": {
+    "source": "complete assemblies (Data/genomes_full), cleaning v6",
+    "train_rows": 287774,
+    "test_rows": 40356,
+    "train_genomes": 19804,
+    "test_genomes": 4481,
+    "prevalence": 0.497,
+    "antibiotics": 111,
+    "genera": []
+  }
+}
