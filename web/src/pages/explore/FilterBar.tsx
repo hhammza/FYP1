@@ -60,7 +60,10 @@ export default function FilterBar({ meta, filters, update, clear }: Props) {
   return (
     <div className="glass-card mb-4 explore-filters" aria-label="Filters">
       <div className="d-flex flex-wrap align-items-center justify-content-between mb-3 gap-2">
-        <div className="section-label mb-0"><i className="bi bi-funnel me-2"></i>Filters {n > 0 && <span className="badge bg-primary ms-1">{n}</span>}</div>
+        <div className="section-label mb-0"><i className="bi bi-funnel me-2"></i>Filters {n > 0 && <span className="badge rounded-pill filter-count ms-1">{n}</span>}</div>
+        {/* the Gram buttons and Clear stay together on the right; Clear is always
+            there (disabled with no filters) so nothing shifts when a filter is set */}
+        <div className="d-flex flex-wrap align-items-center gap-2 ms-auto">
         <div className="btn-group btn-group-sm" role="group" aria-label="Gram stain">
           {(['', 'positive', 'negative', 'other'] as const).map(g => (
             <button key={g || 'all'} type="button" className={'btn btn-model' + (gram === g ? ' active' : '')}
@@ -69,7 +72,9 @@ export default function FilterBar({ meta, filters, update, clear }: Props) {
             </button>
           ))}
         </div>
-        {n > 0 && <button type="button" className="btn btn-sm btn-outline-secondary" onClick={clear}><i className="bi bi-x-lg me-1"></i>Clear filters</button>}
+        <button type="button" className="btn btn-sm btn-model filter-clear" onClick={clear} disabled={n === 0}
+                title={n ? 'Clear all filters' : 'No filters set'}><i className="bi bi-x-lg me-1"></i>Clear filters</button>
+        </div>
       </div>
       <div className="row g-3">
         <div className="col-md-4 col-lg-3">
@@ -110,15 +115,15 @@ export default function FilterBar({ meta, filters, update, clear }: Props) {
           </div>
         </div>
       </div>
-      <div className="d-flex flex-wrap gap-4 mt-3 small">
-        <div className="form-check form-switch">
+      <div className="d-flex flex-wrap align-items-center gap-4 mt-3 small">
+        <div className="form-check form-switch mb-0 d-flex align-items-center gap-2">
           <input className="form-check-input" type="checkbox" id="includeIntermediate" checked={filters.include_intermediate}
                  onChange={e => update({ include_intermediate: e.target.checked })} />
           <label className="form-check-label" htmlFor="includeIntermediate">Count intermediate results as resistant</label>
         </div>
         <div className="d-flex align-items-center gap-2">
           <label htmlFor="minN">Low sample below</label>
-          <input id="minN" type="number" min={1} className="form-control form-control-sm" style={{ width: 80 }}
+          <input id="minN" type="number" min={1} className="form-control form-control-sm form-control-custom" style={{ width: 80 }}
                  placeholder={String(meta.min_n_default)} value={filters.min_n} onChange={e => update({ min_n: e.target.value })} />
           <span className="text-muted">isolates</span>
         </div>

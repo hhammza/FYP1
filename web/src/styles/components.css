@@ -623,3 +623,8 @@
 .chem-detail-pct { font-size: 30px; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
 .chem-detail-pct.low { color: #138a5f; } .chem-detail-pct.mid { color: #b97800; } .chem-detail-pct.high { color: #c93636; }
 @media (max-width: 991.98px) { .chem-split { grid-template-columns: 1fr; } .chem-groups { max-height: 320px; } .chem-detail { max-height: none; } }
+
+/* Explorer filters: count badge in the theme colour; Clear keeps its place when disabled */
+.filter-count { background: var(--primary); color: #fff; font-size: 11px; }
+.filter-clear:disabled { opacity: 0.45; }
+.explore-filters .form-switch .form-check-input { margin-top: 0; }
