@@ -831,3 +831,56 @@ class ExportView(View):
         # lets a page on another origin (web/, deployed) read the file name
         response['Access-Control-Expose-Headers'] = 'Content-Disposition'
         return response
+
+
+# ---------------------------------------------------------------- Dashboard (/api/explore/*)
+# The instructor's dashboard views (docs/INSTRUCTOR_REQUIREMENTS_PLAN.md); the
+# queries are in api/explorer.py (Ali), so these views only parse and answer.
+
+def _explore(handler):
+    from api import explorer
+    if not explorer.available():
+        return json_error('Dashboard data not built. Run: python scripts/build_explorer_data.py', 503)
+    try:
+        return JsonResponse(handler(explorer))
+    except explorer.FilterError as e:
+        return json_error(str(e), 400)
+
+
+class ExploreMetaView(View):
+    def get(self, request):
+        return _explore(lambda ex: ex.meta())
+
+
+class ExploreSummaryView(View):
+    def get(self, request):
+        return _explore(lambda ex: ex.summary(request.GET))
+
+
+class ExploreCountriesView(View):
+    def get(self, request):
+        return _explore(lambda ex: ex.countries(request.GET))
+
+
+class ExploreDrugView(View):
+    def get(self, request, name):
+        from api import explorer
+        if not explorer.available():
+            return json_error('Dashboard data not built. Run: python scripts/build_explorer_data.py', 503)
+        try:
+            result = explorer.drug(name, request.GET)
+        except explorer.FilterError as e:
+            return json_error(str(e), 400)
+        return JsonResponse(result) if result else json_error(f'Unknown antibiotic: {name}', 404)
+
+
+class ExploreStructureView(View):
+    def get(self, request, cid):
+        from api import explorer
+        path = explorer.structure_path(cid) if explorer.available() else None
+        if not path:
+            return json_error('No structure image for this compound.', 404)
+        with open(path, 'rb') as fh:
+            response = HttpResponse(fh.read(), content_type='image/png')
+        response['Cache-Control'] = 'public, max-age=86400'
+        return response

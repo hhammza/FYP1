@@ -11,7 +11,7 @@ Reads
     Data/genome_meta/genome_meta.csv                 country, year, disease, body site
     backend/reference/*.csv                          infection rules, diseases, organisms
 Writes
-    backend/trained_models/explorer/cube.parquet     one row per combination of
+    backend/trained_models/explorer/cube.csv.gz      one row per combination of
         country, genus, species, antibiotic, infection_type, disease, year,
         with tested, resistant and intermediate counts
     backend/trained_models/explorer/cube_meta.json   build date, totals, coverage
@@ -99,7 +99,8 @@ def main():
                .reset_index()
                .rename(columns={'Antibiotic': 'antibiotic', 'disease_norm': 'disease'}))
     os.makedirs(OUT, exist_ok=True)
-    cube.to_parquet(os.path.join(OUT, 'cube.parquet'), index=False)
+    # CSV, not parquet: the backend image has no pyarrow
+    cube.to_csv(os.path.join(OUT, 'cube.csv.gz'), index=False)
 
     info = {
         'built': time.strftime('%Y-%m-%d'), 'source': 'cleaning v7, laboratory rows only',
@@ -113,9 +114,9 @@ def main():
     }
     with open(os.path.join(OUT, 'cube_meta.json'), 'w') as fh:
         json.dump(info, fh, indent=1)
-    size = os.path.getsize(os.path.join(OUT, 'cube.parquet')) / 1e6
+    size = os.path.getsize(os.path.join(OUT, 'cube.csv.gz')) / 1e6
     print(json.dumps(info, indent=1))
-    print(f'[done] cube.parquet {len(cube):,} rows, {size:.1f} MB, {time.time() - t0:.0f} s')
+    print(f'[done] cube.csv.gz {len(cube):,} rows, {size:.1f} MB, {time.time() - t0:.0f} s')
 
 
 if __name__ == '__main__':

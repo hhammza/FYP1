@@ -18,6 +18,12 @@ urlpatterns = [
     path('genes/info.csv', views.GeneInfoCSVView.as_view(), name='gene-info-csv'),
     path('genes/<str:genome_id>/', views.GeneLookupView.as_view(), name='gene-lookup'),
     path('reload/', views.ReloadModelsView.as_view(), name='reload'),
+    # Dashboard (docs/INSTRUCTOR_REQUIREMENTS_PLAN.md), queries in api/explorer.py
+    path('explore/meta/', views.ExploreMetaView.as_view(), name='explore-meta'),
+    path('explore/summary/', views.ExploreSummaryView.as_view(), name='explore-summary'),
+    path('explore/countries/', views.ExploreCountriesView.as_view(), name='explore-countries'),
+    path('explore/drug/<path:name>/', views.ExploreDrugView.as_view(), name='explore-drug'),
+    path('explore/structure/<int:cid>.png', views.ExploreStructureView.as_view(), name='explore-structure'),
     re_path(r'^export/(?P<page>forecast|predict|timeline|batch)\.(?P<fmt>csv|pdf)$',
             views.ExportView.as_view(), name='export'),
 ]
