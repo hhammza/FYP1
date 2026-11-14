@@ -21,7 +21,8 @@ export class ApiError extends Error {
   }
 }
 
-const NOT_RUNNING = 'Django backend not running. Start it with: python manage.py runserver';
+const NOT_RUNNING = 'Django backend not running. Start everything with ./start.sh (start.bat on Windows), '
+  + 'or run python manage.py runserver in backend/.';
 
 export interface RequestOptions {
   timeoutS?: number;
