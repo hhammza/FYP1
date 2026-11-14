@@ -52,5 +52,59 @@ class Parity(unittest.TestCase):
                 self.assertEqual(b['evidence'], lib['evidence'])
 
 
+SERVED = os.path.join(BACKEND, 'trained_models')
+
+
+def library_or_skip():
+    try:
+        import amrpredict  # noqa: F401
+    except ImportError as e:
+        raise unittest.SkipTest(f'amrpredict not importable: {e}')
+
+
+class GenomeParity(unittest.TestCase):
+    """amrpredict.predict_fasta(use_genes=False) and /predict's k-mer model (0.3.0 on)."""
+
+    def test_same_answer(self):
+        library_or_skip()
+        import random
+        from amrpredict.genome import GenomeModelPredictor as Library
+        from ml_models.genome_predictor import GenomeModelPredictor as Served
+        rng = random.Random(3)
+        fasta = '>a\n' + ''.join(rng.choice('ACGT') for _ in range(120_000)) + '\n>b\n' + 'GATTACA' * 2000
+        lib, served = Library(folder='genome'), Served(SERVED, folder='genome')
+        self.assertEqual(lib.meta.get('run_id'), served.meta.get('run_id'))
+        for ab in ('ciprofloxacin', 'Meropenem', 'not-a-drug'):
+            with self.subTest(ab):
+                self.assertEqual(lib.predict(fasta, ab), served.predict(fasta, ab))
+
+
+class TrendParity(unittest.TestCase):
+    """amrpredict.forecast_trend and /api/timeline/forecast/'s model."""
+
+    def test_same_forecast(self):
+        library_or_skip()
+        from amrpredict.timeline_ml import TimelineMLForecaster as Library
+        from ml_models.timeline_ml import TimelineMLForecaster as Served
+        lib, served = Library(), Served(SERVED)
+        for genus, ab in (('Salmonella', 'ciprofloxacin'), ('Escherichia', 'ampicillin'),
+                          ('Klebsiella', 'meropenem')):
+            with self.subTest(genus=genus, ab=ab):
+                self.assertEqual(lib.forecast(genus, ab, years_ahead=7), served.forecast(genus, ab, years_ahead=7))
+
+
+class RLParity(unittest.TestCase):
+    """amrpredict.plan_treatment and /api/timeline/'s `rl` block."""
+
+    def test_same_plan(self):
+        library_or_skip()
+        from amrpredict import rl_agent as library
+        from ml_models import rl_agent as served
+        lib, srv = library.load(), served.load(SERVED)
+        for ab, weeks in (('ciprofloxacin', 12), ('imipenem', 52)):
+            with self.subTest(ab=ab, weeks=weeks):
+                self.assertEqual(lib.block(ab, weeks), srv.block(ab, weeks))
+
+
 if __name__ == '__main__':
     unittest.main()
