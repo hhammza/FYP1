@@ -322,7 +322,7 @@ export default function Compare() {
   const ready = report.state === 'ready' && report.report.shipped && report.report.training_profiles;
   return (
     <>
-      <ReportHeader title="Deployed vs Experimental Models" icon="layout-split" crumb="Comparison"
+      <ReportHeader title="Deployed vs Experimental Models" icon="layout-split" scene="compare" crumb="Comparison"
                     parent={{ to: '/models', label: 'Model Report' }}
                     subtitle="What each model learned from, how it was tested, and how it scores on genomes it has never seen" />
       <div className="container-xl py-4" ref={setRoot}>

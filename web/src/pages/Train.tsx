@@ -11,6 +11,7 @@ import { useToast } from '../components/Toasts';
 import { useTitle } from '../lib/pageEffects';
 import type { ModelStatus } from '../lib/types';
 import BioIcon from '../components/BioIcon';
+import HeaderScene from '../components/HeaderScene';
 
 /** "lgbm_forecasting: ✅ Trained | kmer_resistance: ⚠️ Heuristic", as train.js showed it. */
 export function reloadSummary(models: Record<string, ModelStatus> | undefined): string {
@@ -79,6 +80,7 @@ export default function Train() {
   return (
     <>
     <div className="page-header">
+      <HeaderScene kind="trees" />
       <div className="container-xl">
         <nav aria-label="breadcrumb"><ol className="breadcrumb breadcrumb-custom">
           <li className="breadcrumb-item"><Link to="/">Dashboard</Link></li>

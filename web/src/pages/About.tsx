@@ -2,6 +2,7 @@ import { Link } from 'react-router';
 import { useMetrics } from '../lib/health';
 import { useTitle } from '../lib/pageEffects';
 import BioIcon from '../components/BioIcon';
+import HeaderScene from '../components/HeaderScene';
 
 export default function About() {
   useTitle('About the AMR Prediction System');
@@ -9,6 +10,7 @@ export default function About() {
   return (
     <>
     <div className="page-header">
+      <HeaderScene kind="microscope" />
       <div className="container-xl">
         <nav aria-label="breadcrumb"><ol className="breadcrumb breadcrumb-custom">
           <li className="breadcrumb-item"><Link to="/">Dashboard</Link></li>

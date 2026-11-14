@@ -14,6 +14,7 @@ import './styles/animations.css';
 import './styles/bio-motion.css';
 import './styles/bio-icons.css';
 import './styles/icon-motion.css';
+import './styles/header-scenes.css';
 import './styles/dark.css';
 // Dropdowns, the phone menu and tooltips (data-bs-* attributes)
 import 'bootstrap';

@@ -12,6 +12,7 @@ import GenomeDemo from './models/GenomeDemo';
 import { aucFigure, drugFigure, errorFigure, genomeFigure, learningFigure, rocFigure, seenFigure } from './models/charts';
 import CellLoader from '../components/CellLoader';
 import BioIcon from '../components/BioIcon';
+import HeaderScene, { type SceneKind } from '../components/HeaderScene';
 
 // the template's '%.3f' etc., rounded as Python rounds
 const f3 = (x: number) => pyFixed(x, 3);
@@ -27,8 +28,8 @@ function Chart({ id, report, build, height }: {
   return <Plot id={id} className="report-chart" style={{ height }} figure={figure} />;
 }
 
-export function ReportHeader({ title, subtitle, icon, crumb, parent }: {
-  title: string; subtitle: string; icon: string;
+export function ReportHeader({ title, subtitle, icon, crumb, parent, scene = 'roc' }: {
+  title: string; subtitle: string; icon: string; scene?: SceneKind;
   /** the breadcrumb's last item, when not the title */
   crumb?: string;
   /** a page between the Dashboard and this one */
@@ -36,6 +37,7 @@ export function ReportHeader({ title, subtitle, icon, crumb, parent }: {
 }) {
   return (
     <div className="page-header">
+      <HeaderScene kind={scene} />
       <div className="container-xl">
         <nav aria-label="breadcrumb"><ol className="breadcrumb breadcrumb-custom">
           <li className="breadcrumb-item"><Link to="/">Dashboard</Link></li>

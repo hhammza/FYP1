@@ -2,6 +2,7 @@ import { Link } from 'react-router';
 import { useMetrics } from '../lib/health';
 import { EXPLORE_VIEWS } from '../pages/explore/nav';
 import BioIcon from './BioIcon';
+import FooterScene from './FooterScene';
 
 type FooterLink = { to: string; label: string; icon: string };
 
@@ -41,6 +42,7 @@ export default function Footer() {
   ];
   return (
     <footer className="footer mt-auto">
+      <FooterScene />
       <div className="container-xl">
         <div className="ft-grid">
           <div className="ft-brand">

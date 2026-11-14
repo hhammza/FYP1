@@ -2,12 +2,14 @@ import { Link } from 'react-router';
 import CopyButton from '../components/CopyButton';
 import { useTitle } from '../lib/pageEffects';
 import BioIcon from '../components/BioIcon';
+import HeaderScene from '../components/HeaderScene';
 
 export default function Library() {
   useTitle('Python Library');
   return (
     <>
     <div className="page-header">
+      <HeaderScene kind="terminal" />
       <div className="container-xl">
         <nav aria-label="breadcrumb"><ol className="breadcrumb breadcrumb-custom">
           <li className="breadcrumb-item"><Link to="/">Dashboard</Link></li>

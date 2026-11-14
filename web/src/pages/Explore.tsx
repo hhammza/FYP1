@@ -13,6 +13,7 @@ import type { ExploreMeta } from './explore/types';
 import { ChemistryView, CountryHeatMap, DrugComparison, GroupComparison, GroupMap, LoadError, useExplore } from './explore/views';
 import CellLoader from '../components/CellLoader';
 import BioIcon from '../components/BioIcon';
+import HeaderScene from '../components/HeaderScene';
 
 /** /explore and old ?view= links go to the matching page, keeping the filters. */
 export function ExploreRedirect() {
@@ -41,6 +42,7 @@ export default function Explore() {
   return (
     <>
       <div className="page-header">
+        <HeaderScene kind="world" />
         <div className="container-xl">
           <nav aria-label="breadcrumb"><ol className="breadcrumb breadcrumb-custom">
             <li className="breadcrumb-item"><Link to="/">Dashboard</Link></li>

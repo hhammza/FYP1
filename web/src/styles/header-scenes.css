@@ -1,0 +1,219 @@
+/* ============================================================
+   AMRPredict: per-page header scenes (components/HeaderScene)
+   Each sits on the right of the page header, faded towards the
+   title. Shared colours first, then one block per scene.
+   ============================================================ */
+.header-scene {
+  --sa: #6366f1; --sb: #14b8a6; --sc: #f59e0b; --sd: #ef4444; --sl: rgba(15,23,42,.28); --st: #64748b; --sbg: rgba(255,255,255,.7);
+  position: absolute; z-index: 0; top: 0; bottom: 0; right: 0; width: min(54%, 720px); pointer-events: none;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 22%); mask-image: linear-gradient(90deg, transparent 0%, #000 22%);
+  opacity: .9;
+}
+[data-theme="dark"] .header-scene { --sa: #818cf8; --sb: #2dd4bf; --sc: #fbbf24; --sd: #f87171; --sl: rgba(255,255,255,.22); --st: #8391a7; --sbg: rgba(15,23,42,.6); }
+.header-scene svg { width: 100%; height: 100%; display: block; overflow: visible; }
+.header-scene svg *:not([transform]) { transform-box: fill-box; transform-origin: center; }
+.header-scene text { font-family: var(--mono, 'JetBrains Mono', monospace); }
+.sc-caption { font-size: 10px; fill: var(--st); }
+.sc-axis { fill: none; stroke: var(--sl); stroke-width: 1.2; }
+@media (max-width: 991.98px) { .header-scene { width: 70%; opacity: .3; } }
+@media (prefers-reduced-motion: reduce) { .header-scene { display: none; } }
+
+/* k-mer scan */
+.sc-scroll { animation: sc-scroll 30s linear infinite; }
+@keyframes sc-scroll { to { transform: translateX(var(--len)); } }
+.sc-base { font-size: 14px; font-weight: 700; }
+.sc-base.dim { opacity: .55; }
+.b-A { fill: var(--sb); } .b-T { fill: var(--sd); } .b-G { fill: var(--sc); } .b-C { fill: var(--sa); }
+.sc-tick { stroke: var(--sl); stroke-width: 1.4; }
+.sc-gene { fill: var(--sd); fill-opacity: .1; stroke: var(--sd); stroke-opacity: .5; stroke-dasharray: 4 3; }
+.sc-gene-label { font-size: 10px; font-weight: 700; fill: var(--sd); font-style: italic; }
+.sc-window { fill: var(--sa); fill-opacity: .1; stroke: var(--sa); stroke-width: 2; animation: sc-glow 1.6s ease-in-out infinite; }
+@keyframes sc-glow { 0%, 100% { filter: drop-shadow(0 0 0 var(--sa)); } 50% { filter: drop-shadow(0 0 6px var(--sa)); } }
+.sc-count { fill: var(--sa); fill-opacity: .7; transform-origin: bottom center !important; animation: sc-count 1.8s ease-in-out infinite alternate; }
+@keyframes sc-count { from { transform: scaleY(.35); } to { transform: scaleY(1); } }
+
+/* MIC plate */
+.sc-arrow { fill: none; stroke: var(--sl); stroke-width: 1.4; }
+.sc-arrowhead { fill: var(--sl); }
+.sc-well { fill: var(--sbg); stroke: var(--sl); stroke-width: 1.6; }
+.sc-drug { fill: var(--sc); }
+.sc-growth { opacity: 0; animation: sc-grow 6s ease-out infinite; }
+@keyframes sc-grow { 0% { opacity: 0; transform: scale(.4); } 14% { opacity: 1; transform: scale(1); } 84% { opacity: 1; } 94%, 100% { opacity: 0; } }
+.sc-turbid { fill: var(--sb); fill-opacity: .3; }
+.sc-bug { fill: var(--sb); }
+.sc-mic-pointer > g { animation: sc-mic 6s cubic-bezier(.5,0,.3,1) infinite; }
+@keyframes sc-mic { 0%, 30% { translate: var(--from) 0; opacity: 0; } 34% { opacity: 1; } 50%, 86% { translate: 0 0; opacity: 1; } 94%, 100% { translate: 0 0; opacity: 0; } }
+.sc-pointer { fill: var(--sd); }
+.sc-pointer-label { font-size: 11px; font-weight: 700; fill: var(--sd); }
+
+/* treatment timeline */
+.sc-dose { animation: sc-dose 7s ease-out infinite; opacity: 0; }
+@keyframes sc-dose { 0% { opacity: 0; transform: scale(.3); } 6% { opacity: 1; transform: scale(1.3); } 12%, 84% { opacity: 1; transform: scale(1); } 94%, 100% { opacity: 0; } }
+.sc-cap-a { fill: var(--sd); } .sc-cap-b { fill: var(--sbg); stroke: var(--sd); stroke-width: 1; }
+.sc-curve { fill: none; stroke-width: 3; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: 1; animation: sc-draw 7s linear infinite; }
+.sc-curve.s { stroke: var(--sb); } .sc-curve.r { stroke: var(--sd); }
+@keyframes sc-draw { 0% { stroke-dashoffset: 1; opacity: 1; } 57% { stroke-dashoffset: 0; } 86% { stroke-dashoffset: 0; opacity: 1; } 96%, 100% { stroke-dashoffset: 0; opacity: 0; } }
+.sc-curve-label { font-size: 10px; font-weight: 700; opacity: 0; animation: sc-label 7s ease infinite; text-anchor: end; }
+.sc-curve-label.s { fill: var(--sb); } .sc-curve-label.r { fill: var(--sd); }
+.sc-curve-label { transform: translate(-4px, -8px); }
+@keyframes sc-label { 0%, 55% { opacity: 0; } 62%, 86% { opacity: 1; } 96%, 100% { opacity: 0; } }
+.sc-playhead { stroke: var(--sa); stroke-width: 1.2; stroke-dasharray: 3 3; animation: sc-play 7s linear infinite; }
+@keyframes sc-play { 0% { transform: translateX(0); opacity: 1; } 57% { transform: translateX(544px); opacity: 1; } 62%, 100% { transform: translateX(544px); opacity: 0; } }
+
+/* world */
+.sc-bar-track { fill: var(--sl); opacity: .35; }
+.sc-bar { transform-origin: left center !important; animation: sc-bar 5s ease-out infinite; }
+@keyframes sc-bar { 0% { transform: scaleX(0); } 25%, 85% { transform: scaleX(1); } 100% { transform: scaleX(0); } }
+.sc-globe { fill: var(--sa); fill-opacity: .06; stroke: var(--sa); stroke-width: 1.6; }
+.sc-lat { fill: none; stroke: var(--sa); stroke-opacity: .3; }
+.sc-meridian { fill: none; stroke: var(--sa); stroke-opacity: .45; animation: sc-meridian 6s linear infinite; }
+@keyframes sc-meridian { 0% { transform: scaleX(2.4); opacity: 0; } 15% { opacity: 1; } 50% { transform: scaleX(.04); } 85% { opacity: 1; } 100% { transform: scaleX(2.4); opacity: 0; } }
+.sc-arc { fill: none; stroke: var(--sc); stroke-width: 1.6; stroke-dasharray: 4 5; animation: sc-flow 1.2s linear infinite; }
+@keyframes sc-flow { to { stroke-dashoffset: -18; } }
+.sc-spot { stroke: var(--sbg); stroke-width: 1; }
+.sc-ripple { fill: none; stroke: var(--c); stroke-width: 2; animation: sc-ripple 2.5s ease-out infinite; }
+@keyframes sc-ripple { from { transform: scale(.8); opacity: .9; } to { transform: scale(4); opacity: 0; } }
+
+/* plasmid transfer */
+.sc-cell { stroke-width: 2.2; }
+.sc-cell.r { fill: var(--sa); fill-opacity: .12; stroke: var(--sa); }
+.sc-cell.recipient { fill: var(--sb); fill-opacity: .12; stroke: var(--sb); animation: sc-convert 7s ease infinite; }
+@keyframes sc-convert { 0%, 58% { fill: var(--sb); stroke: var(--sb); } 66%, 88% { fill: var(--sa); stroke: var(--sa); } 100% { fill: var(--sb); stroke: var(--sb); } }
+.sc-chromo { fill: none; stroke: var(--st); stroke-opacity: .5; stroke-width: 1.4; }
+.sc-plasmid { fill: none; stroke: var(--sa); stroke-width: 2; stroke-dasharray: 5 3; }
+.sc-gene-arc { fill: none; stroke-width: 4; stroke-linecap: round; }
+.sc-gene-arc.a { stroke: var(--sd); } .sc-gene-arc.b { stroke: var(--sc); }
+.sc-ring-spin { animation: sc-spin 8s linear infinite; }
+@keyframes sc-spin { to { transform: rotate(360deg); } }
+.sc-pilus { stroke: var(--sa); stroke-width: 2; stroke-dasharray: 3 4; animation: sc-flow 1s linear infinite; }
+.sc-travel { opacity: 0; animation: sc-travel 7s ease-in-out infinite; }
+@keyframes sc-travel { 0%, 20% { translate: 0 0; opacity: 0; } 25% { opacity: 1; } 58% { translate: 242px 0; opacity: 1; } 62%, 100% { translate: 242px 0; opacity: 0; } }
+.sc-ring-new { opacity: 0; animation: sc-ring-new 7s ease infinite; }
+@keyframes sc-ring-new { 0%, 58% { opacity: 0; transform: scale(.4) rotate(0); } 66% { opacity: 1; transform: scale(1) rotate(60deg); } 88% { opacity: 1; transform: rotate(240deg); } 96%, 100% { opacity: 0; } }
+
+/* cleaning pipeline */
+.sc-num { font-size: 16px; font-weight: 800; fill: var(--sa); }
+.sc-gate { stroke: var(--sa); stroke-width: 3; stroke-linecap: round; }
+.sc-gate-sieve { stroke: var(--sa); stroke-width: 2; stroke-dasharray: 2 4; animation: sc-flow 0.8s linear infinite; }
+.sc-db-body { fill: var(--sb); fill-opacity: .12; stroke: var(--sb); stroke-width: 2; }
+.sc-db-top { fill: var(--sb); fill-opacity: .3; stroke: var(--sb); stroke-width: 2; }
+.sc-db-line { fill: none; stroke: var(--sb); stroke-opacity: .5; }
+.sc-db { animation: sc-db 0.6s ease-in-out infinite alternate; }
+@keyframes sc-db { from { filter: none; } to { filter: drop-shadow(0 0 5px var(--sb)); } }
+.sc-rec { opacity: 0; }
+.sc-rec rect { fill: var(--sa); fill-opacity: .25; stroke: var(--sa); stroke-width: 1.2; }
+.sc-rec line { stroke: var(--sa); stroke-width: 1.5; }
+.sc-rec.good { animation: sc-good 4.8s ease-in-out infinite; }
+.sc-rec.bad { animation: sc-bad 4.8s ease-in infinite; }
+.sc-rec.bad rect { animation: sc-bad-col 4.8s infinite; animation-delay: inherit; }
+@keyframes sc-good { 0% { translate: 0 0; opacity: 0; } 6% { opacity: 1; } 45% { translate: 205px 0; } 82% { translate: 375px -4px; opacity: 1; transform: scale(1); } 90%, 100% { translate: 375px -4px; opacity: 0; transform: scale(.4); } }
+@keyframes sc-bad { 0% { translate: 0 0; opacity: 0; } 6% { opacity: 1; } 45% { translate: 205px 0; transform: rotate(0); } 70% { translate: 222px 46px; opacity: .8; transform: rotate(35deg); } 78%, 100% { translate: 222px 56px; opacity: 0; } }
+@keyframes sc-bad-col { 0%, 44% { fill: var(--sa); stroke: var(--sa); } 50%, 100% { fill: var(--sd); stroke: var(--sd); } }
+
+/* ROC and confusion matrix */
+.sc-cm { stroke-width: 1.5; animation: sc-cm 3s ease-in-out infinite; }
+.sc-cm.tp, .sc-cm.tn { fill: var(--sb); fill-opacity: .2; stroke: var(--sb); }
+.sc-cm.fp, .sc-cm.fn { fill: var(--sd); fill-opacity: .12; stroke: var(--sd); }
+@keyframes sc-cm { 0%, 100% { transform: scale(1); filter: none; } 15% { transform: scale(1.08); filter: drop-shadow(0 0 5px currentColor); } 30% { transform: scale(1); } }
+.sc-cm-label { font-size: 11px; font-weight: 700; fill: var(--st); }
+.sc-roc-box { fill: var(--sbg); stroke: var(--sl); }
+.sc-chance { stroke: var(--sl); stroke-dasharray: 4 4; }
+.sc-curve.roc { stroke: var(--sa); animation-duration: 5s; }
+.sc-curve.roc.s { stroke: var(--sb); stroke-dasharray: 1; }
+.sc-curve.roc.late { animation-delay: .8s; }
+.sc-roc-area { fill: var(--sa); opacity: 0; animation: sc-area 5s ease infinite; }
+@keyframes sc-area { 0%, 50% { opacity: 0; } 62%, 86% { opacity: .14; } 96%, 100% { opacity: 0; } }
+
+/* boosted trees */
+.sc-tree { --t: 0s; }
+.sc-edge { fill: none; stroke: var(--sl); stroke-width: 1.6; stroke-dasharray: 1; stroke-dashoffset: 1; animation: sc-edge 6.4s ease infinite; animation-delay: var(--t); }
+@keyframes sc-edge { 0% { stroke-dashoffset: 1; opacity: 1; } 12%, 80% { stroke-dashoffset: 0; opacity: 1; } 92%, 100% { stroke-dashoffset: 0; opacity: 0; } }
+.sc-node { fill: var(--sa); opacity: 0; animation: sc-node 6.4s ease infinite; animation-delay: var(--t); }
+.sc-leaf { opacity: 0; animation: sc-node 6.4s ease infinite; animation-delay: calc(var(--t) + .35s); }
+.sc-leaf.s { fill: var(--sb); } .sc-leaf.r { fill: var(--sd); }
+@keyframes sc-node { 0% { opacity: 0; transform: scale(0); } 8% { opacity: 1; transform: scale(1.3); } 12%, 80% { opacity: 1; transform: scale(1); } 92%, 100% { opacity: 0; } }
+.sc-plus { font-size: 22px; font-weight: 700; fill: var(--st); }
+.sc-prob { fill: var(--sd); transform-origin: left center !important; animation: sc-prob 6.4s ease infinite; }
+@keyframes sc-prob { 0%, 45% { transform: scaleX(0); } 60%, 85% { transform: scaleX(.82); } 95%, 100% { transform: scaleX(0); } }
+
+/* terminal */
+.sc-term { fill: #0f172a; stroke: var(--sl); }
+.sc-term-bar { fill: #1e293b; }
+.sc-dot.d0 { fill: #ef4444; } .sc-dot.d1 { fill: #f59e0b; } .sc-dot.d2 { fill: #22c55e; }
+.sc-cmd { font-size: 9.6px; fill: #e2e8f0; }
+.sc-prompt { fill: #2dd4bf; }
+.sc-type { transform-origin: left center !important; animation: sc-type 8s steps(var(--n)) infinite; }
+@keyframes sc-type { 0% { transform: scaleX(0); } 22%, 92% { transform: scaleX(1); } 100% { transform: scaleX(0); } }
+.sc-cursor { fill: #2dd4bf; animation: sc-blink 1s steps(2) infinite; }
+@keyframes sc-blink { 50% { opacity: 0; } }
+
+/* microscope */
+.sc-knob { fill: none; stroke: var(--sl); stroke-width: 6; stroke-dasharray: 2 5; animation: sc-spin 30s linear infinite; }
+.sc-eye { fill: var(--sbg); stroke: var(--sa); stroke-width: 3; }
+.sc-focus { animation: sc-focus 6s ease-in-out infinite; }
+@keyframes sc-focus { 0%, 100% { filter: blur(2.5px); } 40%, 70% { filter: blur(0); } }
+.sc-swim { animation: sc-swim 3s ease-in-out infinite alternate; }
+@keyframes sc-swim { from { transform: translate(-6px, -3px) rotate(-10deg); } to { transform: translate(6px, 3px) rotate(10deg); } }
+.sc-micro.s { fill: var(--sb); fill-opacity: .35; stroke: var(--sb); stroke-width: 1.4; }
+.sc-micro.r { fill: var(--sa); fill-opacity: .35; stroke: var(--sa); stroke-width: 1.4; }
+.sc-micro-flag { fill: none; stroke: var(--sb); stroke-width: 1.2; }
+.sc-cross { stroke: var(--sa); stroke-opacity: .25; stroke-width: 1; }
+.sc-scale { stroke: var(--st); stroke-width: 2.5; }
+
+/* ── FOOTER STRIP (components/FooterScene) ────────────────── */
+.footer { padding-top: 78px; }
+.footer-scene {
+  --sa: #6366f1; --sb: #14b8a6; --sc: #f59e0b; --sd: #ef4444;
+  position: absolute; top: 10px; left: 0; right: 0; height: 52px; overflow: hidden; pointer-events: none;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+          mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+  opacity: .75;
+}
+[data-theme="dark"] .footer-scene { --sa: #818cf8; --sb: #2dd4bf; --sc: #fbbf24; --sd: #f87171; }
+.fs-dna { position: absolute; left: 0; top: 0; animation: fs-flow 60s linear infinite; }
+@keyframes fs-flow { to { transform: translateX(-2400px); } }
+.fs-strand { fill: none; stroke-width: 2; stroke-linecap: round; }
+.fs-strand.a { stroke: var(--sa); } .fs-strand.b { stroke: var(--sb); }
+.fs-rung { stroke-width: 1.6; opacity: .35; }
+.fs-rung.k0 { stroke: var(--sa); } .fs-rung.k1 { stroke: var(--sb); } .fs-rung.k2 { stroke: var(--sc); } .fs-rung.k3 { stroke: var(--sd); }
+.fs-bug { position: absolute; left: 0; width: 34px; height: 14px; animation: fs-swim 22s linear infinite; }
+.fs-bug rect { fill: var(--sb); fill-opacity: .3; stroke: var(--sb); stroke-width: 1.6; }
+.fs-bug.r rect { fill: var(--sa); stroke: var(--sa); }
+.fs-flag { fill: none; stroke: var(--sb); stroke-width: 1.3; transform-box: fill-box; transform-origin: left center; animation: fs-wag .4s ease-in-out infinite alternate; }
+.fs-bug.r .fs-flag { stroke: var(--sa); }
+@keyframes fs-wag { to { transform: scaleY(-1); } }
+.fs-bug.b1 { top: 4px; animation-duration: 26s; }
+.fs-bug.b2 { top: 30px; animation-duration: 34s; animation-delay: -12s; }
+.fs-bug.b3 { top: 16px; animation-duration: 19s; animation-delay: -6s; }
+@keyframes fs-swim {
+  0% { transform: translateX(-60px) translateY(0) rotate(180deg); }
+  25% { transform: translateX(25vw) translateY(4px) rotate(176deg); }
+  50% { transform: translateX(50vw) translateY(-3px) rotate(184deg); }
+  75% { transform: translateX(75vw) translateY(3px) rotate(178deg); }
+  100% { transform: translateX(calc(100vw + 60px)) translateY(0) rotate(180deg); }
+}
+.fs-capsule { position: absolute; top: 18px; left: 0; width: 24px; height: 14px; animation: fs-drift 40s linear infinite; animation-delay: -20s; }
+.fs-cap-a { fill: var(--sd); } .fs-cap-b { fill: none; stroke: var(--sd); stroke-width: 1.4; }
+@keyframes fs-drift { from { transform: translateX(calc(100vw + 40px)) rotate(0); } to { transform: translateX(-40px) rotate(-720deg); } }
+@media (prefers-reduced-motion: reduce) { .footer-scene { display: none; } .footer { padding-top: 40px; } }
+
+/* ── HOME HERO HELIX (components/HeroHelix) ───────────────── */
+.hero-helix {
+  --ha: #6366f1; --hb: #14b8a6; --nA: #14b8a6; --nT: #f59e0b; --nG: #6366f1; --nC: #ec4899; --mut: #ef4444;
+  position: absolute; z-index: 0; top: 2%; bottom: 2%; left: 52%; width: 200px; transform: translateX(-50%) rotate(8deg);
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(transparent, #000 10%, #000 90%, transparent);
+          mask-image: linear-gradient(transparent, #000 10%, #000 90%, transparent);
+}
+[data-theme="dark"] .hero-helix { --ha: #818cf8; --hb: #2dd4bf; --nA: #2dd4bf; --nT: #fbbf24; --nG: #818cf8; --nC: #f472b6; }
+.hero-helix svg { width: 100%; height: 100%; overflow: visible; }
+.hh-seg { stroke-linecap: round; }
+.hh-seg.a { stroke: var(--ha); } .hh-seg.b { stroke: var(--hb); }
+.hh-nuc.a { fill: var(--ha); } .hh-nuc.b { fill: var(--hb); }
+.hh-rung { stroke-width: 3; stroke-linecap: round; transition: stroke .3s; }
+.n-A { stroke: var(--nA); } .n-T { stroke: var(--nT); } .n-G { stroke: var(--nG); } .n-C { stroke: var(--nC); }
+.hh-pair.mutating .hh-rung { stroke: var(--mut); stroke-width: 4.5; animation: hh-flash .5s ease-in-out 3 alternate; filter: drop-shadow(0 0 5px var(--mut)); }
+@keyframes hh-flash { from { opacity: 1; } to { opacity: .35; } }
+.hh-tag rect { fill: var(--mut); }
+.hh-tag text { fill: #fff; font: 700 11px var(--mono, 'JetBrains Mono', monospace); }
+@media (max-width: 991.98px) { .hero-helix { left: auto; right: -40px; transform: rotate(8deg); opacity: .3; } }

@@ -3,12 +3,14 @@
 import { Link } from 'react-router';
 import { useMetrics } from '../../lib/health';
 import BioIcon from '../../components/BioIcon';
+import HeaderScene from '../../components/HeaderScene';
 
 /** The page header. */
 export function TimelineHeader() {
   return (
     <>
     <div className="page-header">
+      <HeaderScene kind="growth" />
       <div className="container-xl">
         <nav aria-label="breadcrumb"><ol className="breadcrumb breadcrumb-custom">
           <li className="breadcrumb-item"><Link to="/">Dashboard</Link></li>

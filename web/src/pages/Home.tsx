@@ -3,6 +3,7 @@ import ModelStatus from '../components/ModelStatus';
 import { useHealth } from '../lib/health';
 import { useTitle } from '../lib/pageEffects';
 import BioIcon from '../components/BioIcon';
+import HeroHelix from '../components/HeroHelix';
 
 export default function Home() {
   useTitle('Dashboard');
@@ -11,6 +12,7 @@ export default function Home() {
     <>
     {/* ══ HERO ══════════════════════════════════════════════════ */}
     <div className="hero-section">
+      <HeroHelix />
       <div className="container-xl position-relative">
         <div className="row align-items-center g-4 g-lg-5">
           <div className="col-lg-7">{' '}

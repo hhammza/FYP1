@@ -11,6 +11,7 @@ import { classFigure, geneTitle, heatFigure, perGenomeFigure, topFigure } from '
 import type { GeneReport, GenomeGenes, LabView } from './genes/types';
 import CellLoader from '../components/CellLoader';
 import BioIcon from '../components/BioIcon';
+import HeaderScene from '../components/HeaderScene';
 
 const FIRST_ROWS = 12;
 const KIND_LABEL: Record<string, string> = { gene: 'Gene', point_mutation: 'Mutation' };
@@ -400,6 +401,7 @@ export default function Genes() {
   return (
     <>
       <div className="page-header">
+        <HeaderScene kind="plasmid" />
         <div className="container-xl">
           <nav aria-label="breadcrumb"><ol className="breadcrumb breadcrumb-custom">
             <li className="breadcrumb-item"><Link to="/">Dashboard</Link></li>
