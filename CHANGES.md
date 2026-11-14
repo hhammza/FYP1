@@ -8,7 +8,8 @@ Baseline is commit **`52ae361`** *(Add amrpredict library and macOS launcher, 20
 
 | File | What it is | Status |
 |---|---|---|
-| [README.md](README.md) | How the whole system fits together | Created, then revised |
+| [README.md](README.md) | The short overview: what the platform does, results, quick start, layout, team | Created, revised, then shortened 2026-11-14 |
+| [docs/README.md](docs/README.md) | Index of the detailed guides in `docs/` (overview, architecture, engines, data and training, web app, library, running, results, issues, glossary) | Created 2026-11-14 from the README's sections 0 to 13 |
 | [EXPERIMENT_PLAN.md](docs/EXPERIMENT_PLAN.md) | Staged plan for model experiments | Created, then corrected against measurements |
 | [experiments/HANDBOOK.md](experiments/HANDBOOK.md) | Full reference for the training setup | Created, then revised |
 | [experiments/README.md](experiments/README.md) | Usage card for the harness | Created, then revised |
@@ -17,6 +18,17 @@ Baseline is commit **`52ae361`** *(Add amrpredict library and macOS launcher, 20
 | [PROJECT_DOCUMENTATION.md](docs/PROJECT_DOCUMENTATION.md) | The original long reference | **Unchanged**. Superseding facts are recorded in [README.md](README.md) instead |
 
 ---
+
+## README split into an overview and detailed guides (2026-11-14, Ali)
+
+The README had grown to 780 lines. It is now a one-page overview, and its sections 0 to 13 moved word for word into ten guides in `docs/`, indexed by [docs/README.md](docs/README.md). Section numbers (§) are kept in the guides, and every § reference links to the guide that holds that section.
+
+| File | Change |
+|---|---|
+| [README.md](README.md) | Rewritten as an overview: the four questions and engines, results, data, quick start (React app by default, `--flask`, `--update`), folders, documentation links, team |
+| [docs/overview.md](docs/overview.md), [architecture.md](docs/architecture.md), [models.md](docs/models.md), [data-and-training.md](docs/data-and-training.md), [library.md](docs/library.md), [frontend.md](docs/frontend.md), [running-and-deployment.md](docs/running-and-deployment.md), [results.md](docs/results.md), [known-issues.md](docs/known-issues.md), [glossary.md](docs/glossary.md) | The README's sections, moved unchanged apart from links: repository paths gain `../`, and § references link across guides |
+| [docs/README.md](docs/README.md) | Index of the guides and of the plans already in `docs/`; marks PROJECT_DOCUMENTATION.md as the older reference |
+| [CHANGES.md](CHANGES.md) | Links to README sections point to the guide that now holds each section |
 
 ## ML forecast and the live RL agent on /timeline (2026-10-25, Suleman)
 
@@ -423,7 +435,7 @@ Hamza's follow-up to Ali's Genome ID fix (`77bc855`, `b05d718`).
 `D3_forecaster_deploy` (D2 on v5) replaces D2: AUC **0.8039 [0.8001-0.8076]** on 311,712 test rows of 26,324 unseen genomes; **0.7997** as `/forecast` scores it; threshold 0.23 (VME 8.2%, ME 54.6%, recall 91.8%). The ID bug had barely affected the model (D2: 0.8044). K-mer re-test on the fixed IDs: 2,505 genomes join (was 2,485), AUC 0.6949 (was 0.6951).
 
 ### Registry re-run
-All 23 experiment configs re-run on v5; `D1` and `D2` stay on v3 and v4 as the record of what was served. Every AUC moved by less than 0.012 with overlapping intervals (A2 0.8232 → **0.8227**, A10 0.8223 → 0.8215). Two conclusions changed and are corrected in [HANDBOOK §11](experiments/HANDBOOK.md), [EXPERIMENT_PLAN §8b](docs/EXPERIMENT_PLAN.md), [README §10](README.md) and the roadmap:
+All 23 experiment configs re-run on v5; `D1` and `D2` stay on v3 and v4 as the record of what was served. Every AUC moved by less than 0.012 with overlapping intervals (A2 0.8232 → **0.8227**, A10 0.8223 → 0.8215). Two conclusions changed and are corrected in [HANDBOOK §11](experiments/HANDBOOK.md), [EXPERIMENT_PLAN §8b](docs/EXPERIMENT_PLAN.md), [README §10](docs/results.md) and the roadmap:
 - **Learning curve:** flattens after about 100 k rows, not 50 k (`LC_50k` 0.8157 → 0.8038).
 - **`A12_species_holdout`:** AUC still about 0.60, but its error rates at 0.40 swapped (VME 11% → 52%, ME 83% → 36%). Quote only its AUC.
 
@@ -671,10 +683,10 @@ Two repairs during the pass: collapsing `..` sequences had turned relative links
 - [§6.1](experiments/HANDBOOK.md#61-the-saved-model-bundle) added, documenting the saved-model bundle.
 
 ### [README.md](README.md)
-- [Repository map](README.md#2-repository-map) now includes `data/` and [experiments/](experiments/).
-- New [§5.4](README.md#54-the-experiment-harness---experiments) describing the experiment harness.
-- [§10](README.md#10-the-numbers-and-where-each-one-comes-from) carries a correction: the 0.9255 AUC is superseded by a measured **0.8232 [0.8200-0.8269]**.
-- [Reading order](README.md#13-reading-order-for-someone-new-to-the-repo) updated to include the handbook.
+- [Repository map](docs/architecture.md#2-repository-map) now includes `data/` and [experiments/](experiments/).
+- New [§5.4](docs/data-and-training.md#54-the-experiment-harness---experiments) describing the experiment harness.
+- [§10](docs/results.md#10-the-numbers-and-where-each-one-comes-from) carries a correction: the 0.9255 AUC is superseded by a measured **0.8232 [0.8200-0.8269]**.
+- [Reading order](docs/glossary.md#13-reading-order-for-someone-new-to-the-repo) updated to include the handbook.
 
 ### [EXPERIMENT_PLAN.md](docs/EXPERIMENT_PLAN.md)
 - Status banner: 19 runs across three algorithms.
@@ -814,11 +826,11 @@ Full table in [RESULTS.md](experiments/RESULTS.md), interpretation in [HANDBOOK 
 
 A walkthrough of the whole system, verified against the code instead of summarised from the existing documentation. Three findings it recorded:
 
-1. **The k-mer model never runs in the web app.** [train_models.py](backend/train_models.py) fits the scaler on 256 k-mer columns; [resistance_predictor.py:158](backend/ml_models/resistance_predictor.py#L158) passes all 321. The exception is swallowed and a random heuristic answers instead, while the response still reports `'RandomForest K-mer (trained)'`. Reproduced live. The one-line fix already exists at [amrpredict-lib/src/amrpredict/kmer.py:166](amrpredict-lib/src/amrpredict/kmer.py#L166). **Still unfixed in the backend.** Detail in [§11.1](README.md#111-the-k-mer-model-never-runs-in-the-web-app-).
-2. **Two AUC lineages.** The notebook model scores 0.8881 on one BV-BRC CSV; the shipped artifact's 0.9255 came from a [train_models.py](backend/train_models.py) run over the per-species exports. Not interchangeable. Detail in [§10](README.md#10-the-numbers-and-where-each-one-comes-from).
-3. `forecasting_formulation.ipynb` is a 0-byte file, the UI dropdown offered 48 antibiotics while the k-mer model knows 62, and `db.sqlite3` is vestigial. Detail in [§11.5](README.md#115-smaller-things).
+1. **The k-mer model never runs in the web app.** [train_models.py](backend/train_models.py) fits the scaler on 256 k-mer columns; [resistance_predictor.py:158](backend/ml_models/resistance_predictor.py#L158) passes all 321. The exception is swallowed and a random heuristic answers instead, while the response still reports `'RandomForest K-mer (trained)'`. Reproduced live. The one-line fix already exists at [amrpredict-lib/src/amrpredict/kmer.py:166](amrpredict-lib/src/amrpredict/kmer.py#L166). **Still unfixed in the backend.** Detail in [§11.1](docs/known-issues.md).
+2. **Two AUC lineages.** The notebook model scores 0.8881 on one BV-BRC CSV; the shipped artifact's 0.9255 came from a [train_models.py](backend/train_models.py) run over the per-species exports. Not interchangeable. Detail in [§10](docs/results.md#10-the-numbers-and-where-each-one-comes-from).
+3. `forecasting_formulation.ipynb` is a 0-byte file, the UI dropdown offered 48 antibiotics while the k-mer model knows 62, and `db.sqlite3` is vestigial. Detail in [§11.5](docs/known-issues.md#115-smaller-things).
 
-[PROJECT_DOCUMENTATION.md](docs/PROJECT_DOCUMENTATION.md) was left untouched. Its line 726 claim that the k-mer scaler "is applied identically at inference time" is contradicted by finding 1, and that contradiction is recorded in [README.md §11.1](README.md#111-the-k-mer-model-never-runs-in-the-web-app-) instead of by editing the original.
+[PROJECT_DOCUMENTATION.md](docs/PROJECT_DOCUMENTATION.md) was left untouched. Its line 726 claim that the k-mer scaler "is applied identically at inference time" is contradicted by finding 1, and that contradiction is recorded in [README.md §11.1](docs/known-issues.md) instead of by editing the original.
 
 ---
 
@@ -836,10 +848,10 @@ A plain HTML `required` attribute does not work here. One of the two inputs is a
 
 | Item | Detail |
 |---|---|
-| **K-mer scaler bug**, `/predict` answers from a random heuristic | [README.md §11.1](README.md#111-the-k-mer-model-never-runs-in-the-web-app-) |
+| **K-mer scaler bug**, `/predict` answers from a random heuristic | [README.md §11.1](docs/known-issues.md) |
 | Promotion path: rate tables need renaming and reshaping for the backend | [HANDBOOK §13](experiments/HANDBOOK.md#13-limitations-of-this-harness), [README](experiments/README.md#promoting-a-model-to-the-app) |
 | Taxon IDs are strain-level, so the UI's Taxon ID field can never match | [HANDBOOK §3.4](experiments/HANDBOOK.md#34-known-data-quality-issues) |
-| Timeline compartments exceed 100% after susceptible exhaustion | [README.md §11.3](README.md#113-timeline-population-shares-exceed-100) |
+| Timeline compartments exceed 100% after susceptible exhaustion | [README.md §11.3](docs/known-issues.md) |
 | No DeLong or McNemar test between runs, no calibration plots, single seed | [HANDBOOK §13](experiments/HANDBOOK.md#13-limitations-of-this-harness) |
 | XGBoost and CatBoost written but not installed | [HANDBOOK §7](experiments/HANDBOOK.md#7-algorithms) |
 | Junk antibiotic names still in the vocabulary (`amipicillin_sulbactam`, `extended spectrum beta lactamase`) | [HANDBOOK §3.4](experiments/HANDBOOK.md#34-known-data-quality-issues), fix in [data_prep.py](experiments/lib/data_prep.py) |
