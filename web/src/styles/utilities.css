@@ -106,32 +106,6 @@
 .card-border-indigo  { border-left: 3px solid var(--indigo2) !important; }
 
 /* ── FOOTER COMPONENT CLASSES ───────────────────────────────── */
-.footer-stat-box {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--r-sm);
-  padding: 8px 10px;
-  text-align: center;
-}
-.footer-stat-val {
-  font-size: 15px; font-weight: 800;
-  font-family: var(--mono);
-  color: var(--text-1);
-}
-.footer-stat-lbl {
-  font-size: 10px;
-  color: var(--text-3);
-  margin-top: 2px;
-}
-.footer-bottom {
-  border-top: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-.footer-copy { font-size: 11px; color: var(--text-3); }
 
 /* ── DROPDOWN NAV HEADER ────────────────────────────────────── */
 .dropdown-section-label {
@@ -146,11 +120,6 @@
 
 /* ── FOOTER BRAND / NAV HELPERS ─────────────────────────────── */
 .brand-icon-sm { width: 28px; height: 28px; font-size: 13px; }
-.footer-nav-divider {
-  font-size: 10px; color: var(--text-3);
-  text-transform: uppercase; letter-spacing: 0.07em;
-  margin: 6px 0 2px;
-}
 
 /* ── PRIMARY TOKEN COLOR ─────────────────────────────────────── */
 .text-primary-tok { color: var(--primary) !important; }
