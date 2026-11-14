@@ -59,6 +59,7 @@ export default function DrugCatalog({ filters, meta, onDrug }: { filters: Filter
   })();
 
   if (res.state !== 'ready') return null;
+  const minN = res.data.min_n;
   // opens on the group with the most drugs, until the user picks one
   const current = groups.find(g => g.title === picked) || [...groups].sort((a, b) => b.items.length - a.items.length)[0];
   const drugOrder = (a: Drug, b: Drug) => (sortBy === 'name' ? a.name.localeCompare(b.name)
@@ -97,7 +98,8 @@ export default function DrugCatalog({ filters, meta, onDrug }: { filters: Filter
               <div className="chem-groups-head small text-muted">{groups.length} {what === 'family' ? 'families' : 'chemical groups'} · {shown.length} drugs</div>
               {groups.map(g => (
                 <button key={g.title} type="button" role="option" aria-selected={g === current}
-                        className={'chem-group' + (g === current ? ' active' : '')} onClick={() => setPicked(g.title)}>
+                        className={'chem-group' + (g === current ? ' active' : '') + (g.n < minN ? ' low-sample' : '')} onClick={() => setPicked(g.title)}
+                        title={g.n < minN ? `Low sample: ${g.n.toLocaleString()} isolates tested, under ${minN}` : undefined}>
                   <span className="chem-group-name">{g.title}</span>
                   <span className="chem-group-count">{g.items.length}</span>
                   <Bar pct={g.pct} />
@@ -121,15 +123,17 @@ export default function DrugCatalog({ filters, meta, onDrug }: { filters: Filter
                 {[...current.items].sort(drugOrder).map((d, i) => {
                   const p = d.row.resistant_pct;
                   const none = p === null || d.row.n === 0;
+                  // too few isolates for the percentage to mean much, as on the maps
+                  const low = !none && d.row.low_sample;
                   return (
-                    <button key={d.name} type="button" className="drug-tile" onClick={() => onDrug(d.name)} style={{ '--i': Math.min(i, 24) } as CSSProperties}
-                            title={`${capitalise(d.name)}: ${none ? 'intermediate results only' : `${(p as number).toFixed(1)}% of ${d.row.n.toLocaleString()} isolates resistant`}`}>
+                    <button key={d.name} type="button" className={'drug-tile' + (low ? ' low-sample' : '')} onClick={() => onDrug(d.name)} style={{ '--i': Math.min(i, 24) } as CSSProperties}
+                            title={`${capitalise(d.name)}: ${none ? 'intermediate results only' : `${(p as number).toFixed(1)}% of ${d.row.n.toLocaleString()} isolates resistant${low ? ` (low sample, under ${minN})` : ''}`}`}>
                       <span className="drug-tile-row">
                         <span className="drug-tile-name">{capitalise(d.name)}</span>
                         <span className="drug-tile-pct">{none ? 'n/a' : `${(p as number).toFixed(0)}%`}</span>
                       </span>
                       <Bar pct={none ? null : p} />
-                      <span className="drug-tile-sub">{none ? 'Intermediate results only' : `${d.row.n.toLocaleString()} tested`}{groupBy === 'chemical_group' ? ` · ${d.subfamily || d.family}` : ` · ${d.chem}`}</span>
+                      <span className="drug-tile-sub">{none ? 'Intermediate results only' : `${d.row.n.toLocaleString()} tested`}{low ? ' · low sample' : ''}{groupBy === 'chemical_group' ? ` · ${d.subfamily || d.family}` : ` · ${d.chem}`}</span>
                     </button>);
                 })}
               </div>

@@ -44,7 +44,7 @@ export function ContextStrip() {
         <div className="flex-fill min-w-160">
           <div className="stat-mini">
             <div className="stat-mini-value">{m.lgbm.train_rows_short}</div>
-            <div className="stat-mini-label">Labeled AMR records</div>
+            <div className="stat-mini-label">Training rows (lab records)</div>
           </div>
         </div>
         <div className="flex-fill min-w-160">

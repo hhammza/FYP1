@@ -566,6 +566,9 @@
 .drug-tile:hover, .drug-tile:focus-visible { border-color: var(--primary); background: var(--primary-hover, rgba(79,70,229,0.05)); }
 .drug-tile-name { font-size: 14px; font-weight: 500; color: var(--text-1); max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .drug-tile-sub { font-size: 11.5px; color: var(--text-3); }
+/* fewer isolates than the low-sample threshold: faded, as on the maps */
+.drug-tile.low-sample .drug-tile-bar, .drug-tile.low-sample .drug-tile-pct,
+.chem-group.low-sample .drug-tile-bar, .chem-group.low-sample .chem-group-pct { opacity: 0.4; }
 .drug-tile-bar { display: block; width: 100%; height: 4px; border-radius: 2px; background: var(--bg-card2, #f1f5f9); overflow: hidden; margin: 3px 0 1px; }
 .drug-tile-bar span { display: block; height: 100%; border-radius: 2px; }
 .drug-tile-bar.low span, .catalog-key.low { background: #1baf7a; }

@@ -19,6 +19,19 @@ Baseline is commit **`52ae361`** *(Add amrpredict library and macOS launcher, 20
 
 ---
 
+## Fixes from the browser test of the merged site (2026-11-15, Suleman)
+
+| File | Change |
+|---|---|
+| [web/src/pages/explore/views.tsx](web/src/pages/explore/views.tsx) | The mouse wheel scrolls the page over the maps instead of zooming them (`scrollZoom: false`; drag and double-click still work). "No lab results for these filters" in place of an empty chart or map |
+| [web/src/pages/explore/DrugCatalog.tsx](web/src/pages/explore/DrugCatalog.tsx), [components.css](web/src/styles/components.css) | Chemistry: a drug or group tested on fewer isolates than the low-sample threshold (30) is faded and tagged "low sample", as on the maps (e.g. cephalexin, 7 tested) |
+| [backend/api/model_registry.py](backend/api/model_registry.py) | The /explore summary table is read in the background at start-up, so the first request takes 0.3 s instead of about 10 s |
+| [web/src/pages/timeline/MlForecastCard.tsx](web/src/pages/timeline/MlForecastCard.tsx) | Observed years with fewer than 30 lab results (the model keeps years with 20 or more) are drawn hollow and faded, with a note. Display only; the model and its numbers are unchanged |
+| Home, About, /forecast, /timeline | Labels say what each number counts: 6.3M **training rows** (the cleaned table holds 7.85M records), 24,285 **genomes of the k-mer model** (24,926 is the genomes AMRFinderPlus searched), 2 **prediction models** (/library counts 5 trained models). Model names unchanged |
+| [Explore.test.tsx](web/src/pages/Explore.test.tsx), [Timeline.test.tsx](web/src/pages/Timeline.test.tsx) | 4 tests: no-results message (chart and map), low-sample drug tile, hollow points. Web 93 tests pass |
+
+---
+
 ## amrpredict 0.3.0 with every served model; ML trend forecast on /timeline (2026-11-14, Hamza)
 
 | File | Change |

@@ -26,7 +26,7 @@ export default function Home() {
             </h1>
             <p className="hero-desc">{' '}
               Two trained ML models, both LightGBM gradient boosting (one on lab metadata, one on the k-mers of a complete genome), predict
-              antimicrobial resistance in bacterial pathogens from {m.lgbm.train_rows_short} labelled records.
+              antimicrobial resistance in bacterial pathogens, trained on {m.lgbm.train_rows_short} labelled lab records.
               A separate biological simulation tool models resistance evolution over time.
             </p>
             <div className="hero-actions">{' '}
@@ -84,7 +84,7 @@ export default function Home() {
                 <div className="hpanel-stats">
                   <div className="hpanel-stat">
                     <div className="hpanel-stat-val">{m.lgbm.train_rows_short}</div>
-                    <div className="hpanel-stat-label">Records</div>
+                    <div className="hpanel-stat-label">Training rows</div>
                   </div>
                   <div className="hpanel-stat">
                     <div className="hpanel-stat-val">{m.lgbm.antibiotics}</div>
@@ -92,11 +92,11 @@ export default function Home() {
                   </div>
                   <div className="hpanel-stat">
                     <div className="hpanel-stat-val">{m.kmer.genomes_total}</div>
-                    <div className="hpanel-stat-label">Genomes</div>
+                    <div className="hpanel-stat-label">K-mer genomes</div>
                   </div>
                   <div className="hpanel-stat">
                     <div className="hpanel-stat-val">2</div>
-                    <div className="hpanel-stat-label">ML Models</div>
+                    <div className="hpanel-stat-label">Prediction models</div>
                   </div>
                 </div>
                 <div className="hpanel-divider"></div>
@@ -401,7 +401,7 @@ export default function Home() {
 
             <div className="row g-3 mt-2">
               <div className="col-sm-3 col-6"><div className="stat-mini"><div className="stat-mini-value">{m.lgbm.train_rows_short}</div><div className="stat-mini-label">Training samples</div></div></div>
-              <div className="col-sm-3 col-6"><div className="stat-mini"><div className="stat-mini-value">{m.kmer.genomes_total}</div><div className="stat-mini-label">FASTA genomes</div></div></div>
+              <div className="col-sm-3 col-6"><div className="stat-mini"><div className="stat-mini-value">{m.kmer.genomes_total}</div><div className="stat-mini-label">Genomes (k-mer model)</div></div></div>
               <div className="col-sm-3 col-6"><div className="stat-mini"><div className="stat-mini-value">{m.lgbm.antibiotics}</div><div className="stat-mini-label">Antibiotics</div></div></div>
               <div className="col-sm-3 col-6"><div className="stat-mini"><div className="stat-mini-value">{m.lgbm.auc}</div><div className="stat-mini-label">Forecaster AUC</div></div></div>
             </div>

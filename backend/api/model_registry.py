@@ -24,6 +24,23 @@ def init_models():
     _kmer = predict_model(model_dir)
     _timeline = MutationTimelinePredictor(model_dir)
     print("[Registry] All models initialized.")
+    warm_explorer()
+
+def warm_explorer():
+    """Read the /explore summary table now, in the background, so the first
+    visitor does not wait for it (several seconds); start-up is not held up."""
+    import threading
+    from api import explorer
+    if not explorer.available():
+        return
+
+    def load():
+        try:
+            explorer.data()
+            print("[Explorer] Summary table loaded.")
+        except Exception as e:   # the endpoints load it again and report the error
+            print(f"[Explorer] Could not preload the summary table: {e}")
+    threading.Thread(target=load, name='explorer-warmup', daemon=True).start()
 
 def predict_model(model_dir):
     """/predict serves the complete-genome model once one is promoted

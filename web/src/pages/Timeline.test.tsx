@@ -1,7 +1,8 @@
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import Timeline from './Timeline';
 import RlPanel, { firstFailedWeek, givenResistance, shortDrug, startResistance } from './timeline/RlPanel';
-import MlForecastCard, { errorSentence } from './timeline/MlForecastCard';
+import MlForecastCard, { errorSentence, forecastFigure } from './timeline/MlForecastCard';
+import type { PlotTheme } from '../components/Plot';
 import TimelineResult from './timeline/TimelineResult';
 import { forecastGenera, SAMPLE_GENOME } from './timeline/TimelineForm';
 import type { MlForecast, RlBlock, TimelineResult as Result } from './timeline/types';
@@ -140,6 +141,14 @@ const ML: MlForecast = {
 };
 
 describe('the ML forecast', () => {
+  it('draws years with few lab results hollow and faded, and says why', () => {
+    const observed = forecastFigure(ML, {} as PlotTheme).data[2] as { marker: { symbol: string[]; opacity: number[] } };
+    expect(observed.marker.symbol).toEqual(['circle-open', 'circle']);   // 2020 has 4 results, 2021 has 44
+    expect(observed.marker.opacity).toEqual([0.5, 1]);
+    render(<MlForecastCard ml={ML} antibiotic="ciprofloxacin" genus="Salmonella" />);
+    expect(screen.getByText(/Hollow points are years with fewer than 30 lab/)).toBeInTheDocument();
+  });
+
   it('offers only the genera with history for the drug', () => {
     const g = { ciprofloxacin: ['Escherichia', 'Salmonella'] };
     expect(forecastGenera(g, 'Ciprofloxacin')).toEqual(['Escherichia', 'Salmonella']);

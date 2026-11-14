@@ -9,6 +9,9 @@ import type { MlForecast } from './types';
 import BioIcon from '../../components/BioIcon';
 
 const OBSERVED = '#6366f1', FORECAST = '#ef4444', BAND = 'rgba(239,68,68,0.15)';
+/** A year with fewer lab results than this is drawn hollow and faded: its share
+    can swing to 0% or 100% on a handful of isolates (the Explorer's threshold). */
+export const FEW_RESULTS = 30;
 
 /** The baselines the model is measured against, in the order to show them. */
 const BASELINES: [string, string][] = [['last_value', 'last year’s value'], ['linear_trend', 'a straight-line trend'],
@@ -24,9 +27,12 @@ export function forecastFigure(ml: MlForecast, t: PlotTheme): Figure {
     { type: 'scatter', mode: 'lines', name: '80% band', x: fx, y: [last.resistant_pct, ...ml.forecast.map(f => f.hi)],
       fill: 'tonexty', fillcolor: BAND, line: { width: 0 }, hoverinfo: 'skip', legendrank: 3 },
     { type: 'scatter', mode: 'lines+markers', name: 'Observed (lab results)', x: ml.history.map(h => h.year),
-      y: ml.history.map(h => h.resistant_pct), customdata: ml.history.map(h => h.n),
-      line: { color: OBSERVED, width: 2.5 }, marker: { size: 6 }, legendrank: 1,
-      hovertemplate: '%{x}: %{y:.1f}% resistant<br>%{customdata} lab results<extra></extra>' },
+      y: ml.history.map(h => h.resistant_pct),
+      customdata: ml.history.map(h => [h.n, h.n < FEW_RESULTS ? `<br><i>few lab results (under ${FEW_RESULTS})</i>` : '']),
+      line: { color: OBSERVED, width: 2.5 }, legendrank: 1,
+      marker: { size: 6, symbol: ml.history.map(h => (h.n < FEW_RESULTS ? 'circle-open' : 'circle')),
+                opacity: ml.history.map(h => (h.n < FEW_RESULTS ? 0.5 : 1)) },
+      hovertemplate: '%{x}: %{y:.1f}% resistant<br>%{customdata[0]} lab results%{customdata[1]}<extra></extra>' },
     { type: 'scatter', mode: 'lines+markers', name: 'ML forecast', x: fx, y: [last.resistant_pct, ...ml.forecast.map(f => f.resistant_pct)],
       customdata: [[last.resistant_pct, last.resistant_pct], ...ml.forecast.map(f => [f.lo, f.hi])],
       line: { color: FORECAST, width: 2.5, dash: 'dash' }, marker: { size: 6 }, legendrank: 2,
@@ -93,6 +99,8 @@ export default function MlForecastCard({ ml, antibiotic, genus }: Props) {
         The share of {ml.organism} isolates resistant to {ml.antibiotic} in BV-BRC laboratory results, year by year
         ({first.year} to {last.year}), and the ML model's forecast for the next {ml.forecast.length} years. The shaded
         band is an 80% interval from the model's errors on held-out years; it widens the further ahead it looks.
+        {ml.history.some(h => h.n < FEW_RESULTS) && <> Hollow points are years with fewer than {FEW_RESULTS} lab
+          results, where the share can swing on a handful of isolates.</>}
       </p>
       <Plot id="mlForecastChart" className="chart-350" figure={figure} />
       <div className="row g-2 text-center mt-2">

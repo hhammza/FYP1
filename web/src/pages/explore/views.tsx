@@ -10,7 +10,8 @@ import { filterQuery, type Filters } from './filters';
 import type { Countries, ExploreMeta, Summary, SummaryRow } from './types';
 import CellLoader from '../../components/CellLoader';
 
-const MAP_CONFIG = { topojsonURL: '/topojson/' };
+// the mouse wheel scrolls the page, not the map; drag pans and double-click zooms
+const MAP_CONFIG = { topojsonURL: '/topojson/', scrollZoom: false };
 
 type Loaded<T> = { state: 'loading' } | { state: 'ready'; data: T } | { state: 'failed'; error: string };
 
@@ -49,6 +50,15 @@ function Status({ value }: { value: Loaded<unknown> & { retry: () => void } }) {
   return null;
 }
 
+/** In place of a chart when the filters match no lab results. */
+export function NoResults() {
+  return (
+    <div className="text-muted small py-4 text-center" role="status">
+      <i className="bi bi-funnel me-1"></i>No lab results for these filters. Clear a filter or widen the years.
+    </div>
+  );
+}
+
 function TableView({ rows, label, valueName }: { rows: SummaryRow[]; label: (r: SummaryRow) => string; valueName: string }) {
   return (
     <details className="mt-2">
@@ -81,6 +91,8 @@ function Legend({ minN }: { minN: number }) {
   );
 }
 
+const hasCountryData = (c: Countries) => c.countries.some(r => r.n > 0);
+
 /** Point 10: choropleth heat map, resistance rate or dominant resistance type; a click sets the Country filter. */
 export function CountryHeatMap({ filters, mode, onCountry }: {
   filters: Filters; mode: 'rate' | 'dominant'; onCountry: (iso3: string) => void;
@@ -100,12 +112,12 @@ export function CountryHeatMap({ filters, mode, onCountry }: {
         : 'Colour is the resistance type (MRSA, VRE, CRE and so on) with the highest rate among isolates tested for it.'} Click a country to filter every view to it.
         BV-BRC holds the isolates labs chose to sequence, not a country's surveillance, so a country's figure describes its submitted isolates.</p>
       <Status value={res} />
-      {res.state === 'ready' && <>
+      {res.state === 'ready' && (!hasCountryData(res.data) ? <NoResults /> : <>
         <Plot id="heatMap" style={{ height: 460 }} figure={figure} config={MAP_CONFIG} onPointClick={click} />
         {mode === 'rate' ? <Legend minN={res.data.min_n} /> : (
           <div className="small text-muted mt-2">{res.data.resistance_types.map(r => <div key={r.resistance_type}><b>{r.resistance_type}</b>: {r.label}{r.note ? ` (${r.note})` : ''}</div>)}</div>
         )}
-      </>}
+      </>)}
     </div>
   );
 }
@@ -130,7 +142,8 @@ export function GroupMap({ filters, meta, group, setGroup, onCountry }: {
         </select>
       </div>
       <Status value={res} />
-      {res.state === 'ready' && <><Plot id="groupMap" style={{ height: 440 }} figure={figure} config={MAP_CONFIG} onPointClick={click} /><Legend minN={res.data.min_n} /></>}
+      {res.state === 'ready' && (!hasCountryData(res.data) ? <NoResults />
+        : <><Plot id="groupMap" style={{ height: 440 }} figure={figure} config={MAP_CONFIG} onPointClick={click} /><Legend minN={res.data.min_n} /></>)}
     </div>
   );
 }
@@ -162,10 +175,10 @@ export function GroupComparison({ filters, split, setSplit }: {
         </div>
       </div>
       <Status value={res} />
-      {res.state === 'ready' && <>
+      {res.state === 'ready' && (!rows.length ? <NoResults /> : <>
         <Plot id="groupBars" style={{ height: Math.max(300, 26 * new Set(rows.map(r => r.value)).size * (split ? 1.6 : 1) + 80) }} figure={figure} />
         <TableView rows={rows} label={r => String(r.value)} valueName="Group" />
-      </>}
+      </>)}
     </div>
   );
 }
@@ -194,10 +207,10 @@ export function DrugComparison({ filters, meta, group, setGroup, onDrug }: {
       </div>
       <p className="caption-text mb-2">Click a bar for the drug's nomenclature and chemistry.</p>
       <Status value={res} />
-      {res.state === 'ready' && <>
+      {res.state === 'ready' && (!res.data.rows.length ? <NoResults /> : <>
         <Plot id="drugBars" style={{ height: Math.max(220, 34 * res.data.rows.length + 80) }} figure={bars} onPointClick={click} />
         <TableView rows={res.data.rows} label={r => capitalise(String(r.value))} valueName="Antibiotic" />
-      </>}
+      </>)}
       <h3 className="h6 mt-4">Trend over collection years</h3>
       <Status value={trend} />
       {trend.state === 'ready' && (trend.data.rows.length

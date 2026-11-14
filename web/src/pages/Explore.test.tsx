@@ -70,6 +70,33 @@ describe('explore pages', () => {
   });
 });
 
+describe('explore views with little or no data', () => {
+  const view = (path: string) => renderPage(<Routes><Route path="/explore/:view" element={<Explore />} /></Routes>, path);
+
+  it('says so when the filters match no lab results, instead of an empty chart', async () => {
+    mockBackend({ 'health/': { body: HEALTH }, 'explore/meta/': { body: META }, 'explore/summary/': { body: { rows: [], min_n: 30 } } });
+    view('/explore/groups?country=XXX');
+    expect(await screen.findByText(/No lab results for these filters/)).toBeInTheDocument();
+  });
+
+  it('says so on a map when no country has results', async () => {
+    mockBackend({ 'health/': { body: HEALTH }, 'explore/meta/': { body: META },
+                  'explore/countries/': { body: { ...COUNTRIES, countries: [] } } });
+    view('/explore/heatmap?country=XXX');
+    expect(await screen.findByText(/No lab results for these filters/)).toBeInTheDocument();
+  });
+
+  it('marks a drug tested on too few isolates as a low sample', async () => {
+    const row = { value: 'meropenem', split: 'Beta-lactam ring', tested: 7, n: 7, r: 7, intermediate: 0, resistant_pct: 100, low_sample: true };
+    mockBackend({ 'health/': { body: HEALTH }, 'explore/meta/': { body: META },
+                  'explore/summary/': { body: { rows: [row], min_n: 30, total: row } } });
+    view('/explore/chemistry');
+    const tile = await screen.findByRole('button', { name: /Meropenem/ });
+    expect(tile).toHaveClass('low-sample');
+    expect(tile).toHaveTextContent('7 tested · low sample');
+  });
+});
+
 describe('explore filters in the URL', () => {
   it('round-trips through the query string', () => {
     const f = readFilters(new URLSearchParams('gram=negative&subfamily=Carbapenems&country=PAK,IND&include_intermediate=1&view=map'));

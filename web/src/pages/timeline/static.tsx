@@ -57,7 +57,7 @@ export function ContextStrip() {
         <div className="flex-fill min-w-150">
           <div className="stat-mini">
             <div className="stat-mini-value text-indigo2">{m.kmer.genomes_total}</div>
-            <div className="stat-mini-label">Training genomes</div>
+            <div className="stat-mini-label">Genomes (k-mer model)</div>
           </div>
         </div>
         <div className="flex-fill min-w-150">

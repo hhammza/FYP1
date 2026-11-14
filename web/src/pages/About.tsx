@@ -35,7 +35,7 @@ export default function About() {
       <div className="d-flex gap-3 flex-wrap mb-4">
         <div className="about-stat-wrap"><div className="stat-mini">
           <div className="stat-mini-value text-indigo">2</div>
-          <div className="stat-mini-label">ML models + 1 bio-sim</div>
+          <div className="stat-mini-label">Prediction models + 1 bio-sim</div>
         </div></div>
         <div className="about-stat-wrap"><div className="stat-mini">
           <div className="stat-mini-value text-emerald">{m.lgbm.auc}</div>
@@ -43,7 +43,7 @@ export default function About() {
         </div></div>
         <div className="about-stat-wrap"><div className="stat-mini">
           <div className="stat-mini-value">{m.lgbm.train_rows_short}</div>
-          <div className="stat-mini-label">Training records</div>
+          <div className="stat-mini-label">Training rows</div>
         </div></div>
         <div className="about-stat-wrap"><div className="stat-mini">
           <div className="stat-mini-value text-amber">{m.lgbm.antibiotics}</div>
