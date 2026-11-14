@@ -72,5 +72,39 @@ class Forecast(unittest.TestCase):
         self.assertNotIn('ml_forecast', r.json())
 
 
+def post_forecast(**body):
+    return Client().post('/api/timeline/forecast/', data=json.dumps(body), content_type='application/json')
+
+
+@unittest.skipUnless(os.path.exists(os.path.join(SERVED, 'timeline_ml', 'model.txt')), 'no timeline model promoted')
+class ForecastEndpoint(unittest.TestCase):
+    """/api/timeline/forecast/: the model on its own, no genome."""
+
+    def setUp(self):
+        cache.clear()
+
+    def test_genus_and_drug_give_the_block(self):
+        r = post_forecast(genus='Salmonella', antibiotic='ciprofloxacin', years_ahead=3)
+        self.assertEqual(r.status_code, 200)
+        m = r.json()['ml_forecast']
+        self.assertEqual((m['organism'], m['antibiotic']), ('Salmonella', 'ciprofloxacin'))
+        self.assertEqual(len(m['forecast']), 3)
+
+    def test_years_ahead_defaults_to_five(self):
+        r = post_forecast(genus='salmonella', antibiotic='Ciprofloxacin')
+        self.assertEqual(len(r.json()['ml_forecast']['forecast']), 5)
+
+    def test_missing_or_bad_fields_are_400(self):
+        self.assertEqual(post_forecast(antibiotic='ciprofloxacin').status_code, 400)
+        self.assertEqual(post_forecast(genus='Salmonella').status_code, 400)
+        self.assertEqual(post_forecast(genus='Salmonella', antibiotic='ciprofloxacin', years_ahead=11).status_code, 400)
+        self.assertEqual(post_forecast(genus=5, antibiotic='ciprofloxacin').status_code, 400)
+
+    def test_no_history_is_404_with_a_message(self):
+        r = post_forecast(genus='Notagenus', antibiotic='ciprofloxacin')
+        self.assertEqual(r.status_code, 404)
+        self.assertIn('too little yearly lab history', r.json()['error'])
+
+
 if __name__ == '__main__':
     unittest.main()

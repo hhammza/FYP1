@@ -473,6 +473,40 @@ class MutationTimelineView(View):
             return json_error(str(e), 500)
 
 
+class TimelineForecastView(View):
+    """The timeline ML model on its own: genus + antibiotic -> `ml_forecast`
+    (format §8), no genome needed. /timeline's "ML trend forecast" mode."""
+
+    def post(self, request):
+        refused = rate_limited(request, 'timeline')
+        if refused:
+            return refused
+        try:
+            fields = read_json(request) if request.content_type and 'application/json' in request.content_type \
+                else request.POST
+            genus = text_field(fields, 'genus')
+            antibiotic = text_field(fields, 'antibiotic')
+            years = whole_number(fields, 'years_ahead', 5, 1, 10)
+            if not genus:
+                return json_error('genus is required')
+            if not antibiotic:
+                return json_error('antibiotic is required')
+            from ml_models.timeline_ml import get_forecaster
+            forecaster = get_forecaster(str(settings.TRAINED_MODELS_DIR))
+            if not forecaster.is_trained:
+                return json_error('the timeline ML model is not available', 503)
+            ml = forecaster.forecast(genus, antibiotic, years_ahead=years)
+            if not ml:
+                return json_error(f'{genus} has too little yearly lab history for {antibiotic} '
+                                  'to forecast', 404)
+            return JsonResponse({'ml_forecast': ml})
+        except BadInput as e:
+            return json_error(str(e), 400)
+        except Exception as e:
+            traceback.print_exc()
+            return json_error(str(e), 500)
+
+
 class AntibioticListView(View):
     """Antibiotics for a dropdown.
 

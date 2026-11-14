@@ -323,3 +323,5 @@ The `/api/timeline/` response gains an `ml_forecast` block beside the simulation
 
 Units: percentages 0 to 100, like the simulation's `*_fraction` fields.
 
+**On its own, no genome (2026-11-14):** `POST /api/timeline/forecast/` with `genus`, `antibiotic` and optional `years_ahead` (1 to 10, default 5) answers `{"ml_forecast": {...}}`, the same block. 400 for a missing or bad field, 404 with an `error` when the pair has too little history. `/timeline`'s "ML trend forecast" mode calls it; the library's `amrpredict.forecast_trend()` returns the same block.
+
