@@ -37,17 +37,38 @@ def build_parser():
     p.add_argument('--threshold', type=float, default=None,
                    help="default: the bundled model's own threshold")
 
-    p = sub.add_parser('predict', help='predict from a genome FASTA')
+    p = sub.add_parser('predict', help='predict from a complete genome FASTA')
     p.add_argument('fasta', help="path to a FASTA file, or '-' for stdin")
     p.add_argument('antibiotic')
-    p.add_argument('--threshold', type=float, default=0.5)
+    p.add_argument('--threshold', type=float, default=None,
+                   help="default: the model's own threshold")
+    p.add_argument('--genus', default=None)
+    p.add_argument('--species', default=None)
+    genes = p.add_mutually_exclusive_group()
+    genes.add_argument('--kmers', action='store_true', help='always use the k-mer model')
+    genes.add_argument('--genes', action='store_true',
+                       help='require the gene model (needs AMRFinderPlus)')
 
-    p = sub.add_parser('timeline', help='simulate resistance evolution')
+    p = sub.add_parser('species', help='identify the species of a complete genome')
+    p.add_argument('fasta', help="path to a FASTA file, or '-' for stdin")
+
+    p = sub.add_parser('trend', help='yearly resistance of a genus and drug, and its forecast')
+    p.add_argument('genus')
+    p.add_argument('antibiotic')
+    p.add_argument('--years', type=int, default=5, help='years ahead, 1 to 10')
+
+    p = sub.add_parser('plan', help='drug per week: the RL agent against fixed schedules')
+    p.add_argument('antibiotic', help='ciprofloxacin, gentamicin or imipenem')
+    p.add_argument('--weeks', type=int, default=52, help='1 to 104')
+    p.add_argument('--seed', type=int, default=42)
+
+    p = sub.add_parser('timeline', help='simulate resistance evolution (not a trained model)')
     p.add_argument('fasta', help="path to a FASTA file, or '-' for stdin")
     p.add_argument('antibiotic')
     p.add_argument('--weeks', type=int, default=8)
 
-    sub.add_parser('antibiotics', help='list known antibiotics')
+    p = sub.add_parser('antibiotics', help='list the antibiotics a model knows')
+    p.add_argument('--model', default='genome', choices=['genome', 'forecast', 'trend', 'rl'])
     sub.add_parser('status', help='report which models loaded')
     return parser
 
@@ -68,16 +89,25 @@ def main(argv=None):
             )
         elif args.command == 'predict':
             result = amrpredict.predict_fasta(
-                _read_fasta(args.fasta), args.antibiotic,
-                threshold=args.threshold, model_dir=md,
+                _read_fasta(args.fasta), args.antibiotic, threshold=args.threshold,
+                genus=args.genus, species=args.species,
+                use_genes=False if args.kmers else (True if args.genes else None), model_dir=md,
             )
+        elif args.command == 'species':
+            result = amrpredict.identify_species(_read_fasta(args.fasta), model_dir=md)
+        elif args.command == 'trend':
+            result = amrpredict.forecast_trend(args.genus, args.antibiotic,
+                                               years_ahead=args.years, model_dir=md)
+        elif args.command == 'plan':
+            result = amrpredict.plan_treatment(args.antibiotic, n_weeks=args.weeks,
+                                               seed=args.seed, model_dir=md)
         elif args.command == 'timeline':
             result = amrpredict.simulate_timeline(
                 _read_fasta(args.fasta), args.antibiotic,
                 n_weeks=args.weeks, model_dir=md,
             )
         elif args.command == 'antibiotics':
-            result = amrpredict.antibiotics(model_dir=md)
+            result = amrpredict.antibiotics(args.model, model_dir=md)
         else:
             result = amrpredict.status(model_dir=md)
     except FileNotFoundError as exc:

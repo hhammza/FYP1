@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "amrpredict"
-version = "0.2.0"
+version = "0.3.0"
 description = "Antimicrobial resistance prediction from bacterial genomes and MIC metadata"
 readme = "README.md"
 requires-python = ">=3.9"
@@ -31,9 +31,6 @@ classifiers = [
 ]
 
 dependencies = [
-    # Pinned to the release the bundled k-mer model was pickled with (1.6.1):
-    # scikit-learn does not support unpickling an estimator in another version.
-    "scikit-learn>=1.6.1,<1.7",
     "lightgbm>=4.0",
     "pandas>=2.0",
     "numpy>=1.24",
