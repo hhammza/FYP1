@@ -1,0 +1,13 @@
+{
+ "built": "2026-11-14",
+ "source": "cleaning v7, laboratory rows only",
+ "rows_in_cube": 35879,
+ "lab_rows": 649944,
+ "resistant": 203218,
+ "intermediate": 16213,
+ "with_country": 596013,
+ "with_infection_type": 405464,
+ "with_disease": 133102,
+ "with_year": 571202,
+ "countries": 165
+}
