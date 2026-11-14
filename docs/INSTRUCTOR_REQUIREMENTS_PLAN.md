@@ -2,6 +2,22 @@
 
 *Written 2026-10-28, before any code. It covers the 12 instructor requirements and the technical requirements, from an inspection of the current code and data. Nothing here is built yet.*
 
+## Progress
+
+*Updated 2026-11-14. Decisions D1 to D6 taken as recommended in section 2.*
+
+| Step | Status | Result |
+|---|---|---|
+| 1. Genome metadata with disease fields | Done | `download_genome_meta.py` now also fetches `disease`, `host_health`, `body_sample_site`, `body_sample_subsite`, `isolation_site` (new `batches_v2/`; the old merged file kept as `genome_meta_v1.csv`). 73.9% of lab rows now have a body site, source or disease, against 36.9% before |
+| 2. Lookup tables | Done, needs review | `backend/reference/`: 7 CSV files and a README. All 126 drugs (family, subfamily, chemical group, ATC, AWaRe, mechanism, target, resistance mechanism), 46 subfamilies, 34 chemical groups, 40 genera with Gram stain, 31 infection rules, 84 diseases, 8 resistance types. 62.4% of lab rows get an infection type. 18 drug rows carry a `review` note. Tests: `backend/tests/test_reference.py` (8 pass) |
+| 3. PubChem cache | Done | `scripts/fetch_pubchem.py` → `backend/trained_models/explorer/drugs.json` and 114 structure images. 124 of 126 drugs found; not found: polymyxin B (a mixture in PubChem) and trimethoprim/sulfobactam (not a real drug). Brand names are a heuristic from PubChem synonyms and are labelled as guesses |
+| 4. Summary table | Done | `scripts/build_explorer_data.py` → `cube.parquet` (35,879 rows, 0.1 MB) and `cube_meta.json`. Totals match the cleaned table (649,944 lab rows); 16,213 intermediate-only pairs kept apart for the toggle; country on 596,013 rows (165 countries), infection type on 405,464, disease on 133,102, year on 571,202 |
+| 5. API endpoints and tests | Not started | Touches Suleman's `urls.py` and `views.py` (decision D6) |
+| 6. `/explore` page | Not started | Suleman's frontend (decision D6) |
+| 7. README and checklist | Not started | |
+
+Found along the way: 7 spelling variants the cleaning misses (`ceftarolin`, `colomycin`, `timentin`, `trimethoprim/sulphamethoxazole`, ...), recorded as `alias_of` in `antibiotics.csv`; adding them to `ANTIBIOTIC_ALIASES` is a cleaning change for a later version.
+
 ## 1. What the codebase has today
 
 | Area | Current state | What it means for this work |
