@@ -1,8 +1,11 @@
-import { fireEvent, screen } from '@testing-library/react';
+import { fireEvent, screen, within } from '@testing-library/react';
 import { Route, Routes, useLocation } from 'react-router';
 import Explore, { ExploreRedirect } from './Explore';
-import { readFilters, filterQuery } from './explore/filters';
+import { describeFilters, readFilters, filterQuery } from './explore/filters';
+import { yearsReversed } from './explore/FilterBar';
 import { HEALTH, mockBackend, renderPage } from '../test-utils';
+
+vi.mock('plotly.js-dist-min', () => ({ default: { react: vi.fn(), purge: vi.fn(), toImage: vi.fn(async () => '') } }));
 
 afterEach(() => vi.unstubAllGlobals());
 
@@ -97,7 +100,39 @@ describe('explore views with little or no data', () => {
   });
 });
 
+describe('the drug popup', () => {
+  const DRUG = {
+    antibiotic: 'methicillin', requested: 'methicillin', alias_of: '', family: 'Beta-lactams', subfamily: 'Penicillins',
+    aware: 'Not classified', atc_code: 'J01CF03', chemical_group: 'Beta-lactam ring', use: 'Human', core_structure: '',
+    mechanism: '', target: '', resistance_mechanism: '', review: '', components: [], missing_from_pubchem: [],
+    resistance: { tested: 1, n: 1, r: 1, intermediate: 0, resistant_pct: 100, low_sample: true }, by_year: [],
+  };
+  const small = { value: 'Staphylococcus aureus', tested: 1, n: 1, r: 1, intermediate: 0, resistant_pct: 100, low_sample: true };
+
+  it('says which filters it uses, and shows small groups faded rather than nothing', async () => {
+    mockBackend({ 'health/': { body: HEALTH }, 'explore/meta/': { body: META }, 'explore/countries/': { body: COUNTRIES },
+                  'explore/drug/methicillin/': { body: DRUG }, 'explore/summary/': { body: { rows: [small], min_n: 30 } } });
+    renderPage(<Routes><Route path="/explore/:view" element={<Explore />} /></Routes>, '/explore/heatmap?country=PAK&drug=methicillin');
+    expect(await screen.findByText(/use the page's filters: Country: Pakistan/)).toBeInTheDocument();
+    expect(within(screen.getByRole('dialog')).getByRole('button', { name: 'Clear filters' })).toBeInTheDocument();
+    expect(await screen.findByText(/the small groups are shown faded/)).toBeInTheDocument();
+    expect(screen.getByTitle('Staphylococcus aureus').closest('.drug-country')).toHaveClass('low-sample');
+  });
+});
+
 describe('explore filters in the URL', () => {
+  it('warns when the From year is after the To year', () => {
+    expect(yearsReversed(readFilters(new URLSearchParams('year_from=2022&year_to=2010')))).toBe(true);
+    expect(yearsReversed(readFilters(new URLSearchParams('year_from=2010&year_to=2022')))).toBe(false);
+    expect(yearsReversed(readFilters(new URLSearchParams('year_from=2010')))).toBe(false);
+  });
+
+  it('describes the active filters in words', () => {
+    const f = readFilters(new URLSearchParams('gram=negative&country=PAK&antibiotic=meropenem&year_from=2015&include_intermediate=1'));
+    expect(describeFilters(f, (k, v) => (k === 'country' && v === 'PAK' ? 'Pakistan' : v), ['antibiotic']))
+      .toEqual(['Gram stain: Gram-negative', 'Country: Pakistan', 'Years: 2015 to any', 'Intermediate counted as resistant']);
+  });
+
   it('round-trips through the query string', () => {
     const f = readFilters(new URLSearchParams('gram=negative&subfamily=Carbapenems&country=PAK,IND&include_intermediate=1&view=map'));
     expect(f.lists.country).toEqual(['PAK', 'IND']);

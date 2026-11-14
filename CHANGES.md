@@ -19,6 +19,20 @@ Baseline is commit **`52ae361`** *(Add amrpredict library and macOS launcher, 20
 
 ---
 
+## Second browser test: architecture text, phone layout, drug popup (2026-11-15, Suleman)
+
+| File | Change |
+|---|---|
+| [About.tsx](web/src/pages/About.tsx), [Home.tsx](web/src/pages/Home.tsx) | The architecture sections describe the React + TypeScript frontend (port 5173) instead of the retired Flask/Jinja one; the API box says 23 endpoints and CORS limited to the site's origins (was "7 endpoints", "all origins"). Model names unchanged |
+| [views.tsx](web/src/pages/explore/views.tsx) | The antibiotic-group dropdown on /explore/drugs and /explore/map no longer makes the page scroll sideways on a phone (436 px on a 371 px screen) |
+| [DrugDetail.tsx](web/src/pages/explore/DrugDetail.tsx), [Explore.tsx](web/src/pages/Explore.tsx), [filters.ts](web/src/pages/explore/filters.ts) | The drug popup says which of the page's filters its figures use ("Country: Australia"), with a Clear filters button that keeps it open. When no group reaches 30 isolates, "Resistance by" shows the small groups faded instead of an empty box (Ali saw methicillin's bars "disappear" under a filter leaving 1 isolate) |
+| [FilterBar.tsx](web/src/pages/explore/FilterBar.tsx) | A From year after the To year is pointed out under the year boxes |
+| [GenomeInfo.tsx](web/src/pages/forecast/GenomeInfo.tsx) | "Fill from Genome ID": no genes link for an ID we hold nothing about |
+| Tests | 5 new (About text, popup filters and faded groups, reversed years, filter wording, unknown genome); Plotly stubbed in `Explore.test.tsx`. Web 98 pass |
+| [scripts/e2e_check.py](scripts/e2e_check.py) | Requests the browser cancels when the page moves on (`net::ERR_ABORTED`) no longer count as files that failed to load; they made a random page step fail now and then. 25 of 25 on two runs in a row |
+
+---
+
 ## Fixes from the browser test of the merged site (2026-11-15, Suleman)
 
 | File | Change |

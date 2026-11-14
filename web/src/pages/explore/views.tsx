@@ -134,7 +134,7 @@ export function GroupMap({ filters, meta, group, setGroup, onCountry }: {
     <div className="glass-card">
       <div className="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
         <h2 className="h5 mb-0">Resistance by antibiotic group</h2>
-        <select className="form-select form-select-sm form-select-custom w-auto" aria-label="Antibiotic group" value={chosen} onChange={e => setGroup(e.target.value)}>
+        <select className="form-select form-select-sm form-select-custom w-auto mw-100" aria-label="Antibiotic group" value={chosen} onChange={e => setGroup(e.target.value)}>
           {meta.antibiotic_hierarchy.map(f => (
             <optgroup key={f.family} label={f.family}>
               {f.subfamilies.map(s => <option key={s.subfamily} value={s.subfamily}>{s.subfamily}</option>)}
@@ -198,7 +198,7 @@ export function DrugComparison({ filters, meta, group, setGroup, onDrug }: {
     <div className="glass-card">
       <div className="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
         <h2 className="h5 mb-0">Drug-wise comparison</h2>
-        <select className="form-select form-select-sm form-select-custom w-auto" aria-label="Antibiotic group to compare" value={chosen} onChange={e => setGroup(e.target.value)}>
+        <select className="form-select form-select-sm form-select-custom w-auto mw-100" aria-label="Antibiotic group to compare" value={chosen} onChange={e => setGroup(e.target.value)}>
           {meta.antibiotic_hierarchy.map(f => (
             <optgroup key={f.family} label={f.family}>
               {f.subfamilies.map(s => <option key={s.subfamily} value={s.subfamily}>{s.subfamily}</option>)}

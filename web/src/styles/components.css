@@ -522,6 +522,9 @@
 .drug-tab:hover { color: var(--text-1); }
 .drug-tab.active { background: var(--primary); border-color: var(--primary); color: #fff; }
 .drug-note { font-size: 12px; color: var(--text-3); }
+.drug-country.low-sample .drug-country-bar span, .drug-country.low-sample .drug-country-val { opacity: 0.45; }
+/* the page's filters, said once at the top of the drug popup */
+.drug-filters { padding: 6px 10px; border-radius: 6px; color: var(--text-2); background: var(--primary-hover, rgba(99,102,241,0.06)); }
 .drug-structure { width: 100%; max-width: 280px; height: auto; background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 6px; }
 .drug-resistance { background: var(--bg-card2, #f8fafc); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; }
 .drug-resistance-val { font-size: 28px; font-weight: 800; color: var(--text-1); line-height: 1.2; }

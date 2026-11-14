@@ -65,6 +65,24 @@ export function useExploreFilters() {
   };
 }
 
+const LIST_LABELS: Record<ListKey, string> = {
+  gram: 'Gram stain', genus: 'Organism', species: 'Species', family: 'Family', subfamily: 'Antibiotic group',
+  antibiotic: 'Antibiotic', chemical_group: 'Chemical group', country: 'Country', infection_type: 'Infection type',
+  disease: 'Disease',
+};
+const GRAM_NAMES: Record<string, string> = { positive: 'Gram-positive', negative: 'Gram-negative', other: 'Other (acid-fast)' };
+
+/** The active filters in words ("Country: Pakistan", "Years: 2015 to 2020"), leaving
+    out the keys in `skip`; `name` turns a stored value (an ISO-3 code) into its label. */
+export function describeFilters(f: Filters, name: (key: ListKey, value: string) => string = (_, v) => v,
+                                skip: ListKey[] = []): string[] {
+  const out = LIST_KEYS.filter(k => f.lists[k].length && !skip.includes(k))
+    .map(k => `${LIST_LABELS[k]}: ${f.lists[k].map(v => (k === 'gram' ? GRAM_NAMES[v] || v : name(k, v))).join(', ')}`);
+  if (f.year_from || f.year_to) out.push(`Years: ${f.year_from || 'any'} to ${f.year_to || 'any'}`);
+  if (f.include_intermediate) out.push('Intermediate counted as resistant');
+  return out;
+}
+
 export const activeCount = (f: Filters) =>
   LIST_KEYS.reduce((n, k) => n + (f.lists[k].length ? 1 : 0), 0)
   + (f.year_from || f.year_to ? 1 : 0) + (f.include_intermediate ? 1 : 0);

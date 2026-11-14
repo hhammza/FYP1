@@ -134,7 +134,10 @@ def main(a):
         errors = []
         page.on('pageerror', lambda e: errors.append(str(e)))
         failed_local = []
-        page.on('requestfailed', lambda r: failed_local.append(r.url) if r.url.startswith(base) else None)
+        # A request the browser cancels because the page moved on (net::ERR_ABORTED) is
+        # not a file that failed to load; counting it made the page steps fail at random
+        page.on('requestfailed', lambda r: failed_local.append(r.url)
+                if r.url.startswith(base) and 'ERR_ABORTED' not in (r.failure or '') else None)
 
         def goto(path):
             errors.clear()

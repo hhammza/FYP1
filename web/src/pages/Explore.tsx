@@ -2,7 +2,7 @@
    Filters (organism by Gram stain, antibiotic group, country, infection type
    and disease, chemical group) apply to every view; all of it lives in the
    URL, so a view can be shared as a link. Data: /api/explore/. */
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { Link, Navigate, useLocation, useParams } from 'react-router';
 import { useTitle } from '../lib/pageEffects';
 import DrugDetail from './explore/DrugDetail';
@@ -38,6 +38,7 @@ export default function Explore() {
   const onCountry = useCallback((iso3: string) => update({ country: [iso3] }), [update]);
   const onDrug = useCallback((d: string) => update({ drug: d }), [update]);
   const setGroup = useCallback((g: string) => update({ group: g }), [update]);
+  const countryNames = useMemo(() => new Map(meta.state === 'ready' ? meta.data.countries.map(c => [c.value, c.label]) : []), [meta]);
 
   return (
     <>
@@ -85,7 +86,8 @@ export default function Explore() {
           {view === 'chemistry' && <ChemistryView filters={filters} meta={meta.data} onDrug={onDrug} />}
           </div>
 
-          {drug && <DrugDetail name={drug} filters={filters} onClose={() => update({ drug: null })} />}
+          {drug && <DrugDetail name={drug} filters={filters} onClose={() => update({ drug: null })}
+                               onClearFilters={clear} countryName={iso3 => countryNames.get(iso3) || iso3} />}
         </>}
       </div>
     </>

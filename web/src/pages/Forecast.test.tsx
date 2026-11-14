@@ -158,6 +158,19 @@ describe('Forecast page', () => {
     expect(screen.getByText('Resistance genes for this genome')).toHaveAttribute('href', '/genes#genome=1001988.3');
   });
 
+  it('offers no genes link for a Genome ID it knows nothing about', async () => {
+    backend({ 'genome/999999.999/': { body: {
+      genome_id: '999999.999', taxon_id: 999999, genes_url: '/genes#genome=999999.999',
+      organism: { name: null, genus: null, species: null, taxon_id: null },
+      models: { forecast: { role: null }, genome_kmers: { role: null } }, lab_results: [], lab_for_antibiotic: [] } } });
+    renderPage(<Forecast />, '/forecast');
+    await screen.findByRole('option', { name: 'Campylobacter' });
+    fireEvent.change(screen.getByLabelText(/^Fill from Genome ID/), { target: { value: '999999.999' } });
+    fireEvent.click(screen.getByRole('button', { name: /Fill/ }));
+    expect(await screen.findByText(/not an organism the model knows/)).toBeInTheDocument();
+    expect(screen.queryByText('Resistance genes for this genome')).not.toBeInTheDocument();
+  });
+
   it('checks a Genome ID before asking the backend', async () => {
     const calls = backend();
     renderPage(<Forecast />, '/forecast');

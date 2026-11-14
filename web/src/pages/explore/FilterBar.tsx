@@ -15,6 +15,10 @@ interface Props {
   clear: () => void;
 }
 
+/** A From year later than the To year, which matches nothing. */
+export const yearsReversed = (f: Filters) =>
+  Boolean(f.year_from && f.year_to) && Number(f.year_from) > Number(f.year_to);
+
 export default function FilterBar({ meta, filters, update, clear }: Props) {
   const f = filters.lists;
 
@@ -113,6 +117,8 @@ export default function FilterBar({ meta, filters, update, clear }: Props) {
             <input type="number" className="form-control form-control-custom" aria-label="To year" placeholder={String(meta.year_range?.[1] ?? '')}
                    value={filters.year_to} onChange={e => update({ year_to: e.target.value })} />
           </div>
+          {yearsReversed(filters) && (
+            <div className="small text-danger mt-1" role="alert">"From" is after "To": swap the years to see results.</div>)}
         </div>
       </div>
       <div className="d-flex flex-wrap align-items-center gap-4 mt-3 small">

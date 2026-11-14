@@ -39,6 +39,8 @@ export default function GenomeInfo({ data: d, antibiotic, prediction, onUseMic }
   const r = labs[0];
   const agree = r ? agrees(prediction, r.phenotype) : null;
   const n = (d.lab_results || []).length;
+  // a Genome ID we hold nothing for (mistyped, or not in BV-BRC's lab data) gets no genes link
+  const known = Boolean(o.name) || n > 0 || Object.values(d.models || {}).some(m => (m as { role?: string | null } | null)?.role);
 
   return (
     <>
@@ -73,7 +75,7 @@ export default function GenomeInfo({ data: d, antibiotic, prediction, onUseMic }
              : 'No laboratory result for this genome in our data.'}
         </Line>
       )}
-      <Link className="genome-info-link" to={d.genes_url}>Resistance genes for this genome</Link>
+      {known && <Link className="genome-info-link" to={d.genes_url}>Resistance genes for this genome</Link>}
     </>
   );
 }

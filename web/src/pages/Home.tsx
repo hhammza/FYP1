@@ -370,7 +370,7 @@ export default function Home() {
         <div className="col-12">
           <div className="glass-card h-100">
             <h5 className="fw-700 text-white mb-1"><i className="bi bi-diagram-3 me-2 text-primary-tok"></i>System Architecture</h5>
-            <p className="fs-13 text-3 mb-20">Full-stack ML deployment: Flask frontend → Django REST API → Trained ML models</p>
+            <p className="fs-13 text-3 mb-20">Full-stack ML deployment: React + TypeScript frontend → Django REST API → Trained ML models</p>
 
             <div className="pipeline-diagram">
               <div className="pipeline-step">
@@ -380,7 +380,7 @@ export default function Home() {
               <div className="pipeline-arrow"><i className="bi bi-arrow-right"></i></div>
               <div className="pipeline-step">
                 <div className="pipeline-icon"><i className="bi bi-layout-text-window"></i></div>
-                <div className="pipeline-label">Flask UI<br /><small>Port 5001</small></div>
+                <div className="pipeline-label">React UI<br /><small>Port 5173</small></div>
               </div>
               <div className="pipeline-arrow"><i className="bi bi-arrow-right"></i></div>
               <div className="pipeline-step">

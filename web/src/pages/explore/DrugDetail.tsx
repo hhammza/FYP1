@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom';
 import { Link } from 'react-router';
 import { apiUrl } from '../../lib/api';
 import { capitalise } from '../../lib/vocab';
-import { filterQuery, type Filters } from './filters';
+import { describeFilters, filterQuery, type Filters } from './filters';
 import type { DrugDetail as Detail, Summary } from './types';
 import { useExplore } from './views';
 import CellLoader from '../../components/CellLoader';
@@ -17,7 +17,17 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
   return <tr><th scope="row" className="text-muted fw-normal">{label}</th><td>{children || na}</td></tr>;
 }
 
-export default function DrugDetail({ name, filters, onClose }: { name: string; filters: Filters; onClose: () => void }) {
+interface Props {
+  name: string; filters: Filters; onClose: () => void;
+  /** clears the page's filters, keeping this popup open */
+  onClearFilters?: () => void;
+  /** an ISO-3 code's country name, for the filter summary */
+  countryName?: (iso3: string) => string;
+}
+
+export default function DrugDetail({ name, filters, onClose, onClearFilters, countryName }: Props) {
+  // the drug itself is not a filter here; every number below is for this drug
+  const active = describeFilters(filters, (k, v) => (k === 'country' && countryName ? countryName(v) : v), ['antibiotic']);
   const res = useExplore<Detail>(`explore/drug/${encodeURIComponent(name)}/${filterQuery(filters)}`);
   const closeBtn = useRef<HTMLButtonElement>(null);
   // Escape closes it; the page behind does not scroll while it is open; focus starts on Close
@@ -49,6 +59,11 @@ export default function DrugDetail({ name, filters, onClose }: { name: string; f
               <button ref={closeBtn} type="button" className="btn-close" aria-label="Close" onClick={onClose}></button>
             </div>
             <div className="modal-body">
+              {active.length > 0 && (
+                <div className="drug-filters small mb-3" role="note">
+                  <i className="bi bi-funnel me-1"></i>The resistance figures use the page's filters: {active.join(' · ')}.
+                  {onClearFilters && <button type="button" className="btn btn-link btn-sm p-0 ms-2 align-baseline" onClick={onClearFilters}>Clear filters</button>}
+                </div>)}
               {res.state === 'loading' && <CellLoader />}
               {res.state === 'failed' && <div className="alert-warning-custom">{res.error}</div>}
               {res.state === 'ready' && <Body d={res.data} filters={filters} />}
@@ -135,7 +150,10 @@ function ResistanceBy({ drug, filters }: { drug: string; filters: Filters }) {
   const rows = res.state === 'ready'
     ? res.data.rows.filter(r => r.resistant_pct !== null && String(r.value) !== '' && String(r.value) !== 'Unknown') : [];
   const enough = rows.filter(r => !r.low_sample);
-  const top = enough.slice(0, 6);
+  // when no group reaches the threshold (narrow filters, a rarely tested drug),
+  // the small ones are shown faded rather than an empty box
+  const onlyLow = enough.length === 0 && rows.length > 0;
+  const top = (onlyLow ? rows : enough).slice(0, 6);
   const minN = res.state === 'ready' ? res.data.min_n : 30;
   const name = (r: Summary['rows'][number]) => {
     const v = String(r.label || r.value);
@@ -155,15 +173,17 @@ function ResistanceBy({ drug, filters }: { drug: string; filters: Filters }) {
       <div className="drug-note mb-2">% of lab-tested isolates resistant to this drug, per {b.plural[0]}</div>
       {res.state === 'loading' && <CellLoader />}
       {res.state === 'failed' && <div className="small text-muted">{res.error}</div>}
+      {res.state === 'ready' && onlyLow && (
+        <div className="small text-muted mb-1">None has {minN} or more isolates tested; the small groups are shown faded.</div>)}
       {res.state === 'ready' && (top.length ? top.map(r => (
-        <div key={String(r.value)} className="drug-country">
+        <div key={String(r.value)} className={'drug-country' + (r.low_sample ? ' low-sample' : '')}>
           <span className={'drug-country-name' + (tab === 'species' ? ' fst-italic' : '')} title={name(r)}>{name(r)}</span>
           <span className="drug-country-bar"><span style={{ width: `${r.resistant_pct}%` }}></span></span>
-          <span className="drug-country-val" title={`${r.r.toLocaleString()} of ${r.n.toLocaleString()} isolates resistant`}>{(r.resistant_pct as number).toFixed(0)}% <span className="text-muted">of {r.n.toLocaleString()}</span></span>
-        </div>)) : <div className="small text-muted">{rows.length ? `None has ${minN} or more isolates tested.` : 'Not recorded for this drug.'}</div>)}
+          <span className="drug-country-val" title={`${r.r.toLocaleString()} of ${r.n.toLocaleString()} isolates resistant${r.low_sample ? ' (low sample)' : ''}`}>{(r.resistant_pct as number).toFixed(0)}% <span className="text-muted">of {r.n.toLocaleString()}</span></span>
+        </div>)) : <div className="small text-muted">Not recorded for this drug.</div>)}
       {res.state === 'ready' && rows.length > 0 && (
         <div className="drug-note mt-1" title="BV-BRC holds the isolates labs chose to submit, not a surveillance sample">
-          Highest first · {rows.length} {rows.length === 1 ? b.plural[0] : b.plural[1]}{rows.length > enough.length ? `, ${rows.length - enough.length} under ${minN} isolates hidden` : ''} · submitted isolates</div>)}
+          Highest first · {rows.length} {rows.length === 1 ? b.plural[0] : b.plural[1]}{!onlyLow && rows.length > enough.length ? `, ${rows.length - enough.length} under ${minN} isolates hidden` : ''} · submitted isolates</div>)}
     </div>
   );
 }

@@ -22,6 +22,13 @@ describe('static pages', () => {
     vi.useRealTimers();
   });
 
+  it('About describes the React frontend, not the old Flask one', async () => {
+    mockBackend({ 'health/': { body: HEALTH } });
+    renderPage(<About />);
+    expect(await screen.findByText('React Frontend (Port 5173)')).toBeInTheDocument();
+    expect(document.body.textContent).not.toMatch(/Flask|Jinja/);
+  });
+
   it('Datasets shows both models’ thresholds', async () => {
     mockBackend({ 'health/': { body: HEALTH } });
     renderPage(<Datasets />);

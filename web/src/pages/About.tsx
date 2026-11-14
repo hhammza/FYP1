@@ -118,7 +118,7 @@ export default function About() {
                   <div className="how-num about-obj-num">04</div>
                   <div>
                     <div className="how-title">Production-Ready Web System</div>
-                    <div className="how-desc">Deploy all models as a full-stack REST API system (Django + Flask) with an interactive web interface for clinical and research use.</div>
+                    <div className="how-desc">Deploy all models as a full-stack system (a Django REST API and a React + TypeScript web app) with an interactive interface for clinical and research use.</div>
                   </div>
                 </div>
               </div>
@@ -146,7 +146,7 @@ export default function About() {
 
             <h6 className="about-method-h6 mt-3 mb-2">Phase 4: Deployment</h6>
             <p className="about-method-text">{' '}
-              The trained models are saved to disk as LightGBM .txt files with their metrics, and loaded when the Django backend starts up through a model registry; every number the site shows is read from those metrics files. The Flask frontend forwards all prediction requests to the Django REST API. If a model file is missing, the forecaster falls back to a heuristic and <code className="font-mono">/predict</code> to the original K-mer RandomForest, and the page says so; the genome model refuses a partial genome (under 100,000 bp) rather than guess.
+              The trained models are saved to disk as LightGBM .txt files with their metrics, and loaded when the Django backend starts up through a model registry; every number the site shows is read from those metrics files. The React web app sends every request straight to the Django REST API. If a model file is missing, the forecaster falls back to a heuristic and <code className="font-mono">/predict</code> to the original K-mer RandomForest, and the page says so; the genome model refuses a partial genome (under 100,000 bp) rather than guess.
             </p>
           </div>
 
@@ -215,17 +215,17 @@ export default function About() {
           {/* System Architecture */}
           <div className="info-card mb-4">
             <h5 className="card-section-title"><i className="bi bi-layers text-accent me-2"></i>System Architecture</h5>
-            <p className="about-arch-intro">This is a two-tier web application. The Flask layer handles the user interface, while the Django REST API takes care of model inference and data processing.</p>
+            <p className="about-arch-intro">This is a two-tier web application. A React + TypeScript single-page app handles the user interface in the browser, while the Django REST API takes care of model inference and data processing.</p>
 
             <div className="pipeline-diagram about-pipeline mb-4">
               <div className="pipeline-step">
                 <div className="pipeline-icon"><i className="bi bi-person-fill"></i></div>
-                <div className="pipeline-label">User / Browser<br /><small>localhost:5001</small></div>
+                <div className="pipeline-label">User / Browser<br /><small>localhost:5173</small></div>
               </div>
               <div className="pipeline-arrow"><i className="bi bi-arrow-right"></i></div>
               <div className="pipeline-step">
                 <div className="pipeline-icon"><i className="bi bi-layout-text-window"></i></div>
-                <div className="pipeline-label">Flask Frontend<br /><small>Jinja2 + Bootstrap</small></div>
+                <div className="pipeline-label">React Frontend<br /><small>TypeScript + Vite</small></div>
               </div>
               <div className="pipeline-arrow"><i className="bi bi-arrow-right"></i></div>
               <div className="pipeline-step">
@@ -247,12 +247,12 @@ export default function About() {
             <div className="row g-3">
               <div className="col-md-6">
                 <div className="example-box">
-                  <div className="example-title about-flask-title">Flask Frontend (Port 5001)</div>
+                  <div className="example-title about-flask-title">React Frontend (Port 5173)</div>
                   <div className="example-content small text-muted">
-                    <div>• Jinja2 templates + Bootstrap 5 dark theme</div>
-                    <div>• Proxies all API calls to Django via <code>requests</code></div>
-                    <div>• Handles file uploads (multipart), JSON, form POST</div>
-                    <div>• Plotly.js for interactive charts (no server-side rendering)</div>
+                    <div>• React 18 + TypeScript, built with Vite; Bootstrap 5, light and dark themes</div>
+                    <div>• Calls the Django API directly with <code>fetch</code> (JSON and file uploads)</div>
+                    <div>• Plotly.js for interactive charts and maps, loaded only when a chart is shown</div>
+                    <div>• Typechecked and tested (Vitest) on every push, plus a browser end-to-end check</div>
                     <div>• Animated loading states, drag-and-drop file zones</div>
                   </div>
                 </div>
@@ -261,9 +261,9 @@ export default function About() {
                 <div className="example-box">
                   <div className="example-title about-django-title">Django REST API (Port 8000)</div>
                   <div className="example-content small text-muted">
-                    <div>• Django REST Framework with CORS enabled (all origins)</div>
+                    <div>• Django REST Framework; CORS limited to the site's own origins</div>
                     <div>• Models loaded once at startup via AppConfig.ready()</div>
-                    <div>• 7 endpoints: health, forecast, predict, timeline, antibiotics, train, reload</div>
+                    <div>• 23 endpoints: forecast, predict, timeline, the Explorer, reports, downloads, health and more</div>
                     <div>• Background thread for async model training</div>
                     <div>• Heuristic fallback if trained model unavailable</div>
                   </div>
