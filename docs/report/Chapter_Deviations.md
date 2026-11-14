@@ -11,7 +11,7 @@
 | P3 | Predict from clinical CSV data | `/forecast` for one isolate and batch CSV upload with a template | None |
 | P4 | Accuracy, recall, F1, AUC-ROC | All reported, plus AUPRC, Brier score, very major and major error, 95% confidence intervals | Extended: the clinical error rates and intervals were added because AUC alone cannot compare models |
 | P5 | Cross-dataset evaluation and ablations | Ablations, species and genus hold-out, lineage split, temporal split, 3 seeds, DeLong and McNemar tests | Extended beyond the proposal |
-| P6 | A Python library as the main deliverable | `amrpredict` 0.2.0, published on TestPyPI and installed from a clean environment; 35 tests in CI | Not on the main PyPI index; the backend keeps its own copy of the predictors, kept identical by a parity test. Both are stated as future work |
+| P6 | A Python library as the main deliverable | `amrpredict` 0.3.0: every model the website serves (forecaster, gene and k-mer genome models, timeline ML model, RL agent) and the simulation, with a command line; 55 tests in CI, passing on Python 3.9 and 3.13; 0.2.0 on TestPyPI | The main-PyPI upload (`pip install amrpredict`) is the last step. The backend keeps its own copy of the predictors, kept identical by parity tests on all four models |
 | P7 | Web interface on the library | React + TypeScript site (`web/`) on a Django REST API: forecast, genome prediction, timeline, Resistance Explorer, model reports | See "React" in §3 |
 | P8 | Reports in PDF, CSV and images | CSV and PDF export on the three tool pages, PNG download of every chart | None |
 | P9 | Secure, scalable interface | Secret key from the environment, restricted hosts and CORS, admin token on training and reload, rate limits, upload size limits, Docker image | Rate limits are per server process; a shared cache is noted for a multi-worker deployment |
@@ -45,6 +45,6 @@
 ## 5. Moved to future work
 
 - Retraining the genome models on all 87,325 lab-tested genomes (24,926 used).
-- Publishing `amrpredict` on the main PyPI index and making the backend import it.
+- Making the backend import `amrpredict` instead of keeping its own copy of the predictors.
 - Generative drug design (C3) and image input (C4).
 - A reward for the RL agent that penalises failed weeks, and calibration of the simulation's time scale against observed data.

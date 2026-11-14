@@ -2,7 +2,7 @@
 
 **Role:** models
 **Plan:** the split by skill (Ali: data + evolution, Hamza: models, Suleman: platform), based on [FYP_Completion_Roadmap.md](../docs/FYP_Completion_Roadmap.md)
-**Started:** 2026-09-25 · **Last updated:** 2026-11-14 (report: RL results in the results chapter, Deviations chapter; GAN run grouped for /models)
+**Started:** 2026-09-25 · **Last updated:** 2026-11-14 (amrpredict 0.3.0 with every served model, ready for PyPI; ML trend forecast mode on /timeline)
 
 Status key: `[ ]` not started · `[~]` in progress · `[x]` done · `[!]` blocked (say why in the log)
 
@@ -219,7 +219,7 @@ The supervisor asked for (1) the timeline as an **ML model** instead of the simu
 - [x] **Results chapters:** comparison table, ablations, learning curve, species hold-out, threshold trade-off, calibration, genome B-track *Done: `docs/report/Chapter_Results.md` (2026-10-22; RL agent added as §8 on 2026-11-14)*
 - [x] **Deployed-system evaluation:** shipped vs new re-test *Done: Results §2 (`experiments/evaluate_shipped.py`): July models 0.644 and 0.695 on unseen genomes, served models 0.762 and 0.935*
 - [x] Update `CHANGES.md` for my work *Done 2026-11-14*
-- [ ] Final version bump and release of the library once everyone's work is merged *Moved to future work in the final sprint (Deviations chapter §5)*
+- [~] Final version bump and release of the library once everyone's work is merged *Moved to future work in the final sprint (Deviations chapter §5)* *0.3.0 built 2026-11-14 with every served model (`amrpredict-lib/dist/`, `twine check` passed); the PyPI upload is mine to do with my account*
 
 ---
 
@@ -280,6 +280,7 @@ Alongside weeks 3 to 5, not instead of them. What the papers are and why: [RESEA
 | To Ali | **Answers (2026-09-29):** (1) yes, please sync your timeline fix into `amrpredict/timeline.py` yourself and remove the strict xfail; (2) lab AUC on your genomes (v6, plasmids excluded): **genes 0.979 [0.977–0.981] on 40,356 lab test rows from 4,481 genomes; training used 24,719 genomes** (about 200,000 lab rows); k-mers 0.935; (3) Dataset 2 kept, Suleman told to mark it superseded | Week 3 | [x] |
 | To Ali | Proposed gene-matrix format in `progress/formats/README.md` §3 (string `Genome ID` index, zero rows for searched genomes, `gene_info.csv`); `pyarrow` needed | Day 1 | [x] agreed by Ali 2026-09-26, formats §3; `pyarrow` in `experiments/requirements.txt` |
 | To supervisor | Scope email | Day 1 | [x] sent 2026-09-25; reply pending |
+| To Suleman, Ali | amrpredict 0.3.0 and the ML trend forecast mode on `/timeline` (2026-11-14), rows in their Handovers | Review | [x] sent |
 
 ---
 
@@ -300,6 +301,7 @@ Newest first. One line per work session: date, what I did, what is next, anythin
 
 | Date | Done | Next | Blockers |
 |---|---|---|---|
+| 2026-11-14 | **amrpredict 0.3.0.** The library carries every served model: gene model (0.977) with AMRFinderPlus, else k-mer LightGBM (0.935) for `predict_fasta()`; new `forecast_trend()`, `trend_series()`, `plan_treatment()`, `identify_species()`, CLI `trend`/`plan`/`species`. The July RandomForest and scikit-learn removed. 55 library tests (Python 3.9 and 3.13, wheel in a clean venv), parity tests for the genome, timeline and RL models; `experiments/sync_library.py`. Built, `twine check` passed. **/timeline: ML trend forecast mode** (`POST /api/timeline/forecast/`, genus + antibiotic, no genome) beside the what-if simulation; `/library` page for 0.3.0. Backend 133, web 89 tests pass. Handovers: Suleman (his files), Ali (FYI) | Upload 0.3.0 to PyPI; Flask `/timeline` and `/library` if Flask stays | e2e check not run here (no Playwright) |
 | 2026-11-14 | **Report and status.** Results chapter §8: Ali's RL agent (5% fitness cost: first failure 48.7 weeks later than weekly cycling, 62.1 later than always imipenem; no better than the greedy rule), and a limitation. New `docs/report/Chapter_Deviations.md`: every proposal item, delivered or not and why (drug design and images descoped, PostgreSQL not used, Keras/CNN-LSTM replaced by measured gradient boosting, React delivered, DrugBank replaced by PubChem), scope decisions, future work. `export_report.py` groups the GAN run `A13_ctgan` with the special runs on `/models` (report rebuilt: 29 runs, A13 0.9222 beside A6 0.9227). Roadmap checklist and this tracker brought up to date. Ali built the Resistance Explorer on `main`, so my `feature/explore` branch (2026-11-08) is superseded | Team: supervisor's reply to the scope email, Suleman's system-design chapter, demo video, tag `v1.0-submission` | Supervisor reply pending |
 | 2026-10-22 | **My sprint work done.** Timeline ML model (`experiments/timeline_ml/`): 467 yearly series, 13.98 pp on 2017–2022, better than last value, trend and mean; promoted and served as `ml_forecast` in `/api/timeline/`; 5 tests. GAN experiment (`experiments/gan/`, `A13_ctgan_v7`, `run.py` `data.synthetic`): CTGAN rows lowered the AUC on rare classes by 0.008 (significant), detection AUC 0.9999: a documented negative result. Notebook 04 executed; results chapter `docs/report/Chapter_Results.md`; README, experiments README, formats §8, roadmap, CHANGES, Handovers (Suleman: show the forecast on `/timeline`; Ali: FYI) | Team: Ali's RL agent, Suleman's page and deploy, demo, tag | Ali's RL agent; Suleman's `/timeline` page |
 | 2026-10-17 | Final sprint planned (3 days): the supervisor wants the timeline as an ML model, plus the missing RL agent and GAN. Checked the data: 553,223 lab results with a collection year give 186 yearly resistance series (>= 5 years) for a real timeline ML model. Assignments: Hamza timeline ML model, GAN experiment, results chapter; Ali RL agent, data chapters; Suleman deploy, `/timeline` page, demo, system design. Formats §8 written. Retraining on 87,325 genomes and the 4- vs 6-mer comparison moved to future work | Day 1: timeline ML model and CTGAN | None |

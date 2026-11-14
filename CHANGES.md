@@ -19,6 +19,21 @@ Baseline is commit **`52ae361`** *(Add amrpredict library and macOS launcher, 20
 
 ---
 
+## amrpredict 0.3.0 with every served model; ML trend forecast on /timeline (2026-11-14, Hamza)
+
+| File | Change |
+|---|---|
+| [amrpredict-lib/src/amrpredict/](amrpredict-lib/src/amrpredict/) `genome.py`, `timeline_ml.py`, `rl_agent.py`, `models/` | **amrpredict 0.3.0** carries every model the website serves: `predict_fasta()` uses the gene model (lab AUC 0.977) with AMRFinderPlus, else the k-mer LightGBM (0.935); new `forecast_trend()`/`trend_series()` (timeline ML model), `plan_treatment()` (RL agent), `identify_species()`; CLI commands `trend`, `plan`, `species`. Code ported from `backend/ml_models/` (imports and logging only). The July k-mer RandomForest (0.695 on unseen genomes) and the scikit-learn dependency removed |
+| [amrpredict-lib/tests/](amrpredict-lib/tests/), [backend/tests/test_library_parity.py](backend/tests/test_library_parity.py) | 55 library tests (pass on Python 3.9 and 3.13, and from the built wheel in a clean environment); parity tests: library and backend give identical answers for the k-mer genome model, the timeline ML model and the RL agent, as for the forecaster |
+| [amrpredict-lib/README.md](amrpredict-lib/README.md), `docs/` (quickstart, API, CLI, known issues), `pyproject.toml`, `CITATION.cff`, `dist/` | Docs for 0.3.0; version 0.3.0; wheel and source built, `twine check` passed, ready for the PyPI upload |
+| [experiments/sync_library.py](experiments/sync_library.py) | Copies the genome, timeline ML and RL models into the package after a promotion (`--check` reports differences) |
+| [backend/api/views.py](backend/api/views.py), [urls.py](backend/api/urls.py), [test_timeline_ml.py](backend/tests/test_timeline_ml.py) | `POST /api/timeline/forecast/`: the timeline ML model from `genus` + `antibiotic` (+ `years_ahead` 1 to 10), no genome; 400 on bad input, 404 without history; 4 tests (format §8) |
+| [web/src/pages/Timeline.tsx](web/src/pages/Timeline.tsx), [TrendForecastForm.tsx](web/src/pages/timeline/TrendForecastForm.tsx), [static.tsx](web/src/pages/timeline/static.tsx), [Timeline.test.tsx](web/src/pages/Timeline.test.tsx) | `/timeline` opens on a new **ML trend forecast** mode: antibiotic, organism and years ahead, no genome, the forecast card; the **What-if simulation** (with the RL panel) is the second tab. 2 new tests, the simulation tests switch tab |
+| [web/src/pages/Library.tsx](web/src/pages/Library.tsx) | `/library` describes 0.3.0: `pip install amrpredict`, the five trained models, the thresholds, no scikit-learn |
+| [scripts/e2e_check.py](scripts/e2e_check.py), [docs/library.md](docs/library.md), overview, architecture, formats §8, Deviations chapter | The trend-forecast step; the simulation steps open their tab; docs for 0.3.0 and the endpoint |
+
+---
+
 ## Web app: dark mode fixes, animated icons and page scenes (2026-11-14, Ali)
 
 Five commits on the React app (`web/`). No backend or model change.
