@@ -123,3 +123,5 @@
 [data-theme="dark"] .datasrc-card        { background: rgba(255,255,255,0.03); }
 [data-theme="dark"] .datasrc-card:hover  { background: rgba(255,255,255,0.06); }
 [data-theme="dark"] .insights-hint { color: #7c8aa0; }
+[data-theme="dark"] .drug-modal .btn-close { filter: invert(1) grayscale(100%) brightness(200%); }
+[data-theme="dark"] .drug-modal .table { --bs-table-color: var(--text-1); --bs-table-bg: transparent; --bs-table-border-color: var(--border); }
