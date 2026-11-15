@@ -12,46 +12,50 @@
       <div class="page-header-icon timeline-icon"><i class="bi bi-activity"></i></div>
       <div>
         <h1 class="page-title">Bacterial Mutation Timeline</h1>
-        <p class="page-subtitle">Yearly resistance forecast from a trained ML model, and week-by-week resistance evolution from a biologically-informed logistic growth simulation</p>
+        <p class="page-subtitle">A trained model forecasts how resistance to a drug changes year by year, from BV-BRC laboratory results</p>
       </div>
     </div>
   </div>
 </div>
 {% endblock %}
 
+{% macro pp(v) %}{% if v %}{{ "%.1f" | format(v[0]) }} pp{% else %}&ndash;{% endif %}{% endmacro %}
+
 {% block content %}
+{% set mae = (tl or {}).get('test_mae_pp') or {} %}
+{% set tdata = (tl or {}).get('data') or {} %}
 <div class="container-xl py-4">
 
   <!-- ── Model Info Strip ──────────────────────────────────────── -->
   <div class="d-flex gap-3 flex-wrap mb-4">
     <div class="flex-fill min-w-150">
       <div class="stat-mini">
-        <div class="stat-mini-value text-rose2">Bio-Sim</div>
-        <div class="stat-mini-label">Active model mode</div>
+        <div class="stat-mini-value text-rose2">LightGBM</div>
+        <div class="stat-mini-label">Trained model</div>
       </div>
     </div>
     <div class="flex-fill min-w-150">
       <div class="stat-mini">
-        <div class="stat-mini-value">2–24</div>
-        <div class="stat-mini-label">Simulation weeks</div>
+        <div class="stat-mini-value">{{ tdata.series or '–' }}</div>
+        <div class="stat-mini-label">Organism and drug series</div>
       </div>
     </div>
     <div class="flex-fill min-w-150">
       <div class="stat-mini">
-        <div class="stat-mini-value text-amber2">10+</div>
-        <div class="stat-mini-label">Resistance genes tracked</div>
+        <div class="stat-mini-value text-amber2">{{ "{:,}".format(tdata.lab_results) if tdata.lab_results else '–' }}</div>
+        <div class="stat-mini-label">BV-BRC lab results</div>
       </div>
     </div>
     <div class="flex-fill min-w-150">
       <div class="stat-mini">
-        <div class="stat-mini-value text-indigo2">{{ metrics.kmer.genomes_total }}</div>
-        <div class="stat-mini-label">Training genomes</div>
+        <div class="stat-mini-value text-indigo2">{{ pp(mae.get('model')) }}</div>
+        <div class="stat-mini-label">Error on unseen years</div>
       </div>
     </div>
     <div class="flex-fill min-w-150">
       <div class="stat-mini">
-        <div class="stat-mini-value text-emerald2">50%</div>
-        <div class="stat-mini-label">Treatment failure threshold</div>
+        <div class="stat-mini-value text-emerald2">1&ndash;10</div>
+        <div class="stat-mini-label">Years ahead</div>
       </div>
     </div>
   </div>
@@ -60,124 +64,259 @@
 
     <!-- ── Input Form ─────────────────────────────────────────── -->
     <div class="col-lg-4">
-      <!-- ML trend forecast: the timeline ML model, no genome needed -->
-      <div class="form-card mb-4" id="trendCard">
-        <h5 class="form-card-title"><i class="bi bi-graph-up-arrow me-2"></i>ML Trend Forecast</h5>
-        <div class="alert-success-tok mb-3">
-          <i class="bi bi-cpu me-1"></i> <strong>Trained ML model.</strong> LightGBM trained on BV-BRC laboratory results, 2000&ndash;2022. No genome needed.
-        </div>
-        {% set tf = trend_form or {'antibiotic': '', 'genus': '', 'years_ahead': '5'} %}
-        <form method="POST" action="/timeline" id="trendForm">
-          <input type="hidden" name="mode" value="trend">
-          <div class="mb-3">
-            <label class="form-label-custom" for="trendAntibiotic">Antibiotic <span class="required">*</span></label>
-            <select name="antibiotic" id="trendAntibiotic" class="form-select form-select-custom" required
-                    data-selected="{{ tf.antibiotic }}">
-              <option value="">-- Select Antibiotic --</option>
-            </select>
-          </div>
-          <div class="mb-3">
-            <label class="form-label-custom" for="trendGenus">Organism (genus) <span class="required">*</span></label>
-            <select name="genus" id="trendGenus" class="form-select form-select-custom" required
-                    data-selected="{{ tf.genus }}">
-              <option value="">-- Choose an antibiotic first --</option>
-            </select>
-          </div>
-          <div class="mb-3">
-            <label class="form-label-custom" for="trendYears">Years ahead</label>
-            <select name="years_ahead" id="trendYears" class="form-select form-select-custom">
-              {% for y in range(1, 11) %}<option value="{{ y }}" {% if tf.years_ahead|string == y|string %}selected{% endif %}>{{ y }}</option>{% endfor %}
-            </select>
-          </div>
-          <button type="submit" class="btn btn-primary-custom w-100 btn-lg">
-            <i class="bi bi-graph-up-arrow me-2"></i>Forecast Trend
-          </button>
-        </form>
-      </div>
-
       <div class="form-card">
-        <h5 class="form-card-title"><i class="bi bi-calendar-week me-2"></i>What-if Simulation</h5>
-
+        <h5 class="form-card-title"><i class="bi bi-calendar-week me-2"></i>Timeline Parameters</h5>
+        {% set sim_mode = mode == 'simulation' %}
+        {% set sf = sim_form or {'antibiotic': '', 'n_weeks': '8'} %}
+        <ul class="nav nav-pills nav-custom mb-3" role="tablist" aria-label="Timeline mode" id="timelineModes">
+          <li class="nav-item" role="presentation">
+            <button class="nav-link {% if not sim_mode %}active{% endif %}" type="button" role="tab" data-mode="forecast"
+                    aria-selected="{{ 'false' if sim_mode else 'true' }}"><i class="bi bi-graph-up-arrow me-1"></i>ML trend forecast</button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link {% if sim_mode %}active{% endif %}" type="button" role="tab" data-mode="simulation"
+                    aria-selected="{{ 'true' if sim_mode else 'false' }}"><i class="bi bi-sliders me-1"></i>What-if simulation</button>
+          </li>
+        </ul>
+        <div role="tabpanel" id="trendPane" class="{% if sim_mode %}d-none{% endif %}" data-mode-pane="forecast">
+        {% set fd = form_data or {} %}
+        {% set from_genome = fd.get('organism_from') == 'genome' %}
         <form method="POST" action="/timeline" enctype="multipart/form-data" id="timelineForm">
-
+          <input type="hidden" name="mode" value="forecast">
+          <p class="small text-muted">
+            A LightGBM model trained on BV-BRC laboratory results forecasts the yearly share of resistant isolates
+            for one organism and one antibiotic.
+          </p>
           <div class="mb-3">
-            <label class="form-label-custom">Antibiotic <span class="required">*</span>
-              <i class="bi bi-info-circle text-muted ms-1" data-bs-toggle="tooltip" data-bs-placement="right"
-                 data-bs-title="Select the antibiotic to simulate. Each has a hand-set growth rate and peak resistance; the curve shape has been checked against published lab and hospital data."></i>
-            </label>
-            <select name="antibiotic" class="form-select form-select-custom" required
-                    data-populate="antibiotics-kmer" data-selected="{{ form_data.antibiotic }}">
+            <label class="form-label-custom" for="antibioticSelect">Antibiotic <span class="required">*</span></label>
+            <select name="antibiotic" id="antibioticSelect" class="form-select form-select-custom" required
+                    data-selected="{{ fd.get('antibiotic', '') }}">
               <option value="">-- Select Antibiotic --</option>
             </select>
           </div>
 
           <div class="mb-3">
-            <label class="form-label-custom">Simulation Weeks: <span id="weeksVal">{{ form_data.get('n_weeks', '8') }}</span>
-              <i class="bi bi-info-circle text-muted ms-1" data-bs-toggle="tooltip" data-bs-placement="right"
-                 data-bs-title="How many weeks to simulate. 8 weeks covers a typical treatment course; 24 weeks shows long-term population dynamics. The 50% line marks the treatment failure threshold."></i>
-            </label>
-            <input type="range" name="n_weeks" class="form-range" min="2" max="24" step="1"
-                   value="{{ form_data.get('n_weeks', '8') }}" id="weeksSlider"
-                   aria-label="Simulation Weeks"
-                   aria-valuemin="2" aria-valuemax="24"
-                   aria-valuenow="{{ form_data.get('n_weeks', '8') }}">
-            <div class="d-flex justify-content-between">
-              <small class="text-muted">2 weeks</small>
-              <small class="text-muted">24 weeks</small>
+            <span class="form-label-custom d-block">Organism <span class="required">*</span></span>
+            <input type="hidden" name="organism_from" id="organismFrom" value="{{ 'genome' if from_genome else 'choose' }}">
+            <ul class="nav nav-pills nav-custom mb-2" aria-label="Where the organism comes from">
+              <li class="nav-item">
+                <button class="nav-link {% if not from_genome %}active{% endif %}" type="button" data-organism-from="choose"
+                        aria-pressed="{{ 'false' if from_genome else 'true' }}">
+                  <i class="bi bi-list-ul me-1"></i>Choose it
+                </button>
+              </li>
+              <li class="nav-item">
+                <button class="nav-link {% if from_genome %}active{% endif %}" type="button" data-organism-from="genome"
+                        aria-pressed="{{ 'true' if from_genome else 'false' }}">
+                  <i class="bi bi-file-earmark-binary me-1"></i>From a genome
+                </button>
+              </li>
+            </ul>
+
+            <div id="choosePane" class="{% if from_genome %}d-none{% endif %}">
+              <label class="visually-hidden" for="genusSelect">Organism (genus)</label>
+              <select name="genus" id="genusSelect" class="form-select form-select-custom"
+                      data-selected="{{ fd.get('genus', '') }}" {% if not from_genome %}required{% endif %}>
+                <option value="">-- Choose an antibiotic first --</option>
+              </select>
+              <div class="form-hint" id="genusHint"></div>
             </div>
-          </div>
 
-          <!-- Tab: File or Text -->
-          <ul class="nav nav-pills nav-custom mb-3" id="fastaTab2">
-            <li class="nav-item">
-              <button class="nav-link active" type="button" onclick="switchTab2('file', this)">
-                <i class="bi bi-file-earmark-arrow-up me-1"></i>Upload FASTA
-              </button>
-            </li>
-            <li class="nav-item">
-              <button class="nav-link" type="button" onclick="switchTab2('text', this)">
-                <i class="bi bi-code me-1"></i>Paste Sequence
-              </button>
-            </li>
-          </ul>
+            <div id="genomePane" class="{% if not from_genome %}d-none{% endif %}">
+              <div class="form-hint mb-2">The genus is identified from the genome's 6-mer profile. It needs a
+                complete assembly of at least 100 kb.</div>
+              <ul class="nav nav-pills nav-custom mb-3" id="fastaTab2">
+                <li class="nav-item">
+                  <button class="nav-link active" type="button" onclick="switchTab2('file', this)">
+                    <i class="bi bi-file-earmark-arrow-up me-1"></i>Upload FASTA
+                  </button>
+                </li>
+                <li class="nav-item">
+                  <button class="nav-link" type="button" onclick="switchTab2('text', this)">
+                    <i class="bi bi-code me-1"></i>Paste Sequence
+                  </button>
+                </li>
+              </ul>
 
-          <div id="fileTab2" class="mb-3">
-            <label class="form-label-custom">FASTA File <span class="required">*</span>
-              <i class="bi bi-info-circle text-muted ms-1" data-bs-toggle="tooltip" data-bs-placement="right"
-                 data-bs-title="Upload a genome assembly (.fasta, .fa, .fna). Its GC content sets the starting resistant fraction for the simulation. Required unless you paste a sequence instead."></i>
-            </label>
-            <div class="file-drop-zone" id="dropZone2">
-              <i class="bi bi-cloud-arrow-up fs-3 mb-2 text-accent"></i>
-              <div>Drag &amp; drop FASTA file</div>
-              <input type="file" name="fasta_file" id="fastaFile2" accept=".fasta,.fa,.fna" class="file-input">
-              <label for="fastaFile2" class="btn btn-outline-custom btn-sm mt-1">Browse</label>
-              <div id="fileName2" class="mt-1 text-accent small"></div>
-            </div>
-          </div>
+              <div id="fileTab2" class="mb-3">
+                <label class="form-label-custom" for="fastaFile2">FASTA File <span class="required">*</span>
+                  <i class="bi bi-info-circle text-muted ms-1" data-bs-toggle="tooltip" data-bs-placement="right"
+                     data-bs-title="Upload a genome assembly (.fasta, .fa, .fna). Only its genus is used: the forecast is for that genus and the chosen antibiotic."></i>
+                </label>
+                <div class="file-drop-zone" id="dropZone2">
+                  <i class="bi bi-cloud-arrow-up fs-3 mb-2 text-accent"></i>
+                  <div>Drag &amp; drop FASTA file</div>
+                  <input type="file" name="fasta_file" id="fastaFile2" accept=".fasta,.fa,.fna" class="file-input">
+                  <label for="fastaFile2" class="btn btn-outline-custom btn-sm mt-1">Browse</label>
+                  <div id="fileName2" class="mt-1 text-accent small"></div>
+                </div>
+              </div>
 
-          <div id="textTab2" class="mb-3 d-none">
-            <label class="form-label-custom">FASTA Sequence <span class="required">*</span>
-              <i class="bi bi-info-circle text-muted ms-1" data-bs-toggle="tooltip" data-bs-placement="right"
-                 data-bs-title="Paste a FASTA sequence to set the simulation baseline. GC content is extracted and used to set initial mutation pressure. Required unless you upload a file instead."></i>
-            </label>
-            <textarea name="fasta_text" class="form-control form-control-custom mono-font"
-                      rows="7" placeholder=">genome_header
+              <div id="textTab2" class="mb-3 d-none">
+                <label class="form-label-custom" for="fastaText2">FASTA Sequence <span class="required">*</span>
+                  <i class="bi bi-info-circle text-muted ms-1" data-bs-toggle="tooltip" data-bs-placement="right"
+                     data-bs-title="Paste a complete genome assembly in FASTA format. Only its genus is used."></i>
+                </label>
+                <textarea name="fasta_text" id="fastaText2" class="form-control form-control-custom mono-font"
+                          rows="5" placeholder=">genome_header
 ATGCATGCATGCATGCATGC..."></textarea>
-            <div class="d-flex justify-content-end mt-1">
-              <button type="button" class="btn btn-link btn-sm p-0" onclick="loadSample2()">Load Sample</button>
+              </div>
+
+              <div id="fastaError2" class="alert alert-danger-custom mb-3 d-none" role="alert" aria-live="polite">
+                <i class="bi bi-exclamation-circle me-2"></i>Upload a FASTA file or paste a sequence, or choose the organism instead.
+              </div>
             </div>
           </div>
 
-          <div id="fastaError2" class="alert alert-danger-custom mb-3 d-none" role="alert" aria-live="polite">
-            <i class="bi bi-exclamation-circle me-2"></i>Upload a FASTA file or paste a sequence before generating a timeline.
+          <div class="mb-3">
+            <label class="form-label-custom" for="yearsSlider">Years ahead: <span id="yearsVal">{{ fd.get('years_ahead') or '5' }}</span></label>
+            <input type="range" name="years_ahead" id="yearsSlider" class="form-range" min="1" max="10" step="1"
+                   value="{{ fd.get('years_ahead') or '5' }}" aria-label="Years ahead">
+            <div class="d-flex justify-content-between">
+              <small class="text-muted">1 year</small>
+              <small class="text-muted">10 years</small>
+            </div>
+            <div class="form-hint">The band widens with each year: the far future is less certain.</div>
           </div>
 
-          <button type="submit" class="btn btn-primary-custom btn-danger-custom w-100 btn-lg">
-            <i class="bi bi-activity me-2"></i>Generate Timeline
+          <button type="submit" class="btn btn-primary-custom w-100 btn-lg">
+            <i class="bi bi-graph-up-arrow me-2"></i>Forecast Resistance Trend
           </button>
         </form>
+        </div>
+        <div role="tabpanel" id="simulationPane" class="{% if not sim_mode %}d-none{% endif %}" data-mode-pane="simulation">
+          <div class="alert alert-warning-custom py-2 small mb-3">
+            <i class="bi bi-info-circle me-1"></i><strong>Simulation, not a trained model.</strong> Hand-set
+            constants; use the ML trend forecast for a measured answer.
+          </div>
+          <form method="POST" action="/timeline" enctype="multipart/form-data" id="simulationForm">
+            <input type="hidden" name="mode" value="simulation">
+
+            <div class="mb-3">
+              <label class="form-label-custom">Antibiotic <span class="required">*</span>
+                <i class="bi bi-info-circle text-muted ms-1" data-bs-toggle="tooltip" data-bs-placement="right"
+                   data-bs-title="Select the antibiotic to simulate. Each has a hand-set growth rate and peak resistance; the curve shape has been checked against published lab and hospital data."></i>
+              </label>
+              <select name="antibiotic" class="form-select form-select-custom" required
+                      data-populate="antibiotics-kmer" data-selected="{{ sf.antibiotic }}">
+                <option value="">-- Select Antibiotic --</option>
+              </select>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label-custom">Simulation Weeks: <span id="weeksVal">{{ sf.get('n_weeks', '8') }}</span>
+                <i class="bi bi-info-circle text-muted ms-1" data-bs-toggle="tooltip" data-bs-placement="right"
+                   data-bs-title="How many weeks to simulate. 8 weeks covers a typical treatment course; 24 weeks shows long-term population dynamics. The 50% line marks the treatment failure threshold."></i>
+              </label>
+              <input type="range" name="n_weeks" class="form-range" min="2" max="24" step="1"
+                     value="{{ sf.get('n_weeks', '8') }}" id="weeksSlider"
+                     aria-label="Simulation Weeks"
+                     aria-valuemin="2" aria-valuemax="24"
+                     aria-valuenow="{{ sf.get('n_weeks', '8') }}">
+              <div class="d-flex justify-content-between">
+                <small class="text-muted">2 weeks</small>
+                <small class="text-muted">24 weeks</small>
+              </div>
+            </div>
+
+            <!-- Tab: File or Text -->
+            <ul class="nav nav-pills nav-custom mb-3" id="fastaTab3">
+              <li class="nav-item">
+                <button class="nav-link active" type="button" onclick="switchTab3('file', this)">
+                  <i class="bi bi-file-earmark-arrow-up me-1"></i>Upload FASTA
+                </button>
+              </li>
+              <li class="nav-item">
+                <button class="nav-link" type="button" onclick="switchTab3('text', this)">
+                  <i class="bi bi-code me-1"></i>Paste Sequence
+                </button>
+              </li>
+            </ul>
+
+            <div id="fileTab3" class="mb-3">
+              <label class="form-label-custom">FASTA File <span class="required">*</span>
+                <i class="bi bi-info-circle text-muted ms-1" data-bs-toggle="tooltip" data-bs-placement="right"
+                   data-bs-title="Upload a genome assembly (.fasta, .fa, .fna). Its GC content sets the starting resistant fraction for the simulation. Required unless you paste a sequence instead."></i>
+              </label>
+              <div class="file-drop-zone" id="dropZone3">
+                <i class="bi bi-cloud-arrow-up fs-3 mb-2 text-accent"></i>
+                <div>Drag &amp; drop FASTA file</div>
+                <input type="file" name="fasta_file" id="fastaFile3" accept=".fasta,.fa,.fna" class="file-input">
+                <label for="fastaFile3" class="btn btn-outline-custom btn-sm mt-1">Browse</label>
+                <div id="fileName3" class="mt-1 text-accent small"></div>
+              </div>
+            </div>
+
+            <div id="textTab3" class="mb-3 d-none">
+              <label class="form-label-custom">FASTA Sequence <span class="required">*</span>
+                <i class="bi bi-info-circle text-muted ms-1" data-bs-toggle="tooltip" data-bs-placement="right"
+                   data-bs-title="Paste a FASTA sequence to set the simulation baseline. GC content is extracted and used to set initial mutation pressure. Required unless you upload a file instead."></i>
+              </label>
+              <textarea name="fasta_text" class="form-control form-control-custom mono-font"
+                        rows="7" placeholder=">genome_header
+ATGCATGCATGCATGCATGC..."></textarea>
+              <div class="d-flex justify-content-end mt-1">
+                <button type="button" class="btn btn-link btn-sm p-0" onclick="loadSample3()">Load Sample</button>
+              </div>
+            </div>
+
+            <div id="fastaError3" class="alert alert-danger-custom mb-3 d-none" role="alert" aria-live="polite">
+              <i class="bi bi-exclamation-circle me-2"></i>Upload a FASTA file or paste a sequence before generating a timeline.
+            </div>
+
+            <button type="submit" class="btn btn-primary-custom btn-danger-custom w-100 btn-lg">
+              <i class="bi bi-activity me-2"></i>Generate Timeline
+            </button>
+          </form>
+        </div>
       </div>
 
+      <div data-mode-pane="forecast" class="{% if sim_mode %}d-none{% endif %}">
+      <!-- The model -->
+      <div class="info-card mt-4" id="timelineModelCard">
+        <h6 class="card-section-title"><i class="bi bi-cpu text-accent me-2"></i>The Model</h6>
+        <div class="arch-box">
+          <div class="arch-layer text-accent2">BV-BRC lab results with a collection year</div>
+          <div class="arch-arrow">↓</div>
+          <div class="arch-layer">Yearly resistant share per genus and antibiotic</div>
+          <div class="arch-arrow">↓</div>
+          <div class="arch-layer">Earlier years only: last values, recent slope, gap, drug class</div>
+          <div class="arch-arrow">↓</div>
+          <div class="arch-layer text-emerald2">LightGBM predicts the change from last year</div>
+          <div class="arch-arrow">↓</div>
+          <div class="arch-layer">Repeated year by year, with an 80% band</div>
+        </div>
+        <div class="mt-3 pt-2 border-top-subtle fs-11 text-3">
+          <strong>Tested on years it never saw:</strong> trained on years up to {{ tdata.train_until or 2016 }} and
+          tested on the years after, it is off by {{ pp(mae.get('model')) }} on average, against {{ pp(mae.get('last value')) }} for
+          repeating last year's value, {{ pp(mae.get('linear trend')) }} for a straight-line trend
+          and {{ pp(mae.get('historical mean')) }} for the average so far.
+        </div>
+        <div class="mt-2 fs-11 text-3">
+          It extends one organism's trend for one drug. It cannot foresee a new resistance gene arriving or a change
+          in prescribing, and a year with few lab results can swing the history.
+        </div>
+      </div>
+
+      <div class="info-card mt-4">
+        <h6 class="card-section-title"><i class="bi bi-alarm text-accent me-2"></i>Reading the Share</h6>
+        <div class="method-steps">
+          <div class="method-step">
+            <span class="step-num step-success"><i class="bi bi-check-lg fs-10"></i></span>
+            <div><strong class="text-emerald2">&lt; 20%</strong> resistant: the drug still works for most isolates</div>
+          </div>
+          <div class="method-step">
+            <span class="step-num step-warning"><i class="bi bi-exclamation fs-10"></i></span>
+            <div><strong class="text-amber2">20–50%</strong> resistant: test before prescribing</div>
+          </div>
+          <div class="method-step">
+            <span class="step-num step-danger"><i class="bi bi-x-lg fs-10"></i></span>
+            <div><strong class="text-rose2">&gt; 50%</strong> resistant: most isolates resist, a poor empirical choice</div>
+          </div>
+        </div>
+      </div>
+      </div>
+      <div data-mode-pane="simulation" class="{% if not sim_mode %}d-none{% endif %}">
       <!-- Model Architecture Info -->
       <div class="info-card mt-4">
         <h6 class="card-section-title"><i class="bi bi-cpu text-accent me-2"></i>Simulation Model</h6>
@@ -208,72 +347,99 @@ ATGCATGCATGCATGCATGC..."></textarea>
         </div>
       </div>
 
-      <!-- Clinical Alert Thresholds -->
-      <div class="info-card mt-4">
-        <h6 class="card-section-title"><i class="bi bi-alarm text-accent me-2"></i>Clinical Alert Levels</h6>
-        <div class="method-steps">
-          <div class="method-step">
-            <span class="step-num step-success"><i class="bi bi-check-lg fs-10"></i></span>
-            <div><strong class="text-emerald2">&lt; 20%</strong> Resistant: treatment is effective, continue therapy</div>
-          </div>
-          <div class="method-step">
-            <span class="step-num step-warning"><i class="bi bi-exclamation fs-10"></i></span>
-            <div><strong class="text-amber2">20–50%</strong> Resistant: escalate monitoring and consider rotation</div>
-          </div>
-          <div class="method-step">
-            <span class="step-num step-danger"><i class="bi bi-x-lg fs-10"></i></span>
-            <div><strong class="text-rose2">&gt; 50%</strong> Resistant  <strong>treatment failure</strong>, switch antibiotic class</div>
-          </div>
-        </div>
       </div>
     </div>
 
     <!-- ── Results (first below 992px once there is one) ─────────── -->
-    <div class="col-lg-8 {% if result or trend or trend_error %}order-first order-lg-0{% endif %}">
-      {% if trend_error %}
-      <div class="alert alert-danger-custom"><i class="bi bi-exclamation-circle me-2"></i>{{ trend_error }}</div>
-      {% endif %}
-
-      {% if trend %}
-      <!-- ML trend forecast result -->
-      <div class="info-card mb-4" id="trendResult">
-        <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-2">
-          <h6 class="card-section-title mb-0"><i class="bi bi-graph-up-arrow text-accent me-2"></i>
-            <em>{{ trend.organism }}</em> &middot; {{ trend.antibiotic | title }}: resistant share by year</h6>
-          <span class="status-badge trained">Trained ML model</span>
-        </div>
-        <div id="trendChart" class="chart-350"></div>
-        {% set last = trend.history[-1] %}{% set final = trend.forecast[-1] %}
-        <p class="text-muted small mt-2 mb-3">
-          Observed {{ last.year }}: <span class="text-white">{{ last.resistant_pct }}%</span> resistant.
-          Forecast {{ final.year }}: <span class="text-white">{{ final.resistant_pct }}%</span>
-          (80% band {{ final.lo }}&ndash;{{ final.hi }}%).
-          {% if trend.metrics and trend.metrics.model %}Mean error on years it never saw: {{ "%.1f" | format(trend.metrics.model.mae_pct) }} percentage points
-          (last value alone: {{ "%.1f" | format(trend.metrics.last_value.mae_pct) if trend.metrics.last_value else '–' }}).{% endif %}
-        </p>
-        <div class="table-responsive">
-          <table class="table table-custom table-sm mb-0">
-            <thead><tr><th>Year</th><th>Forecast resistant %</th><th>80% band</th></tr></thead>
-            <tbody>
-            {% for f in trend.forecast %}
-            <tr><td class="fw-500">{{ f.year }}</td><td>{{ f.resistant_pct }}%</td><td class="text-muted">{{ f.lo }}&ndash;{{ f.hi }}%</td></tr>
-            {% endfor %}
-            </tbody>
-          </table>
-        </div>
-        <div class="mt-2 fs-11 text-3">{{ trend.label or 'ML model trained on BV-BRC laboratory results' }} ({{ trend.model_run }}). Each forecast year is fed back as history for the next, so the band widens with distance.</div>
-      </div>
-      {% endif %}
-
+    <div class="col-lg-8 {% if (sim if sim_mode else result) %}order-first order-lg-0{% endif %}">
       {% if error %}
       <div class="alert alert-danger-custom"><i class="bi bi-exclamation-circle me-2"></i>{{ error }}</div>
       {% endif %}
 
-      {% if result %}
-      {% if result.error %}
-      <div class="alert alert-danger-custom"><i class="bi bi-exclamation-circle me-2"></i>{{ result.error }}</div>
-      {% else %}
+      <div data-mode-pane="forecast" class="{% if sim_mode %}d-none{% endif %}">
+      {% if result and result.ml_forecast %}
+      {% set ml = result.ml_forecast %}
+      {% set first = ml.history[0] %}{% set last = ml.history[-1] %}{% set end = ml.forecast[-1] %}
+      <div class="info-card mb-4" id="mlForecast">
+        <div class="d-flex align-items-start flex-wrap gap-2 mb-1">
+          <h6 class="card-section-title mb-0 me-auto"><i class="bi bi-graph-up-arrow text-accent me-2"></i>
+            Resistance forecast: <em>{{ ml.organism }}</em> and {{ ml.antibiotic }}</h6>
+          <span class="status-badge trained"><i class="bi bi-cpu"></i>{{ ml.label or 'ML model trained on BV-BRC laboratory results' }}</span>
+        </div>
+        {% if result.organism_source == 'genome' %}
+        <div class="alert alert-info-custom py-2 mb-2" id="genusFromGenome">
+          <i class="bi bi-dna me-2"></i>The uploaded genome was identified as <em>{{ ml.organism }}</em>; the
+          forecast is for that genus.
+        </div>
+        {% endif %}
+        <p class="small text-muted mb-2">
+          The share of {{ ml.organism }} isolates resistant to {{ ml.antibiotic }} in BV-BRC laboratory results, year by year
+          ({{ first.year }} to {{ last.year }}), and the ML model's forecast for the next {{ ml.forecast | length }} years. The shaded
+          band is an 80% interval from the model's errors on held-out years; it widens the further ahead it looks.
+          {% if ml.history | selectattr('n', 'lt', 30) | list %} Hollow points are years with fewer than 30 lab
+          results, where the share can swing on a handful of isolates.{% endif %}
+        </p>
+        <div id="mlForecastChart" class="chart-350"></div>
+        <div class="row g-2 text-center mt-2">
+          <div class="col-6 col-md-4"><div class="stat-mini">
+            <div class="stat-mini-value stat-mini-static">{{ "%.1f" | format(last.resistant_pct) }}%</div>
+            <div class="stat-mini-label">Observed in {{ last.year }} ({{ last.n }} lab results)</div>
+          </div></div>
+          <div class="col-6 col-md-4"><div class="stat-mini">
+            <div class="stat-mini-value stat-mini-static text-rose2">{{ "%.1f" | format(end.resistant_pct) }}%</div>
+            <div class="stat-mini-label">Forecast for {{ end.year }} (80%: {{ "%.1f" | format(end.lo) }} to {{ "%.1f" | format(end.hi) }})</div>
+          </div></div>
+          <div class="col-12 col-md-4"><div class="stat-mini">
+            <div class="stat-mini-value stat-mini-static">{{ ml.history | length }} years</div>
+            <div class="stat-mini-label">of history the forecast rests on</div>
+          </div></div>
+        </div>
+        {% set mm = ml.metrics or {} %}
+        {% if mm.model %}
+        <p class="caption-text mt-2 mb-0">On years it never saw, the model is off by {{ "%.2f" | format(mm.model.mae_pct) }} percentage points on average{% set others = [] %}{% for k, name in [('last_value', 'last year’s value'), ('linear_trend', 'a straight-line trend'), ('historical_mean', 'the average so far')] %}{% if mm[k] %}{% set _ = others.append("%.2f" | format(mm[k].mae_pct) ~ ' for ' ~ name) %}{% endif %}{% endfor %}{% if others %}, against {{ others | join(', ') }}{% endif %}. Model run <code>{{ ml.model_run }}</code>.</p>
+        {% endif %}
+      </div>
 
+      {% set page = 'timeline' %}{% set chart_id = 'mlForecastChart' %}{% set export_result = result %}
+      {% include '_export_bar.html' %}
+
+      {% else %}
+      <div class="empty-state" id="timelineEmpty">
+        <div class="empty-state-icon timeline-icon"><i class="bi bi-graph-up-arrow"></i></div>
+        <h4>Forecast a Resistance Trend</h4>
+        <p>Choose an antibiotic and an organism, or upload a genome to identify the organism, to see the yearly share
+          of resistant isolates in BV-BRC laboratory results and the trained model's forecast, with an 80% band.</p>
+        <div class="row g-3 mt-3 text-start">
+          <div class="col-md-6">
+            <div class="example-box">
+              <div class="example-title">What you'll see</div>
+              <div class="example-content">
+                <div><i class="bi bi-check text-success me-1"></i>Observed resistant share, year by year</div>
+                <div><i class="bi bi-check text-success me-1"></i>The model's forecast and its 80% band</div>
+                <div><i class="bi bi-check text-success me-1"></i>How many lab results each year rests on</div>
+                <div><i class="bi bi-check text-success me-1"></i>The model's error against simple baselines</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="example-box">
+              <div class="example-title">Try</div>
+              <div class="example-content">
+                <div><span class="text-rose2">●</span> Ciprofloxacin + Salmonella</div>
+                <div><span class="text-amber2">●</span> Ampicillin + Escherichia</div>
+                <div><span class="text-emerald2">●</span> Meropenem + Klebsiella</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+      </div>
+
+      <!-- What-if simulation: not a trained model -->
+      <div data-mode-pane="simulation" class="{% if not sim_mode %}d-none{% endif %}">
+      {% if sim %}
+      {% with result = sim %}
       {% if sample %}
       <div class="alert alert-warning-custom mb-3" role="status">
         <i class="bi bi-eye me-2"></i><strong>Sample response, not a real simulation.</strong>
@@ -321,7 +487,7 @@ ATGCATGCATGCATGCATGC..."></textarea>
         <div id="timelineChart" class="chart-350"></div>
       </div>
 
-      {% set page = 'timeline' %}{% set chart_id = 'timelineChart' %}{% set export_result = result %}
+      {% set page = 'simulation' %}{% set chart_id = 'timelineChart' %}{% set export_result = result %}
       {% include '_export_bar.html' %}
 
       {% include '_rl_panel.html' %}
@@ -428,14 +594,13 @@ ATGCATGCATGCATGCATGC..."></textarea>
         </div>
       </div>
 
-      {% endif %}
-      {% elif not trend %}
+      {% endwith %}
+      {% else %}
       <!-- Empty State -->
-      <div class="empty-state">
+      <div class="empty-state" id="simulationEmpty">
         <div class="empty-state-icon timeline-icon"><i class="bi bi-activity"></i></div>
-        <h4>Forecast or Simulate Resistance</h4>
-        <p><strong>ML trend forecast:</strong> pick an antibiotic and an organism to forecast the yearly resistant share from real lab results.
-          <strong>What-if simulation:</strong> upload a FASTA genome to simulate week-by-week resistance evolution with a logistic-growth simulation.</p>
+        <h4>What-if: Resistance Under Treatment</h4>
+        <p>Upload a bacterial FASTA genome and select an antibiotic to simulate week-by-week resistance evolution with a logistic-growth simulation. This is not a trained model: its constants are hand-set from the literature, and the weeks are illustrative.</p>
         <div class="row g-3 mt-3 text-start">
           <div class="col-md-6">
             <div class="example-box">
@@ -463,6 +628,7 @@ ATGCATGCATGCATGCATGC..."></textarea>
         </div>
       </div>
       {% endif %}
+      </div>
     </div>
   </div>
 
@@ -471,16 +637,16 @@ ATGCATGCATGCATGCATGC..."></textarea>
     <div class="mb-4">
       <div class="sec-eyebrow">Evolutionary Biology</div>
       <div class="sec-title">Understanding Bacterial Resistance Evolution</div>
-      <div class="sec-sub">Antibiotic resistance evolves through mutation, selection, and gene transfer. Our simulation models these population dynamics with logistic growth, using hand-set constants per antibiotic class whose curve shape has been checked against published data.</div>
+      <div class="sec-sub">Antibiotic resistance evolves through mutation, selection, and gene transfer. The forecast above does not model these steps: it learns how the resistant share has moved from year to year in laboratory surveillance data.</div>
     </div>
 
     <div class="row g-4 mb-4">
       <div class="col-md-3">
         <div class="crisis-card rose h-100">
           <div class="crisis-icon"><i class="bi bi-activity text-rose2"></i></div>
-          <div class="crisis-val">Logistic</div>
-          <div class="fw-600 mb-2 text-rose2">Population Growth Model</div>
-          <div class="crisis-desc">Resistance fraction follows a logistic S-curve: slow initial spread, exponential acceleration, then plateau. Each antibiotic has its own mutation speed, peak resistance and growth rate. These are hand-set from the literature, not fitted to data; only the curve's shape has been checked against published resistance curves.</div>
+          <div class="crisis-val">Selection</div>
+          <div class="fw-600 mb-2 text-rose2">Drug Pressure</div>
+          <div class="crisis-desc">Every course of an antibiotic kills susceptible cells and leaves resistant ones to grow. The more a drug is used, the faster the resistant share of a population rises, which is the trend the yearly lab results record.</div>
         </div>
       </div>
       <div class="col-md-3">
@@ -488,23 +654,23 @@ ATGCATGCATGCATGCATGC..."></textarea>
           <div class="crisis-icon"><i class="bi bi-shuffle text-amber2"></i></div>
           <div class="crisis-val">HGT</div>
           <div class="fw-600 mb-2 text-amber2">Horizontal Gene Transfer</div>
-          <div class="crisis-desc">Bacteria exchange resistance genes via conjugation (plasmids), transformation (naked DNA), and transduction (phage). Our model accounts for HGT acceleration by increasing the logistic growth rate when high-GC genomic regions (insertion sites) are detected.</div>
+          <div class="crisis-desc">Bacteria exchange resistance genes via conjugation (plasmids), transformation (naked DNA), and transduction (phage). A plasmid spreading through a population can make the resistant share jump within a year or two, a change no trend model can see coming.</div>
         </div>
       </div>
       <div class="col-md-3">
         <div class="crisis-card indigo h-100">
-          <div class="crisis-icon"><i class="bi bi-geo-alt text-indigo2"></i></div>
-          <div class="crisis-val">Hotspots</div>
-          <div class="fw-600 mb-2 text-indigo2">Mutation Hotspot Detection</div>
-          <div class="crisis-desc">Genomic windows with elevated GC content and tandem repeat density are scored as mutation hotspots. These are regions where transposons and integrons insert resistance cassettes. The model identifies the top 10 highest-risk positions in your submitted genome.</div>
+          <div class="crisis-icon"><i class="bi bi-clipboard-data text-indigo2"></i></div>
+          <div class="crisis-val">Surveillance</div>
+          <div class="fw-600 mb-2 text-indigo2">Yearly Lab Results</div>
+          <div class="crisis-desc">The model learns from BV-BRC laboratory results that carry a collection year, grouped per genus and antibiotic. A year counts only with at least 20 results, and years with under 30 are drawn hollow on the chart, since a handful of isolates can swing the share.</div>
         </div>
       </div>
       <div class="col-md-3">
         <div class="crisis-card blue h-100">
           <div class="crisis-icon"><i class="bi bi-bezier2"></i></div>
           <div class="crisis-val">Genes</div>
-          <div class="fw-600 mb-2 text-accent">Resistance Gene Activation</div>
-          <div class="crisis-desc">Each antibiotic class activates characteristic resistance genes over time. Beta-lactams select for blaTEM/blaKPC; fluoroquinolones select for gyrA mutations and qnr genes; aminoglycosides for AMEs. Activation timing reflects clinical breakpoint data from
+          <div class="fw-600 mb-2 text-accent">Resistance Genes</div>
+          <div class="crisis-desc">Each antibiotic class selects for characteristic resistance genes. Beta-lactams select for blaTEM/blaKPC; fluoroquinolones select for gyrA mutations and qnr genes; aminoglycosides for AMEs. Whether an isolate counts as resistant follows the clinical breakpoints from
             <a href="https://www.eucast.org/clinical_breakpoints/" target="_blank" rel="noopener" class="src-link">EUCAST</a> /
             <a href="https://clsi.org/standards/products/microbiology/documents/m100/" target="_blank" rel="noopener" class="src-link">CLSI M100</a>.
           </div>
@@ -515,48 +681,22 @@ ATGCATGCATGCATGCATGC..."></textarea>
     <div class="row g-4">
       <div class="col-lg-5">
         <div class="glass-card h-100">
-          <h6 class="card-section-title"><i class="bi bi-clock-history text-accent me-2"></i>Resistance Development Timeline by Drug Class</h6>
+          <h6 class="card-section-title"><i class="bi bi-clock-history text-accent me-2"></i>Resistance Mechanisms by Drug Class</h6>
           <p class="fs-11 text-3 mb-2">
-            Illustrative speeds used by this simulation, not measured timescales: in published data resistance
-            rises within days in lab evolution and over years in hospital surveillance (Dataset 5).
-            Background on the mechanisms: <a href="https://www.who.int/publications/i/item/9789240062702" target="_blank" rel="noopener" class="src-link">WHO GLASS 2022</a> ·
-            <a href="https://www.eucast.org/" target="_blank" rel="noopener" class="src-link">EUCAST</a> ·
+            Background on the mechanisms: <a href="https://www.who.int/publications/i/item/9789240062702" target="_blank" rel="noopener" class="src-link">WHO GLASS 2022</a> &middot;
+            <a href="https://www.eucast.org/" target="_blank" rel="noopener" class="src-link">EUCAST</a> &middot;
             <a href="https://www.thelancet.com/journals/lancet/article/PIIS0140-6736(21)02724-0/fulltext" target="_blank" rel="noopener" class="src-link">Murray et al., Lancet 2022</a>
           </p>
           <div class="table-responsive">
             <table class="table table-custom table-sm mb-0">
-              <thead><tr><th>Antibiotic Class</th><th>Typical Speed</th><th>Primary Mechanism</th></tr></thead>
+              <thead><tr><th>Antibiotic Class</th><th>Primary Mechanism</th></tr></thead>
               <tbody>
-                <tr>
-                  <td class="fw-500">Fluoroquinolones</td>
-                  <td><span class="status-badge offline">3–5 weeks</span></td>
-                  <td class="small text-muted">QRDR mutations (gyrA, parC)</td>
-                </tr>
-                <tr>
-                  <td class="fw-500">Beta-Lactams</td>
-                  <td><span class="status-badge offline">4–8 weeks</span></td>
-                  <td class="small text-muted">Beta-lactamase acquisition</td>
-                </tr>
-                <tr>
-                  <td class="fw-500">Aminoglycosides</td>
-                  <td><span class="status-badge untrained">6–10 weeks</span></td>
-                  <td class="small text-muted">Enzymatic modification (AMEs)</td>
-                </tr>
-                <tr>
-                  <td class="fw-500">Carbapenems</td>
-                  <td><span class="status-badge untrained">8–14 weeks</span></td>
-                  <td class="small text-muted">Carbapenemase (KPC, NDM)</td>
-                </tr>
-                <tr>
-                  <td class="fw-500">Polymyxins</td>
-                  <td><span class="status-badge trained">10–18 weeks</span></td>
-                  <td class="small text-muted">LPS modification (mcr genes)</td>
-                </tr>
-                <tr>
-                  <td class="fw-500">Glycopeptides</td>
-                  <td><span class="status-badge trained">12–20 weeks</span></td>
-                  <td class="small text-muted">Cell wall precursor alteration</td>
-                </tr>
+                <tr><td class="fw-500">Fluoroquinolones</td><td class="small text-muted">QRDR mutations (gyrA, parC)</td></tr>
+                <tr><td class="fw-500">Beta-Lactams</td><td class="small text-muted">Beta-lactamase acquisition</td></tr>
+                <tr><td class="fw-500">Aminoglycosides</td><td class="small text-muted">Enzymatic modification (AMEs)</td></tr>
+                <tr><td class="fw-500">Carbapenems</td><td class="small text-muted">Carbapenemase (KPC, NDM)</td></tr>
+                <tr><td class="fw-500">Polymyxins</td><td class="small text-muted">LPS modification (mcr genes)</td></tr>
+                <tr><td class="fw-500">Glycopeptides</td><td class="small text-muted">Cell wall precursor alteration</td></tr>
               </tbody>
             </table>
           </div>
@@ -598,7 +738,7 @@ ATGCATGCATGCATGCATGC..."></textarea>
                 <div class="how-num how-num-md step-warning"><i class="bi bi-clock fs-14"></i></div>
                 <div>
                   <div class="how-title fs-13">Optimal Duration</div>
-                  <div class="how-desc fs-12">Shorter antibiotic courses reduce selective pressure. The timeline model helps identify the minimum effective treatment window before resistance emerges.</div>
+                  <div class="how-desc fs-12">Shorter antibiotic courses reduce selective pressure, which slows the year-on-year rise the forecast tracks.</div>
                 </div>
               </div>
             </div>
@@ -613,15 +753,15 @@ ATGCATGCATGCATGCATGC..."></textarea>
 
 {% block scripts %}
 <script type="application/json" id="trend-genera">{{ (trend_genera or {}) | tojson }}</script>
-{% if trend %}
-<script type="application/json" id="trend-data">{{ trend | tojson }}</script>
+{% if result and result.ml_forecast %}
+<script type="application/json" id="trend-data">{{ result.ml_forecast | tojson }}</script>
 {% endif %}
-{% if result and result.timeline %}
-<script type="application/json" id="timeline-chart-data">{{ result.timeline | tojson }}</script>
-<script type="application/json" id="timeline-fail-week">{{ result.failure_week | tojson }}</script>
+{% if sim and sim.timeline %}
+<script type="application/json" id="timeline-chart-data">{{ sim.timeline | tojson }}</script>
+<script type="application/json" id="timeline-fail-week">{{ sim.failure_week | tojson }}</script>
 {% endif %}
-{% if result and result.rl and result.rl.policies %}
-<script type="application/json" id="rl-data">{{ result.rl | tojson }}</script>
+{% if sim and sim.rl and sim.rl.policies %}
+<script type="application/json" id="rl-data">{{ sim.rl | tojson }}</script>
 {% endif %}
 <script src="{{ url_for('static', filename='js/timeline.js') }}"></script>
 {% endblock %}

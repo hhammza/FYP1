@@ -26,8 +26,8 @@ SAMPLE.pop('_comment', None)
 
 def render(result):
     with app.app.test_request_context('/timeline'), mock.patch.object(app, 'model_health', return_value={}):
-        return app.render_template('mutation_timeline.html', result=result, error=None,
-                                   form_data={'antibiotic': result.get('antibiotic', ''), 'n_weeks': '4'})
+        return app.render_template('mutation_timeline.html', mode='simulation', sim=result, result=None, error=None,
+                                   sim_form={'antibiotic': result.get('antibiotic', ''), 'n_weeks': '4'})
 
 
 def panel(h):

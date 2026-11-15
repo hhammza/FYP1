@@ -1,11 +1,225 @@
 /* ============================================================
-   AMRPredict — Timeline Page (mutation_timeline.html)
-   Weeks slider, tab switching, drag-drop, sample genome,
-   toggle table, and timeline Plotly chart.
-   Chart data from <script type="application/json" id="timeline-chart-data">.
+   AMRPredict: Timeline Page (mutation_timeline.html), two tabs.
+   The what-if simulation tab (format §4, not a trained model): weeks slider,
+   genome upload (suffix 3), the weekly chart from <script id="timeline-chart-data">
+   and the RL panel from <script id="rl-data">.
+   The ML trend forecast tab, the timeline ML model (format §8): the antibiotic and genus lists from
+   <script id="trend-genera"> ({antibiotic: [genus, ...]}), the organism
+   choose / genome toggle, the genome upload, the years slider, and the
+   forecast chart from <script id="trend-data"> (the `ml_forecast` block).
    Expects: window.AMR (from main.js), Plotly (CDN)
    ============================================================ */
 
+(function () {
+  'use strict';
+
+  const FEW_RESULTS = 30;   // a year with fewer lab results is drawn hollow and faded
+
+  function readJson(id) {
+    const el = document.getElementById(id);
+    if (!el) return null;
+    try { return JSON.parse(el.textContent); } catch (e) { return null; }
+  }
+
+  /* ── Years slider ─────────────────────────────────────────── */
+  const slider   = document.getElementById('yearsSlider');
+  const yearsVal = document.getElementById('yearsVal');
+  if (slider && yearsVal) {
+    slider.addEventListener('input', function () { yearsVal.textContent = this.value; });
+  }
+
+  /* ── Antibiotic and genus lists ───────────────────────────── */
+  const byDrug  = readJson('trend-genera') || {};
+  const drugSel = document.getElementById('antibioticSelect');
+  const genSel  = document.getElementById('genusSelect');
+  const hint    = document.getElementById('genusHint');
+
+  function fillGenera() {
+    if (!genSel) return;
+    const genera = (byDrug[drugSel.value] || []).slice().sort();
+    const keep = genSel.dataset.selected || genSel.value;
+    genSel.innerHTML = '';
+    genSel.add(new Option(drugSel.value ? '-- Select Organism --' : '-- Choose an antibiotic first --', ''));
+    genera.forEach(g => genSel.add(new Option(g, g, false, g === keep)));
+    genSel.disabled = !genera.length;
+    genSel.dataset.selected = '';
+    if (hint) hint.textContent = drugSel.value && genera.length ? `${genera.length} genera have history for ${drugSel.value}` : '';
+  }
+
+  if (drugSel) {
+    const drugs = Object.keys(byDrug).sort();
+    if (!drugs.length) drugSel.options[0].text = 'Failed to load, check backend';
+    drugs.forEach(d => drugSel.add(new Option(d.charAt(0).toUpperCase() + d.slice(1), d, false, d === drugSel.dataset.selected)));
+    drugSel.addEventListener('change', fillGenera);
+    fillGenera();
+  }
+
+  /* ── Organism: chosen, or identified from a genome ────────── */
+  const fromInput  = document.getElementById('organismFrom');
+  const choosePane = document.getElementById('choosePane');
+  const genomePane = document.getElementById('genomePane');
+  document.querySelectorAll('[data-organism-from]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const from = btn.dataset.organismFrom;
+      if (fromInput) fromInput.value = from;
+      document.querySelectorAll('[data-organism-from]').forEach(b => {
+        b.classList.toggle('active', b === btn);
+        b.setAttribute('aria-pressed', b === btn ? 'true' : 'false');
+      });
+      if (choosePane) choosePane.classList.toggle('d-none', from !== 'choose');
+      if (genomePane) genomePane.classList.toggle('d-none', from !== 'genome');
+      if (genSel) genSel.required = from === 'choose';
+    });
+  });
+
+  /* ── Genome file: name, drag-and-drop ─────────────────────── */
+  const fastaFile2  = document.getElementById('fastaFile2');
+  const fileName2   = document.getElementById('fileName2');
+  const fastaText2  = document.getElementById('fastaText2');
+  const fastaError2 = document.getElementById('fastaError2');
+  const clearGenomeError = () => { if (fastaError2) fastaError2.classList.add('d-none'); };
+
+  if (fastaFile2) {
+    fastaFile2.addEventListener('change', function () {
+      if (fileName2) fileName2.textContent = this.files[0] ? this.files[0].name : '';
+      clearGenomeError();
+    });
+  }
+  if (fastaText2) fastaText2.addEventListener('input', clearGenomeError);
+
+  const dropZone2 = document.getElementById('dropZone2');
+  if (dropZone2) {
+    dropZone2.addEventListener('dragover', e => { e.preventDefault(); dropZone2.classList.add('dragover'); });
+    dropZone2.addEventListener('dragleave', () => dropZone2.classList.remove('dragover'));
+    dropZone2.addEventListener('drop', e => {
+      e.preventDefault();
+      dropZone2.classList.remove('dragover');
+      const file = e.dataTransfer.files[0];
+      if (file && fastaFile2) {
+        fastaFile2.files = e.dataTransfer.files;
+        if (fileName2) fileName2.textContent = file.name;
+        clearGenomeError();
+      }
+    });
+  }
+
+  /* ── A genome is needed when the organism comes from one ──── */
+  const form = document.getElementById('timelineForm');
+  if (form) {
+    form.addEventListener('submit', function (e) {
+      if (!fromInput || fromInput.value !== 'genome') return;
+      const fileChosen = fastaFile2 && fastaFile2.files && fastaFile2.files.length > 0;
+      const textTyped  = fastaText2 && fastaText2.value.trim().length > 0;
+      if (fileChosen || textTyped) return;
+      e.preventDefault();
+      if (fastaError2) {
+        fastaError2.classList.remove('d-none');
+        fastaError2.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+      const textTabVisible = !document.getElementById('textTab2').classList.contains('d-none');
+      if (textTabVisible && fastaText2) fastaText2.focus();
+      else if (fastaFile2) fastaFile2.focus();
+    });
+  }
+
+  /* ── The forecast chart ───────────────────────────────────── */
+  const ml = readJson('trend-data');
+  if (!ml || !document.getElementById('mlForecastChart') || typeof Plotly === 'undefined') return;
+  const t = AMR.plotLayout();
+  const hist = ml.history || [], fc = ml.forecast || [];
+  const last = hist[hist.length - 1];
+  // the forecast and its band start from the last observed year, so the lines join
+  const fx = [last.year].concat(fc.map(f => f.year));
+  const few = h => h.n < FEW_RESULTS;
+  const traces = [
+    { x: fx, y: [last.resistant_pct].concat(fc.map(f => f.lo)), mode: 'lines', line: { width: 0 },
+      hoverinfo: 'skip', showlegend: false },
+    { x: fx, y: [last.resistant_pct].concat(fc.map(f => f.hi)), mode: 'lines', line: { width: 0 },
+      fill: 'tonexty', fillcolor: 'rgba(239,68,68,0.15)', name: '80% band', hoverinfo: 'skip' },
+    { x: hist.map(h => h.year), y: hist.map(h => h.resistant_pct),
+      customdata: hist.map(h => [h.n, few(h) ? `<br><i>few lab results (under ${FEW_RESULTS})</i>` : '']),
+      name: 'Observed (lab results)', mode: 'lines+markers', line: { color: '#6366f1', width: 2.5 },
+      marker: { size: 6, symbol: hist.map(h => (few(h) ? 'circle-open' : 'circle')), opacity: hist.map(h => (few(h) ? 0.5 : 1)) },
+      hovertemplate: '%{x}: %{y:.1f}% resistant<br>%{customdata[0]} lab results%{customdata[1]}<extra></extra>' },
+    { x: fx, y: [last.resistant_pct].concat(fc.map(f => f.resistant_pct)),
+      customdata: [[last.resistant_pct, last.resistant_pct]].concat(fc.map(f => [f.lo, f.hi])),
+      name: 'ML forecast', mode: 'lines+markers', line: { color: '#ef4444', width: 2.5, dash: 'dash' }, marker: { size: 6 },
+      hovertemplate: '%{x}: %{y:.1f}% forecast<br>80% band %{customdata[0]:.1f} to %{customdata[1]:.1f}%<extra></extra>' },
+  ];
+  Plotly.newPlot('mlForecastChart', traces, {
+    paper_bgcolor: t.paper_bgcolor, plot_bgcolor: t.plot_bgcolor,
+    margin: { t: 30, b: 50, l: 50, r: 16 },
+    legend: { font: { color: t.tickColor }, orientation: 'h', x: 0, y: 1.02, yanchor: 'bottom' },
+    xaxis: { tickfont: { color: t.tickColor, size: 11 }, gridcolor: t.gridColor, linecolor: t.gridColor,
+             title: { text: 'Year', font: { color: t.tickColor, size: 12 } }, dtick: 2, automargin: true },
+    yaxis: { tickfont: { color: t.tickColor }, gridcolor: t.gridColor, range: [0, 105], ticksuffix: '%',
+             title: { text: 'Resistant isolates', font: { color: t.tickColor, size: 12 } } },
+    shapes: [{ type: 'line', xref: 'x', yref: 'paper', x0: last.year + 0.5, x1: last.year + 0.5, y0: 0, y1: 1,
+               line: { color: t.gridColor, width: 1.5, dash: 'dot' } }],
+    font: { family: t.fontFamily }, hovermode: 'closest',
+  }, { responsive: true, displayModeBar: false });
+})();
+
+/* ── FASTA tab switching (called via onclick in the template) ───── */
+window.switchTab2 = function (tab, btn) {
+  document.querySelectorAll('#fastaTab2 .nav-link').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  document.getElementById('fileTab2').classList.toggle('d-none', tab !== 'file');
+  document.getElementById('textTab2').classList.toggle('d-none', tab !== 'text');
+};
+
+/* ── The two tabs: ML trend forecast and what-if simulation ───── */
+document.querySelectorAll('#timelineModes [data-mode]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const mode = btn.dataset.mode;
+    document.querySelectorAll('#timelineModes [data-mode]').forEach(b => {
+      b.classList.toggle('active', b === btn);
+      b.setAttribute('aria-selected', b === btn ? 'true' : 'false');
+    });
+    document.querySelectorAll('[data-mode-pane]').forEach(p => p.classList.toggle('d-none', p.dataset.modePane !== mode));
+    // a chart drawn while hidden gets its size now
+    if (typeof Plotly !== 'undefined') {
+      ['mlForecastChart', 'timelineChart', 'rlChart'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el && el.data) Plotly.Plots.resize(el);
+      });
+    }
+  });
+});
+
+/* ── The simulation form's FASTA tabs (onclick in the template) ── */
+window.switchTab3 = function (tab, btn) {
+  document.querySelectorAll('#fastaTab3 .nav-link').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  document.getElementById('fileTab3').classList.toggle('d-none', tab !== 'file');
+  document.getElementById('textTab3').classList.toggle('d-none', tab !== 'text');
+};
+
+/* ── Load sample genome ───────────────────────────────────────── */
+window.loadSample3 = function () {
+  const textarea = document.querySelector('#textTab3 textarea');
+  if (textarea) {
+    textarea.value = `>sample_Ecoli_genome
+ATGAAACGCATTAGCACCACCATTACCACCACCATCACCATTACCACAGGTAACGGTGCGGGCTGACGCGTACAGGAAACACAGAAAAAAGCCCGCACCTGACAGTGCGGGCTTTTTTTTTCGACCAAAGGTAACGAGGTAACAACCATGCGAGTGTTGAAGTTCGGCGGTACATCAGTGGCAAATGCAGAACGTTTTCTGCGCGTTGTTACGCGCATTTTCTGATATTCGATTCGCATCATTTTCGGTCGGGTATCGCGGCGTTTGCTAAAAAACGTCAGCGTTTGCAGTTTTCGCTGAAACAGATGCGTATTTCGGTTTATCTCAAAAGTTCGTTTAGTAACAACGATGCGTAAAGCAGCATTAACGAAACAGTTTCAACGTTTGGCTGAAACGCAGTTTAAAGCTCAACGCAACAGTTTGCAAACGCAGCGCAATTTAAACAAGCGTTTGCAGAAACG`;
+  }
+  const errBox = document.getElementById('fastaError3');
+  if (errBox) errBox.classList.add('d-none');
+  const textBtn = document.querySelectorAll('#fastaTab3 .nav-link')[1];
+  if (textBtn) switchTab3('text', textBtn);
+};
+
+/* ── Toggle data table ────────────────────────────────────────── */
+window.toggleTable = function () {
+  const tbl = document.getElementById('timelineTable');
+  const ch  = document.getElementById('tableChevron');
+  if (!tbl) return;
+  const hidden = tbl.classList.contains('d-none');
+  tbl.classList.toggle('d-none', !hidden);
+  if (ch) ch.className = hidden ? 'bi bi-chevron-up' : 'bi bi-chevron-down';
+};
+
+
+/* ── What-if simulation (not a trained model) and the RL panel ─── */
 (function () {
   'use strict';
 
@@ -20,66 +234,66 @@
   }
 
   /* ── File name display ────────────────────────────────────── */
-  const fastaFile2 = document.getElementById('fastaFile2');
-  const fileName2  = document.getElementById('fileName2');
-  if (fastaFile2 && fileName2) {
-    fastaFile2.addEventListener('change', function () {
-      fileName2.textContent = this.files[0] ? this.files[0].name : '';
+  const fastaFile3 = document.getElementById('fastaFile3');
+  const fileName3  = document.getElementById('fileName3');
+  if (fastaFile3 && fileName3) {
+    fastaFile3.addEventListener('change', function () {
+      fileName3.textContent = this.files[0] ? this.files[0].name : '';
     });
   }
 
   /* ── Drag-and-drop ────────────────────────────────────────── */
-  const dropZone2 = document.getElementById('dropZone2');
-  if (dropZone2) {
-    dropZone2.addEventListener('dragover', e => {
+  const dropZone3 = document.getElementById('dropZone3');
+  if (dropZone3) {
+    dropZone3.addEventListener('dragover', e => {
       e.preventDefault();
-      dropZone2.classList.add('dragover');
+      dropZone3.classList.add('dragover');
     });
-    dropZone2.addEventListener('dragleave', () => {
-      dropZone2.classList.remove('dragover');
+    dropZone3.addEventListener('dragleave', () => {
+      dropZone3.classList.remove('dragover');
     });
-    dropZone2.addEventListener('drop', e => {
+    dropZone3.addEventListener('drop', e => {
       e.preventDefault();
-      dropZone2.classList.remove('dragover');
+      dropZone3.classList.remove('dragover');
       const file = e.dataTransfer.files[0];
-      if (file && fastaFile2) {
-        fastaFile2.files = e.dataTransfer.files;
-        if (fileName2) fileName2.textContent = file.name;
-        const errBox = document.getElementById('fastaError2');
+      if (file && fastaFile3) {
+        fastaFile3.files = e.dataTransfer.files;
+        if (fileName3) fileName3.textContent = file.name;
+        const errBox = document.getElementById('fastaError3');
         if (errBox) errBox.classList.add('d-none');
       }
     });
   }
 
   /* ── Require a FASTA file or pasted sequence ──────────────── */
-  const timelineForm = document.getElementById('timelineForm');
-  const fastaText2   = document.querySelector('#textTab2 textarea');
-  const fastaError2  = document.getElementById('fastaError2');
+  const timelineForm = document.getElementById('simulationForm');
+  const fastaText2   = document.querySelector('#textTab3 textarea');
+  const fastaError3  = document.getElementById('fastaError3');
 
   function hasGenomeInput() {
-    const fileChosen = fastaFile2 && fastaFile2.files && fastaFile2.files.length > 0;
+    const fileChosen = fastaFile3 && fastaFile3.files && fastaFile3.files.length > 0;
     const textTyped  = fastaText2 && fastaText2.value.trim().length > 0;
     return fileChosen || textTyped;
   }
 
   function clearGenomeError() {
-    if (fastaError2) fastaError2.classList.add('d-none');
+    if (fastaError3) fastaError3.classList.add('d-none');
   }
 
   if (timelineForm) {
     timelineForm.addEventListener('submit', function (e) {
       if (hasGenomeInput()) return;
       e.preventDefault();
-      if (fastaError2) {
-        fastaError2.classList.remove('d-none');
-        fastaError2.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      if (fastaError3) {
+        fastaError3.classList.remove('d-none');
+        fastaError3.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       }
-      const textTabVisible = !document.getElementById('textTab2').classList.contains('d-none');
+      const textTabVisible = !document.getElementById('textTab3').classList.contains('d-none');
       if (textTabVisible && fastaText2) fastaText2.focus();
-      else if (fastaFile2) fastaFile2.focus();
+      else if (fastaFile3) fastaFile3.focus();
     });
   }
-  if (fastaFile2) fastaFile2.addEventListener('change', clearGenomeError);
+  if (fastaFile3) fastaFile3.addEventListener('change', clearGenomeError);
   if (fastaText2) fastaText2.addEventListener('input', clearGenomeError);
 
   /* ── Timeline chart ───────────────────────────────────────── */
@@ -289,100 +503,3 @@
 
 })();
 
-/* ── Tab switching (called via onclick in template) ───────────── */
-window.switchTab2 = function (tab, btn) {
-  document.querySelectorAll('#fastaTab2 .nav-link').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  document.getElementById('fileTab2').classList.toggle('d-none', tab !== 'file');
-  document.getElementById('textTab2').classList.toggle('d-none', tab !== 'text');
-};
-
-/* ── Load sample genome ───────────────────────────────────────── */
-window.loadSample2 = function () {
-  const textarea = document.querySelector('#textTab2 textarea');
-  if (textarea) {
-    textarea.value = `>sample_Ecoli_genome
-ATGAAACGCATTAGCACCACCATTACCACCACCATCACCATTACCACAGGTAACGGTGCGGGCTGACGCGTACAGGAAACACAGAAAAAAGCCCGCACCTGACAGTGCGGGCTTTTTTTTTCGACCAAAGGTAACGAGGTAACAACCATGCGAGTGTTGAAGTTCGGCGGTACATCAGTGGCAAATGCAGAACGTTTTCTGCGCGTTGTTACGCGCATTTTCTGATATTCGATTCGCATCATTTTCGGTCGGGTATCGCGGCGTTTGCTAAAAAACGTCAGCGTTTGCAGTTTTCGCTGAAACAGATGCGTATTTCGGTTTATCTCAAAAGTTCGTTTAGTAACAACGATGCGTAAAGCAGCATTAACGAAACAGTTTCAACGTTTGGCTGAAACGCAGTTTAAAGCTCAACGCAACAGTTTGCAAACGCAGCGCAATTTAAACAAGCGTTTGCAGAAACG`;
-  }
-  const errBox = document.getElementById('fastaError2');
-  if (errBox) errBox.classList.add('d-none');
-  const textBtn = document.querySelectorAll('#fastaTab2 .nav-link')[1];
-  if (textBtn) switchTab2('text', textBtn);
-};
-
-/* ── Toggle data table ────────────────────────────────────────── */
-window.toggleTable = function () {
-  const tbl = document.getElementById('timelineTable');
-  const ch  = document.getElementById('tableChevron');
-  if (!tbl) return;
-  const hidden = tbl.classList.contains('d-none');
-  tbl.classList.toggle('d-none', !hidden);
-  if (ch) ch.className = hidden ? 'bi bi-chevron-up' : 'bi bi-chevron-down';
-};
-
-/* ── ML trend forecast (the timeline ML model, format §8) ─────────
-   Dropdowns from <script id="trend-genera"> ({antibiotic: [genus, ...]});
-   the chart from <script id="trend-data"> (the `ml_forecast` block). */
-(function () {
-  'use strict';
-
-  function readJson(id) {
-    const el = document.getElementById(id);
-    if (!el) return null;
-    try { return JSON.parse(el.textContent); } catch (e) { return null; }
-  }
-
-  const byDrug  = readJson('trend-genera') || {};
-  const drugSel = document.getElementById('trendAntibiotic');
-  const genSel  = document.getElementById('trendGenus');
-
-  function fillGenera() {
-    if (!genSel) return;
-    const genera = (byDrug[drugSel.value] || []).slice().sort();
-    const keep = genSel.dataset.selected || genSel.value;
-    genSel.innerHTML = '';
-    genSel.add(new Option(drugSel.value ? '-- Select Organism --' : '-- Choose an antibiotic first --', ''));
-    genera.forEach(g => genSel.add(new Option(g, g, false, g === keep)));
-    genSel.disabled = !genera.length;
-    genSel.dataset.selected = '';
-  }
-
-  if (drugSel) {
-    const drugs = Object.keys(byDrug).sort();
-    if (!drugs.length) drugSel.options[0].text = 'Failed to load — check backend';
-    drugs.forEach(d => drugSel.add(new Option(d, d, false, d === drugSel.dataset.selected)));
-    drugSel.addEventListener('change', fillGenera);
-    fillGenera();
-  }
-
-  const trend = readJson('trend-data');
-  if (!trend || !document.getElementById('trendChart') || typeof Plotly === 'undefined') return;
-  const t = AMR.plotLayout();
-  const hist = trend.history || [], fc = trend.forecast || [];
-  const last = hist[hist.length - 1];
-  // the forecast and its band start from the last observed year, so the lines join
-  const fx = [last.year].concat(fc.map(f => f.year));
-  const fy = [last.resistant_pct].concat(fc.map(f => f.resistant_pct));
-  const lo = [last.resistant_pct].concat(fc.map(f => f.lo));
-  const hi = [last.resistant_pct].concat(fc.map(f => f.hi));
-  const traces = [
-    { x: fx, y: hi, mode: 'lines', line: { width: 0 }, hoverinfo: 'skip', showlegend: false },
-    { x: fx, y: lo, mode: 'lines', line: { width: 0 }, fill: 'tonexty', fillcolor: 'rgba(99,102,241,0.15)',
-      name: '80% band', hoverinfo: 'skip' },
-    { x: hist.map(h => h.year), y: hist.map(h => h.resistant_pct), customdata: hist.map(h => h.n),
-      name: 'Observed (lab results)', mode: 'lines+markers', line: { color: '#0ea5e9', width: 2.5 },
-      marker: { size: 6 }, hovertemplate: '%{x}: %{y:.1f}% resistant (%{customdata} results)<extra></extra>' },
-    { x: fx, y: fy, name: 'ML forecast', mode: 'lines+markers', line: { color: '#6366f1', width: 2.5, dash: 'dash' },
-      marker: { size: 6 }, hovertemplate: '%{x}: %{y:.1f}% forecast<extra></extra>' },
-  ];
-  Plotly.newPlot('trendChart', traces, {
-    paper_bgcolor: t.paper_bgcolor, plot_bgcolor: t.plot_bgcolor,
-    margin: { t: 30, b: 50, l: 50, r: 16 },
-    legend: { font: { color: t.tickColor }, orientation: 'h', x: 0, y: 1.02, yanchor: 'bottom' },
-    xaxis: { tickfont: { color: t.tickColor, size: 11 }, gridcolor: t.gridColor, linecolor: t.gridColor,
-             title: { text: 'Year', font: { color: t.tickColor, size: 12 } }, automargin: true },
-    yaxis: { tickfont: { color: t.tickColor }, gridcolor: t.gridColor, range: [0, 105], ticksuffix: '%',
-             title: { text: 'Resistant isolates', font: { color: t.tickColor, size: 12 } } },
-    font: { family: t.fontFamily }, hovermode: 'x unified',
-  }, { responsive: true, displayModeBar: false });
-})();

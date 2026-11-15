@@ -174,11 +174,10 @@ class ExportTypes(unittest.TestCase):
                      'threshold': 0.15, 'drug_class': 'fluoroquinolone', 'model_used': 'LightGBM (trained)'},
         'predict': {'antibiotic': 'ciprofloxacin', 'prediction': 'Resistant', 'probability': 0.8, 'confidence': 80.0,
                     'threshold': 0.43, 'sequence_length': 5_000_000, 'gc_content': 50.6, 'model_used': 'LightGBM on 4-mers'},
-        'timeline': {'antibiotic': 'ciprofloxacin', 'antibiotic_class': 'fluoroquinolone', 'n_weeks': 2, 'failure_week': None,
-                     'final_resistant_percent': 12.0, 'sequence_length': 1000, 'gc_content': 50.0, 'summary': 's', 'seed': 42,
-                     'timeline': [{'week': w, 'susceptible_fraction': 90.0, 'intermediate_fraction': 5.0,
-                                   'resistant_fraction': 5.0, 'cumulative_mutations': 0, 'mic_fold_change': 1.0,
-                                   'treatment_effective': True} for w in range(3)]},
+        'timeline': {'organism_source': 'chosen', 'ml_forecast': {
+            'model_run': 'TL_timeline_ml', 'organism': 'Salmonella', 'antibiotic': 'ciprofloxacin',
+            'history': [{'year': 2020, 'resistant_pct': 10.0, 'n': 40}, {'year': 2021, 'resistant_pct': 12.5, 'n': 55}],
+            'forecast': [{'year': 2022, 'resistant_pct': 13.0, 'lo': 0.0, 'hi': 38.2}]}},
         'batch': {'rows': [{'row': 1, 'antibiotic': 'ciprofloxacin', 'prediction': 'Resistant', 'probability': 0.9,
                             'error': ''}]},
     }

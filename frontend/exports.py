@@ -17,7 +17,8 @@ SIMULATION = 'Simulation, not a trained model'
 TITLES = {
     'forecast': 'Resistance forecast',
     'predict': 'Genomic resistance prediction',
-    'timeline': 'Mutation timeline',
+    'timeline': 'Resistance trend forecast',
+    'simulation': 'What-if resistance simulation',
     'batch': 'Batch resistance forecast',
 }
 
@@ -120,6 +121,18 @@ def build_csv(page, result, inputs, model):
         return _csv(header, [row])
 
     if page == 'timeline':
+        ml = result['ml_forecast']
+        header = ['year', 'kind', 'resistant_pct', 'band80_low_pct', 'band80_high_pct', 'lab_results',
+                  'organism', 'antibiotic', 'organism_from', 'model_run', 'model_mae_pp_held_out_years', 'note']
+        common = [ml.get('organism'), ml.get('antibiotic'), result.get('organism_source') or 'chosen',
+                  model['run_id'], model['mae'], DISCLAIMER]
+        rows = [[h.get('year'), 'observed', h.get('resistant_pct'), '', '', h.get('n'), *common]
+                for h in ml.get('history') or []]
+        rows += [[f.get('year'), 'forecast', f.get('resistant_pct'), f.get('lo'), f.get('hi'), '', *common]
+                 for f in ml.get('forecast') or []]
+        return _csv(header, rows)
+
+    if page == 'simulation':
         header = ['week', 'susceptible_pct', 'intermediate_pct', 'resistant_pct', 'cumulative_mutations',
                   'mic_fold_change', 'treatment_effective', 'antibiotic', 'failure_week', 'seed', 'source']
         rows = [[w.get('week'), w.get('susceptible_fraction'), w.get('intermediate_fraction'),
@@ -140,6 +153,33 @@ def build_csv(page, result, inputs, model):
     raise ValueError(f'unknown page {page!r}')
 
 
+def timeline_summary(status):
+    """Display strings for /timeline's ML model from its status (timeline_ml.py,
+    in /api/health/ as `timeline_ml`): read from timeline_metrics.json, so a
+    download cannot carry an error the server did not measure."""
+    status = status or {}
+    m = status.get('metrics') or {}
+    mae = m.get('test_mae_pp') or {}
+
+    def pp(key):
+        v = mae.get(key)
+        return f'{v[0]:.2f} pp (95% CI {v[1][0]:.2f} to {v[1][1]:.2f})' if v else 'not measured'
+
+    q80 = (m.get('interval_abs_error_pp') or {}).get('q80')
+    names = {'last value': "last year's value", 'linear trend': 'a straight-line trend',
+             'historical mean': 'the average so far'}
+    base = '; '.join(f'{names.get(k, k)} {pp(k)}' for k in mae if k != 'model') or 'not measured'
+    return {
+        'algorithm': status.get('algorithm') or 'LightGBM regression',
+        'run_id': status.get('run_id') or 'not recorded',
+        'mae': (pp('model') + ', mean absolute error, trained to 2016 and tested on 2017 to 2022')
+        if mae.get('model') else 'not measured',
+        'baselines': base,
+        'band': (f'plus or minus {q80:.1f} pp one year ahead, widening with each further year'
+                 if q80 else 'not measured'),
+    }
+
+
 # ── PDF ──────────────────────────────────────────────────────────────────
 
 def decode_chart(data_url):
@@ -157,13 +197,21 @@ def decode_chart(data_url):
 
 
 def _model_rows(page, model, result):
-    if page == 'timeline':
+    if page == 'simulation':
         return [
             ['Method', 'Logistic-growth simulation with hand-set, literature-based constants'],
             ['Trained model', 'None: ' + SIMULATION.lower()],
             ['Validated', 'No, not against patient data'],
-            ['Calibration', 'not calibrated' if not result.get('calibration') else str(result.get('calibration'))],
             ['Seed', str(result.get('seed', ''))],
+        ]
+    if page == 'timeline':
+        return [
+            ['Model', model['algorithm']],
+            ['Model run', model['run_id']],
+            ['Error on held-out years', model['mae']],
+            ['Baselines on the same years', model['baselines']],
+            ['80% band', model['band']],
+            ['Trained on', 'BV-BRC laboratory results with a collection year, per genus and antibiotic'],
         ]
     return [
         ['Model', model['algorithm'] or result.get('model_used') or ''],
@@ -203,6 +251,17 @@ def _result_rows(page, result, inputs):
                 ['Resistance genes', genes_text(result)],
                 *([['Warning', result['warning']]] if result.get('warning') else [])]
     if page == 'timeline':
+        ml = result['ml_forecast']
+        last, end = ml['history'][-1], ml['forecast'][-1]
+        return [['Organism (genus)', ml.get('organism')],
+                ['Organism from', 'the uploaded genome' if result.get('organism_source') == 'genome'
+                 else 'chosen on the page'],
+                ['Antibiotic', ml.get('antibiotic')],
+                ['History', f"{ml['history'][0]['year']} to {last['year']} ({len(ml['history'])} years)"],
+                [f"Observed in {last['year']}", f"{last['resistant_pct']:.1f}% resistant ({last['n']} lab results)"],
+                [f"Forecast for {end['year']}",
+                 f"{end['resistant_pct']:.1f}% resistant (80% band {end['lo']:.1f} to {end['hi']:.1f}%)"]]
+    if page == 'simulation':
         fw = result.get('failure_week')
         return [['Antibiotic', result.get('antibiotic')],
                 ['Drug class', result.get('antibiotic_class')],
@@ -222,7 +281,13 @@ def _extra_table(page, result):
     if page == 'predict' and result.get('top_kmers'):
         return ('Most frequent 4-mers', ['4-mer', 'Frequency'],
                 [[k['kmer'], f"{k['frequency']:.5f}"] for k in result['top_kmers'][:10]])
-    if page == 'timeline' and result.get('timeline'):
+    if page == 'timeline':
+        ml = result['ml_forecast']
+        return ('Year by year', ['Year', 'Kind', 'Resistant', '80% band', 'Lab results'],
+                [[h['year'], 'observed', f"{h['resistant_pct']:.1f}%", '', h.get('n', '')] for h in ml['history']]
+                + [[f['year'], 'forecast', f"{f['resistant_pct']:.1f}%", f"{f['lo']:.1f} to {f['hi']:.1f}%", '']
+                   for f in ml['forecast']])
+    if page == 'simulation' and result.get('timeline'):
         return ('Week by week (' + SIMULATION.lower() + ')',
                 ['Week', 'Susceptible', 'Intermediate', 'Resistant', 'MIC fold'],
                 [[w['week'], f"{w['susceptible_fraction']:.1f}%", f"{w['intermediate_fraction']:.1f}%",
@@ -265,13 +330,17 @@ def build_pdf(page, result, inputs, model, chart_png=None):
     story = [Paragraph(escape(f'AMR Intelligence Platform: {TITLES[page]}'), styles['Title']),
              para(f'Generated {now_utc()}', small), Spacer(1, 8)]
     if page == 'timeline':
+        story.append(Paragraph('<b>A forecast from past laboratory results.</b> It extends the trend of one '
+                               'organism and drug; it cannot foresee a new resistance gene or a change in '
+                               'prescribing.', banner))
+    if page == 'simulation':
         story.append(Paragraph(f'<b>{escape(SIMULATION)}.</b> These curves come from a simulation with '
                                'hand-set constants, not from a model trained on data.', banner))
 
     story += [Paragraph('Result', styles['Heading2']),
               table(_result_rows(page, result, inputs), widths=[5.5 * cm, 11.5 * cm]),
               Spacer(1, 6),
-              Paragraph('Model' if page != 'timeline' else 'Method', styles['Heading2']),
+              Paragraph('Method' if page == 'simulation' else 'Model', styles['Heading2']),
               table(_model_rows(page, model, result), widths=[5.5 * cm, 11.5 * cm])]
 
     if chart_png:
@@ -295,7 +364,7 @@ def build_pdf(page, result, inputs, model, chart_png=None):
         story += [Spacer(1, 6), Paragraph(escape(title), styles['Heading2']), table(rows, header=header)]
 
     story += [Spacer(1, 14), Paragraph(f'<b>{escape(DISCLAIMER)}</b>', body)]
-    if page == 'timeline':
+    if page == 'simulation':
         story.append(para(SIMULATION + '.', body))
     doc.build(story)
     return buf.getvalue()

@@ -304,80 +304,102 @@ def predict_sample():
                            form_data={'antibiotic': result.get('antibiotic', ''), 'threshold': ''})
 
 
-SAMPLE_TIMELINE_RESPONSE = os.path.join(os.path.dirname(SAMPLE_GENOME_RESPONSE), 'timeline_response.sample.json')
-
-
-@app.route('/timeline/sample')
-def timeline_sample():
-    """/timeline filled with the agreed sample response (format §4), to preview
-    the RL panel before Ali's agent sends `rl`. Local runs only."""
-    if os.environ.get('PORT') or not os.path.exists(SAMPLE_TIMELINE_RESPONSE):
-        return render_template('mutation_timeline.html', result=None, form_data={'antibiotic': '', 'n_weeks': '8'},
-                               error='The sample preview is only available on a local run.'), 404
-    with open(SAMPLE_TIMELINE_RESPONSE, encoding='utf-8') as fh:
-        result = json.load(fh)
-    result.pop('_comment', None)
-    return render_template('mutation_timeline.html', result=result, error=None, sample=True,
-                           form_data={'antibiotic': result.get('antibiotic', ''),
-                                      'n_weeks': str(result.get('n_weeks', 8))})
-
-
 def trend_genera():
     """{antibiotic: [genus, ...]} the timeline ML model has yearly history for."""
     return (model_vocabulary().get('timeline') or {}).get('genera') or {}
 
 
+def timeline_metrics():
+    """The timeline ML model's held-out numbers (timeline_metrics.json, through
+    /api/health/'s `timeline_ml`), or {} when the backend has not answered."""
+    models = (model_health() or {}).get('models') or {}
+    return (models.get('timeline_ml') or {}).get('metrics') or {}
+
+
 def render_timeline(**context):
-    """mutation_timeline.html with the ML trend forecast form's choices."""
-    context.setdefault('trend', None)
-    context.setdefault('trend_error', None)
-    context.setdefault('trend_form', {'antibiotic': '', 'genus': '', 'years_ahead': '5'})
-    return render_template('mutation_timeline.html', trend_genera=trend_genera(), **context)
+    """mutation_timeline.html with both tabs' choices and the model's numbers.
+    `result` is an ML forecast, `sim` a what-if simulation; `mode` picks the tab."""
+    context.setdefault('mode', 'forecast')
+    context.setdefault('result', None)
+    context.setdefault('sim', None)
+    context.setdefault('error', None)
+    context.setdefault('form_data', {'antibiotic': '', 'genus': '', 'years_ahead': '5', 'organism_from': 'choose'})
+    context.setdefault('sim_form', {'antibiotic': '', 'n_weeks': '8'})
+    return render_template('mutation_timeline.html', trend_genera=trend_genera(),
+                           tl=timeline_metrics(), **context)
+
+
+SAMPLE_TIMELINE_RESPONSE = os.path.join(os.path.dirname(SAMPLE_GENOME_RESPONSE), 'timeline_response.sample.json')
+
+
+@app.route('/timeline/sample')
+def timeline_sample():
+    """/timeline's what-if tab filled with the agreed sample response (format
+    §4), to preview the layout and the RL panel. Local runs only."""
+    if os.environ.get('PORT') or not os.path.exists(SAMPLE_TIMELINE_RESPONSE):
+        return render_timeline(mode='simulation',
+                               error='The sample preview is only available on a local run.'), 404
+    with open(SAMPLE_TIMELINE_RESPONSE, encoding='utf-8') as fh:
+        sim = json.load(fh)
+    sim.pop('_comment', None)
+    sim.pop('ml_forecast', None)
+    return render_timeline(mode='simulation', sim=sim, sample=True,
+                           sim_form={'antibiotic': sim.get('antibiotic', ''), 'n_weeks': str(sim.get('n_weeks', 8))})
+
+
+def simulate_timeline():
+    """The what-if tab: the logistic-growth simulation, not a trained model
+    (POST /api/timeline/simulate/, format §4), with the RL panel's block."""
+    sim_form = {'antibiotic': request.form.get('antibiotic', '').strip(),
+                'n_weeks': request.form.get('n_weeks', '8').strip() or '8'}
+    fields = dict(sim_form)                                   # n_weeks is checked by the backend
+    fasta_file = request.files.get('fasta_file')
+    fasta_text = request.form.get('fasta_text', '').strip()
+    if fasta_file and fasta_file.filename:
+        files = {'fasta_file': (fasta_file.filename, fasta_file.stream, 'text/plain')}
+        data, status = backend_post('timeline/simulate/', data=fields, files=files)
+    elif fasta_text:
+        data, status = backend_post('timeline/simulate/', json_data={**fields, 'fasta_text': fasta_text})
+    else:
+        return render_timeline(mode='simulation', sim_form=sim_form,
+                               error='Upload a FASTA file or paste a sequence before generating a timeline.')
+    if status == 200 and data.get('timeline'):
+        return render_timeline(mode='simulation', sim=data, sim_form=sim_form)
+    return render_timeline(mode='simulation', sim_form=sim_form, error=data.get('error', 'The simulation failed'))
 
 
 @app.route('/timeline', methods=['GET', 'POST'])
 def mutation_timeline():
-    result = None
-    error = None
-    form_data = {'antibiotic': '', 'n_weeks': '8'}
+    """/timeline, two tabs: the timeline ML model (POST /api/timeline/, format
+    §8; the default) and the what-if simulation (mode=simulation)."""
+    if request.method != 'POST':
+        return render_timeline()
+    if request.form.get('mode') == 'simulation':
+        return simulate_timeline()
 
-    # The ML trend forecast: the timeline ML model on its own, from a genus and
-    # an antibiotic, no genome (POST /api/timeline/forecast/, format §8)
-    if request.method == 'POST' and request.form.get('mode') == 'trend':
-        trend_form = {k: request.form.get(k, '').strip() for k in ('antibiotic', 'genus', 'years_ahead')}
-        data, status = backend_post('timeline/forecast/', json_data=trend_form)
-        if status == 200 and data.get('ml_forecast'):
-            return render_timeline(result=None, error=None, form_data=form_data,
-                                   trend=data['ml_forecast'], trend_form=trend_form)
-        return render_timeline(result=None, error=None, form_data=form_data, trend_form=trend_form,
-                               trend_error=data.get('error', 'The forecast failed'))
+    form_data = {k: request.form.get(k, '').strip() for k in ('antibiotic', 'genus', 'years_ahead', 'organism_from')}
+    form_data['years_ahead'] = form_data['years_ahead'] or '5'
+    form_data['organism_from'] = 'genome' if form_data['organism_from'] == 'genome' else 'choose'
+    fields = {'antibiotic': form_data['antibiotic'], 'years_ahead': form_data['years_ahead']}   # checked by the backend
 
-    if request.method == 'POST':
-        antibiotic = request.form.get('antibiotic', '').strip()
-        n_weeks = request.form.get('n_weeks', '8')
-        form_data = {'antibiotic': antibiotic, 'n_weeks': n_weeks}
-
+    if form_data['organism_from'] == 'choose':
+        data, status = backend_post('timeline/', json_data={**fields, 'genus': form_data['genus']})
+    else:
         fasta_file = request.files.get('fasta_file')
         fasta_text = request.form.get('fasta_text', '').strip()
-
         if fasta_file and fasta_file.filename:
             files = {'fasta_file': (fasta_file.filename, fasta_file.stream, 'text/plain')}
-            post_data = {'antibiotic': antibiotic, 'n_weeks': n_weeks}
-            data, status = backend_post('timeline/', data=post_data, files=files)
+            data, status = backend_post('timeline/', data=fields, files=files)
         elif fasta_text:
-            data, status = backend_post('timeline/', json_data={
-                'fasta_text': fasta_text, 'antibiotic': antibiotic, 'n_weeks': n_weeks   # checked by the backend
-            })
+            data, status = backend_post('timeline/', json_data={**fields, 'fasta_text': fasta_text})
         else:
-            error = 'Please provide a FASTA file or paste FASTA sequence text.'
-            return render_timeline(result=result, error=error, form_data=form_data)
+            return render_timeline(form_data=form_data,
+                                   error='Upload a FASTA file or paste a sequence, or choose the organism instead.')
 
-        if status == 200:
-            result = data
-        else:
-            error = data.get('error', 'Prediction failed')
-
-    return render_timeline(result=result, error=error, form_data=form_data)
+    if status == 200 and data.get('ml_forecast'):
+        form_data['genus'] = data['ml_forecast'].get('organism', form_data['genus'])
+        return render_timeline(result=data, form_data=form_data)
+    return render_timeline(form_data=form_data, error=data.get('error', 'The forecast failed'))
 
 
 # ── Exports ──────────────────────────────────────────────────────────────
@@ -385,7 +407,7 @@ def mutation_timeline():
 # from the metrics files here (exports.py), so they cannot be edited on the way.
 
 EXPORT_MODEL = {'forecast': 'lgbm_forecasting', 'batch': 'lgbm_forecasting',
-                'predict': 'kmer_resistance', 'timeline': None}
+                'predict': 'kmer_resistance', 'timeline': 'timeline_ml', 'simulation': None}
 
 
 def _json_field(name):
@@ -396,7 +418,7 @@ def _json_field(name):
     return value if isinstance(value, dict) else None
 
 
-@app.route('/export/<any(forecast, predict, timeline, batch):page>.<any(csv, pdf):fmt>', methods=['POST'])
+@app.route('/export/<any(forecast, predict, timeline, simulation, batch):page>.<any(csv, pdf):fmt>', methods=['POST'])
 def export_result(page, fmt):
     """Download the result shown on a tool page, as CSV or PDF."""
     result, inputs = _json_field('result'), _json_field('inputs') or {}
@@ -406,7 +428,8 @@ def export_result(page, fmt):
         return jsonify({'error': 'Batch results export as CSV only.'}), 400
     models = (model_health() or {}).get('models') or {}
     key = EXPORT_MODEL[page]
-    model = summarize_metrics(models.get(key) if key else None)
+    model = (exports.timeline_summary(models.get(key)) if page == 'timeline'
+             else summarize_metrics(models.get(key) if key else None))
     stamp = time.strftime('%Y%m%d-%H%M')
     name = f'amr-{page}-{stamp}.{fmt}'
     try:
