@@ -1,4 +1,4 @@
-"""The `rl` block of /api/timeline/ (format section 4): the trained RL agent
+"""The `rl` block of /api/timeline/simulate/ (format section 4; /api/timeline/ until 2026-11-15): the trained RL agent
 against the fixed baselines, sent when the agent was trained with the drug.
 
     python -m unittest discover -s backend/tests
@@ -22,7 +22,7 @@ FASTA = '>test\n' + 'ATGCGTACGTTAGCCGATCGATCGGCTAGCTAGGCTTACG' * 20
 
 
 def post(**body):
-    return Client().post('/api/timeline/', data=json.dumps(body), content_type='application/json')
+    return Client().post('/api/timeline/simulate/', data=json.dumps(body), content_type='application/json')
 
 
 @unittest.skipUnless(os.path.exists(os.path.join(SERVED, 'rl_agent', 'policy.npz')), 'no RL agent trained')

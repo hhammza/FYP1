@@ -3,7 +3,8 @@
 Trained by experiments/timeline_ml/timeline_model.py on the BV-BRC laboratory
 results with a collection year (yearly resistant share per genus and
 antibiotic). Its response block is `ml_forecast` (progress/formats/README.md
-section 8), sent beside the simulation, which stays as the what-if tool.
+section 8). It is the whole of /timeline: the logistic-growth simulation that
+page used to show is no longer served.
 
 The organism comes from the request's `genus`, or else from the uploaded
 genome's 6-mer profile (the gene model's species reference,
@@ -69,6 +70,14 @@ class TimelineMLForecaster:
     @property
     def is_trained(self):
         return self.model is not None
+
+    @property
+    def status(self):
+        """For /api/health/ and the downloads: whether it is served, its run and
+        its held-out errors (timeline_metrics.json)."""
+        return {'trained': self.is_trained, 'run_id': self.meta.get('run_id'),
+                'algorithm': 'LightGBM regression on the change from the last year',
+                'metrics': self.metrics}
 
     def _series(self, genus, antibiotic):
         g = self.genera.get(str(genus or '').strip().lower())
@@ -136,8 +145,8 @@ class TimelineMLForecaster:
         return found['genus'] if found and found.get('genus') else None
 
     def for_request(self, fasta_text, antibiotic, genus=None):
-        """The block for /api/timeline/: the given genus, else the genome's. Never
-        raises, so the simulation's answer is never lost to this extra."""
+        """The block for a genus, else for the genome's genus; None when neither
+        gives a forecast. Never raises."""
         try:
             genus = genus or self.genus_of(fasta_text)
             return self.forecast(genus, antibiotic) if genus else None

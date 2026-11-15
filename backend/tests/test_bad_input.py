@@ -44,9 +44,9 @@ class BadInput(unittest.TestCase):
     def test_forecast_antibiotic_null(self):
         self.assert_400(post('/api/forecast/', {'antibiotic': None}), 'antibiotic is required')
 
-    def test_timeline_n_weeks_not_a_number(self):
-        self.assert_400(post('/api/timeline/', {'fasta_text': FASTA, 'antibiotic': 'ampicillin', 'n_weeks': 'x'}),
-                        'n_weeks must be a whole number from 1 to 52')
+    def test_timeline_years_ahead_not_a_number(self):
+        self.assert_400(post('/api/timeline/', {'genus': 'Salmonella', 'antibiotic': 'ampicillin', 'years_ahead': 'x'}),
+                        'years_ahead must be a whole number from 1 to 10')
 
     # ── more of the same kind ────────────────────────────────────
     def test_threshold_out_of_range(self):
@@ -71,10 +71,20 @@ class BadInput(unittest.TestCase):
                         'threshold must be a number')
         self.assert_400(post('/api/predict/', {'fasta_text': 123, 'antibiotic': 'ampicillin'}), 'fasta_text must be text')
 
-    def test_timeline_weeks_out_of_range_or_fractional(self):
-        for value in (0, 53, 2.5, 'inf'):
-            self.assert_400(post('/api/timeline/', {'fasta_text': FASTA, 'antibiotic': 'ampicillin', 'n_weeks': value}),
+    def test_timeline_years_out_of_range_or_fractional(self):
+        for value in (0, 11, 2.5, 'inf'):
+            self.assert_400(post('/api/timeline/', {'genus': 'Salmonella', 'antibiotic': 'ampicillin',
+                                                    'years_ahead': value}),
+                            'years_ahead must be a whole number from 1 to 10')
+
+    def test_simulation_weeks_out_of_range_or_fractional(self):
+        for value in (0, 53, 2.5, 'inf', 'x'):
+            self.assert_400(post('/api/timeline/simulate/', {'fasta_text': FASTA, 'antibiotic': 'ampicillin',
+                                                             'n_weeks': value}),
                             'n_weeks must be a whole number from 1 to 52')
+
+    def test_timeline_needs_an_organism_or_a_genome(self):
+        self.assert_400(post('/api/timeline/', {'antibiotic': 'ampicillin'}), 'genus or a genome')
 
     def test_train_malformed_json(self):
         r = Client().post('/api/train/', data='{', content_type='application/json',
@@ -87,9 +97,13 @@ class BadInput(unittest.TestCase):
                                     'mic_sign': '>=', 'threshold': '0.3', 'genus': 'Escherichia'})
         self.assertEqual(r.status_code, 200, r.content)
         self.assertEqual(r.json()['threshold'], 0.3)
-        r = post('/api/timeline/', {'fasta_text': FASTA, 'antibiotic': 'ampicillin', 'n_weeks': '8'})
+        r = post('/api/timeline/', {'genus': 'Salmonella', 'antibiotic': 'ciprofloxacin', 'years_ahead': '4'})
+        self.assertEqual(r.status_code, 200, r.content)
+        self.assertEqual(len(r.json()['ml_forecast']['forecast']), 4)
+        r = post('/api/timeline/simulate/', {'fasta_text': FASTA, 'antibiotic': 'ampicillin', 'n_weeks': '8'})
         self.assertEqual(r.status_code, 200, r.content)
         self.assertEqual(len(r.json()['timeline']), 9)
+        self.assertNotIn('ml_forecast', r.json())
 
 
 if __name__ == '__main__':

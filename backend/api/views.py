@@ -151,13 +151,16 @@ class HealthView(View):
     def get(self, request):
         lgbm = model_registry.get_lgbm()
         kmer = model_registry.get_kmer()
-        timeline = model_registry.get_timeline()
+        from ml_models.timeline_ml import get_forecaster
+        timeline = get_forecaster(str(settings.TRAINED_MODELS_DIR))
         return JsonResponse({
             'status': 'running',
             'models': {
                 'lgbm_forecasting': lgbm.status if lgbm else {'trained': False},
                 'kmer_resistance': kmer.status if kmer else {'trained': False},
-                'mutation_timeline': timeline.status if timeline else {'trained': False},
+                'timeline_ml': timeline.status,
+                'mutation_timeline': (model_registry.get_simulation().status
+                                      if model_registry.get_simulation() else {'trained': False}),
             }
         })
 
@@ -414,19 +417,21 @@ class ResistancePredictionView(View):
             return json_error(str(e), 500)
 
 
-class MutationTimelineView(View):
-    """Bacterial mutation timeline endpoint."""
+class TimelineView(View):
+    """/timeline: the timeline ML model (format §8). An antibiotic, and the
+    organism as a genus or as a genome whose genus is identified from its 6-mer
+    profile, give that organism's yearly resistant share in BV-BRC lab results
+    and the model's forecast for the next `years_ahead` years (1 to 10, default
+    5). Answers {'ml_forecast': ..., 'organism_source': 'chosen' | 'genome'}.
+    /api/timeline/forecast/ is the same view, kept for older callers. The
+    what-if simulation is TimelineSimulationView (/api/timeline/simulate/)."""
 
     def post(self, request):
         refused = rate_limited(request, 'timeline') or upload_too_large(request)
         if refused:
             return refused
         try:
-            n_weeks_default = 8
             fasta_text = ''
-            antibiotic = ''
-            n_weeks = n_weeks_default
-
             if 'fasta_file' in request.FILES:
                 fasta_file = request.FILES['fasta_file']
                 if fasta_file.size > settings.MAX_FASTA_BYTES:
@@ -440,32 +445,31 @@ class MutationTimelineView(View):
                 fields = request.POST
                 fasta_text = request.POST.get('fasta_text', '')
             antibiotic = text_field(fields, 'antibiotic')
-            n_weeks = whole_number(fields, 'n_weeks', n_weeks_default, 1, 52)
-
-            if not fasta_text:
-                return json_error('FASTA sequence or file is required')
+            genus = text_field(fields, 'genus')
+            years = whole_number(fields, 'years_ahead', 5, 1, 10)
             if len(fasta_text) > settings.MAX_FASTA_BYTES:
                 return fasta_too_large()
             if not antibiotic:
                 return json_error('antibiotic is required')
+            if not genus and not fasta_text:
+                return json_error('genus or a genome (fasta_file or fasta_text) is required')
 
-            model = model_registry.get_timeline()
-            if model is None:
-                return json_error('Model not initialized', 503)
-
-            result = model.predict(fasta_text, antibiotic, n_weeks=n_weeks)
-            # The timeline ML model (format §8): the organism's observed yearly
-            # resistance and a forecast, beside the simulation; absent when the
-            # organism or its history is unknown
-            if 'error' not in result:
-                from ml_models.timeline_ml import get_forecaster
-                genus = fields.get('genus') if hasattr(fields, 'get') else None
-                ml = get_forecaster(str(settings.TRAINED_MODELS_DIR)).for_request(
-                    fasta_text, antibiotic, genus if isinstance(genus, str) else None)
-                if ml:
-                    result['ml_forecast'] = ml
-            return JsonResponse(result)
-
+            from ml_models.timeline_ml import get_forecaster
+            forecaster = get_forecaster(str(settings.TRAINED_MODELS_DIR))
+            if not forecaster.is_trained:
+                return json_error('the timeline ML model is not available', 503)
+            source = 'chosen'
+            if not genus:
+                source = 'genome'
+                genus = forecaster.genus_of(fasta_text)
+                if not genus:
+                    return json_error('The organism could not be identified from this genome (it needs a '
+                                      'complete assembly of at least 100 kb). Choose the organism instead.', 422)
+            ml = forecaster.forecast(genus, antibiotic, years_ahead=years)
+            if not ml:
+                return json_error(f'{genus} has too little yearly lab history for {antibiotic} '
+                                  'to forecast', 404)
+            return JsonResponse({'ml_forecast': ml, 'organism_source': source})
         except BadInput as e:
             return json_error(str(e), 400)
         except Exception as e:
@@ -473,33 +477,42 @@ class MutationTimelineView(View):
             return json_error(str(e), 500)
 
 
-class TimelineForecastView(View):
-    """The timeline ML model on its own: genus + antibiotic -> `ml_forecast`
-    (format §8), no genome needed. /timeline's "ML trend forecast" mode."""
+class TimelineSimulationView(View):
+    """/timeline's what-if tab (format §4): the logistic-growth simulation, NOT a
+    trained model, week by week for a genome and an antibiotic, with the RL
+    agent's `rl` block when the agent was trained with that drug. Request:
+    fasta_file or fasta_text, antibiotic, n_weeks (1 to 52, default 8)."""
 
     def post(self, request):
-        refused = rate_limited(request, 'timeline')
+        refused = rate_limited(request, 'timeline') or upload_too_large(request)
         if refused:
             return refused
         try:
-            fields = read_json(request) if request.content_type and 'application/json' in request.content_type \
-                else request.POST
-            genus = text_field(fields, 'genus')
+            fasta_text = ''
+            if 'fasta_file' in request.FILES:
+                fasta_file = request.FILES['fasta_file']
+                if fasta_file.size > settings.MAX_FASTA_BYTES:
+                    return fasta_too_large()
+                fasta_text = fasta_file.read().decode('utf-8', errors='ignore')
+                fields = request.POST
+            elif request.content_type and 'application/json' in request.content_type:
+                fields = read_json(request)
+                fasta_text = text_field(fields, 'fasta_text')
+            else:
+                fields = request.POST
+                fasta_text = request.POST.get('fasta_text', '')
             antibiotic = text_field(fields, 'antibiotic')
-            years = whole_number(fields, 'years_ahead', 5, 1, 10)
-            if not genus:
-                return json_error('genus is required')
+            n_weeks = whole_number(fields, 'n_weeks', 8, 1, 52)
+            if not fasta_text:
+                return json_error('FASTA sequence or file is required')
+            if len(fasta_text) > settings.MAX_FASTA_BYTES:
+                return fasta_too_large()
             if not antibiotic:
                 return json_error('antibiotic is required')
-            from ml_models.timeline_ml import get_forecaster
-            forecaster = get_forecaster(str(settings.TRAINED_MODELS_DIR))
-            if not forecaster.is_trained:
-                return json_error('the timeline ML model is not available', 503)
-            ml = forecaster.forecast(genus, antibiotic, years_ahead=years)
-            if not ml:
-                return json_error(f'{genus} has too little yearly lab history for {antibiotic} '
-                                  'to forecast', 404)
-            return JsonResponse({'ml_forecast': ml})
+            model = model_registry.get_simulation()
+            if model is None:
+                return json_error('Model not initialized', 503)
+            return JsonResponse(model.predict(fasta_text, antibiotic, n_weeks=n_weeks))
         except BadInput as e:
             return json_error(str(e), 400)
         except Exception as e:
@@ -707,7 +720,6 @@ class ReloadModelsView(View):
         if denied:
             return denied
         lgbm = model_registry.get_lgbm()
-        timeline = model_registry.get_timeline()
         results = {}
         if lgbm:
             lgbm._load()
@@ -717,9 +729,12 @@ class ReloadModelsView(View):
         if kmer:
             results['kmer'] = {'trained': kmer.is_trained,
                                'run_id': getattr(kmer, 'meta', {}).get('run_id')}
-        if timeline:
-            timeline._load()
-            results['timeline'] = {'trained': timeline.is_trained}
+        sim = model_registry.get_simulation()
+        if sim:
+            sim._load()
+            results['simulation'] = {'trained': sim.is_trained, 'rl_agent': bool(sim.rl_agent)}
+        timeline = model_registry.reload_timeline()
+        results['timeline'] = {'trained': timeline.is_trained, 'run_id': timeline.meta.get('run_id')}
         return JsonResponse({'status': 'reloaded', 'models': results})
 
 
@@ -819,7 +834,7 @@ class ModelReportView(View):
 # The page posts back the result it showed; the model details are added from
 # the metrics files here (api/exports.py), so they cannot be edited on the way.
 
-EXPORT_MODEL = {'forecast': 'lgbm', 'batch': 'lgbm', 'predict': 'kmer', 'timeline': None}
+EXPORT_MODEL = {'forecast': 'lgbm', 'batch': 'lgbm', 'predict': 'kmer', 'timeline': 'timeline', 'simulation': None}
 
 
 def _json_form_field(data, name):
@@ -846,9 +861,13 @@ class ExportView(View):
         if page == 'batch' and fmt == 'pdf':
             return json_error('Batch results export as CSV only.')
         key = EXPORT_MODEL[page]
-        predictor = (model_registry.get_lgbm() if key == 'lgbm'
-                     else model_registry.get_kmer() if key == 'kmer' else None)
-        model = exports.summarize_metrics(predictor.status if predictor else None)
+        if key == 'timeline':
+            from ml_models.timeline_ml import get_forecaster
+            model = exports.timeline_summary(get_forecaster(str(settings.TRAINED_MODELS_DIR)).status)
+        else:
+            predictor = (model_registry.get_lgbm() if key == 'lgbm'
+                         else model_registry.get_kmer() if key == 'kmer' else None)
+            model = exports.summarize_metrics(predictor.status if predictor else None)
         name = f"amr-{page}-{time.strftime('%Y%m%d-%H%M')}.{fmt}"
         try:
             if fmt == 'csv':

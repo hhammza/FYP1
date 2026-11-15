@@ -26,11 +26,11 @@ FORECAST = {'antibiotic': 'ciprofloxacin', 'prediction': 'Resistant', 'probabili
             'model_used': 'LightGBM', 'comparison_chart': [{'antibiotic': 'ampicillin',
                                                             'resistance_probability': 64.2}]}
 INPUTS = {'genus': 'Escherichia', 'species': 'coli', 'taxon_id': '562', 'mic_value': '4', 'mic_sign': '>='}
-TIMELINE = {'antibiotic': 'ciprofloxacin', 'n_weeks': 2, 'seed': 42, 'failure_week': None,
-            'final_resistant_percent': 12.0, 'sequence_length': 1000, 'gc_content': 50.0, 'summary': 's',
-            'timeline': [{'week': w, 'susceptible_fraction': 90.0, 'intermediate_fraction': 5.0,
-                          'resistant_fraction': 5.0, 'cumulative_mutations': w, 'mic_fold_change': 1.0,
-                          'treatment_effective': True} for w in (1, 2)]}
+TIMELINE = {'organism_source': 'chosen', 'ml_forecast': {
+    'model_run': 'TL_timeline_ml', 'organism': 'Salmonella', 'antibiotic': 'ciprofloxacin',
+    'history': [{'year': 2020, 'resistant_pct': 10.0, 'n': 40}, {'year': 2021, 'resistant_pct': 12.5, 'n': 55}],
+    'forecast': [{'year': 2022, 'resistant_pct': 13.0, 'lo': 0.0, 'hi': 38.2}],
+    'label': 'ML model trained on BV-BRC laboratory results'}}
 # the smallest valid PNG: 1x1 pixel
 PNG = ('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGA'
        'hKmMIQAAAABJRU5ErkJggg==')
@@ -66,11 +66,30 @@ class Export(unittest.TestCase):
         self.assertEqual(r['Content-Type'], 'application/pdf')
         self.assertTrue(r.content.startswith(b'%PDF'))
 
-    def test_timeline_downloads_say_simulation(self):
+    def test_timeline_downloads_carry_the_years_and_the_served_models_error(self):
         r = post('/api/export/timeline.csv', result=TIMELINE)
         self.assertEqual(r.status_code, 200)
-        self.assertIn(exports.SIMULATION, r.content.decode())
+        rows = list(csv.DictReader(io.StringIO(r.content.decode())))
+        self.assertEqual([(x['year'], x['kind']) for x in rows],
+                         [('2020', 'observed'), ('2021', 'observed'), ('2022', 'forecast')])
+        self.assertEqual(rows[2]['band80_high_pct'], '38.2')
+        from ml_models.timeline_ml import get_forecaster
+        from django.conf import settings
+        self.assertEqual(rows[0]['model_mae_pp_held_out_years'],
+                         exports.timeline_summary(get_forecaster(str(settings.TRAINED_MODELS_DIR)).status)['mae'])
+        self.assertNotIn('Simulation', r.content.decode())
         self.assertEqual(post('/api/export/timeline.pdf', result=TIMELINE).status_code, 200)
+
+    def test_simulation_downloads_say_simulation(self):
+        sim = {'antibiotic': 'ciprofloxacin', 'n_weeks': 2, 'seed': 42, 'failure_week': None,
+               'final_resistant_percent': 12.0, 'sequence_length': 1000, 'gc_content': 50.0, 'summary': 's',
+               'timeline': [{'week': w, 'susceptible_fraction': 90.0, 'intermediate_fraction': 5.0,
+                             'resistant_fraction': 5.0, 'cumulative_mutations': w, 'mic_fold_change': 1.0,
+                             'treatment_effective': True} for w in (1, 2)]}
+        r = post('/api/export/simulation.csv', result=sim)
+        self.assertEqual(r.status_code, 200)
+        self.assertIn(exports.SIMULATION, r.content.decode())
+        self.assertEqual(post('/api/export/simulation.pdf', result=sim).status_code, 200)
 
     def test_refuses_an_empty_result(self):
         r = post('/api/export/forecast.csv', inputs=INPUTS)

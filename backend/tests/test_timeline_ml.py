@@ -1,4 +1,4 @@
-"""The timeline ML model behind /api/timeline/'s `ml_forecast` block (format §8).
+"""The timeline ML model behind /api/timeline/ (format §8): the whole of /timeline.
 
     python -m unittest discover -s backend/tests
 """
@@ -59,17 +59,31 @@ class Forecast(unittest.TestCase):
         self.assertIsNone(self.model.forecast('Notagenus', 'ciprofloxacin'))
         self.assertIsNone(self.model.forecast('Salmonella', 'not-a-drug'))
 
-    def test_endpoint_adds_the_forecast_and_keeps_the_simulation(self):
+    def test_a_chosen_genus_wins_over_the_genome(self):
         r = post(fasta_text='>a\n' + 'ACGT' * 50, antibiotic='ciprofloxacin', genus='Salmonella')
         self.assertEqual(r.status_code, 200)
         d = r.json()
-        self.assertIn('timeline', d)
         self.assertEqual(d['ml_forecast']['organism'], 'Salmonella')
+        self.assertEqual(d['organism_source'], 'chosen')
+        self.assertNotIn('timeline', d)              # no simulation any more
 
-    def test_no_genus_and_a_short_sequence_gives_the_simulation_only(self):
+    def test_a_genome_too_short_to_identify_is_422_with_a_message(self):
         r = post(fasta_text='>a\n' + 'ACGT' * 50, antibiotic='ciprofloxacin')
+        self.assertEqual(r.status_code, 422)
+        self.assertIn('Choose the organism instead', r.json()['error'])
+
+    def test_a_genome_whose_genus_is_identified_gives_the_forecast(self):
+        from unittest import mock
+        with mock.patch.object(timeline_ml.TimelineMLForecaster, 'genus_of', return_value='Salmonella'):
+            r = post(fasta_text='>a\n' + 'ACGT' * 50, antibiotic='ciprofloxacin')
         self.assertEqual(r.status_code, 200)
-        self.assertNotIn('ml_forecast', r.json())
+        self.assertEqual(r.json()['organism_source'], 'genome')
+        self.assertEqual(r.json()['ml_forecast']['organism'], 'Salmonella')
+
+    def test_health_reports_the_model(self):
+        h = Client().get('/api/health/').json()['models']
+        self.assertTrue(h['timeline_ml']['trained'])
+        self.assertFalse(h['mutation_timeline']['trained'])      # the simulation is never called trained
 
 
 def post_forecast(**body):
@@ -78,7 +92,7 @@ def post_forecast(**body):
 
 @unittest.skipUnless(os.path.exists(os.path.join(SERVED, 'timeline_ml', 'model.txt')), 'no timeline model promoted')
 class ForecastEndpoint(unittest.TestCase):
-    """/api/timeline/forecast/: the model on its own, no genome."""
+    """/api/timeline/forecast/, kept for older callers: the same view as /api/timeline/."""
 
     def setUp(self):
         cache.clear()

@@ -4,10 +4,10 @@ import sys
 
 _lgbm = None
 _kmer = None
-_timeline = None
+_simulation = None
 
 def init_models():
-    global _lgbm, _kmer, _timeline
+    global _lgbm, _kmer, _simulation
     if _lgbm is not None:
         return
 
@@ -18,11 +18,13 @@ def init_models():
 
     from ml_models.lgbm_predictor import LGBMResistancePredictor
     from ml_models.resistance_predictor import KmerResistancePredictor
+    from ml_models.timeline_ml import get_forecaster
     from ml_models.mutation_timeline import MutationTimelinePredictor
 
     _lgbm = LGBMResistancePredictor(model_dir)
     _kmer = predict_model(model_dir)
-    _timeline = MutationTimelinePredictor(model_dir)
+    get_forecaster(model_dir)      # /timeline's ML model, loaded now rather than on first use
+    _simulation = MutationTimelinePredictor(model_dir)   # /timeline's what-if simulation and RL agent
     print("[Registry] All models initialized.")
     warm_explorer()
 
@@ -67,5 +69,13 @@ def get_lgbm():
 def get_kmer():
     return _kmer
 
-def get_timeline():
-    return _timeline
+def get_simulation():
+    return _simulation
+
+def reload_timeline():
+    """Load /timeline's ML model again from disk (a newly promoted one)."""
+    from django.conf import settings
+    from ml_models import timeline_ml
+    model_dir = str(settings.TRAINED_MODELS_DIR)
+    timeline_ml._forecaster.pop(model_dir, None)
+    return timeline_ml.get_forecaster(model_dir)
