@@ -51,8 +51,8 @@ export default function Footer() {
               <span className="ft-name">AMR<span className="text-accent">Predict</span></span>
             </Link>
             <p className="ft-about">
-              Predicts antimicrobial resistance from laboratory data and bacterial genomes, simulates how resistance
-              grows under treatment, and maps laboratory resistance across the world.
+              Predicts antimicrobial resistance from laboratory data and bacterial genomes, forecasts how resistance
+              changes year by year, and maps laboratory resistance across the world.
             </p>
             <div className="ft-stats" aria-label="Model figures, measured on genomes the models never saw">
               {stats.map(s => (

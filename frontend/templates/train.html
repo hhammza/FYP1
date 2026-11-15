@@ -139,23 +139,20 @@
           <div class="model-icon timeline-icon"><i class="bi bi-activity"></i></div>
           <div>
             <h5 class="mb-0">Mutation Timeline</h5>
-            <small class="text-muted">Simulation, nothing to train</small>
+            <small class="text-muted">LightGBM trend forecast, trained offline</small>
           </div>
         </div>
-        <div class="alert alert-warning-custom mb-3">
+        <div class="alert alert-info-custom mb-3">
           <i class="bi bi-info-circle me-2"></i>
-          The timeline is a logistic-growth simulation with hand-set constants, so there is no model to train here.
-          A CNN-LSTM was explored in the research notebook (<code>notebooks/archive/bacterial_mutation_timeline.ipynb</code>) but not deployed.
+          This model is trained from the command line, not from this page:
+          <code>python experiments/timeline_ml/timeline_model.py series</code>, then <code>train</code>, then
+          <code>promote</code>. Use <strong>Reload Models</strong> below to pick up a newly promoted one.
         </div>
         <div class="method-steps">
-          <div class="method-step"><span class="step-num">1</span>Read the genome's GC content to set the starting resistant share</div>
-          <div class="method-step"><span class="step-num">2</span>Look up the antibiotic's growth profile (peak and speed, from the literature)</div>
-          <div class="method-step"><span class="step-num">3</span>Simulate susceptible, intermediate and resistant shares week by week</div>
-        </div>
-        <div class="alert alert-success-custom mt-3">
-          <i class="bi bi-check-circle me-2"></i>
-          <strong>Currently running:</strong> the logistic-growth simulation.
-          Label its output "Simulation, not a trained model" wherever it is shown.
+          <div class="method-step"><span class="step-num">1</span>Group BV-BRC lab results with a collection year into a yearly resistant share per genus and antibiotic</div>
+          <div class="method-step"><span class="step-num">2</span>Train LightGBM on years up to 2016 to predict next year's change, then test on 2017 to 2022</div>
+          <div class="method-step"><span class="step-num">3</span>Promote a model trained on every year to <code>backend/trained_models/timeline_ml/</code></div>
+              <div class="method-step"><span class="step-num">i</span>The page's what-if tab is a logistic-growth simulation with hand-set constants: nothing to train there</div>
         </div>
       </div>
     </div>

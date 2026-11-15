@@ -204,23 +204,20 @@ export default function Train() {
               <div className="model-icon timeline-icon"><BioIcon icon="bi-activity" /></div>
               <div>
                 <h5 className="mb-0">Mutation Timeline</h5>{' '}
-                <small className="text-muted">Simulation, nothing to train</small>
+                <small className="text-muted">LightGBM trend forecast, trained offline</small>
               </div>
             </div>
-            <div className="alert alert-warning-custom mb-3">{' '}
+            <div className="alert alert-info-custom mb-3">{' '}
               <i className="bi bi-info-circle me-2"></i>{' '}
-              The timeline is a logistic-growth simulation with hand-set constants, so there is no model to train here.
-              A CNN-LSTM was explored in the research notebook (<code>notebooks/archive/bacterial_mutation_timeline.ipynb</code>) but not deployed.
+              This model is trained from the command line, not from this page:{' '}
+              <code>python experiments/timeline_ml/timeline_model.py series</code>, then <code>train</code>, then{' '}
+              <code>promote</code>. Use <strong>Reload Models</strong> below to pick up a newly promoted one.
             </div>
             <div className="method-steps">
-              <div className="method-step"><span className="step-num">1</span>Read the genome's GC content to set the starting resistant share</div>
-              <div className="method-step"><span className="step-num">2</span>Look up the antibiotic's growth profile (peak and speed, from the literature)</div>
-              <div className="method-step"><span className="step-num">3</span>Simulate susceptible, intermediate and resistant shares week by week</div>
-            </div>
-            <div className="alert alert-success-custom mt-3">{' '}
-              <i className="bi bi-check-circle me-2"></i>{' '}
-              <strong>Currently running:</strong> the logistic-growth simulation.
-              Label its output "Simulation, not a trained model" wherever it is shown.
+              <div className="method-step"><span className="step-num">1</span>Group BV-BRC lab results with a collection year into a yearly resistant share per genus and antibiotic</div>
+              <div className="method-step"><span className="step-num">2</span>Train LightGBM on years up to 2016 to predict next year's change, then test on 2017 to 2022</div>
+              <div className="method-step"><span className="step-num">3</span>Promote a model trained on every year to <code>backend/trained_models/timeline_ml/</code></div>
+              <div className="method-step"><span className="step-num">i</span>The page's what-if tab is a logistic-growth simulation with hand-set constants: nothing to train there</div>
             </div>
           </div>
         </div>

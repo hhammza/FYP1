@@ -111,7 +111,7 @@ export default function Datasets() {
                 <td className="font-mono text-accent small">evolution_curves/</td>
                 <td>5 lab curves · 31 countries × 20 years</td>
                 <td className="small">PLOS Biology, ECDC</td>
-                <td><span className="status-badge simulated">Timeline check</span></td>
+                <td><span className="status-badge trained">Timeline external check</span></td>
               </tr>
             </tbody>
           </table>
@@ -504,14 +504,14 @@ export default function Datasets() {
             <div className="info-card h-100">
               <h6 className="card-section-title"><i className="bi bi-info-circle text-accent me-2"></i>What This Dataset Contains</h6>
               <p className="body-text lh-17">{' '}
-                Resistance measured over time, taken from published work, to check the shape of the <Link to="/timeline">Mutation Timeline</Link>'s curve. Two kinds, kept apart because they measure different things:
+                Resistance measured over time, taken from published work. Two kinds, kept apart because they measure different things:
               </p>
               <ul className="body-text lh-17 mb-3">
                 <li><strong>Lab evolution</strong> (Maltas, Huynh &amp; Wood 2025, <em>PLOS Biology</em>, doi:10.1371/journal.pbio.3002970): <em>Enterococcus faecalis</em> evolved for 8 days under ciprofloxacin, ceftriaxone, doxycycline, daptomycin or linezolid, 4 populations each, with resistance (IC50) measured every 2 days.</li>
                 <li><strong>Hospital surveillance</strong> (ECDC Surveillance Atlas, EARS-Net): the share of invasive <em>Klebsiella pneumoniae</em> resistant to carbapenems, per country and year.</li>
               </ul>
               <p className="body-text lh-17">{' '}
-                The timeline's logistic curve fits 15 of these curves with a median R&sup2; of 0.91. <strong>It does not change the timeline's numbers:</strong> the lab curves run in days and the hospital ones in years, so the weeks the timeline shows stay illustrative. <code className="font-mono">experiments/evolution/calibrate.py</code> makes the fit and the summary <code className="font-mono">/api/timeline/</code> returns.
+                The ECDC series are the <Link to="/timeline">Mutation Timeline</Link> model's external check: it never saw them in training. On 231 country-years (30 countries, 2017 to 2024) it is off by 2.32 points on average, against 1.89 for repeating last year's value, so on this slow-moving series it does not beat the simplest baseline. <code className="font-mono">experiments/timeline_ml/timeline_model.py</code> runs the check.
               </p>
               <p className="fs-11 text-3 mb-0">{' '}
                 ECDC data: &ldquo;Dataset provided by ECDC based on data provided by public health authorities, scientific institutes or health care providers in the relevant reporting countries and/or by WHO&rdquo; (CC BY 4.0); the fitted curves are this project's adaptation. PLOS data: CC BY 4.0.
@@ -756,17 +756,17 @@ export default function Datasets() {
             <div className="model-card h-100">
               <div className="d-flex align-items-start gap-3 mb-3">
                 <div className="model-icon timeline-icon"><BioIcon icon="bi-activity" /></div>
-                <div><div className="fw-700 text-white">Mutation Timeline</div><div style={{fontSize: '12px', color: 'var(--text-3)'}}>Biological Simulation</div></div>
+                <div><div className="fw-700 text-white">Mutation Timeline</div><div style={{fontSize: '12px', color: 'var(--text-3)'}}>LightGBM Trend Forecast</div></div>
               </div>
               <div className="mb-3">
-                <div className="text-muted small mb-2">Datasets used at inference:</div>{' '}
-                <span className="feature-tag" style={{background: 'rgba(16,185,129,0.15)', color: 'var(--emerald2)', borderColor: 'rgba(16,185,129,0.3)'}}>Your FASTA</span>{' '}
-                <span className="feature-tag ms-1">Hand-set drug profiles</span>
+                <div className="text-muted small mb-2">Trained on:</div>{' '}
+                <span className="feature-tag" style={{background: 'rgba(16,185,129,0.15)', color: 'var(--emerald2)', borderColor: 'rgba(16,185,129,0.3)'}}>BV-BRC lab results</span>{' '}
+                <span className="feature-tag ms-1">Genome collection years</span>
               </div>
               <div className="method-steps">
-                <div className="method-step"><span className="step-num" style={{width: '20px', height: '20px', fontSize: '9px'}}>→</span>GC content from FASTA</div>
-                <div className="method-step"><span className="step-num" style={{width: '20px', height: '20px', fontSize: '9px'}}>→</span>Hotspot detection on sequence</div>
-                <div className="method-step"><span className="step-num" style={{width: '20px', height: '20px', fontSize: '9px'}}>→</span>Logistic growth simulation</div>
+                <div className="method-step"><span className="step-num" style={{width: '20px', height: '20px', fontSize: '9px'}}>→</span>Yearly resistant share per genus and drug</div>
+                <div className="method-step"><span className="step-num" style={{width: '20px', height: '20px', fontSize: '9px'}}>→</span>Features from earlier years only</div>
+                <div className="method-step"><span className="step-num" style={{width: '20px', height: '20px', fontSize: '9px'}}>→</span>LightGBM forecast with an 80% band</div>
               </div>{' '}
               <Link to="/timeline" className="btn btn-model btn-model-red w-100 mt-3"><i className="bi bi-arrow-right-circle me-2"></i>View Mutation Timeline</Link>
             </div>
@@ -781,7 +781,7 @@ export default function Datasets() {
       <div className="mb-5">
         <div className="sec-eyebrow"><i className="bi bi-lightning-charge me-2"></i>System Guide</div>
         <h2 className="sec-title mb-1">How to Use This System</h2>
-        <p className="sec-sub mb-4">Step-by-step guide for the two prediction modes, the simulation, and training.</p>
+        <p className="sec-sub mb-4">Step-by-step guide for the three tools and training.</p>
 
         <div className="row g-4">
 
@@ -830,17 +830,17 @@ export default function Datasets() {
             <div className="glass-card h-100">
               <div className="model-icon timeline-icon mb-3" style={{width: '44px', height: '44px'}}><BioIcon icon="bi-activity" /></div>
               <h6 className="fw-700 text-white mb-2">Mode 3: Mutation Timeline</h6>
-              <p style={{fontSize: '12px', color: 'var(--text-2)'}}>Simulate week-by-week resistance evolution.</p>
+              <p style={{fontSize: '12px', color: 'var(--text-2)'}}>Forecast the yearly resistant share for an organism and a drug.</p>
               <div className="method-steps mt-3">
                 <div className="method-step"><span className="step-num" style={{width: '22px', height: '22px', fontSize: '10px'}}>1</span>Go to <Link to="/timeline">Mutation Timeline</Link></div>
                 <div className="method-step"><span className="step-num" style={{width: '22px', height: '22px', fontSize: '10px'}}>2</span>Select antibiotic</div>
-                <div className="method-step"><span className="step-num" style={{width: '22px', height: '22px', fontSize: '10px'}}>3</span>Set number of simulation weeks</div>
-                <div className="method-step"><span className="step-num" style={{width: '22px', height: '22px', fontSize: '10px'}}>4</span>Upload FASTA or paste sequence</div>
-                <div className="method-step"><span className="step-num" style={{width: '22px', height: '22px', fontSize: '10px'}}>5</span>Click <strong>Generate Timeline</strong></div>
+                <div className="method-step"><span className="step-num" style={{width: '22px', height: '22px', fontSize: '10px'}}>3</span>Choose the organism, or upload a genome to identify it</div>
+                <div className="method-step"><span className="step-num" style={{width: '22px', height: '22px', fontSize: '10px'}}>4</span>Set how many years ahead</div>
+                <div className="method-step"><span className="step-num" style={{width: '22px', height: '22px', fontSize: '10px'}}>5</span>Click <strong>Forecast Resistance Trend</strong></div>
               </div>
               <div className="mt-3">{' '}
-                <div className="feature-tag">Input: FASTA + weeks</div>{' '}
-                <div className="feature-tag mt-1">Output: evolution chart</div>
+                <div className="feature-tag">Input: drug + organism</div>{' '}
+                <div className="feature-tag mt-1">Output: yearly trend chart</div>
               </div>
             </div>
           </div>

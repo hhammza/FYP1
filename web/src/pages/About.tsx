@@ -34,8 +34,8 @@ export default function About() {
       {/* ── Quick Stats ────────────────────────────────────────────── */}
       <div className="d-flex gap-3 flex-wrap mb-4">
         <div className="about-stat-wrap"><div className="stat-mini">
-          <div className="stat-mini-value text-indigo">2</div>
-          <div className="stat-mini-label">Prediction models + 1 bio-sim</div>
+          <div className="stat-mini-value text-indigo">3</div>
+          <div className="stat-mini-label">Trained models behind the tools</div>
         </div></div>
         <div className="about-stat-wrap"><div className="stat-mini">
           <div className="stat-mini-value text-emerald">{m.lgbm.auc}</div>
@@ -67,7 +67,7 @@ export default function About() {
               <strong>AMRPredict</strong> is a full-stack machine learning system developed as a Final Year Project (FYP) in BioInformatics &amp; Machine Learning. The project addresses the global health crisis of <strong className="text-rose">Antimicrobial Resistance (AMR)</strong>, which the <a href="https://www.who.int/news-room/spotlight/ten-threats-to-global-health-in-2019" target="_blank" rel="noopener" className="src-link">WHO lists as one of the top ten global public health threats facing humanity</a>.
             </p>
             <p className="about-body-text">{' '}
-              The system predicts whether a bacterial sample is <strong className="text-rose">Resistant</strong> or <strong className="text-emerald">Susceptible</strong> to a specific antibiotic. It uses two machine learning models trained on real genomic data from the BVBRC/PATRIC database. A third component simulates how resistance can spread through a bacterial population week by week, using a biologically grounded logistic growth model.
+              The system predicts whether a bacterial sample is <strong className="text-rose">Resistant</strong> or <strong className="text-emerald">Susceptible</strong> to a specific antibiotic. It uses two machine learning models trained on real genomic data from the BVBRC/PATRIC database. A third model, trained on yearly laboratory results, forecasts how the share of resistant isolates of an organism changes year by year.
             </p>
             <p className="about-body-text">{' '}
               The idea behind this project is to show that machine learning applied to genomic data can <strong>predict antibiotic resistance faster and more affordably</strong> than traditional lab culture tests, giving clinicians useful information within minutes rather than waiting days for results.
@@ -76,7 +76,7 @@ export default function About() {
               <span className="feature-tag">Antimicrobial Resistance</span>{' '}
               <span className="feature-tag">Gradient Boosting</span>{' '}
               <span className="feature-tag">K-mer Analysis</span>{' '}
-              <span className="feature-tag">Logistic Growth Simulation</span>{' '}
+              <span className="feature-tag">Resistance Trend Forecast</span>{' '}
               <span className="feature-tag">BVBRC Genomic Data</span>{' '}
               <span className="feature-tag">REST API</span>
             </div>
@@ -109,7 +109,7 @@ export default function About() {
                   <div className="how-num about-obj-num">03</div>
                   <div>
                     <div className="how-title">Temporal Resistance Forecasting</div>
-                    <div className="how-desc">Simulate week-by-week resistance evolution using a logistic growth model with hand-set constants per antibiotic class.</div>
+                    <div className="how-desc">Forecast the yearly resistant share of an organism for a drug, with an 80% band, from a model trained on BV-BRC lab results.</div>
                   </div>
                 </div>
               </div>
@@ -196,17 +196,18 @@ export default function About() {
             <div className="example-box">
               <div className="d-flex align-items-center gap-2 mb-2">
                 <div className="model-icon timeline-icon about-model-icon"><BioIcon icon="bi-activity" /></div>
-                <div className="example-title mb-0">Model 3: Mutation Timeline (Biological Simulation)</div>{' '}
-                <span className="status-badge simulated ms-auto">Bio-Sim</span>
+                <div className="example-title mb-0">Model 3: Mutation Timeline (Resistance Trend Forecast)</div>{' '}
+                <span className="status-badge trained ms-auto">Trained</span>
               </div>
               <div className="table-responsive">
                 <table className="table table-custom table-sm mb-0"><tbody>
-                  <tr><td className="text-muted about-td-label">Algorithm</td><td>Logistic growth model with hand-set constants (nothing is trained)</td></tr>
-                  <tr><td className="text-muted">Input</td><td>Raw FASTA sequence + antibiotic name + number of weeks (2–24)</td></tr>
-                  <tr><td className="text-muted">Growth model</td><td>Sigmoid logistic curve with speed and peak parameterised per antibiotic class</td></tr>
-                  <tr><td className="text-muted">Hotspot detection</td><td>Sliding GC-content + repeat-density windows → top 12 putative mutation sites</td></tr>
-                  <tr><td className="text-muted">Output</td><td>Week-by-week R/S/I fractions, MIC fold-change, gene activation, failure week</td></tr>
-                  <tr><td className="text-muted">Antibiotics</td><td>14 drug-specific profiles hardcoded (ciprofloxacin, ampicillin, imipenem, …)</td></tr>
+                  <tr><td className="text-muted about-td-label">Algorithm</td><td>LightGBM regression (L1) on the change from the last observed year</td></tr>
+                  <tr><td className="text-muted">Training data</td><td>BV-BRC lab results with a collection year: 534,996 results in 467 genus and antibiotic series</td></tr>
+                  <tr><td className="text-muted">Input</td><td>Antibiotic + genus (chosen, or identified from a FASTA genome) + years ahead (1 to 10)</td></tr>
+                  <tr><td className="text-muted">Features</td><td>Last three values, gap since the last value, recent slope, mean so far, genus, antibiotic, drug class</td></tr>
+                  <tr><td className="text-muted">Output</td><td>Observed yearly resistant share and the forecast with an 80% band</td></tr>
+                  <tr><td className="text-muted">Test</td><td>Trained to 2016, tested on 2017 to 2022: 13.98 pp mean error, against 14.33 for repeating last year</td></tr>
+                  <tr><td className="text-muted">What-if tab</td><td>A logistic-growth simulation with hand-set constants (not trained), week by week under treatment, with the RL agent's drug plan</td></tr>
                 </tbody></table>
               </div>
             </div>
@@ -301,7 +302,13 @@ export default function About() {
                   <tr>
                     <td><span className="feature-tag about-api-post">POST</span></td>
                     <td className="font-mono small">timeline/</td>
-                    <td className="small text-muted">Mutation timeline simulation</td>
+                    <td className="small text-muted">Yearly resistance trend forecast</td>
+                    <td className="small font-mono">antibiotic, genus OR fasta_file OR fasta_text, years_ahead</td>
+                  </tr>
+                  <tr>
+                    <td><span className="feature-tag about-api-post">POST</span></td>
+                    <td className="font-mono small">timeline/simulate/</td>
+                    <td className="small text-muted">What-if simulation (not trained) + RL plan</td>
                     <td className="small font-mono">fasta_file OR fasta_text, antibiotic, n_weeks</td>
                   </tr>
                   <tr>
@@ -339,8 +346,8 @@ export default function About() {
               </div>
               <div className="col-md-4">
                 <div className="example-box about-limit-box">
-                  <div className="example-title about-limit-title">Timeline is Simulation, Not Trained</div>
-                  <div className="example-content small text-muted">The Mutation Timeline uses a biologically-informed logistic growth model, not a trained CNN-LSTM. While results are scientifically plausible, they are simulated rather than learned from empirical time-series data.</div>
+                  <div className="example-title about-limit-title">Timeline Extends Past Trends</div>
+                  <div className="example-content small text-muted">The Mutation Timeline forecast is learned from yearly lab results, so it can only extend the trend an organism and drug already show. It is close to simply repeating last year's value, its 80% band is wide (about 25 points a year ahead), and it cannot foresee a new resistance gene arriving.</div>
                 </div>
               </div>
               <div className="col-md-4">
