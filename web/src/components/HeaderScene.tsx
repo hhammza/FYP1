@@ -75,21 +75,23 @@ function Mic() {
 
 /* ── timeline: weekly doses, susceptible cells fall, resistant cells take over ── */
 function Growth() {
+  // observed yearly resistant share (dots and line), then the forecast in a widening band
+  const obs: [number, number][] = [[60, 118], [100, 112], [140, 104], [180, 108], [220, 94], [260, 86], [300, 90], [340, 74], [380, 68]];
+  const line = 'M' + obs.map(([x, y]) => `${x} ${y}`).join('L');
   return (<>
     <path className="sc-axis" d="M40 18V138H584" />
-    <text className="sc-caption" x="46" y="16">population</text>
-    <text className="sc-caption" x="584" y="154" textAnchor="end">weeks of treatment</text>
-    {[0, 1, 2, 3, 4, 5, 6].map(i => (
-      <g key={i} transform={`translate(${84 + i * 72} 150)`}>
-        <g className="sc-dose" style={v({ animationDelay: `${i * 0.55}s` })}>
-          <path className="sc-cap-a" d="M0-3.5H-4a3.5 3.5 0 0 0 0 7H0z" /><path className="sc-cap-b" d="M0-3.5H4a3.5 3.5 0 0 1 0 7H0z" />
-        </g>
+    <text className="sc-caption" x="46" y="16">% resistant</text>
+    <text className="sc-caption" x="584" y="154" textAnchor="end">years</text>
+    <path className="sc-band" d="M380 68L580 26L580 92Z" />
+    <line className="sc-now" x1="380" x2="380" y1="20" y2="138" />
+    <path className="sc-curve r" pathLength={1} d={line} />
+    <path className="sc-curve f" pathLength={1} d="M380 68C440 64 520 58 580 56" />
+    {obs.map(([x, y], i) => (
+      <g key={i} transform={`translate(${x} ${y})`}>
+        <circle className="sc-obs" r="4" style={v({ animationDelay: `${i * 0.42}s` })} />
       </g>))}
-    <path className="sc-curve s" pathLength={1} d="M40 36C150 36 190 112 290 126S520 132 584 132" />
-    <path className="sc-curve r" pathLength={1} d="M40 134C200 134 270 60 380 44S540 36 584 36" />
-    <text className="sc-curve-label s" x="590" y="132">susceptible</text>
-    <text className="sc-curve-label r" x="590" y="38">resistant</text>
-    <line className="sc-playhead" x1="40" x2="40" y1="20" y2="138" />
+    <text className="sc-curve-label r" x="372" y="62">observed</text>
+    <text className="sc-curve-label f" x="584" y="50">forecast</text>
   </>);
 }
 
