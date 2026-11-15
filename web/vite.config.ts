@@ -24,8 +24,12 @@ export default defineConfig({
   server: {
     host: '127.0.0.1',
     port: 5173,
-    // API_PROXY: another port when 8000 is taken, e.g. API_PROXY=http://127.0.0.1:8001
-    proxy: { '/api': process.env.API_PROXY || 'http://127.0.0.1:8000' },
+    // API_PROXY: another port when 8000 is taken, e.g. API_PROXY=http://127.0.0.1:8001.
+    // changeOrigin sends Django "127.0.0.1" as the host, so a request that came
+    // in through a tunnel still passes Django's development ALLOWED_HOSTS.
+    proxy: { '/api': { target: process.env.API_PROXY || 'http://127.0.0.1:8000', changeOrigin: true } },
+    // let an ngrok tunnel reach the dev server (Vite refuses unknown hosts)
+    allowedHosts: ['.ngrok-free.app', '.ngrok-free.dev', '.ngrok.app', '.ngrok.io'],
     // the sample responses (/predict/sample, /timeline/sample) are read from
     // progress/formats/ on a development run; a build leaves them out
     fs: { allow: ['.', '../progress/formats'] },
