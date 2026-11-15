@@ -12,7 +12,7 @@
       <div class="page-header-icon timeline-icon"><i class="bi bi-activity"></i></div>
       <div>
         <h1 class="page-title">Bacterial Mutation Timeline</h1>
-        <p class="page-subtitle">Week-by-week resistance evolution using a biologically-informed logistic growth simulation</p>
+        <p class="page-subtitle">Yearly resistance forecast from a trained ML model, and week-by-week resistance evolution from a biologically-informed logistic growth simulation</p>
       </div>
     </div>
   </div>
@@ -60,8 +60,43 @@
 
     <!-- ── Input Form ─────────────────────────────────────────── -->
     <div class="col-lg-4">
+      <!-- ML trend forecast: the timeline ML model, no genome needed -->
+      <div class="form-card mb-4" id="trendCard">
+        <h5 class="form-card-title"><i class="bi bi-graph-up-arrow me-2"></i>ML Trend Forecast</h5>
+        <div class="alert-success-tok mb-3">
+          <i class="bi bi-cpu me-1"></i> <strong>Trained ML model.</strong> LightGBM trained on BV-BRC laboratory results, 2000&ndash;2022. No genome needed.
+        </div>
+        {% set tf = trend_form or {'antibiotic': '', 'genus': '', 'years_ahead': '5'} %}
+        <form method="POST" action="/timeline" id="trendForm">
+          <input type="hidden" name="mode" value="trend">
+          <div class="mb-3">
+            <label class="form-label-custom" for="trendAntibiotic">Antibiotic <span class="required">*</span></label>
+            <select name="antibiotic" id="trendAntibiotic" class="form-select form-select-custom" required
+                    data-selected="{{ tf.antibiotic }}">
+              <option value="">-- Select Antibiotic --</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label-custom" for="trendGenus">Organism (genus) <span class="required">*</span></label>
+            <select name="genus" id="trendGenus" class="form-select form-select-custom" required
+                    data-selected="{{ tf.genus }}">
+              <option value="">-- Choose an antibiotic first --</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label-custom" for="trendYears">Years ahead</label>
+            <select name="years_ahead" id="trendYears" class="form-select form-select-custom">
+              {% for y in range(1, 11) %}<option value="{{ y }}" {% if tf.years_ahead|string == y|string %}selected{% endif %}>{{ y }}</option>{% endfor %}
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary-custom w-100 btn-lg">
+            <i class="bi bi-graph-up-arrow me-2"></i>Forecast Trend
+          </button>
+        </form>
+      </div>
+
       <div class="form-card">
-        <h5 class="form-card-title"><i class="bi bi-calendar-week me-2"></i>Timeline Parameters</h5>
+        <h5 class="form-card-title"><i class="bi bi-calendar-week me-2"></i>What-if Simulation</h5>
 
         <form method="POST" action="/timeline" enctype="multipart/form-data" id="timelineForm">
 
@@ -194,7 +229,42 @@ ATGCATGCATGCATGCATGC..."></textarea>
     </div>
 
     <!-- ── Results (first below 992px once there is one) ─────────── -->
-    <div class="col-lg-8 {% if result %}order-first order-lg-0{% endif %}">
+    <div class="col-lg-8 {% if result or trend or trend_error %}order-first order-lg-0{% endif %}">
+      {% if trend_error %}
+      <div class="alert alert-danger-custom"><i class="bi bi-exclamation-circle me-2"></i>{{ trend_error }}</div>
+      {% endif %}
+
+      {% if trend %}
+      <!-- ML trend forecast result -->
+      <div class="info-card mb-4" id="trendResult">
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-2">
+          <h6 class="card-section-title mb-0"><i class="bi bi-graph-up-arrow text-accent me-2"></i>
+            <em>{{ trend.organism }}</em> &middot; {{ trend.antibiotic | title }}: resistant share by year</h6>
+          <span class="status-badge trained">Trained ML model</span>
+        </div>
+        <div id="trendChart" class="chart-350"></div>
+        {% set last = trend.history[-1] %}{% set final = trend.forecast[-1] %}
+        <p class="text-muted small mt-2 mb-3">
+          Observed {{ last.year }}: <span class="text-white">{{ last.resistant_pct }}%</span> resistant.
+          Forecast {{ final.year }}: <span class="text-white">{{ final.resistant_pct }}%</span>
+          (80% band {{ final.lo }}&ndash;{{ final.hi }}%).
+          {% if trend.metrics and trend.metrics.model %}Mean error on years it never saw: {{ "%.1f" | format(trend.metrics.model.mae_pct) }} percentage points
+          (last value alone: {{ "%.1f" | format(trend.metrics.last_value.mae_pct) if trend.metrics.last_value else '–' }}).{% endif %}
+        </p>
+        <div class="table-responsive">
+          <table class="table table-custom table-sm mb-0">
+            <thead><tr><th>Year</th><th>Forecast resistant %</th><th>80% band</th></tr></thead>
+            <tbody>
+            {% for f in trend.forecast %}
+            <tr><td class="fw-500">{{ f.year }}</td><td>{{ f.resistant_pct }}%</td><td class="text-muted">{{ f.lo }}&ndash;{{ f.hi }}%</td></tr>
+            {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        <div class="mt-2 fs-11 text-3">{{ trend.label or 'ML model trained on BV-BRC laboratory results' }} ({{ trend.model_run }}). Each forecast year is fed back as history for the next, so the band widens with distance.</div>
+      </div>
+      {% endif %}
+
       {% if error %}
       <div class="alert alert-danger-custom"><i class="bi bi-exclamation-circle me-2"></i>{{ error }}</div>
       {% endif %}
@@ -359,12 +429,13 @@ ATGCATGCATGCATGCATGC..."></textarea>
       </div>
 
       {% endif %}
-      {% else %}
+      {% elif not trend %}
       <!-- Empty State -->
       <div class="empty-state">
         <div class="empty-state-icon timeline-icon"><i class="bi bi-activity"></i></div>
-        <h4>Generate Resistance Timeline</h4>
-        <p>Upload a bacterial FASTA genome and select an antibiotic to simulate week-by-week resistance evolution with a logistic-growth simulation.</p>
+        <h4>Forecast or Simulate Resistance</h4>
+        <p><strong>ML trend forecast:</strong> pick an antibiotic and an organism to forecast the yearly resistant share from real lab results.
+          <strong>What-if simulation:</strong> upload a FASTA genome to simulate week-by-week resistance evolution with a logistic-growth simulation.</p>
         <div class="row g-3 mt-3 text-start">
           <div class="col-md-6">
             <div class="example-box">
@@ -541,6 +612,10 @@ ATGCATGCATGCATGCATGC..."></textarea>
 {% endblock %}
 
 {% block scripts %}
+<script type="application/json" id="trend-genera">{{ (trend_genera or {}) | tojson }}</script>
+{% if trend %}
+<script type="application/json" id="trend-data">{{ trend | tojson }}</script>
+{% endif %}
 {% if result and result.timeline %}
 <script type="application/json" id="timeline-chart-data">{{ result.timeline | tojson }}</script>
 <script type="application/json" id="timeline-fail-week">{{ result.failure_week | tojson }}</script>

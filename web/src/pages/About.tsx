@@ -235,7 +235,7 @@ export default function About() {
               <div className="pipeline-arrow"><i className="bi bi-arrow-right"></i></div>
               <div className="pipeline-step">
                 <div className="pipeline-icon"><BioIcon icon="bi-cpu" /></div>
-                <div className="pipeline-label">ML Models<br /><small>LightGBM · RF · Sim</small></div>
+                <div className="pipeline-label">ML Models<br /><small>LightGBM ×4 · RL · Sim</small></div>
               </div>
               <div className="pipeline-arrow"><i className="bi bi-arrow-right"></i></div>
               <div className="pipeline-step active-step">

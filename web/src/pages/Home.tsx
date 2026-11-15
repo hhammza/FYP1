@@ -25,9 +25,10 @@ export default function Home() {
               with Machine Learning
             </h1>
             <p className="hero-desc">{' '}
-              Two trained ML models, both LightGBM gradient boosting (one on lab metadata, one on the k-mers of a complete genome), predict
-              antimicrobial resistance in bacterial pathogens, trained on {m.lgbm.train_rows_short} labelled lab records.
-              A separate biological simulation tool models resistance evolution over time.
+              Five trained ML models predict and forecast antimicrobial resistance in bacterial pathogens: four LightGBM models
+              (an isolate forecaster trained on {m.lgbm.train_rows_short} labelled lab records, a gene model and a k-mer model for complete genomes,
+              and a yearly timeline forecast) and a reinforcement-learning agent that plans treatment.
+              A separate biological simulation, not a trained model, shows resistance evolving week by week.
             </p>
             <div className="hero-actions">{' '}
               <Link to="/forecast" className="btn btn-primary-custom btn-lg px-4">{' '}
@@ -230,7 +231,7 @@ export default function Home() {
       {/* ══ ML MODEL STATUS CARDS ════════════════════════════════ */}
       <div className="sec-eyebrow"><BioIcon icon="bi-cpu" className="me-2" />Machine Learning Models</div>
       <h2 className="sec-title mb-1">Trained ML Prediction Models</h2>
-      <p className="sec-sub mb-4">Two ML models trained on real BVBRC / PATRIC genomic data   each producing a data-driven binary classification: <strong>Resistant</strong> or <strong>Susceptible</strong>.</p>
+      <p className="sec-sub mb-4">The prediction models, trained on real BVBRC / PATRIC data, each producing a data-driven binary classification: <strong>Resistant</strong> or <strong>Susceptible</strong>.</p>
 
       <div className="row g-4 mb-5">
         {/* LightGBM */}
@@ -390,7 +391,7 @@ export default function Home() {
               <div className="pipeline-arrow"><i className="bi bi-arrow-right"></i></div>
               <div className="pipeline-step">
                 <div className="pipeline-icon"><BioIcon icon="bi-cpu" /></div>
-                <div className="pipeline-label">ML Models<br /><small>LightGBM / RF</small></div>
+                <div className="pipeline-label">ML Models<br /><small>LightGBM ×4 · RL</small></div>
               </div>
               <div className="pipeline-arrow"><i className="bi bi-arrow-right"></i></div>
               <div className="pipeline-step active-step">
@@ -412,7 +413,7 @@ export default function Home() {
       {/* ══ HOW IT WORKS ═══════════════════════════════════════ */}
       <div className="sec-eyebrow"><i className="bi bi-question-circle me-2"></i>Methodology</div>
       <h2 className="sec-title mb-1">How the System Works</h2>
-      <p className="sec-sub mb-4">Two trained ML models for resistance prediction, plus one mathematical simulation tool for visualising resistance evolution over time.</p>
+      <p className="sec-sub mb-4">Five trained ML models (LightGBM ×4 + an RL agent) and 1 simulation: the models predict resistance now and forecast it by year; the simulation shows how it might evolve week by week.</p>
 
       <div className="row g-3 mb-5">
         <div className="col-md-6 col-lg-4">

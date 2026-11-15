@@ -712,7 +712,7 @@ export default function Datasets() {
       <div className="mb-5">
         <div className="sec-eyebrow"><i className="bi bi-diagram-3 me-2"></i>Model–Dataset Relationships</div>
         <h2 className="sec-title mb-1">Which Model Uses Which Dataset</h2>
-        <p className="sec-sub mb-4">The two trained models each learn from different data; the timeline is a simulation that reads only the genome you give it.</p>
+        <p className="sec-sub mb-4">Each trained model learns from its own data; the weekly what-if simulation is not trained and reads only the genome you give it.</p>
 
         <div className="row g-4">
           <div className="col-lg-4">

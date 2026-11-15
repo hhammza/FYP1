@@ -54,12 +54,12 @@
           <ul class="dropdown-menu dropdown-menu-dark">
             <li><h6 class="dropdown-header dropdown-section-label">TRAINED ML MODELS</h6></li>
             <li><a class="dropdown-item" href="/forecast"><i class="bi bi-graph-up-arrow me-2 text-accent"></i>AMR Forecasting <span class="badge bg-success ms-1 badge-xs">LightGBM</span></a></li>
-            <li><a class="dropdown-item" href="/predict"><i class="bi bi-dna me-2 text-emerald2"></i>Resistance Prediction <span class="badge bg-primary ms-1 badge-xs">K-mer RF</span></a></li>
+            <li><a class="dropdown-item" href="/predict"><i class="bi bi-dna me-2 text-emerald2"></i>Resistance Prediction <span class="badge bg-primary ms-1 badge-xs">LightGBM</span></a></li>
           </ul>
         </li>
         <li class="nav-item">
           <a class="nav-link {% if '/timeline' in request.path %}active{% endif %}" href="/timeline">
-            <i class="bi bi-activity me-1"></i>Bio-Simulator
+            <i class="bi bi-graph-up-arrow me-1"></i>Timeline
           </a>
         </li>
         <!-- Pages that explain results; nothing here predicts -->

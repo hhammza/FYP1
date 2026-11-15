@@ -19,9 +19,10 @@
           with Machine Learning
         </h1>
         <p class="hero-desc">
-          Two trained ML models, both LightGBM gradient boosting (one on lab metadata, one on the k-mers of a complete genome), predict
-          antimicrobial resistance in bacterial pathogens from {{ metrics.lgbm.train_rows_short }} labelled records.
-          A separate biological simulation tool models resistance evolution over time.
+          Five trained ML models predict and forecast antimicrobial resistance in bacterial pathogens: four LightGBM models
+          (an isolate forecaster trained on {{ metrics.lgbm.train_rows_short }} labelled lab records, a gene model and a k-mer model for complete genomes,
+          and a yearly timeline forecast) and a reinforcement-learning agent that plans treatment.
+          A separate biological simulation, not a trained model, shows resistance evolving week by week.
         </p>
         <div class="hero-actions">
           <a href="/forecast" class="btn btn-primary-custom btn-lg px-4">
@@ -224,7 +225,7 @@
   <!-- ══ ML MODEL STATUS CARDS ════════════════════════════════ -->
   <div class="sec-eyebrow"><i class="bi bi-cpu me-2"></i>Machine Learning Models</div>
   <h2 class="sec-title mb-1">Trained ML Prediction Models</h2>
-  <p class="sec-sub mb-4">Two ML models trained on real BVBRC / PATRIC genomic data   each producing a data-driven binary classification: <strong>Resistant</strong> or <strong>Susceptible</strong>.</p>
+  <p class="sec-sub mb-4">The prediction models, trained on real BVBRC / PATRIC data, each producing a data-driven binary classification: <strong>Resistant</strong> or <strong>Susceptible</strong>.</p>
 
   <div class="row g-4 mb-5">
     <!-- LightGBM -->
@@ -400,7 +401,7 @@
           <div class="pipeline-arrow"><i class="bi bi-arrow-right"></i></div>
           <div class="pipeline-step">
             <div class="pipeline-icon"><i class="bi bi-cpu"></i></div>
-            <div class="pipeline-label">ML Models<br><small>LightGBM / RF</small></div>
+            <div class="pipeline-label">ML Models<br><small>LightGBM ×4 · RL</small></div>
           </div>
           <div class="pipeline-arrow"><i class="bi bi-arrow-right"></i></div>
           <div class="pipeline-step active-step">
@@ -422,7 +423,7 @@
   <!-- ══ HOW IT WORKS ═══════════════════════════════════════ -->
   <div class="sec-eyebrow"><i class="bi bi-question-circle me-2"></i>Methodology</div>
   <h2 class="sec-title mb-1">How the System Works</h2>
-  <p class="sec-sub mb-4">Two trained ML models for resistance prediction, plus one mathematical simulation tool for visualising resistance evolution over time.</p>
+  <p class="sec-sub mb-4">Five trained ML models (LightGBM ×4 + an RL agent) and 1 simulation: the models predict resistance now and forecast it by year; the simulation shows how it might evolve week by week.</p>
 
   <div class="row g-3 mb-5">
     <div class="col-md-6 col-lg-4">

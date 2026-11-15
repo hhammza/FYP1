@@ -322,11 +322,35 @@ def timeline_sample():
                                       'n_weeks': str(result.get('n_weeks', 8))})
 
 
+def trend_genera():
+    """{antibiotic: [genus, ...]} the timeline ML model has yearly history for."""
+    return (model_vocabulary().get('timeline') or {}).get('genera') or {}
+
+
+def render_timeline(**context):
+    """mutation_timeline.html with the ML trend forecast form's choices."""
+    context.setdefault('trend', None)
+    context.setdefault('trend_error', None)
+    context.setdefault('trend_form', {'antibiotic': '', 'genus': '', 'years_ahead': '5'})
+    return render_template('mutation_timeline.html', trend_genera=trend_genera(), **context)
+
+
 @app.route('/timeline', methods=['GET', 'POST'])
 def mutation_timeline():
     result = None
     error = None
     form_data = {'antibiotic': '', 'n_weeks': '8'}
+
+    # The ML trend forecast: the timeline ML model on its own, from a genus and
+    # an antibiotic, no genome (POST /api/timeline/forecast/, format §8)
+    if request.method == 'POST' and request.form.get('mode') == 'trend':
+        trend_form = {k: request.form.get(k, '').strip() for k in ('antibiotic', 'genus', 'years_ahead')}
+        data, status = backend_post('timeline/forecast/', json_data=trend_form)
+        if status == 200 and data.get('ml_forecast'):
+            return render_timeline(result=None, error=None, form_data=form_data,
+                                   trend=data['ml_forecast'], trend_form=trend_form)
+        return render_timeline(result=None, error=None, form_data=form_data, trend_form=trend_form,
+                               trend_error=data.get('error', 'The forecast failed'))
 
     if request.method == 'POST':
         antibiotic = request.form.get('antibiotic', '').strip()
@@ -346,20 +370,14 @@ def mutation_timeline():
             })
         else:
             error = 'Please provide a FASTA file or paste FASTA sequence text.'
-            return render_template('mutation_timeline.html', result=result, error=error,
-                                   form_data=form_data)
+            return render_timeline(result=result, error=error, form_data=form_data)
 
         if status == 200:
             result = data
         else:
             error = data.get('error', 'Prediction failed')
 
-    return render_template(
-        'mutation_timeline.html',
-        result=result,
-        error=error,
-        form_data=form_data,
-    )
+    return render_timeline(result=result, error=error, form_data=form_data)
 
 
 # ── Exports ──────────────────────────────────────────────────────────────

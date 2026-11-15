@@ -10,7 +10,7 @@ const COLUMNS: { title: string; links: FooterLink[] }[] = [
   { title: 'Predict', links: [
     { to: '/forecast', label: 'AMR Forecasting', icon: 'bi-graph-up-arrow' },
     { to: '/predict', label: 'Resistance Prediction', icon: 'bi-dna' },
-    { to: '/timeline', label: 'Bio-Simulator', icon: 'bi-activity' },
+    { to: '/timeline', label: 'Timeline', icon: 'bi-graph-up-arrow' },
   ] },
   { title: 'Resistance Explorer', links: EXPLORE_VIEWS.map(v => ({ to: `/explore/${v.key}`, label: v.label, icon: v.icon })) },
   { title: 'Insights & data', links: [

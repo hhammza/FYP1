@@ -92,7 +92,7 @@ export default function Train() {
           </div>
           <div>
             <h1 className="page-title">Model Training</h1>
-            <p className="page-subtitle">Train ML models on your local dataset using LightGBM &amp; K-mer RandomForest</p>
+            <p className="page-subtitle">Retrain the LightGBM forecaster and the original K-mer RandomForest on your local dataset; the served genome, timeline and RL models are trained by the experiment scripts</p>
           </div>
         </div>
       </div>

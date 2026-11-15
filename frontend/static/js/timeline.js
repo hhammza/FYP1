@@ -319,3 +319,70 @@ window.toggleTable = function () {
   tbl.classList.toggle('d-none', !hidden);
   if (ch) ch.className = hidden ? 'bi bi-chevron-up' : 'bi bi-chevron-down';
 };
+
+/* ── ML trend forecast (the timeline ML model, format §8) ─────────
+   Dropdowns from <script id="trend-genera"> ({antibiotic: [genus, ...]});
+   the chart from <script id="trend-data"> (the `ml_forecast` block). */
+(function () {
+  'use strict';
+
+  function readJson(id) {
+    const el = document.getElementById(id);
+    if (!el) return null;
+    try { return JSON.parse(el.textContent); } catch (e) { return null; }
+  }
+
+  const byDrug  = readJson('trend-genera') || {};
+  const drugSel = document.getElementById('trendAntibiotic');
+  const genSel  = document.getElementById('trendGenus');
+
+  function fillGenera() {
+    if (!genSel) return;
+    const genera = (byDrug[drugSel.value] || []).slice().sort();
+    const keep = genSel.dataset.selected || genSel.value;
+    genSel.innerHTML = '';
+    genSel.add(new Option(drugSel.value ? '-- Select Organism --' : '-- Choose an antibiotic first --', ''));
+    genera.forEach(g => genSel.add(new Option(g, g, false, g === keep)));
+    genSel.disabled = !genera.length;
+    genSel.dataset.selected = '';
+  }
+
+  if (drugSel) {
+    const drugs = Object.keys(byDrug).sort();
+    if (!drugs.length) drugSel.options[0].text = 'Failed to load — check backend';
+    drugs.forEach(d => drugSel.add(new Option(d, d, false, d === drugSel.dataset.selected)));
+    drugSel.addEventListener('change', fillGenera);
+    fillGenera();
+  }
+
+  const trend = readJson('trend-data');
+  if (!trend || !document.getElementById('trendChart') || typeof Plotly === 'undefined') return;
+  const t = AMR.plotLayout();
+  const hist = trend.history || [], fc = trend.forecast || [];
+  const last = hist[hist.length - 1];
+  // the forecast and its band start from the last observed year, so the lines join
+  const fx = [last.year].concat(fc.map(f => f.year));
+  const fy = [last.resistant_pct].concat(fc.map(f => f.resistant_pct));
+  const lo = [last.resistant_pct].concat(fc.map(f => f.lo));
+  const hi = [last.resistant_pct].concat(fc.map(f => f.hi));
+  const traces = [
+    { x: fx, y: hi, mode: 'lines', line: { width: 0 }, hoverinfo: 'skip', showlegend: false },
+    { x: fx, y: lo, mode: 'lines', line: { width: 0 }, fill: 'tonexty', fillcolor: 'rgba(99,102,241,0.15)',
+      name: '80% band', hoverinfo: 'skip' },
+    { x: hist.map(h => h.year), y: hist.map(h => h.resistant_pct), customdata: hist.map(h => h.n),
+      name: 'Observed (lab results)', mode: 'lines+markers', line: { color: '#0ea5e9', width: 2.5 },
+      marker: { size: 6 }, hovertemplate: '%{x}: %{y:.1f}% resistant (%{customdata} results)<extra></extra>' },
+    { x: fx, y: fy, name: 'ML forecast', mode: 'lines+markers', line: { color: '#6366f1', width: 2.5, dash: 'dash' },
+      marker: { size: 6 }, hovertemplate: '%{x}: %{y:.1f}% forecast<extra></extra>' },
+  ];
+  Plotly.newPlot('trendChart', traces, {
+    paper_bgcolor: t.paper_bgcolor, plot_bgcolor: t.plot_bgcolor,
+    margin: { t: 30, b: 50, l: 50, r: 16 },
+    legend: { font: { color: t.tickColor }, orientation: 'h', x: 0, y: 1.02, yanchor: 'bottom' },
+    xaxis: { tickfont: { color: t.tickColor, size: 11 }, gridcolor: t.gridColor, linecolor: t.gridColor,
+             title: { text: 'Year', font: { color: t.tickColor, size: 12 } }, automargin: true },
+    yaxis: { tickfont: { color: t.tickColor }, gridcolor: t.gridColor, range: [0, 105], ticksuffix: '%',
+             title: { text: 'Resistant isolates', font: { color: t.tickColor, size: 12 } } },
+    font: { family: t.fontFamily }, hovermode: 'x unified',
+  }, { responsive: true, displayModeBar: false });
+})();

@@ -72,11 +72,11 @@ export default function Navbar() {
               <ul className="dropdown-menu dropdown-menu-dark">
                 <li><h6 className="dropdown-header dropdown-section-label">TRAINED ML MODELS</h6></li>
                 <li><Link className="dropdown-item" to="/forecast"><BioIcon icon="bi-graph-up-arrow" className="me-2 text-accent" />AMR Forecasting <span className="badge bg-success ms-1 badge-xs">LightGBM</span></Link></li>
-                <li><Link className="dropdown-item" to="/predict"><BioIcon icon="bi-dna" className="me-2 text-emerald2" />Resistance Prediction <span className="badge bg-primary ms-1 badge-xs">K-mer RF</span></Link></li>
+                <li><Link className="dropdown-item" to="/predict"><BioIcon icon="bi-dna" className="me-2 text-emerald2" />Resistance Prediction <span className="badge bg-primary ms-1 badge-xs">LightGBM</span></Link></li>
               </ul>
             </li>
             <li className="nav-item">
-              <Link className={'nav-link' + on('/timeline')} to="/timeline"><BioIcon icon="bi-activity" className="me-1" />Bio-Simulator</Link>
+              <Link className={'nav-link' + on('/timeline')} to="/timeline"><BioIcon icon="bi-graph-up-arrow" className="me-1" />Timeline</Link>
             </li>
             {/* Pages that explain results; nothing here predicts. Two columns on a wide screen */}
             <li className="nav-item dropdown">
