@@ -49,7 +49,8 @@ Windows: `scripts\train_all.bat`. The trainer finds the data in `Data/` itself. 
 | Job | When | What |
 |---|---|---|
 | `tests` | every push and PR | Python 3.12, scikit-learn 1.6.1 (as the image and the library pin): backend, frontend and RL-converter tests (`unittest`), and the `amrpredict` library (`pytest`). No PyTorch: no test uses stable-baselines3 |
-| `docker` | pushes to `main`, or by hand | Builds `backend/Dockerfile` (AMRFinderPlus with its pinned database; the conda layer is cached between runs), starts it with production settings, and runs [`scripts/ci_docker_smoke.py`](../scripts/ci_docker_smoke.py): `/api/health/` must say `searches_genes: true`, and one complete genome from the gene model's **test** list, downloaded from BV-BRC, must come back from `/api/predict/` with `genes_found` and `species_detected` within the page's 120 s |
+| `web` | every push and PR | Node 22: `npm ci`, type check, unit tests (Vitest), production build, and `npm audit` of the site's own dependencies |
+| `docker` | pushes to `main`, or by hand | Builds `backend/Dockerfile` (AMRFinderPlus with its pinned database; the conda layer is cached between runs), starts it with production settings, and runs [`scripts/ci_docker_smoke.py`](../scripts/ci_docker_smoke.py): `/api/health/` must say `searches_genes: true`, and one complete genome from the gene model's **test** list, downloaded from BV-BRC, must come back from `/api/predict/` with `genes_found` and `species_detected` within the page's 120 s. Then it installs the `amrpredict` wheel in the same image and runs [`scripts/ci_library_genes.py`](../scripts/ci_library_genes.py): the library's gene model, with the real AMRFinderPlus, must give the API's answer on that genome (first passed 2026-11-15) |
 
 The same commands locally: `python -m unittest discover -s backend/tests` (and `-s frontend/tests`, `-s experiments/evolution -p "test_*.py"`), and `PYTHONPATH=src python -m pytest -q` in `amrpredict-lib/`.
 

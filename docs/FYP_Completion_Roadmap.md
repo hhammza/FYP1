@@ -520,7 +520,7 @@ A suggested split, based on the proposal's roles (Ali: data; Hamza: models; Sule
 
 **Library**
 - [~] v0.2.0 with new models + metrics; backend imports it *(0.2.0 done; the backend switch is postponed until after the demo, a parity test keeps the copies in step)*
-- [x] Published to TestPyPI (or PyPI); install instructions verified in a clean venv *(TestPyPI 2026-10-13, https://test.pypi.org/project/amrpredict/0.2.0/)*
+- [x] Published to TestPyPI (or PyPI); install instructions verified in a clean venv *(TestPyPI 2026-10-13, https://test.pypi.org/project/amrpredict/0.2.0/; 0.3.0 on the real PyPI 2026-11-14, https://pypi.org/project/amrpredict/, checked from a clean venv 2026-11-15)*
 - [x] Tests pass; no `xfail` left for the timeline bug *(35 library tests, run in CI)*
 
 **Documentation**

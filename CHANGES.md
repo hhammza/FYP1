@@ -19,6 +19,65 @@ Baseline is commit **`52ae361`** *(Add amrpredict library and macOS launcher, 20
 
 ---
 
+## Documents brought up to date: PyPI, five models, /timeline (2026-11-15, Hamza)
+
+A pass over the guides for what changed since 2026-11-14: `amrpredict` 0.3.0 is on PyPI (installed from PyPI into a clean venv, every function works), the site serves five trained models and one simulation, `/timeline` opens on the ML trend forecast on both sites, and CI checks the library's gene model with the real AMRFinderPlus (passed).
+
+| File | Change |
+|---|---|
+| [README.md](README.md) | "Five trained models and one simulation"; the timeline ML result; `pip install amrpredict` |
+| [docs/overview.md](docs/overview.md) | Update note; 23 endpoints; the engines table counts five trained models and one simulation, with the RL agent and the series-split result; question 3 names all three timeline parts |
+| [docs/models.md](docs/models.md) | §4 opens with a table of all engines; new §4.4 timeline ML model (data, features, both tests, the batch weakness) and §4.5 RL agent |
+| [docs/architecture.md](docs/architecture.md) | Repository map: 23 routes, every model in `ml_models/` |
+| [docs/frontend.md](docs/frontend.md) | Flask `/timeline` route with `mode=trend`; navbar "Timeline" |
+| [docs/library.md](docs/library.md) | 0.3.0 is on PyPI |
+| [docs/running-and-deployment.md](docs/running-and-deployment.md) | CI table: the `web` job, and the library gene check in the `docker` job |
+| [docs/report/Chapter_Deviations.md](docs/report/Chapter_Deviations.md) | P6: on PyPI; no deviation left |
+| [docs/FYP_Completion_Roadmap.md](docs/FYP_Completion_Roadmap.md) | Library checklist: 0.3.0 on PyPI |
+| [progress/HAMZA_PROGRESS.md](progress/HAMZA_PROGRESS.md) | Log row for 2026-11-15; rows back in newest-first order; the CI check marked done |
+
+---
+
+## The site counts 5 trained models and 1 simulation (2026-11-15, Hamza)
+
+Home, About and Datasets still said "two trained models" and "LightGBM / RF" from before the timeline ML model and the RL agent; the navbar badge for /predict said "K-mer RF" though it serves LightGBM. Now, on both the React and the Flask site: **5 trained models (LightGBM ×4: forecaster, gene model, k-mer model, timeline ML model; + an RL agent) and 1 simulation**. The Train subtitle says what it retrains (the forecaster and the original K-mer RandomForest). Wording only; Suleman and Ali told in their Handovers tables.
+
+| File | Change |
+|---|---|
+| `web/src/pages/Home.tsx`, `frontend/templates/index.html` | Hero, "How the System Works", prediction-models intro, pipeline label |
+| `web/src/pages/About.tsx`, `frontend/templates/about.html` | Pipeline label |
+| `web/src/pages/Datasets.tsx`, `frontend/templates/datasets.html` | Model–dataset intro |
+| `web/src/pages/Train.tsx`, `frontend/templates/train.html` | Subtitle |
+| `web/src/components/Navbar.tsx`, `frontend/templates/base.html`, `library.html` | Badge "LightGBM" |
+
+---
+
+## ML trend forecast on the Flask /timeline too (2026-11-15, Hamza)
+
+The React `/timeline` had the timeline ML model since 0.3.0, but the Flask site (`start.bat --flask`, port 5001) showed only the simulation. It now has an "ML Trend Forecast" form (antibiotic, genus, years ahead; no genome) and a result card with the observed years, the forecast, its 80% band and the held-out error, labelled as a trained model. Suleman told in his Handovers table.
+
+| File | Change |
+|---|---|
+| `frontend/app.py` | `mode=trend` POST to `timeline/forecast/`; `trend_genera()`, `render_timeline()` |
+| `frontend/templates/mutation_timeline.html` | Forecast form and result card; the simulation form is titled "What-if Simulation" |
+| `frontend/static/js/timeline.js` | Dropdowns from the vocabulary; Plotly chart |
+| `frontend/tests/test_trend_forecast.py` | 3 tests |
+| `frontend/templates/base.html`, `web/src/components/Navbar.tsx`, `Footer.tsx` | The header and footer link to `/timeline` is named "Timeline" (was "Bio-Simulator", from when the page held only the simulation) |
+
+---
+
+## Timeline ML model: 80/20 series-split test (2026-11-15, Hamza)
+
+`experiments/timeline_ml/timeline_model.py train` also holds out 20% of the (genus, antibiotic) series whole and trains on every year of the other 80%: MAE 9.86 pp against 10.21 for the last value (53 unseen series, 396 forecasts). The temporal test (2017–2022, 13.98 pp) is unchanged and stays the headline. The served model was already trained on every year and is unchanged.
+
+| File | Change |
+|---|---|
+| `experiments/timeline_ml/timeline_model.py` | `series_split_test()`; its result in `metrics.json` as `series_split` |
+| `experiments/results/TL_timeline_ml/metrics.json` | Regenerated with the series split |
+| `docs/report/Chapter_Results.md` | §6: the series split, and that the served model uses all years |
+
+---
+
 ## Second browser test: architecture text, phone layout, drug popup (2026-11-15, Suleman)
 
 | File | Change |

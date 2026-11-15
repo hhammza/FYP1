@@ -6,7 +6,7 @@
 
 The project's models as a standalone library and command line, the proposal's main deliverable. It started as the three July engines taken out of Django (commit `52ae361`, September); since 0.3.0 it carries every model the website serves.
 
-**Version 0.3.0** (built 2026-11-14, `amrpredict-lib/dist/`) is ready for the real PyPI; once uploaded:
+**Version 0.3.0 is on PyPI** (https://pypi.org/project/amrpredict/, published 2026-11-14). Installed from PyPI into a clean environment on 2026-11-15, every function below returned a result:
 
 ```bash
 pip install amrpredict

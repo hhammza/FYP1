@@ -27,6 +27,12 @@
 > **Updated 2026-09-28.** `/predict` has a resistance-genes panel, ready for the
 > genome model's `genes_found`; the k-mer model served today does not search for
 > genes, and the page says so ([§8](frontend.md), "Resistance genes on /predict").
+>
+> **Updated 2026-11-15.** The site serves **five trained models and one
+> simulation**: the forecaster, the gene and k-mer genome models, the timeline ML
+> model and an RL agent ([§4](models.md)). `/timeline` opens on the ML trend
+> forecast, on the React and the Flask site alike, and its header link is named
+> "Timeline" (was "Bio-Simulator"). `amrpredict` 0.3.0 is on PyPI ([§7](library.md)).
 
 This is a companion to `docs/PROJECT_DOCUMENTATION.md`, not a replacement. That file is the long reference (datasets, hyperparameters, CSS classes). This one covers what the system is, what its parts are, how a click becomes a prediction, and what is true about it today. Every claim was checked against the code or reproduced by running it. Where the two documents disagree, sections 10 and 11 say why.
 
@@ -36,22 +42,23 @@ You built a full-stack antimicrobial-resistance (AMR) prediction system with **f
 
 | # | Deliverable | Where | What it is |
 |---|---|---|---|
-| 1 | **Django REST API** | `backend/` | 14 endpoints, loads 3 prediction engines into memory at startup |
+| 1 | **Django REST API** | `backend/` | 23 endpoints, loads every model into memory at startup |
 | 2 | **Flask web app** | `frontend/` | 22 routes, 11 pages, calls the Django API over HTTP |
 | 2b | **React + TypeScript web app** | `web/` | The same 11 pages as the Flask app, calling the Django API straight from the browser; the frontend to deploy, with Flask kept as the fallback ([web/README.md](../web/README.md)) |
 | 3 | **`amrpredict` Python package** | `amrpredict-lib/` | Every model the site serves (forecaster, genome models, timeline ML model, RL agent) and the simulation, pip-installable, with a CLI and tests |
 | 4 | **Research notebooks** | `*.ipynb` | Where the models were originally designed and trained (Colab) |
 
-And **three prediction engines**, of which only two are machine learning:
+And **five trained models and one simulation**:
 
 | Engine | Type | Input | Output | Trained? |
 |---|---|---|---|---|
 | LightGBM forecaster | Gradient-boosted trees | Antibiotic + taxonomy + MIC metadata | Resistant / Susceptible + probability | ✅ `D3_forecaster_deploy_v7`, cleaning v7, calibrated; AUC 0.774 on unseen genomes (lab rows 0.908) |
 | Genome models | LightGBM on AMRFinderPlus resistance genes (where AMRFinderPlus runs) or on 4-mers of the complete genome | Genome FASTA + antibiotic | Resistant / Susceptible + probability (+ the genes found) | ✅ gene model `G_genes_deploy`, lab AUC 0.977 on unseen genomes, served by the Docker image (checked by CI); k-mer model `G_kmer_deploy`, lab AUC 0.935, where AMRFinderPlus is not installed. Replaced a RandomForest on partial genomes (0.695) |
 | Mutation timeline | Logistic-growth simulation | Genome FASTA + antibiotic | Week-by-week resistance curve | ❌ not a model, no AUC, by design |
-| Timeline ML model | LightGBM regression on yearly resistance series | Organism (given, or identified from the genome) + antibiotic | Observed yearly % resistant and a 5-year forecast with an 80% band | ✅ `TL_timeline_ml` (2026-10-22): trained on 467 series from 553,223 dated lab results; error 13.98 pp on 2017–2022, beating last value, trend and mean; shown beside the simulation |
+| Timeline ML model | LightGBM regression on yearly resistance series | Organism (given, or identified from the genome) + antibiotic | Observed yearly % resistant and a 1–10 year forecast with an 80% band | ✅ `TL_timeline_ml` (2026-10-22): trained on 467 series from 553,223 dated lab results; error 13.98 pp on 2017–2022, beating last value, trend and mean (9.86 pp on 20% of the series held out whole); the default tab of `/timeline`, and beside the simulation |
+| RL agent | PPO (stable-baselines3), served as a NumPy copy of its policy | One of 3 drugs (ciprofloxacin, gentamicin, imipenem) + weeks | Which drug to give each week, against fixed schedules | ✅ trained on the simulation, not on patient data: first failure at week 81 of 104 against 33 for weekly cycling; shown under the what-if simulation |
 
-The honesty about engine 3, labelling it a simulation everywhere in the UI rather than dressing it up as deep learning, is one of the stronger points of the project, and worth defending in a viva rather than hiding.
+The honesty about the simulation, labelling it a simulation everywhere in the UI rather than dressing it up as deep learning, is one of the stronger points of the project, and worth defending in a viva rather than hiding.
 
 ## 1. What the project does
 
@@ -63,4 +70,4 @@ The honesty about engine 3, labelling it a simulation everywhere in the UI rathe
 
 1. *"I have lab metadata for this isolate, will it resist drug X?"* → `/forecast` → LightGBM
 2. *"I have the genome assembly, will it resist drug X?"* → `/predict` → k-mer LightGBM on the complete genome
-3. *"If I treat with drug X, how fast does resistance take over the population?"* → `/timeline` → simulation
+3. *"How will resistance to drug X change over the next years, and if I treat with it, how fast could resistance take over?"* → `/timeline` → the timeline ML model (yearly forecast), the simulation (week by week) and the RL agent (which drug to give each week)

@@ -15,6 +15,8 @@ For the detail behind any part of this page, see the [project documentation](doc
 | If a patient keeps receiving a drug, how fast could resistance take over, and which drug next? | **Timeline** | A logistic simulation checked against 15 published curves, a PPO agent that picks a drug each week, and a yearly forecast from dated lab results |
 | Where is resistance highest, for which bacteria, drugs and infections? | **Resistance Explorer** | Maps and comparisons of 649,944 laboratory results by country, organism, drug group, infection type and chemistry |
 
+In all, **five trained models** (four LightGBM: the forecaster, the gene and k-mer genome models and the timeline ML model; and a PPO agent trained on the simulation) and **one simulation**, which the site labels as not a trained model.
+
 ## Results
 
 Every model is tested on genomes it never saw in training, and genome results are quoted on laboratory-confirmed rows.
@@ -24,6 +26,8 @@ Every model is tested on genomes it never saw in training, and genome results ar
 | Forecaster | 0.908 (0.774 on all rows, most of which carry BV-BRC's own computational labels) |
 | k-mer genome model | 0.935 |
 | Gene model (AMRFinderPlus) | 0.977, and 0.82 to 0.94 on a genus held out of training |
+
+The timeline ML model forecasts a year's resistant share with a mean error of 13.98 percentage points on 2017–2022, years it never saw, better than last year's value, a straight-line trend and the long-run mean.
 
 The first version reported 0.93, but scored 0.644 on unseen genomes because its split let a genome appear in training and testing. That finding shaped the project. See [Results](docs/results.md).
 
@@ -49,7 +53,7 @@ The first run creates `.venv` and installs the web app's packages. If port 8000 
 | `backend/` | Django REST API, the model registry, trained models and lookup tables (`backend/reference/`) |
 | `web/` | React + TypeScript web app (the frontend to use) |
 | `frontend/` | The older Flask web app, kept as a fallback |
-| `amrpredict-lib/` | The `amrpredict` Python library and command line |
+| `amrpredict-lib/` | The `amrpredict` Python library and command line, on PyPI: `pip install amrpredict` |
 | `experiments/` | Experiment harness: configurations, results of every run, model promotion |
 | `scripts/` | Data download, cleaning, audits, genome features, dashboard data |
 | `notebooks/` | Colab notebooks that reproduce the served models from shared data |
@@ -62,7 +66,7 @@ The data and the large genome files are not in the repository; [DATA_LINKS.md](d
 
 - [Overview](docs/overview.md): the system in one page
 - [Architecture](docs/architecture.md): layers, repository map, one request end to end
-- [The prediction engines](docs/models.md): forecaster, genome models, timeline
+- [The prediction engines](docs/models.md): forecaster, genome models, simulation, timeline ML model, RL agent
 - [Data and training](docs/data-and-training.md): BV-BRC data, cleaning, training, experiments
 - [The web application](docs/frontend.md): every page, including the Resistance Explorer
 - [The amrpredict library](docs/library.md): the package and its command line

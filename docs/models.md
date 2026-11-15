@@ -2,9 +2,17 @@
 
 *Part of the [project documentation](README.md). Moved from the top-level README on 2026-11-14; section numbers (§) are kept, so older references still match.*
 
-## 4. The three prediction engines
+## 4. The prediction engines: five trained models and one simulation
 
-All three share one design: a class with `_load()`, `predict()` and a `status` property; if the artifact is missing, `is_trained` stays `False` and a **heuristic fallback** answers instead. That fallback is what keeps the app demo-able on a fresh clone, and also what hides failures ([§11.1](known-issues.md)).
+| Engine | Kind | Page | Section |
+|---|---|---|---|
+| Forecaster `D3_forecaster_deploy_v7` | LightGBM, trained | `/forecast` | 4.1 |
+| Gene model `G_genes_deploy` and k-mer model `G_kmer_deploy` | LightGBM, trained (two models) | `/predict` | 4.2 |
+| Mutation timeline | Logistic-growth simulation, **not trained** | `/timeline`, what-if simulation | 4.3 |
+| Timeline ML model `TL_timeline_ml` | LightGBM, trained | `/timeline`, ML trend forecast (the default tab) | 4.4 |
+| RL agent | PPO, trained **on the simulation** | `/timeline`, panel under the what-if simulation | 4.5 |
+
+The forecaster, the genome models and the simulation share one design: a class with `_load()`, `predict()` and a `status` property; if the artifact is missing, `is_trained` stays `False` and a **heuristic fallback** answers instead. That fallback is what keeps the app demo-able on a fresh clone, and also what hides failures ([§11.1](known-issues.md)).
 
 ### 4.1 LightGBM resistance forecaster - `ml_models/lgbm_predictor.py`
 
@@ -56,3 +64,28 @@ It also reports "mutation hotspots" (windows scored by GC content and nucleotide
 Since 2026-09-26 the random parts (`cumulative_mutations`, a Poisson draw, and the hotspot mutation types) come from one seeded generator, so identical inputs give an identical response (`seed`, default 42). The three population shares are a partition and add up to exactly 100 every week ([§11.3](known-issues.md)). The response says `model_used: "Biological Simulation"` and `simulation: true`; its format, agreed between Ali and Suleman, is in [progress/formats/README.md](../progress/formats/README.md) §4. That format also fixes what the week 4 RL agent returns (`rl`: the agent's weekly drug plan against "always the same drug" and cycling, with a set rule for `rl.best`) and what `calibration` holds; `rl` is absent until week 4.
 
 **Checked against published data (2026-09-28, [experiments/evolution/](../experiments/evolution/README.md)).** A sensitivity analysis over 8,232 combinations shows the answer depends most on the number of weeks asked: because the midpoint is 45% of the span, asking for 52 weeks instead of 8 makes the same drug fail 2 to 6 times later; `peak` works as a switch at 50% (colistin never fails), and `speed` ±30% moves failure by a median 0.6 weeks. The same logistic curve fits 15 published resistance curves (median R² 0.91): lab evolution of *E. faecalis* under five drugs (Maltas et al. 2025, PLOS Biology) and carbapenem-resistant *K. pneumoniae* in 10 countries (ECDC EARS-Net, 2005 to 2024), whose plateau ranges from 7% to 66% by country. Lab resistance rises within days and hospital resistance over years, so the timeline's weeks stay illustrative and the constants are unchanged. `/api/timeline/` returns this as `calibration` (15 curves, rmse 2.9 points on the hospital series, `parameters_changed: false`), and `/timeline` shows it under the result.
+
+### 4.4 Timeline ML model - `ml_models/timeline_ml.py`
+
+**Input:** a genus and an antibiotic (or a genome, whose genus is found from its 6-mer profile), and 1 to 10 years ahead. **Output:** the observed yearly resistant share and a forecast with an 80% band (`POST /api/timeline/forecast/`, and the `ml_forecast` block of `/api/timeline/`; format in [progress/formats/README.md](../progress/formats/README.md) §8).
+
+**Data:** the 553,223 laboratory results with a collection year (2000–2022), grouped per genus and antibiotic into yearly resistant shares; a year counts with at least 20 results. That gives 2,619 year points in 467 series (`experiments/timeline_ml/series.csv`).
+
+**Model:** LightGBM regression (L1) on the change from the last observed value, from features of the earlier years only: the last three values, the gap since the last one, the recent slope, the historical mean, the number of past points and results, the genus, the antibiotic and its drug class. The forecast is recursive: each predicted year is fed back as history for the next. The band is the 80th percentile of the held-out absolute errors (25.24 pp), widened by √(years ahead).
+
+**Tests** (`experiments/timeline_ml/timeline_model.py train`):
+
+| Test | Model | Last value | Linear trend | Historical mean |
+|---|---|---|---|---|
+| Temporal: trained on years up to 2016, tested on 2017–2022 (411 forecasts, 191 series) | **13.98** pp | 14.33 | 16.75 | 17.25 |
+| Series split: 20% of the series held out whole, every year (396 forecasts, 53 series) | **9.86** pp | 10.21 | 13.16 | 12.52 |
+
+The temporal test is the headline, since a forecast is always about years the model has not seen. **The served model is trained on every year of every series** (`timeline_model.py promote`), so the website's forecast starts after 2022. Known weakness, open (Suleman's scan, 2026-11-15, in `progress/HAMZA_PROGRESS.md` Handovers): some years are one study's batch of isolates, all at 0% or 100% (e.g. *E. coli* and imipenem in 2019–2020); the page draws years with under 30 results hollow.
+
+### 4.5 RL agent - `ml_models/rl_agent.py`
+
+**Input:** ciprofloxacin, gentamicin or imipenem, and a number of weeks (1–52). **Output:** the `rl` block of `/api/timeline/` (format §4): which drug to give each week, from the agent and from fixed schedules (always one drug, cycling every week or every 4 weeks, lowest resistance first), all run on the same simulation from the same start.
+
+**Model:** a PPO agent (stable-baselines3, Ali, `experiments/evolution/rl_train.py`) trained in the cycling simulation (`rl_env.py`) for 104 weeks, with a 5% weekly fitness cost; the backend runs a NumPy copy of its policy network (`trained_models/rl_agent/policy.npz`), so no PyTorch is needed to serve it. It learned from simulated episodes only, **not from patient data**, and the page says so.
+
+**Result** (100 held-out episodes, Results chapter §8): effective weeks 95.0 of 104 and first failure at week 81.3, against 79.5 and 32.6 for weekly cycling and 18.2 and 19.2 for always imipenem; the simple "lowest resistance first" rule never fails, so the agent does not beat it. The panel appears only for its three drugs, below the what-if simulation's downloads.

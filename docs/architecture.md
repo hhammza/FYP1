@@ -9,14 +9,17 @@ FYP1/
 ├── backend/                     Django REST API (port 8000)
 │   ├── backend/settings.py      Config; no auth/admin/sessions apps installed
 │   ├── api/
-│   │   ├── urls.py              8 routes under /api/
-│   │   ├── views.py             All endpoint logic (266 lines, plain Django Views)
+│   │   ├── urls.py              23 routes under /api/
+│   │   ├── views.py             All endpoint logic (plain Django Views)
 │   │   ├── apps.py              ready() → loads all models at process start
-│   │   └── model_registry.py    Module-level singletons for the 3 engines
+│   │   └── model_registry.py    Module-level singletons for every model
 │   ├── ml_models/               The engines themselves
-│   │   ├── lgbm_predictor.py    LightGBM + heuristic fallback
-│   │   ├── resistance_predictor.py  K-mer RandomForest + heuristic fallback
-│   │   └── mutation_timeline.py Logistic-growth simulation
+│   │   ├── lgbm_predictor.py    LightGBM forecaster + heuristic fallback
+│   │   ├── genome_predictor.py  Gene model (with AMRFinderPlus) and k-mer LightGBM
+│   │   ├── resistance_predictor.py  The original K-mer RandomForest (fallback only)
+│   │   ├── timeline_ml.py       Timeline ML model: yearly resistant share forecast
+│   │   ├── rl_agent.py          RL agent (NumPy copy of the PPO policy)
+│   │   └── mutation_timeline.py Logistic-growth simulation (not a trained model)
 │   ├── amr_constants.py         Antibiotic names, aliases, drug classes, label maps: the one copy
 │   ├── train_models.py          Production trainer: raw CSV/FASTA → artifacts
 │   ├── trained_models/          6 committed artifacts (~7 MB) + model_report.json
