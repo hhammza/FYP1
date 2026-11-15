@@ -53,7 +53,7 @@ export function useAntibiotics(model: 'lgbm' | 'kmer'): Loaded<string[]> {
 
 export function useVocabulary(): Loaded<Vocabulary> {
   // _v2: since `timeline` was added, so a tab's older copy is not reused
-  return useLoad('vocabulary_v2', () => apiGet<Vocabulary>('vocabulary/'), d => !!(d.lgbm || d.kmer));
+  return useLoad('vocabulary_v2', () => apiGet<Vocabulary>('vocabulary/'), d => !!(d.lgbm || d.kmer || d.timeline));
 }
 
 /** 'ciprofloxacin' -> 'Ciprofloxacin', as the Flask dropdowns showed names. */

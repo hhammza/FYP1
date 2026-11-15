@@ -1,9 +1,9 @@
-/* The timeline ML model's forecast on /timeline (format §8, Hamza's
+/* The result on /timeline (format §8, Hamza's
    backend/ml_models/timeline_ml.py): the organism's observed yearly resistant
    share from BV-BRC lab results, and the model's next years with an 80% band. */
-import { useCallback } from 'react';
+import { useCallback, type Ref } from 'react';
 import type { Data } from 'plotly.js-dist-min';
-import Plot, { type Figure, type PlotTheme } from '../../components/Plot';
+import Plot, { type Figure, type PlotElement, type PlotTheme } from '../../components/Plot';
 import { pyFixed } from '../../lib/metrics';
 import type { MlForecast } from './types';
 import BioIcon from '../../components/BioIcon';
@@ -66,25 +66,14 @@ export function errorSentence(metrics: MlForecast['metrics']): string {
 }
 
 interface Props {
-  ml: MlForecast | null | undefined;
-  antibiotic: string;
-  /** the genus asked for, if any (else the genome's was tried) */
-  genus?: string;
+  ml: MlForecast;
+  /** 'genome' when the genus was identified from the uploaded genome */
+  source?: 'chosen' | 'genome';
+  chartRef?: Ref<PlotElement | null>;
 }
 
-export default function MlForecastCard({ ml, antibiotic, genus }: Props) {
-  const figure = useCallback((t: PlotTheme) => forecastFigure(ml!, t), [ml]);
-  if (!ml || !ml.history?.length || !ml.forecast?.length) {
-    return (
-      <div className="alert alert-info-custom mb-4" role="status" id="mlForecastNone">
-        <BioIcon icon="bi-graph-up" className="me-2" /><strong>No ML forecast for this request.</strong>{' '}
-        {genus
-          ? `${genus} has too little yearly lab history for ${antibiotic}.`
-          : 'Choose an organism above, or upload a complete genome so its genus can be identified.'}
-        {' '}The simulation below still runs.
-      </div>
-    );
-  }
+export default function MlForecastCard({ ml, source, chartRef }: Props) {
+  const figure = useCallback((t: PlotTheme) => forecastFigure(ml, t), [ml]);
   const last = ml.history[ml.history.length - 1];
   const end = ml.forecast[ml.forecast.length - 1];
   const first = ml.history[0];
@@ -95,6 +84,12 @@ export default function MlForecastCard({ ml, antibiotic, genus }: Props) {
           Resistance forecast: <em>{ml.organism}</em> and {ml.antibiotic}</h6>
         <span className="status-badge trained"><BioIcon icon="bi-cpu" />{ml.label}</span>
       </div>
+      {source === 'genome' && (
+        <div className="alert alert-info-custom py-2 mb-2" id="genusFromGenome">
+          <BioIcon icon="bi-dna" className="me-2" />The uploaded genome was identified as <em>{ml.organism}</em>; the
+          forecast is for that genus.
+        </div>
+      )}
       <p className="small text-muted mb-2">
         The share of {ml.organism} isolates resistant to {ml.antibiotic} in BV-BRC laboratory results, year by year
         ({first.year} to {last.year}), and the ML model's forecast for the next {ml.forecast.length} years. The shaded
@@ -102,7 +97,7 @@ export default function MlForecastCard({ ml, antibiotic, genus }: Props) {
         {ml.history.some(h => h.n < FEW_RESULTS) && <> Hollow points are years with fewer than {FEW_RESULTS} lab
           results, where the share can swing on a handful of isolates.</>}
       </p>
-      <Plot id="mlForecastChart" className="chart-350" figure={figure} />
+      <Plot id="mlForecastChart" className="chart-350" figure={figure} ref={chartRef} />
       <div className="row g-2 text-center mt-2">
         <div className="col-6 col-md-4"><div className="stat-mini">
           <div className="stat-mini-value stat-mini-static">{pyFixed(last.resistant_pct, 1)}%</div>

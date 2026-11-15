@@ -4,7 +4,7 @@
 import { ApiError, apiUrl, DEFAULT_TIMEOUT_S } from './api';
 import { loadPlotly, type PlotElement } from '../components/Plot';
 
-export type ExportPage = 'forecast' | 'predict' | 'timeline' | 'batch';
+export type ExportPage = 'forecast' | 'predict' | 'timeline' | 'simulation' | 'batch';
 
 const INK = '#1f2937', MUTED = '#475569', GRID = '#e5e7eb';
 

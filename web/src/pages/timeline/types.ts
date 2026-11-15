@@ -1,4 +1,24 @@
-/* /api/timeline/ response (progress/formats/README.md §4). */
+/* /api/timeline/ (the ML forecast, progress/formats/README.md §8) and
+   /api/timeline/simulate/ (the what-if simulation, §4) responses. */
+
+/** The timeline ML model's block: observed yearly resistance and its forecast. */
+export interface MlForecast {
+  model_run?: string;
+  organism: string;
+  antibiotic: string;
+  history: { year: number; resistant_pct: number; n: number }[];
+  forecast: { year: number; resistant_pct: number; lo: number; hi: number }[];
+  metrics?: Record<string, { mae_pct: number; ci: [number, number] }>;
+  label: string;
+}
+
+export interface TimelineResult {
+  ml_forecast: MlForecast;
+  /** 'genome' when the genus was identified from an uploaded genome */
+  organism_source?: 'chosen' | 'genome';
+}
+
+/* ── the what-if simulation (§4) ── */
 
 export interface Week {
   week: number;
@@ -31,7 +51,7 @@ export interface RlBlock {
   policies: RlPolicy[];
 }
 
-export interface TimelineResult {
+export interface SimulationResult {
   antibiotic: string;
   antibiotic_class?: string;
   sequence_length: number;
@@ -47,25 +67,10 @@ export interface TimelineResult {
   resistance_genes?: { gene: string; activation_week: number; resistance_contribution: number }[];
   calibration?: { curves: number; rmse: number; surveillance_curves: number; drugs: string[] } | null;
   rl?: RlBlock | null;
-  ml_forecast?: MlForecast | null;
   [k: string]: unknown;
 }
 
-/** The timeline ML model's block (format §8): observed yearly resistance and
-    its forecast, absent when the organism and drug have too little history. */
-export interface MlForecast {
-  model_run?: string;
-  organism: string;
-  antibiotic: string;
-  history: { year: number; resistant_pct: number; n: number }[];
-  forecast: { year: number; resistant_pct: number; lo: number; hi: number }[];
-  metrics?: Record<string, { mae_pct: number; ci: [number, number] }>;
-  label: string;
-}
-
-export interface TimelineInputs {
+export interface SimulationInputs {
   antibiotic: string;
   n_weeks: string;
-  /** the organism for the ML forecast; '' = identify it from the genome */
-  genus?: string;
 }

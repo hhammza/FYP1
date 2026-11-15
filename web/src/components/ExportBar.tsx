@@ -59,7 +59,8 @@ export default function ExportBar({ page, result, inputs, chart }: Props) {
         {chart && button('png', 'image', 'Chart (PNG)')}
       </div>
       <div className="text-muted fs-11 mt-2">
-        {page === 'timeline' && 'Every download is labelled "Simulation, not a trained model". '}
+        {page === 'timeline' && 'Downloads list each year, observed or forecast, with the model\'s error on held-out years. '}
+        {page === 'simulation' && 'Every download is labelled "Simulation, not a trained model". '}
         Research tool, not a clinical diagnostic.
       </div>
     </div>

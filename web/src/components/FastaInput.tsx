@@ -21,8 +21,8 @@ export function chosenGenome(v: FastaValue): { file: File } | { text: string } |
 }
 
 interface Props {
-  /** '' on /predict, '2' on /timeline (the element IDs of the Flask pages) */
-  suffix: '' | '2';
+  /** '' on /predict, '2' on /timeline's forecast tab, '3' on its what-if tab (the element IDs of the Flask pages) */
+  suffix: '' | '2' | '3';
   value: FastaValue;
   onChange: (v: FastaValue) => void;
   accept: string;
@@ -30,7 +30,8 @@ interface Props {
   textTooltip: string;
   placeholder: string;
   rows: number;
-  sample: string;
+  /** a sequence for "Load Sample"; no button when left out */
+  sample?: string;
   missingText: string;
   showMissing: boolean;
   compact?: boolean;
@@ -71,9 +72,11 @@ export default function FastaInput({ suffix, value, onChange, accept, fileToolti
                   rows={rows} placeholder={placeholder} value={value.text} onChange={e => onChange({ ...value, text: e.target.value })}></textarea>
         <div className={'d-flex mt-1 ' + (compact ? 'justify-content-end' : 'justify-content-between')}>
           {!compact && <small className="form-hint">Paste your FASTA sequence here</small>}
-          <button type="button" className="btn btn-link btn-sm p-0" onClick={() => onChange({ ...value, tab: 'text', text: sample })}>
-            Load Sample
-          </button>
+          {sample && (
+            <button type="button" className="btn btn-link btn-sm p-0" onClick={() => onChange({ ...value, tab: 'text', text: sample })}>
+              Load Sample
+            </button>
+          )}
         </div>
       </div>
 
