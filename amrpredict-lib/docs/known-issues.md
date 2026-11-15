@@ -16,7 +16,9 @@ genomes it never saw. 0.3.0 ships the web app's genome models with the code
 ported from `backend/ml_models/genome_predictor.py`: the gene model (lab AUC
 0.977 on 4,481 unseen genomes) when AMRFinderPlus is installed, the k-mer
 LightGBM (0.935) otherwise. A backend test (`test_library_parity.py`) checks
-the library and the web app give identical answers. The RandomForest, its
+the library and the web app give identical answers; for the gene model, which
+needs AMRFinderPlus, the project's CI installs the wheel in the backend Docker
+image and compares it with the API on an unseen genome. The RandomForest, its
 scaler bug (below) and the scikit-learn pin are gone with it.
 
 ### scikit-learn version drift

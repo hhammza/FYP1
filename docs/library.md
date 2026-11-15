@@ -48,7 +48,7 @@ amrpredict antibiotics --model trend --compact | jq
 | Model loading | At Django startup | Lazy + thread-locked singleton (`registry.py`), nothing read until first call |
 | Diagnostics | `print()` | `logging`, so `amrpredict antibiotics \| jq` isn't corrupted by stray output |
 | Model dir | Required constructor arg | Defaults to models bundled inside the wheel (`_paths.py` via `importlib.resources`) |
-| Predictor code | `ml_models/lgbm_predictor.py`, `genome_predictor.py`, `timeline_ml.py`, `rl_agent.py` | Ported from them (imports and logging only), same outputs: `backend/tests/test_library_parity.py` checks the forecaster, the k-mer genome model, the timeline ML model and the RL agent |
+| Predictor code | `ml_models/lgbm_predictor.py`, `genome_predictor.py`, `timeline_ml.py`, `rl_agent.py` | Ported from them (imports and logging only), same outputs: `backend/tests/test_library_parity.py` checks the forecaster, the k-mer genome model, the timeline ML model and the RL agent; the gene model is checked in CI's Docker job, where AMRFinderPlus is installed (`scripts/ci_library_genes.py` runs the wheel inside the image against `/api/predict/`) |
 | Dependencies | scikit-learn among them | LightGBM, pandas, NumPy, joblib only (the July RandomForest, the one pickled scikit-learn model, was removed in 0.3.0) |
 | Import cost | numpy/pandas/lightgbm at import | Deferred via module `__getattr__` |
 | Tests | `unittest`, in CI | 55 pytest tests, in CI; pass on Python 3.9 and 3.13 |

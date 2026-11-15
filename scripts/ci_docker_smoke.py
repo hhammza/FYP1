@@ -5,7 +5,11 @@ models.kmer_resistance.searches_genes = true, and one complete genome the gene
 model did not train on must come back from /api/predict/ with genes_found and
 species_detected.
 
-    python scripts/ci_docker_smoke.py [--base http://127.0.0.1:8000]
+    python scripts/ci_docker_smoke.py [--base http://127.0.0.1:8000] [--save DIR]
+
+--save DIR writes the genome (genome.fna) and the API's answer (api.json) to
+DIR, for scripts/ci_library_genes.py, which checks the amrpredict library's
+gene model gives the same answer inside the image.
 
 Picks a test genome of the served gene model (backend/trained_models/
 genome_genes/split_genomes.json.gz, format section 7), downloads its complete
@@ -84,7 +88,7 @@ def download(genome_id):
     return fasta
 
 
-def main(base, wait):
+def main(base, wait, save=None):
     health = wait_for_health(base, wait)
     model = health['models']['kmer_resistance']
     print(f"health: served {model.get('run_id')}, searches_genes={model.get('searches_genes')}")
@@ -125,6 +129,13 @@ def main(base, wait):
           + ', '.join(g.get('gene', '?') for g in genes[:12]) + (' ...' if len(genes) > 12 else ''))
     if seconds > 120:
         fail(f'{seconds:.0f} s is over the page\'s 120 s wait (frontend PREDICT_TIMEOUT)')
+    if save:
+        os.makedirs(save, exist_ok=True)
+        with open(os.path.join(save, 'genome.fna'), 'wb') as fh:
+            fh.write(fasta)
+        with open(os.path.join(save, 'api.json'), 'w', encoding='utf-8') as fh:
+            json.dump(dict(result, genome_id=genome_id, antibiotic='ciprofloxacin'), fh, indent=1)
+        print(f'saved the genome and the answer to {save}')
     print('OK: the image serves the gene model')
 
 
@@ -132,5 +143,6 @@ if __name__ == '__main__':
     ap = argparse.ArgumentParser(description=__doc__.split('\n')[0])
     ap.add_argument('--base', default='http://127.0.0.1:8000')
     ap.add_argument('--wait', type=int, default=300, help='seconds to wait for the backend to start')
+    ap.add_argument('--save', help='folder to write genome.fna and api.json to')
     a = ap.parse_args()
-    main(a.base.rstrip('/'), a.wait)
+    main(a.base.rstrip('/'), a.wait, a.save)

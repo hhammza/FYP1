@@ -19,6 +19,7 @@ Baseline is commit **`52ae361`** *(Add amrpredict library and macOS launcher, 20
 
 ---
 
+<<<<<<< Updated upstream
 ## Second browser test: architecture text, phone layout, drug popup (2026-11-15, Suleman)
 
 | File | Change |
@@ -43,6 +44,18 @@ Baseline is commit **`52ae361`** *(Add amrpredict library and macOS launcher, 20
 | [web/src/pages/timeline/MlForecastCard.tsx](web/src/pages/timeline/MlForecastCard.tsx) | Observed years with fewer than 30 lab results (the model keeps years with 20 or more) are drawn hollow and faded, with a note. Display only; the model and its numbers are unchanged |
 | Home, About, /forecast, /timeline | Labels say what each number counts: 6.3M **training rows** (the cleaned table holds 7.85M records), 24,285 **genomes of the k-mer model** (24,926 is the genomes AMRFinderPlus searched), 2 **prediction models** (/library counts 5 trained models). Model names unchanged |
 | [Explore.test.tsx](web/src/pages/Explore.test.tsx), [Timeline.test.tsx](web/src/pages/Timeline.test.tsx) | 4 tests: no-results message (chart and map), low-sample drug tile, hollow points. Web 93 tests pass |
+=======
+## The library's gene model checked with the real AMRFinderPlus in CI (2026-11-14, Hamza)
+
+The parity tests cover the k-mer genome model only, because the laptops have no AMRFinderPlus (it needs Linux or macOS through conda). The CI docker job, which already builds the image with AMRFinderPlus 4.2.7 and its pinned database, now also installs the amrpredict wheel inside that image and runs `predict_fasta(..., use_genes=True)` on the unseen test genome the API just answered. The prediction, probability, model run, genes found and species must match `/api/predict/` exactly.
+
+| File | Change |
+|---|---|
+| `scripts/ci_library_genes.py` | New: the check, run inside the image |
+| `scripts/ci_docker_smoke.py` | `--save DIR` writes the genome and the API's answer for it |
+| `.github/workflows/ci.yml` | Docker job: build the wheel, copy it into the container, install it, run the check |
+| `docs/library.md` | Notes the check |
+>>>>>>> Stashed changes
 
 ---
 
