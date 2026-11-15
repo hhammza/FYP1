@@ -12,6 +12,8 @@
 | Timeline ML model `TL_timeline_ml` | LightGBM, trained | `/timeline`, ML trend forecast (the default tab) | 4.4 |
 | RL agent | PPO, trained **on the simulation** | `/timeline`, panel under the what-if simulation | 4.5 |
 
+Since 2026-11-15 the two `/timeline` tabs call separate endpoints: `/api/timeline/` is the timeline ML model only (the organism given or identified from a genome) and `/api/timeline/simulate/` is the simulation with the RL block. The simulation's response no longer carries `ml_forecast`.
+
 The forecaster, the genome models and the simulation share one design: a class with `_load()`, `predict()` and a `status` property; if the artifact is missing, `is_trained` stays `False` and a **heuristic fallback** answers instead. That fallback is what keeps the app demo-able on a fresh clone, and also what hides failures ([§11.1](known-issues.md)).
 
 ### 4.1 LightGBM resistance forecaster - `ml_models/lgbm_predictor.py`
@@ -84,7 +86,7 @@ The temporal test is the headline, since a forecast is always about years the mo
 
 ### 4.5 RL agent - `ml_models/rl_agent.py`
 
-**Input:** ciprofloxacin, gentamicin or imipenem, and a number of weeks (1–52). **Output:** the `rl` block of `/api/timeline/` (format §4): which drug to give each week, from the agent and from fixed schedules (always one drug, cycling every week or every 4 weeks, lowest resistance first), all run on the same simulation from the same start.
+**Input:** ciprofloxacin, gentamicin or imipenem, and a number of weeks (1–52). **Output:** the `rl` block of `/api/timeline/simulate/` (`/api/timeline/` before 2026-11-15; format §4): which drug to give each week, from the agent and from fixed schedules (always one drug, cycling every week or every 4 weeks, lowest resistance first), all run on the same simulation from the same start.
 
 **Model:** a PPO agent (stable-baselines3, Ali, `experiments/evolution/rl_train.py`) trained in the cycling simulation (`rl_env.py`) for 104 weeks, with a 5% weekly fitness cost; the backend runs a NumPy copy of its policy network (`trained_models/rl_agent/policy.npz`), so no PyTorch is needed to serve it. It learned from simulated episodes only, **not from patient data**, and the page says so.
 

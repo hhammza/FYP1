@@ -16,7 +16,7 @@
 | `/predict` | GET, POST | `predict/` | `resistance_prediction.html`, with the resistance-genes panel |
 | `/predict/sample` | GET | n/a | local runs only: `/predict` filled with `progress/formats/genome_response.sample.json`, to preview the genes panel |
 | `/timeline/sample` | GET | n/a | local runs only: `/timeline` filled with `progress/formats/timeline_response.sample.json`, to preview the RL panel ("Simulation + RL policy (not trained on patient data)"), shown only when a response has `rl` |
-| `/timeline` | GET, POST | `timeline/`; `timeline/forecast/` when the form sends `mode=trend` | `mutation_timeline.html`: the ML trend forecast card and the what-if simulation |
+| `/timeline` | GET, POST | `timeline/` (ML trend forecast, the default tab); `timeline/simulate/` (what-if tab) | `mutation_timeline.html`: the ML trend forecast (organism chosen or identified from a genome) and the what-if simulation with the RL panel, each with its own downloads |
 | `/train` | GET, POST | `train/` | `train.html` |
 | `/datasets` | GET | n/a | `datasets.html`, the five datasets explained |
 | `/about` | GET | n/a | `about.html`, methodology, team, metrics |

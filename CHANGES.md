@@ -19,6 +19,21 @@ Baseline is commit **`52ae361`** *(Add amrpredict library and macOS launcher, 20
 
 ---
 
+## /timeline: the trained model leads, the simulation stays as a labelled what-if tab (2026-11-15, Ali)
+
+`/timeline` now leads with the timeline ML model (Hamza's LightGBM, trained on 534,996 dated BV-BRC lab results). The organism is either chosen or identified from an uploaded genome's 6-mer profile. The logistic-growth simulation and the RL panel stay as a second tab, "What-if simulation", labelled as not a trained model. Ali first removed the simulation; on Hamza's suggestion it was kept, because it answers a different question (weeks under treatment rather than years across a genus), and the RL agent only shows through it.
+
+| File | Change |
+|---|---|
+| `backend/api/views.py`, `urls.py`, `model_registry.py` | Two endpoints. `/api/timeline/` (and `/api/timeline/forecast/`) is the ML model: an antibiotic plus a genus or a genome, and `years_ahead`. It returns `{ml_forecast, organism_source}`, or 422 when a genome's genus cannot be identified. `/api/timeline/simulate/` is the simulation with the `rl` block, which no longer carries `ml_forecast`. `/api/health/` adds `timeline_ml`. Reload Models reloads both |
+| `backend/ml_models/timeline_ml.py` | `status` property, for health and downloads |
+| `backend/api/exports.py`, `frontend/exports.py` | Page `timeline`: one row per year with the 80% band, and the model's held-out error read on the server (`timeline_summary`). New page `simulation`: the old weekly CSV and PDF, labelled "Simulation, not a trained model" |
+| `web/src/pages/Timeline.tsx`, `timeline/*` | ML tab: one form (antibiotic, organism chosen or from a genome, years ahead), the forecast card and its downloads. The numbers strip, model card and empty state are rewritten. What-if tab: `SimulationForm`, `SimulationResult` and the RL panel, with a "not a trained model" notice. The header animation now draws observed years and a forecast band |
+| `frontend/app.py`, `mutation_timeline.html`, `timeline.js`, `_export_bar.html` | The same two tabs on the Flask site |
+| Home, About, Datasets, Train (both sites), React footer | The timeline is described as the trained model, with the simulation as its what-if tab. The About API table lists `timeline/simulate/`. Train says how to retrain the model from the command line. The ECDC curves are now the model's external check (2.32 pp against 1.89 for last year's value) |
+| Tests | Backend: organism and years checks, 422, a genome-identified forecast, health, both exports, the RL tests on `/simulate/`. Web: `Timeline.test.tsx` covers both tabs. Flask: both tabs |
+| `progress/formats/README.md`, `docs/models.md`, `docs/frontend.md` | The endpoint split |
+
 ## Documents brought up to date: PyPI, five models, /timeline (2026-11-15, Hamza)
 
 A pass over the guides for what changed since 2026-11-14: `amrpredict` 0.3.0 is on PyPI (installed from PyPI into a clean venv, every function works), the site serves five trained models and one simulation, `/timeline` opens on the ML trend forecast on both sites, and CI checks the library's gene model with the real AMRFinderPlus (passed).

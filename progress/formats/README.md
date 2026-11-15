@@ -140,7 +140,9 @@ Agreed as above, with these details from the real AMRFinderPlus output:
 
 ## 4. Timeline + RL response
 
-`POST /api/timeline/` (`backend/ml_models/mutation_timeline.py`). Proposed by Ali and agreed with Suleman on 2026-09-26 (checked against the live response). Sample: [`timeline_response.sample.json`](timeline_response.sample.json).
+**Moved 2026-11-15:** served at `POST /api/timeline/simulate/` (the what-if tab), no longer at `/api/timeline/`, which is now the ML forecast (section 8). Same request and shape, without `ml_forecast`.
+
+`POST /api/timeline/simulate/` (`backend/ml_models/mutation_timeline.py`). Proposed by Ali and agreed with Suleman on 2026-09-26 (checked against the live response). Sample: [`timeline_response.sample.json`](timeline_response.sample.json).
 
 Request is unchanged: `fasta_text` or `fasta_file`, `antibiotic`, `n_weeks` (1 to 52).
 
@@ -307,9 +309,11 @@ genome_status(settings.TRAINED_MODELS_DIR, '562.1234')
 
 ---
 
-## 8. Timeline ML forecast (proposed 2026-10-17; live in `/api/timeline/` since 2026-10-22)
+## 8. Timeline ML forecast (proposed 2026-10-17; live in `/api/timeline/` since 2026-10-22; the whole response since 2026-11-15)
 
-The `/api/timeline/` response gains an `ml_forecast` block beside the simulation. Written by Hamza (`backend/ml_models/timeline_ml.py`), shown by Suleman on `/timeline`. Absent when the organism and antibiotic have too little history (the page then shows only the simulation, with one line saying so). The organism is the request's optional `genus` field, or else the genus identified from the uploaded genome's 6-mer profile (genomes of 100,000 bp or more). `metrics` holds `model`, `last_value`, `linear_trend`, `historical_mean`, each `{mae_pct, ci}`.
+**Since 2026-11-15** this is all `/api/timeline/` returns. Request: `antibiotic`, and the organism as `genus` or as a genome (`fasta_file` upload or `fasta_text`; a chosen `genus` wins), and optional `years_ahead` (1 to 10, default 5). The simulation moved to `/api/timeline/simulate/` (section 4). Response: `{"ml_forecast": {...}, "organism_source": "chosen" | "genome"}`. Errors, each with an `error` message: 400 for a missing or bad field, 413 for a genome over the size limit, 422 when the genome's genus cannot be identified (under 100,000 bp or no species match), 404 when the pair has too little history, 503 when the model is not loaded. `/api/health/` reports the model as `models.timeline_ml` (`trained`, `run_id`, `algorithm`, `metrics`), beside `mutation_timeline` (the simulation).
+
+Before 2026-11-15: the `/api/timeline/` response gained an `ml_forecast` block beside the simulation. Written by Hamza (`backend/ml_models/timeline_ml.py`), shown by Suleman on `/timeline`. Absent when the organism and antibiotic have too little history (the page then shows only the simulation, with one line saying so). The organism is the request's optional `genus` field, or else the genus identified from the uploaded genome's 6-mer profile (genomes of 100,000 bp or more). `metrics` holds `model`, `last_value`, `linear_trend`, `historical_mean`, each `{mae_pct, ci}`.
 
 | Field | Type | Meaning |
 |---|---|---|
@@ -323,5 +327,5 @@ The `/api/timeline/` response gains an `ml_forecast` block beside the simulation
 
 Units: percentages 0 to 100, like the simulation's `*_fraction` fields.
 
-**On its own, no genome (2026-11-14):** `POST /api/timeline/forecast/` with `genus`, `antibiotic` and optional `years_ahead` (1 to 10, default 5) answers `{"ml_forecast": {...}}`, the same block. 400 for a missing or bad field, 404 with an `error` when the pair has too little history. `/timeline`'s "ML trend forecast" mode calls it; the library's `amrpredict.forecast_trend()` returns the same block.
+**On its own, no genome (2026-11-14):** `POST /api/timeline/forecast/` with `genus`, `antibiotic` and optional `years_ahead` (1 to 10, default 5) answers `{"ml_forecast": {...}}`, the same block. Since 2026-11-15 it is the same view as `/api/timeline/`, kept for older callers. 400 for a missing or bad field, 404 with an `error` when the pair has too little history. `/timeline`'s "ML trend forecast" mode calls it; the library's `amrpredict.forecast_trend()` returns the same block.
 
