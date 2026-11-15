@@ -172,7 +172,9 @@ def amrfinder_env(amrfinder):
     to its env, which is where it looks for its database (run_amrfinder.py)."""
     env = dict(os.environ)
     env['PATH'] = os.path.dirname(amrfinder) + os.pathsep + env.get('PATH', '')
-    env.setdefault('CONDA_PREFIX', os.path.dirname(os.path.dirname(amrfinder)))
+    # always its own env: a server started from an activated conda shell (base
+    # env) inherits that env's CONDA_PREFIX, where there is no database
+    env['CONDA_PREFIX'] = os.path.dirname(os.path.dirname(amrfinder))
     return env
 
 

@@ -51,7 +51,7 @@ export default function GenesPanel({ result }: { result: PredictResult }) {
   const others = genes.filter(g => !g.relevant).sort(byGene);
 
   return (
-    <div className="info-card mb-4">
+    <div className="info-card mb-4" id="genesPanel">
       <h6 className="card-section-title">
         <BioIcon icon="bi-bacteria" className="text-emerald2 me-2" />Resistance genes found{' '}
         <span className="feature-tag ms-2">{genes.length}</span>
