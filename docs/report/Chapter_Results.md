@@ -113,7 +113,20 @@ The supervisor asked for the timeline as a trained model rather than the simulat
 | Linear trend | 16.75 [14.32, 19.30] |
 | Historical mean | 17.25 [15.07, 19.67] |
 
-The model beats all three baselines: by 0.35 pp over the last value (95% CI [+0.03, +0.67]), 2.77 pp over the trend and 3.28 pp over the mean. The absolute error is large because a year of BV-BRC data is a small, uneven sample. On the ECDC European series of *K. pneumoniae* and carbapenems (30 countries, 231 forecasts, never seen in training) the model (2.32 pp) is slightly worse than the last value (1.89 pp): smooth, well-sampled surveillance data favour persistence. The website shows the forecast beside the simulation, with an 80% band from the held-out errors (`/api/timeline/` → `ml_forecast`).
+The model beats all three baselines: by 0.35 pp over the last value (95% CI [+0.03, +0.67]), 2.77 pp over the trend and 3.28 pp over the mean. The absolute error is large because a year of BV-BRC data is a small, uneven sample. On the ECDC European series of *K. pneumoniae* and carbapenems (30 countries, 231 forecasts, never seen in training) the model (2.32 pp) is slightly worse than the last value (1.89 pp): smooth, well-sampled surveillance data favour persistence.
+
+**Series split (80/20).** A second test answers a different question: how well the model forecasts an organism and drug it never saw. 20% of the series that have targets (53 of 263) are held out whole, every year 2002–2022, and the model is trained on every year of the other 80% (210 series, 1,428 forecasts). On the 396 held-out forecasts:
+
+| Method | Mean absolute error, pp [95% CI] |
+|---|---|
+| **Timeline ML model** | **9.86** [7.89, 12.07] |
+| Last value | 10.21 [8.07, 12.52] |
+| Linear trend | 13.16 [10.58, 16.15] |
+| Historical mean | 12.52 [9.93, 15.19] |
+
+The model again beats every baseline (by 0.35 pp over the last value, CI [+0.06, +0.66]). The error is lower than in the temporal test because the held-out series include the well-sampled years before 2017, while the temporal test has only the later, thinner years (fewer genomes per year after 2017). The temporal test stays the headline, since a forecast is always about years the model has not seen.
+
+**The served model is trained on all the data.** Both tests are for measurement only: `timeline_model.py promote` refits the model on every year (2000–2022) of every series, so the website's forecast starts from 2023 using all the history. The website shows it on `/timeline` (ML trend forecast, `POST /api/timeline/forecast/`) and beside the simulation, with an 80% band from the held-out errors (`/api/timeline/` → `ml_forecast`).
 
 ## 7. The GAN experiment
 

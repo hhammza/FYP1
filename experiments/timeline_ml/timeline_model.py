@@ -19,6 +19,13 @@ historical mean. Errors are in percentage points (pp); the 95% CI resamples
 whole series. External check: the ECDC European surveillance series for
 K. pneumoniae and carbapenems (Data/evolution_curves/), which the model never
 saw.
+
+A second check, the series split: 20% of the (genus, antibiotic) series are
+held out whole, every year of them, and the model is trained on all years of
+the other 80%. It answers a different question from the temporal test: how
+well the model forecasts an organism and drug it has never seen, using that
+series' own past years. The served model (promote) is trained on every year of
+every series.
 """
 import json
 import os
@@ -43,6 +50,7 @@ MIN_RESULTS = 20          # lab results needed for a year to count
 TRAIN_UNTIL = 2016        # train on targets up to this year, test on the years after
 VALID_FROM = 2014         # last training years used for early stopping
 MIN_HISTORY = 2           # past points a target needs
+SERIES_TEST_SHARE = 0.2   # series split: share of series held out whole
 SEED = 42
 
 NUMERIC = ['lag1', 'lag2', 'lag3', 'gap1', 'slope3', 'mean_past', 'n_past', 'log_n1']
@@ -233,6 +241,7 @@ def train_and_test(series=None, verbose=True):
     within = {k: float((abs_err <= k).mean()) for k in (5, 10)}
     cats = {c: list(train[c].cat.categories) for c in CATEGORICAL}
     ecdc = ecdc_check(model, cats)
+    split = series_split_test(rows, verbose=verbose)
 
     metrics = {
         'id': RUN_ID,
@@ -250,6 +259,7 @@ def train_and_test(series=None, verbose=True):
         'share_within_pp': within,
         'interval_abs_error_pp': {'q80': float(np.quantile(abs_err, 0.8)), 'q95': float(np.quantile(abs_err, 0.95))},
         'ecdc_check': ecdc,
+        'series_split': split,
         'feature_importance': dict(zip(FEATURES, [int(v) for v in model.feature_importance('gain')])),
     }
     if verbose:
@@ -264,6 +274,47 @@ def train_and_test(series=None, verbose=True):
             print(f"  ECDC check ({ecdc['points']} points, {ecdc['countries']} countries): "
                   + ', '.join(f"{k} {ecdc[k][0]:.2f}" for k in ['model'] + list(base)))
     return model, metrics, test.assign(pred=pred)
+
+
+def series_split_test(rows, verbose=True):
+    """Hold out SERIES_TEST_SHARE of the series whole (all their years); train
+    on all years of the rest. Rounds are chosen on a further 20% of the training
+    series, then the model is refit on all training series."""
+    names = np.array(sorted(rows['series'].unique()))
+    rng = np.random.default_rng(SEED)
+    rng.shuffle(names)
+    n_test = int(round(len(names) * SERIES_TEST_SHARE))
+    test_names, train_names = set(names[:n_test]), names[n_test:]
+    valid_names = set(train_names[:int(round(len(train_names) * 0.2))])
+    train = rows[~rows['series'].isin(test_names)]
+    test = rows[rows['series'].isin(test_names)]
+    inner = train[~train['series'].isin(valid_names)]
+    _, rounds = fit(inner, valid=train[train['series'].isin(valid_names)])
+    rounds = max(rounds, 50)
+    model, _ = fit(train, rounds=rounds)
+    pred = predict(model, test)
+    result = {'model': mae_ci(pred - test['target'], test['series'])}
+    base = baselines(test)
+    for name, p in base.items():
+        result[name] = mae_ci(p - test['target'], test['series'])
+    gains = {name: paired_gain(pred - test['target'], p - test['target'], test['series'])
+             for name, p in base.items()}
+    out = {'description': f'{SERIES_TEST_SHARE:.0%} of the series held out whole (every year), '
+                          f'trained on every year of the other {1 - SERIES_TEST_SHARE:.0%}',
+           'train_series': int(train['series'].nunique()), 'test_series': int(test['series'].nunique()),
+           'train_targets': int(len(train)), 'test_targets': int(len(test)),
+           'test_years': [int(test['year'].min()), int(test['year'].max())],
+           'rounds': int(rounds), 'test_mae_pp': result, 'gain_over_baselines_pp': gains,
+           'share_within_pp': {k: float((np.abs(pred - test['target'].to_numpy()) <= k).mean()) for k in (5, 10)}}
+    if verbose:
+        print(f"[series split] train {out['train_series']} series ({out['train_targets']:,} targets), "
+              f"test {out['test_series']} unseen series ({out['test_targets']:,} targets, "
+              f"{out['test_years'][0]}-{out['test_years'][1]}), {rounds} rounds")
+        for k, (m, ci) in result.items():
+            print(f'  MAE {k:16s} {m:6.2f} pp  [{ci[0]:.2f}, {ci[1]:.2f}]')
+        for k, g in gains.items():
+            print(f"  model better than {k:16s} by {g['gain_pp']:+.2f} pp [{g['ci'][0]:+.2f}, {g['ci'][1]:+.2f}]")
+    return out
 
 
 def save_run(model, metrics, test):
