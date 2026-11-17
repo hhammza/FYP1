@@ -4,6 +4,7 @@ import { organismOptions, recognitionMessage } from './forecast/ForecastForm';
 import { barColour } from './forecast/ForecastResult';
 import { agrees, micText } from './forecast/GenomeInfo';
 import type { OrganismGenus } from '../lib/vocab';
+import { matchAntibiotics } from '../components/AntibioticOptions';
 import { HEALTH, mockBackend, renderPage } from '../test-utils';
 
 // Plotly needs a real browser; the page tests check everything around the chart
@@ -39,6 +40,74 @@ function backend(extra: Record<string, { status?: number; body: unknown }> = {})
     ...extra,
   });
 }
+
+describe('antibiotic search', () => {
+  const NAMES = ['amikacin', 'cefiderocol', 'cefixime', 'ceftriaxone', 'meropenem', 'imipenem'];
+  const GROUPS = [{ label: 'Beta-lactams › Carbapenems', antibiotics: ['meropenem', 'imipenem'] },
+                  { label: 'Beta-lactams › Cephalosporins', antibiotics: ['cefiderocol', 'cefixime', 'ceftriaxone'] }];
+
+  it('finds a drug by any part of its name, not only the first letter', () => {
+    expect(matchAntibiotics(NAMES, GROUPS, 'cefi')).toEqual(['cefiderocol', 'cefixime']);
+    expect(matchAntibiotics(NAMES, GROUPS, 'xime')).toEqual(['cefixime']);
+    expect(matchAntibiotics(NAMES, GROUPS, 'CEFIX')).toEqual(['cefixime']);
+  });
+
+  it('finds every drug of a family, and puts names that start with the text first', () => {
+    expect(matchAntibiotics(NAMES, GROUPS, 'carbapenem')).toEqual(['meropenem', 'imipenem']);
+    expect(matchAntibiotics(NAMES, GROUPS, 'im')).toEqual(['imipenem', 'cefixime']);
+    expect(matchAntibiotics(NAMES, GROUPS, '')).toEqual(NAMES);
+  });
+
+  async function openDropdown() {
+    await screen.findByRole('option', { name: 'Ciprofloxacin' });   // the list has loaded
+    const box = screen.getByRole('combobox', { name: 'Search and choose an antibiotic' });
+    fireEvent.focus(box);
+    return box;
+  }
+
+  it('typing in the dropdown narrows its list, and a click chooses', async () => {
+    backend();
+    renderPage(<Forecast />, '/forecast');
+    const box = await openDropdown();
+    const list = screen.getByRole('listbox', { name: 'Antibiotics' });
+    expect(within(list).getAllByRole('option').map(o => o.textContent)).toEqual(['Ciprofloxacin', 'Gentamicin']);
+    fireEvent.change(box, { target: { value: 'genta' } });
+    expect(within(list).getAllByRole('option').map(o => o.textContent)).toEqual(['Gentamicin']);
+    fireEvent.click(within(list).getByRole('option', { name: 'Gentamicin' }));
+    expect(screen.getByLabelText(/^Antibiotic/)).toHaveValue('gentamicin');
+    expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+    expect(box).toHaveValue('Gentamicin');
+  });
+
+  it('says when nothing matches', async () => {
+    backend();
+    renderPage(<Forecast />, '/forecast');
+    fireEvent.change(await openDropdown(), { target: { value: 'zzz' } });
+    expect(screen.getByText(/No antibiotic matches “zzz”/)).toBeInTheDocument();
+  });
+
+  it('arrow keys move and Enter chooses, without submitting the form', async () => {
+    const calls = backend();
+    renderPage(<Forecast />, '/forecast');
+    const box = await openDropdown();
+    fireEvent.keyDown(box, { key: 'ArrowDown' });
+    fireEvent.keyDown(box, { key: 'Enter' });
+    expect(screen.getByLabelText(/^Antibiotic/)).toHaveValue('gentamicin');
+    expect(calls.some(c => c.url.includes('/forecast/'))).toBe(false);
+  });
+
+  it('Escape closes the list and keeps the choice', async () => {
+    backend();
+    renderPage(<Forecast />, '/forecast');
+    await screen.findByRole('option', { name: 'Ciprofloxacin' });
+    fireEvent.change(screen.getByLabelText(/^Antibiotic/), { target: { value: 'ciprofloxacin' } });
+    const box = await openDropdown();
+    fireEvent.change(box, { target: { value: 'gen' } });
+    fireEvent.keyDown(box, { key: 'Escape' });
+    expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+    expect(screen.getByLabelText(/^Antibiotic/)).toHaveValue('ciprofloxacin');
+  });
+});
 
 describe('organism lists', () => {
   it('offers only the species and taxa of the chosen genus', () => {

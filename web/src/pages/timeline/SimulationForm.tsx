@@ -4,7 +4,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 import FastaInput, { chosenGenome, EMPTY_FASTA, type FastaValue } from '../../components/FastaInput';
 import { useToast } from '../../components/Toasts';
 import { useAntibiotics } from '../../lib/vocab';
-import AntibioticOptions from '../../components/AntibioticOptions';
+import AntibioticSelect from '../../components/AntibioticSelect';
 import BioIcon from '../../components/BioIcon';
 
 export const SAMPLE_GENOME = `>sample_Ecoli_genome
@@ -56,13 +56,9 @@ export default function SimulationForm({ busy, initial, onSubmit }: Props) {
           <i className="bi bi-info-circle text-muted ms-1" data-bs-toggle="tooltip" data-bs-placement="right"
              data-bs-title="Select the antibiotic to simulate. Each has a hand-set growth rate and peak resistance; the curve shape has been checked against published lab and hospital data."></i>
         </label>
-        <select name="antibiotic" id="simAntibiotic" className="form-select form-select-custom" required
-                value={antibiotic} onChange={e => setAntibiotic(e.target.value)}>
-          {antibiotics.state === 'failed'
-            ? <option value="" disabled>Failed to load — check backend</option>
-            : <option value="">-- Select Antibiotic --</option>}
-          {antibiotics.state === 'ready' && <AntibioticOptions names={antibiotics.data} />}
-        </select>
+        <AntibioticSelect id="simAntibiotic" name="antibiotic" required value={antibiotic} onChange={setAntibiotic}
+                          names={antibiotics.state === 'ready' ? antibiotics.data : []}
+                          placeholder={antibiotics.state === 'failed' ? 'Failed to load — check backend' : '-- Select Antibiotic --'} />
       </div>
 
       <div className="mb-3">

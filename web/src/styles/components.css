@@ -502,6 +502,14 @@
   letter-spacing: 0.04em; color: var(--text-3); margin: 8px 0 2px; }
 .ms-option { display: flex; align-items: center; padding: 3px 4px; border-radius: 6px; cursor: pointer; font-size: 0.9rem; }
 .ms-option:hover { background: rgba(37, 99, 235, 0.08); }
+/* the searchable antibiotic dropdown (AntibioticSelect) */
+.ab-combo-input { cursor: text; text-overflow: ellipsis; }
+.ab-combo-input::placeholder { color: var(--text-3); opacity: 1; }
+/* the real <select> underneath: invisible, but where the browser shows "please choose" */
+.ab-combo-native { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; pointer-events: none; }
+.ab-combo-menu .ms-options, .ab-combo-menu { max-height: 320px; overflow-y: auto; }
+.ab-combo-menu .ms-option.active { background: rgba(37, 99, 235, 0.12); }
+.ab-combo-menu .ms-option.chosen { font-weight: 600; }
 .legend-swatch.no-data { background: #c9ccd1; }
 .legend-swatch { display: inline-block; width: 14px; height: 14px; border-radius: 3px; margin-right: 6px; vertical-align: -2px; }
 .drug-modal .modal-content { border-radius: var(--r-md, 14px); border: 1px solid var(--border); background: var(--bg-card); color: var(--text-1); }

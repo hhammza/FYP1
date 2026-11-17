@@ -34,8 +34,8 @@ export default function About() {
       {/* ── Quick Stats ────────────────────────────────────────────── */}
       <div className="d-flex gap-3 flex-wrap mb-4">
         <div className="about-stat-wrap"><div className="stat-mini">
-          <div className="stat-mini-value text-indigo">3</div>
-          <div className="stat-mini-label">Trained models behind the tools</div>
+          <div className="stat-mini-value text-indigo">5</div>
+          <div className="stat-mini-label">Trained models + 1 simulation</div>
         </div></div>
         <div className="about-stat-wrap"><div className="stat-mini">
           <div className="stat-mini-value text-emerald">{m.lgbm.auc}</div>

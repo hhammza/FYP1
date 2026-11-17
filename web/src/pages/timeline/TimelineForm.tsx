@@ -3,7 +3,7 @@
    for that drug, or identified from an uploaded genome) and how many years to
    look ahead. */
 import { useEffect, useState, type FormEvent } from 'react';
-import AntibioticOptions from '../../components/AntibioticOptions';
+import AntibioticSelect from '../../components/AntibioticSelect';
 import BioIcon from '../../components/BioIcon';
 import FastaInput, { chosenGenome, EMPTY_FASTA, type FastaValue } from '../../components/FastaInput';
 import { useVocabulary } from '../../lib/vocab';
@@ -74,12 +74,10 @@ export default function TimelineForm({ busy, onSubmit }: Props) {
       </p>
       <div className="mb-3">
         <label className="form-label-custom" htmlFor="antibioticSelect">Antibiotic <span className="required">*</span></label>
-        <select id="antibioticSelect" className="form-select form-select-custom" required value={antibiotic}
-                onChange={e => setAntibiotic(e.target.value)} disabled={!drugs.length}>
-          <option value="">{vocab.state === 'loading' ? 'Loading…'
-            : drugs.length ? '-- Select Antibiotic --' : 'Failed to load — check backend'}</option>
-          <AntibioticOptions names={drugs} />
-        </select>
+        <AntibioticSelect id="antibioticSelect" required value={antibiotic} onChange={setAntibiotic} names={drugs}
+                          disabled={!drugs.length}
+                          placeholder={vocab.state === 'loading' ? 'Loading…'
+                            : drugs.length ? '-- Select Antibiotic --' : 'Failed to load — check backend'} />
         <div className="form-hint">{drugs.length ? `${drugs.length} antibiotics have yearly lab history` : ''}</div>
       </div>
 

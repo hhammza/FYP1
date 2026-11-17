@@ -95,8 +95,8 @@ export default function Home() {
                     <div className="hpanel-stat-label">K-mer genomes</div>
                   </div>
                   <div className="hpanel-stat">
-                    <div className="hpanel-stat-val">2</div>
-                    <div className="hpanel-stat-label">Prediction models</div>
+                    <div className="hpanel-stat-val">5</div>
+                    <div className="hpanel-stat-label">Trained models</div>
                   </div>
                 </div>
                 <div className="hpanel-divider"></div>

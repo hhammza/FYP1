@@ -93,6 +93,16 @@ The React `/timeline` had the timeline ML model since 0.3.0, but the Flask site 
 
 ---
 
+## Antibiotic search; model count matches "5 trained models" (2026-11-17, Suleman)
+
+| File | Change |
+|---|---|
+| [AntibioticSelect.tsx](web/src/components/AntibioticSelect.tsx) (new), [AntibioticOptions.tsx](web/src/components/AntibioticOptions.tsx), CSS | Every antibiotic dropdown (/forecast, /predict, both /timeline tabs) is searchable: type into it and its list narrows as you type, still grouped by family. A native dropdown only jumped to the first letter typed; now "cefi" lists cefixime and cefiderocol, "carbapenem" or "ceph" a whole family. Arrow keys and Enter or a click choose (Enter does not submit), Escape closes. A hidden native `<select>` keeps the id, name and "required" check, so the form, the page tests and `e2e_check.py` are unchanged |
+| Home, About (React); `index.html`, `about.html`, `base.html` (Flask) | The "2 models" tiles say **5 trained models**, matching the text Hamza updated beside them |
+| [Forecast.test.tsx](web/src/pages/Forecast.test.tsx) | 6 tests: matching by part of a name and by family; typing narrows the list and a click chooses; no match; arrow keys + Enter without submitting; Escape. Web 104 pass; e2e 25 of 25 |
+
+---
+
 ## Second browser test: architecture text, phone layout, drug popup (2026-11-15, Suleman)
 
 | File | Change |

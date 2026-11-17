@@ -4,7 +4,7 @@ import FastaInput, { chosenGenome, EMPTY_FASTA, type FastaValue } from '../../co
 import { useToast } from '../../components/Toasts';
 import { useMetrics } from '../../lib/health';
 import { useAntibiotics } from '../../lib/vocab';
-import AntibioticOptions from '../../components/AntibioticOptions';
+import AntibioticSelect from '../../components/AntibioticSelect';
 import BioIcon from '../../components/BioIcon';
 
 /* A short E. coli snippet: the model refuses it (a complete genome is at
@@ -66,13 +66,9 @@ export default function PredictForm({ busy, initialAntibiotic = '', onSubmit }: 
           <i className="bi bi-info-circle text-muted ms-1" data-bs-toggle="tooltip" data-bs-placement="right"
              data-bs-title={`Select the antibiotic to predict resistance against. The list holds only the ${m.kmer.antibiotics} antibiotics the model was trained on.`}></i>
         </label>
-        <select name="antibiotic" id="antibioticSelect" className="form-select form-select-custom" required
-                value={antibiotic} onChange={e => setAntibiotic(e.target.value)}>
-          {antibiotics.state === 'failed'
-            ? <option value="" disabled>Failed to load — check backend</option>
-            : <option value="">-- Select Antibiotic --</option>}
-          {antibiotics.state === 'ready' && <AntibioticOptions names={antibiotics.data} />}
-        </select>
+        <AntibioticSelect id="antibioticSelect" name="antibiotic" required value={antibiotic} onChange={setAntibiotic}
+                          names={antibiotics.state === 'ready' ? antibiotics.data : []}
+                          placeholder={antibiotics.state === 'failed' ? 'Failed to load — check backend' : '-- Select Antibiotic --'} />
       </div>
 
       <FastaInput suffix="" value={fasta} onChange={change} accept=".fasta,.fa,.fna,.ffn,.faa" rows={8}

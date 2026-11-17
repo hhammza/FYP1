@@ -12,7 +12,7 @@ import { MIC_SIGNS, useAntibiotics, useVocabulary, type OrganismGenus } from '..
 import { useToast } from '../../components/Toasts';
 import GenomeInfo from './GenomeInfo';
 import type { ForecastInputs, GenomeLookup, LabResult } from './types';
-import AntibioticOptions from '../../components/AntibioticOptions';
+import AntibioticSelect from '../../components/AntibioticSelect';
 import BioIcon from '../../components/BioIcon';
 
 const GENOME_ID = /^\d{1,9}\.\d{1,9}$/;
@@ -190,13 +190,9 @@ export default function ForecastForm({ busy, prediction, onSubmit }: Props) {
           <i className="bi bi-info-circle text-muted ms-1" data-bs-toggle="tooltip" data-bs-placement="right"
              data-bs-title={`Select the antibiotic to test resistance against. Only the ${m.lgbm.antibiotics} antibiotics the model was trained on are listed.`}></i>
         </label>
-        <select name="antibiotic" id="antibioticSelect" className="form-select form-select-custom" required
-                value={antibiotic} onChange={e => chooseAntibiotic(e.target.value)}>
-          {antibiotics.state === 'failed'
-            ? <option value="" disabled>Failed to load — check backend</option>
-            : <option value="">-- Select Antibiotic --</option>}
-          {antibiotics.state === 'ready' && <AntibioticOptions names={antibiotics.data} />}
-        </select>
+        <AntibioticSelect id="antibioticSelect" name="antibiotic" required value={antibiotic} onChange={chooseAntibiotic}
+                          names={antibiotics.state === 'ready' ? antibiotics.data : []}
+                          placeholder={antibiotics.state === 'failed' ? 'Failed to load — check backend' : '-- Select Antibiotic --'} />
       </div>
 
       <div className="mb-3" id="genomeFill">
