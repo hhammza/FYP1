@@ -19,7 +19,7 @@ python scripts/e2e_check.py --site react --base https://<web>.up.railway.app --a
 
 It prints ✓ or ✗ for each step below and exits 0 only if all pass. For `/predict` it downloads one complete genome the served model never trained on (from its test list, BV-BRC); `--no-genome` skips that step when offline.
 
-Last run: **2026-10-25**: React 24 of 24 (with the ML forecast step), Flask 23 of 23 (local, Windows, Edge). Earlier, 2026-10-15: 23 of 23 on the React production build too.
+Last run: **2026-11-17**: React 26 of 26 and Flask 26 of 26 (local, Windows, Edge), after the /timeline split into the ML forecast (`#timelineForm`, `/api/timeline/`) and the what-if simulation (`#simulationForm`, `/api/timeline/simulate/`). Earlier, 2026-10-25: React 24 of 24, Flask 23 of 23.
 
 ## By hand: the same steps
 
@@ -43,10 +43,13 @@ Last run: **2026-10-25**: React 24 of 24 (with the ML forecast step), Flask 23 o
 - [ ] Upload a complete genome (FASTA, 2–7 MB) → a prediction within the wait (button says "Analysing the genome…"); on the gene model: "Identified as …" and the resistance-genes panel
 - [ ] Download **CSV**, **PDF report**, **Chart (PNG)** (PNG only when the k-mer chart is shown)
 
-### 5. `/timeline`
-- [ ] Paste tab → **Load Sample** → Generate → the weekly chart; the RL panel appears once Ali's agent returns `rl` (preview: `/timeline/sample` on a local run)
-- [ ] Download **CSV**, **PDF report**, **Chart (PNG)**; each is labelled "Simulation, not a trained model"
-- [ ] React: ciprofloxacin, organism **Salmonella** → the ML forecast above the simulation (about 21 years of history, a dashed forecast with its band); ciprofloxacin, gentamicin or imipenem → the RL panel, its red week chips at the weeks the table gives
+### 5. `/timeline` (two tabs: the ML forecast, then the what-if simulation)
+- [ ] **ML trend forecast** tab: ciprofloxacin, organism **Salmonella** → about 21 years of history, a dashed forecast with its 80% band
+- [ ] Download **CSV**, **PDF report**, **Chart (PNG)** of the forecast
+- [ ] Organism **From a genome**: erythromycin + a complete *S. pneumoniae* genome → "identified as Streptococcus" and its forecast
+- [ ] **What-if simulation** tab: Paste tab → **Load Sample** → Generate → the weekly chart; ciprofloxacin, gentamicin or imipenem → the RL panel, its red week chips at the weeks the table gives (preview: `/timeline/sample` on a local run)
+- [ ] Download the simulation's **CSV**, **PDF report**, **Chart (PNG)**; each is labelled "Simulation, not a trained model"
+- [ ] Every antibiotic field (React): typing narrows the list ("cefi" → cefixime, cefiderocol); Enter or a click chooses
 
 ### 6. `/genes`
 - [ ] Gene matrix CSV and gene info CSV download

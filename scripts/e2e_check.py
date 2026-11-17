@@ -299,50 +299,60 @@ def main(a):
                 return downloads('predict', png=has_chart)
             predict_downloads()
 
-        @step('/timeline: a simulation comes back')
-        def timeline_submit():
-            goto('/timeline')
-            if react:
-                page.get_by_role('tab', name='What-if simulation').click()
-            select_when_ready('#timelineForm [name=antibiotic]', 'ciprofloxacin')
-            page.click('#fastaTab2 .nav-link >> nth=1')
-            page.click('text=Load Sample')
-            submit('#timelineForm [type=submit]', 60_000, '#timelineChart .main-svg')
-            return 'RL panel shown' if page.locator('#rlPanel').count() else 'no RL block in the response yet'
-        timeline_submit()
+        # /timeline (both sites): #timelineForm is the timeline ML model (POST /api/timeline/),
+        # #simulationForm the what-if simulation and RL agent (POST /api/timeline/simulate/)
+        def forecast_series(name):
+            """Points of a trace of the ML forecast chart (React: the Plotly figure; Flask: the same)."""
+            return page.evaluate(f"(document.getElementById('mlForecastChart').data || [])"
+                                 f".filter(d => d.name && d.name.startsWith('{name}')).map(d => d.x.length)[0] || 0")
 
-        @step('/timeline: CSV, PDF and PNG downloads')
+        @step('/timeline: the ML forecast (Salmonella + ciprofloxacin)')
+        def timeline_forecast():
+            goto('/timeline')
+            select_when_ready('#timelineForm #antibioticSelect', 'ciprofloxacin')
+            select_when_ready('#genusSelect', 'Salmonella')
+            submit('#timelineForm [type=submit]', 60_000, '#mlForecastChart .main-svg')
+            years = forecast_series('Observed')
+            check(years >= 5, f'only {years} years of history shown')
+            ahead = forecast_series('ML forecast') - 1   # the forecast line starts at the last observed year
+            check(ahead >= 1, 'no forecast years shown')
+            return f'{years} years of history, {ahead}-year forecast'
+        timeline_forecast()
+
+        @step('/timeline: forecast CSV, PDF and PNG downloads')
         def timeline_downloads():
             return downloads('timeline')
         timeline_downloads()
 
-        if react:
-            @step('/timeline: the ML trend forecast, no genome (Salmonella + ciprofloxacin)')
-            def timeline_trend():
+        if genome:
+            @step('/timeline: the ML forecast with the organism found from a genome')
+            def timeline_from_genome():
                 goto('/timeline')
-                select_when_ready('#trendAntibiotic', 'ciprofloxacin')
-                select_when_ready('#trendGenus', 'Salmonella')
-                submit('#trendForm [type=submit]', 60_000, '#mlForecastChart .main-svg')
-                points = page.evaluate("document.getElementById('mlForecastChart').data"
-                                       ".find(d => d.name === 'ML forecast').x.length")
-                check(points == 6, f'{points - 1} forecast years shown, not 5')
-                return '5-year forecast from the organism alone'
-            timeline_trend()
+                # the test genome is S. pneumoniae; erythromycin has a Streptococcus series
+                select_when_ready('#timelineForm #antibioticSelect', 'erythromycin')
+                page.click('#timelineForm >> text=From a genome')
+                page.set_input_files('#fastaFile2', genome)
+                submit('#timelineForm [type=submit]', 150_000, '#mlForecastChart .main-svg')
+                found = page.locator('#genusFromGenome')
+                check(found.count() == 1, 'the page does not say which organism the genome is')
+                return found.inner_text().strip()[:90]
+            timeline_from_genome()
 
-            @step('/timeline: the ML forecast for an organism (Salmonella + ciprofloxacin)')
-            def timeline_forecast():
-                goto('/timeline')
-                page.get_by_role('tab', name='What-if simulation').click()
-                select_when_ready('#timelineForm [name=antibiotic]', 'ciprofloxacin')
-                select_when_ready('#genusSelect', 'Salmonella')
-                page.click('#fastaTab2 .nav-link >> nth=1')
-                page.click('text=Load Sample')
-                submit('#timelineForm [type=submit]', 60_000, '#mlForecastChart .main-svg')
-                years = page.evaluate("document.getElementById('mlForecastChart').data"
-                                      ".find(d => d.name && d.name.startsWith('Observed')).x.length")
-                check(years >= 5, f'only {years} years of history shown')
-                return f'{years} years of history and a forecast'
-            timeline_forecast()
+        @step('/timeline: a what-if simulation comes back')
+        def simulation_submit():
+            goto('/timeline')
+            page.get_by_role('tab', name='What-if simulation').click()
+            select_when_ready('#simulationForm [name=antibiotic]', 'ciprofloxacin')
+            page.click('#fastaTab3 .nav-link >> nth=1')
+            page.click('#simulationForm >> text=Load Sample')
+            submit('#simulationForm [type=submit]', 60_000, '#timelineChart .main-svg')
+            return 'RL panel shown' if page.locator('#rlPanel').count() else 'no RL block in the response yet'
+        simulation_submit()
+
+        @step('/timeline: simulation CSV, PDF and PNG downloads')
+        def simulation_downloads():
+            return downloads('simulation')
+        simulation_downloads()
 
         @step('/genes: gene matrix and gene info CSV downloads')
         def gene_csvs():

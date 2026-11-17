@@ -93,6 +93,15 @@ The React `/timeline` had the timeline ML model since 0.3.0, but the Flask site 
 
 ---
 
+## End-to-end check follows the /timeline split (2026-11-17, Suleman)
+
+| File | Change |
+|---|---|
+| [scripts/e2e_check.py](scripts/e2e_check.py) | The /timeline steps used the old forms (`#trendForm`, `#trendAntibiotic`, the simulation in `#timelineForm`) and failed after Ali's split. Now, on both sites: the ML forecast in `#timelineForm` (Salmonella + ciprofloxacin), its downloads, **new:** the forecast with the organism identified from a genome (erythromycin + the *S. pneumoniae* test genome → Streptococcus), the what-if simulation in `#simulationForm` with the RL panel, and its downloads (`simulation`). React 26 of 26, Flask 26 of 26 |
+| [docs/E2E_CHECKLIST.md](docs/E2E_CHECKLIST.md) | §5 by hand in the same order; last run updated |
+
+---
+
 ## Antibiotic search; model count matches "5 trained models" (2026-11-17, Suleman)
 
 | File | Change |
