@@ -6,9 +6,10 @@ The detailed guides for the AMR Intelligence Platform. The top-level [README](..
 
 | Guide | What it covers |
 |---|---|
+| [**Evaluation guide**](EVALUATION_GUIDE.md) | For the evaluation: the notebook that reproduces each reported number, where the preprocessing and model code is, and how to install the library on any laptop |
 | [Overview](overview.md) | The 60-second version, the problem, the three questions the platform answers, and the dated update notes |
 | [Architecture](architecture.md) | Repository map, the layers, and one genome upload traced from the browser to the model and back |
-| [The prediction engines](models.md) | The LightGBM forecaster, the genome models (genes and k-mers), and the mutation timeline: inputs, outputs, fallbacks |
+| [The prediction engines](models.md) | The five trained models (forecaster, gene and k-mer genome models, timeline ML model, RL agent) and the simulation: inputs, outputs, results |
 | [Data and training](data-and-training.md) | BV-BRC data, cleaning, the production trainer, the experiment harness, and the notebooks the models came from |
 | [The amrpredict library](library.md) | The pip-installable package and its command line |
 | [The web application](frontend.md) | Every page, downloads and batch upload, the report pages, the genes page and the Resistance Explorer |

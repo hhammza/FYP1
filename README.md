@@ -4,7 +4,7 @@
 
 Predicts whether a bacterium resists an antibiotic, from laboratory data or from its genome, shows how resistance could grow under treatment, and maps laboratory resistance across the world. A Final Year Project at COMSATS University Islamabad, Lahore Campus (2026 to 2027).
 
-For the detail behind any part of this page, see the [project documentation](docs/README.md).
+For the detail behind any part of this page, see the [project documentation](docs/README.md). For an evaluation, the [evaluation guide](docs/EVALUATION_GUIDE.md) lists the notebook that reproduces each reported number.
 
 ## What it does
 

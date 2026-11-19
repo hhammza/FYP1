@@ -266,3 +266,7 @@ experiments/results/*/model/
 
 # Calibration downloads that can be fetched again (links in Data/evolution_curves/sources.csv)
 Data/evolution_curves/*.zip
+
+# Genomes the demo notebook and amrpredict-lib/examples/demo.py download
+notebooks/*.fna
+amrpredict-lib/examples/*.fna

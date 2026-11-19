@@ -34,6 +34,25 @@ Baseline is commit **`52ae361`** *(Add amrpredict library and macOS launcher, 20
 | Tests | Backend: organism and years checks, 422, a genome-identified forecast, health, both exports, the RL tests on `/simulate/`. Web: `Timeline.test.tsx` covers both tabs. Flask: both tabs |
 | `progress/formats/README.md`, `docs/models.md`, `docs/frontend.md` | The endpoint split |
 
+---
+
+## Evaluation notebooks: preprocessing, RL agent, library (2026-11-15, Hamza)
+
+For the evaluation, every reported number now has a notebook that reproduces it with the project's own code, saved with its outputs, and a guide that says which.
+
+| File | Change |
+|---|---|
+| [notebooks/00_preprocessing.ipynb](notebooks/00_preprocessing.ipynb) | New: each cleaning step on 1,537,259 real raw lab records (the 2026-11-08 download), then the 13 figures of the Data chapter recomputed from the training table, all equal; a genome turned into its 259 k-mer features |
+| [notebooks/05_rl_agent.ipynb](notebooks/05_rl_agent.ipynb) | New: the environment, schedules, training code and the served agent evaluated on the 100 evaluation episodes (92.5 effective weeks, first failure 77.14, identical to `rl_agent.json`) |
+| [notebooks/06_library_demo.ipynb](notebooks/06_library_demo.ipynb) | New: the library from PyPI in a clean environment; test genome 108619.160 (Salmonella, in neither genome model's training set): 11 of 14 lab results right with the k-mer model |
+| [notebooks/04_timeline_ml_and_gan.ipynb](notebooks/04_timeline_ml_and_gan.ipynb) | The 80/20 series-split test (9.86 pp); re-run, temporal result unchanged (13.98 pp) |
+| [amrpredict-lib/examples/demo.py](amrpredict-lib/examples/demo.py) | New: a terminal tour of every model, needing only `pip install amrpredict`; safe on Windows' default console encoding |
+| [docs/EVALUATION_GUIDE.md](docs/EVALUATION_GUIDE.md) | New: notebook per reported number, a 10-minute walkthrough, where the code is, install commands for Windows and macOS/Linux with fixes for the usual errors |
+| [docs/EVALUATION_QA.md](docs/EVALUATION_QA.md) | New: answers to the evaluation's ML and data science questions (preprocessing, k-mers, feature engineering, the models compared, training, weights, activations, augmentation, why LightGBM, why not deep learning, missing values, learning rates) |
+| `notebooks/README.md`, `docs/README.md`, `README.md`, `amrpredict-lib/README.md` | Link the new notebooks, the guide and the demo |
+
+---
+
 ## Documents brought up to date: PyPI, five models, /timeline (2026-11-15, Hamza)
 
 A pass over the guides for what changed since 2026-11-14: `amrpredict` 0.3.0 is on PyPI (installed from PyPI into a clean venv, every function works), the site serves five trained models and one simulation, `/timeline` opens on the ML trend forecast on both sites, and CI checks the library's gene model with the real AMRFinderPlus (passed).

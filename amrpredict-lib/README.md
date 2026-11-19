@@ -21,6 +21,8 @@ amrpredict.forecast('ciprofloxacin', taxon_id=562, mic_value=4)
 pip install amrpredict
 ```
 
+A guided tour of every model: [`examples/demo.py`](examples/demo.py) (`python demo.py --step`).
+
 Requires Python 3.9+. Dependencies: LightGBM, pandas, NumPy, joblib. The
 download is about 6 MB because the model artifacts are bundled.
 
